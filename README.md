@@ -7,6 +7,8 @@ Ilan Coulon, Félix Chalumeau & Quentin Cappart.
 
 ## Useful links 
 
+Here are useful links 
+
 ### User interface:
 Documentation of the modeling language we want to use, called JuMP http://www.juliaopt.org/JuMP.jl/v0.19.0/
 
