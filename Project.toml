@@ -1,6 +1,6 @@
 name = "CPRL"
 uuid = "c13076dc-bdcd-48ba-bc88-4b44c2587ab3"
-authors = ["\"Ilan Coulon\"", "\"Félix Chalumeau\""]
+authors = ["Ilan Coulon", "Félix Chalumeau"]
 version = "0.1.0"
 
 [compat]
