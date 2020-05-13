@@ -5,4 +5,5 @@ using CPRL.RL
     @testset "selectValue()" begin
         @test CPRL.RL.selectValue() == 3
     end
+    
 end
