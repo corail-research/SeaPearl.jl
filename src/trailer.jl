@@ -19,10 +19,23 @@ struct IntStateEntry <: StateEntry
     object      ::StateInt
 end
 
+
+"""
+    trail!(var::StateInt)
+
+Store the current value of `var` into its trailer.
+"""
 function trail!(var::StateInt)
     push!(var.trailer.current, IntStateEntry(var.value, var))
 end
 
+
+"""
+    setValue!(var::StateInt, value::Int)
+
+Change the value of `var`, replacing it with `value`, and if needed, stores the
+former value into `var`'s trailer.
+"""
 function setValue!(var::StateInt, value::Int)
     if (value != var.value)
         trail!(var)
@@ -31,11 +44,21 @@ function setValue!(var::StateInt, value::Int)
     return var.value
 end
 
+"""
+    saveState!(trailer::Trailer)
+
+Store the current state into the trailer, replacing the current stack with an empty one.
+"""
 function saveState!(trailer::Trailer)
     push!(trailer.prior, trailer.current)
     trailer.current = Stack{StateEntry}()
 end
 
+"""
+    restoreState!(trailer::Trailer)
+
+Iterate over the last state to restore every former value, used to backtrack every change made after the last call to [`saveState!`](@ref)
+"""
 function restoreState!(trailer::Trailer)
     for se in trailer.current
         se.object.value = se.value
@@ -48,6 +71,24 @@ function restoreState!(trailer::Trailer)
     end
 end
 
+
+"""
+    withNewState!(func, trailer::Trailer)
+
+Call the `func` function with a new state, restoring it after. Aimed to be used with the `do` block syntax.
+
+# Examples
+```jldoctest
+julia> using CPRL
+julia> trailer = CPRL.Trailer()
+julia> reversibleInt = CPRL.StateInt(3, trailer)
+julia> CPRL.withNewState!(trailer) do
+        CPRL.setValue!(reversibleInt, 5)
+    end
+julia> reversibleInt.value
+3
+```
+"""
 function withNewState!(func, trailer::Trailer)
     saveState!(trailer)
     func()

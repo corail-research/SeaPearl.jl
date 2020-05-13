@@ -1,3 +1,5 @@
+using CPRL
+
 @testset "trailer.jl" begin
 
     @testset "StateInt()" begin
