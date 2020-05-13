@@ -1,5 +1,10 @@
 using DataStructures
 
+"""
+    StateEntry
+
+What can be stacked into the trailer
+"""
 abstract type StateEntry end
 
 
