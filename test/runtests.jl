@@ -5,4 +5,5 @@ using Test
     include("CP/CP.jl")
     include("RL/RL.jl")
     include("MOI/MOI.jl")
+    include("trailer.jl")
 end
