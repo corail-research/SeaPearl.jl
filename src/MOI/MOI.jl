@@ -1,5 +1,5 @@
 module MOI
 
-add_constraint() = println("Constraint added !")
+add_constraint() = @info "Constraint added !"
 
 end

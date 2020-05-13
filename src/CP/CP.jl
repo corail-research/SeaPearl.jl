@@ -1,5 +1,5 @@
 module CP
 
-solve() = println("Solved !")
+solve() = @info "Solved !"
 
 end

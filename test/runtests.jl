@@ -2,5 +2,7 @@ using CPRL
 using Test
 
 @testset "CPRL.jl" begin
-    # Write your own tests here.
+    include("CP/CP.jl")
+    include("RL/RL.jl")
+    include("MOI/MOI.jl")
 end
