@@ -124,6 +124,17 @@ Remove everything from the domain of `x` but `value`.
 assign!(x::IntVar, value::Int) = assign!(x.domain, value)
 
 """
+    assignedValue(x::IntVar)
+
+Return the assigened value of `x`. Throw an error if `x` is not bound.
+"""
+function assignedValue(x::IntVar)
+    @assert isbound(x)
+
+    return x.domain.values[1] + x.domain.offset
+end
+
+"""
     Base.iterate(dom::IntDomain, state=1)
 
 Iterate over the domain in an efficient way. The order may not be consistent.
