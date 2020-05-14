@@ -34,16 +34,22 @@ function Base.show(io::IO, dom::IntDomain)
 end
 
 struct IntVar
-    onDomainChange     ::Array{Constraint}
-    domain             ::CPRL.IntDomain
+    onDomainChange      ::Array{Constraint}
+    domain              ::CPRL.IntDomain
+    id                  ::String
 
-    function IntVar(min::Int, max::Int, trailer::Trailer)
+    function IntVar(min::Int, max::Int, id::String, trailer::Trailer)
         offset = min - 1
 
         dom = IntDomain(trailer, max - min + 1, offset)
 
-        return new(Constraint[], dom)
+        return new(Constraint[], dom, id)
     end
+end
+
+function Base.show(io::IO, var::IntVar)
+    print(var.id, "=")
+    print(var.domain)
 end
 
 """

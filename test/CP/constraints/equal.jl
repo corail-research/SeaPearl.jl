@@ -3,7 +3,7 @@ using CPRL
 @testset "equal.jl" begin
     @testset "EqualConstant()" begin
         trailer = CPRL.Trailer()
-        x = CPRL.IntVar(2, 6, trailer)
+        x = CPRL.IntVar(2, 6, "x", trailer)
 
         constraint = CPRL.EqualConstant(x, 3)
 
@@ -12,7 +12,7 @@ using CPRL
     end
     @testset "propagate!(::EqualConstant)" begin
         trailer = CPRL.Trailer()
-        x = CPRL.IntVar(2, 6, trailer)
+        x = CPRL.IntVar(2, 6, "x", trailer)
 
         constraint = CPRL.EqualConstant(x, 3)
 
@@ -31,7 +31,7 @@ using CPRL
 
         @test isempty(x.domain)
 
-        y = CPRL.IntVar(2, 6, trailer)
+        y = CPRL.IntVar(2, 6, "y", trailer)
         constraint1 = CPRL.EqualConstant(y, 3)
         constraint2 = CPRL.EqualConstant(y, 4)
 
@@ -44,8 +44,8 @@ using CPRL
 
     @testset "pruneEqual!()" begin
         trailer = CPRL.Trailer()
-        x = CPRL.IntVar(2, 6, trailer)
-        y = CPRL.IntVar(5, 8, trailer)
+        x = CPRL.IntVar(2, 6, "x", trailer)
+        y = CPRL.IntVar(5, 8, "y", trailer)
 
         CPRL.pruneEqual!(y, x)
 
@@ -57,8 +57,8 @@ using CPRL
 
     @testset "propagate!(::Equal)" begin
         trailer = CPRL.Trailer()
-        x = CPRL.IntVar(2, 6, trailer)
-        y = CPRL.IntVar(5, 8, trailer)
+        x = CPRL.IntVar(2, 6, "x", trailer)
+        y = CPRL.IntVar(5, 8, "y", trailer)
 
         constraint = CPRL.Equal(x, y)
         toPropagate = Set{CPRL.Constraint}()
@@ -71,7 +71,7 @@ using CPRL
         @test !(8 in y.domain) && 5 in y.domain && 6 in y.domain
 
         # Propagation test
-        z = CPRL.IntVar(5, 15, trailer)
+        z = CPRL.IntVar(5, 15, "z", trailer)
         constraint2 = CPRL.Equal(y, z)
         CPRL.propagate!(constraint2, toPropagate)
 

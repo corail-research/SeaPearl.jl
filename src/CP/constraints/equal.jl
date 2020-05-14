@@ -59,11 +59,10 @@ mutable struct Equal <: EqualConstraint
 end
 
 function Base.show(io::IO, constraint::Equal)
-    print("Equal constraint:"*"\n"*"x=")
-    println(constraint.x.domain)
+    println("Equal constraint:")
+    println(constraint.x)
     
-    print("y=")
-    println(constraint.y.domain)
+    println(constraint.y)
 end
 
 """

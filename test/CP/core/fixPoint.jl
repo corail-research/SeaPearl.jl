@@ -3,10 +3,10 @@ using CPRL
 @testset "fixPoint.jl" begin
     @testset "fixPoint!()" begin
         trailer = CPRL.Trailer()
-        x = CPRL.IntVar(2, 6, trailer)
-        y = CPRL.IntVar(5, 8, trailer)
-        z = CPRL.IntVar(6, 15, trailer)
-        t = CPRL.IntVar(6, 10, trailer)
+        x = CPRL.IntVar(2, 6, "x", trailer)
+        y = CPRL.IntVar(5, 8, "y", trailer)
+        z = CPRL.IntVar(6, 15, "z", trailer)
+        t = CPRL.IntVar(6, 10, "t", trailer)
 
         constraint = CPRL.Equal(x, y)
         
