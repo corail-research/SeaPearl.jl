@@ -41,4 +41,40 @@ using CPRL
         @test constraint2 in toPropagate2
 
     end
+
+    @testset "pruneEqual!()" begin
+        trailer = CPRL.Trailer()
+        x = CPRL.IntVar(2, 6, trailer)
+        y = CPRL.IntVar(5, 8, trailer)
+
+        CPRL.pruneEqual!(y, x)
+
+        @test length(y.domain) == 2
+        @test !(8 in y.domain) && 5 in y.domain && 6 in y.domain
+
+
+    end
+
+    @testset "propagate!(::Equal)" begin
+        trailer = CPRL.Trailer()
+        x = CPRL.IntVar(2, 6, trailer)
+        y = CPRL.IntVar(5, 8, trailer)
+
+        constraint = CPRL.Equal(x, y)
+        toPropagate = Set{CPRL.Constraint}()
+        CPRL.propagate!(constraint, toPropagate)
+
+
+        @test length(x.domain) == 2
+        @test length(y.domain) == 2
+        @test !(2 in x.domain) && 5 in x.domain && 6 in x.domain
+        @test !(8 in y.domain) && 5 in y.domain && 6 in y.domain
+
+        # Propagation test
+        z = CPRL.IntVar(5, 15, trailer)
+        constraint2 = CPRL.Equal(y, z)
+        CPRL.propagate!(constraint2, toPropagate)
+
+        @test constraint in toPropagate
+    end
 end
