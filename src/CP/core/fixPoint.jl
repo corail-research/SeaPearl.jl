@@ -1,3 +1,9 @@
+"""
+    fixPoint!(model::CPModel)
+
+Run the fix-point algorithm. Will prune the domain of every variable of `model` as much
+as possible, using its constraints.
+"""
 function fixPoint!(model::CPModel)
     toPropagate = Set{Constraint}()
 
