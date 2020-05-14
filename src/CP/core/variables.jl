@@ -92,6 +92,20 @@ function assign!(dom::IntDomain, value::Int)
 end
 
 """
+    Base.iterate(dom::IntDomain, state=1)
+
+Iterate over the domain in an efficient way. The order may not be consistent.
+"""
+function Base.iterate(dom::IntDomain, state=1)
+    @assert state >= 1
+    if state > dom.size.value
+        return nothing
+    end
+
+    return dom.values[state] + dom.offset, state+1
+end
+
+"""
     exchangePositions!(dom::IntDomain, v1::Int, v2::Int)
 
 Intended for internal use only, exchange the position of `v1` and `v2` in the array of the domain.

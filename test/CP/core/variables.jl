@@ -66,4 +66,16 @@ using CPRL
         @test 14 in dom
         @test length(dom) == 1
     end
+
+    @testset "iterate()" begin
+        trailer = CPRL.Trailer()
+        dom = CPRL.IntDomain(trailer, 3, 10)
+
+        j = 11
+        for i in dom
+            @test j == i
+            j += 1
+        end
+
+    end
 end
