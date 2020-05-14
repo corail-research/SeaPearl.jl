@@ -29,7 +29,7 @@ using CPRL
         @test !(10 in dom20)
         @test 21 in dom20
         @test !(1 in dom20)
-        @test !(30 in dom20)
+        @test !(31 in dom20)
     end
 
     @testset "exchangePositions!()" begin

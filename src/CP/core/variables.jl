@@ -53,7 +53,7 @@ function Base.in(value::Int, dom::IntDomain)
     if value < 1 || value > dom.initSize
         return false
     end
-    return dom.indexes[value] < length(dom)
+    return dom.indexes[value] <= length(dom)
 end
 
 """
