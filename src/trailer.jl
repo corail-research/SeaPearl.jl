@@ -14,6 +14,12 @@ mutable struct Trailer
     Trailer() = new(Stack{StateEntry}(), Stack{Stack{StateEntry}}())
 end
 
+
+"""
+    StateInt(value::Int, trailer::Trailer)
+
+A reversible integer of value `value`, storing its modification into `trailer`.
+"""
 mutable struct StateInt
     value       ::Int
     trailer     ::Trailer

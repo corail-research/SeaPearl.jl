@@ -1,9 +1,9 @@
-using CPRL.RL
+using CPRL
 
 @testset "RL.jl" begin
 
     @testset "selectValue()" begin
-        @test CPRL.RL.selectValue() == 3
+        @test CPRL.selectValue() == 3
     end
     
 end
