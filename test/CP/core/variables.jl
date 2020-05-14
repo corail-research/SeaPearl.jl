@@ -77,6 +77,8 @@ using CPRL
             j += 1
         end
 
+        @test j == 14
+
     end
 
     @testset "removeAll!()" begin
@@ -86,5 +88,24 @@ using CPRL
         CPRL.removeAll!(dom)
 
         @test isempty(dom)
+    end
+
+    @testset "isbound()" begin
+        trailer = CPRL.Trailer()
+        x = CPRL.IntVar(2, 6, trailer)
+
+        @test !CPRL.isbound(x)
+
+        CPRL.assign!(x, 3)
+
+        @test CPRL.isbound(x)
+    end
+
+    @testset "IntVar()" begin
+        trailer = CPRL.Trailer()
+        x = CPRL.IntVar(5, 8, trailer)
+
+        @test length(x.domain) == 4
+        @test 5 in x.domain && 8 in x.domain && !(4 in x.domain) && !(9 in x.domain)
     end
 end

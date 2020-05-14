@@ -38,6 +38,13 @@ struct IntVar
 end
 
 """
+    isbound(x::IntVar)
+
+Check whether x has an assigned value.
+"""
+isbound(x::IntVar) = length(x.domain) == 1
+
+"""
     isempty(dom::IntDomain)
 
 Return `true` iff `dom` is an empty set.
@@ -95,7 +102,7 @@ end
 """
     assign!(dom::IntDomain, value::Int)
 
-Remove everything from the domain but the given `value`.
+Remove everything from the domain but `value`.
 """
 function assign!(dom::IntDomain, value::Int)
     @assert value in dom
@@ -110,9 +117,17 @@ function assign!(dom::IntDomain, value::Int)
 end
 
 """
+    assign!(x::IntVar, value::Int)
+
+Remove everything from the domain of `x` but `value`.
+"""
+assign!(x::IntVar, value::Int) = assign!(x.domain, value)
+
+"""
     Base.iterate(dom::IntDomain, state=1)
 
 Iterate over the domain in an efficient way. The order may not be consistent.
+WARNING: Do *NOT* update the domain you are iterating on.
 """
 function Base.iterate(dom::IntDomain, state=1)
     @assert state >= 1
