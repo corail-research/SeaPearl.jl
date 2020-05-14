@@ -1,6 +1,7 @@
 
+abstract type Constraint end
 
-include("constraints/constraints.jl")
 include("core/variables.jl")
+include("constraints/constraints.jl")
 
 solve() = @info "Solved !"

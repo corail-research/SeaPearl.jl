@@ -1,1 +1,3 @@
-abstract type Constraint end
+
+
+include("equal.jl")
