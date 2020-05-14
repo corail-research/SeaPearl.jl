@@ -31,4 +31,28 @@ using CPRL
         @test !(1 in dom20)
         @test !(30 in dom20)
     end
+
+    @testset "exchangePositions!()" begin
+        trailer = CPRL.Trailer()
+        dom = CPRL.IntDomain(trailer, 5, 10)
+
+        @test dom.values == [1, 2, 3, 4, 5]
+        @test dom.indexes == [1, 2, 3, 4, 5]
+
+        CPRL.exchangePositions!(dom, 2, 5)
+
+        @test dom.values == [1, 5, 3, 4, 2]
+        @test dom.indexes == [1, 5, 3, 4, 2]
+    end
+
+    @testset "remove!()" begin
+        trailer = CPRL.Trailer()
+        dom = CPRL.IntDomain(trailer, 5, 10)
+
+        CPRL.remove!(dom, 11)
+
+
+        @test !(11 in dom)
+        @test length(dom) == 4
+    end
 end

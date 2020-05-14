@@ -53,13 +53,41 @@ function Base.in(value::Int, dom::IntDomain)
     if value < 1 || value > dom.initSize
         return false
     end
-    dom.indexes[value] < length(dom)
+    return dom.indexes[value] < length(dom)
 end
 
+"""
+    remove!(dom::IntDomain, value::Int)
+
+Remove `value` from `dom`.
+"""
 function remove!(dom::IntDomain, value::Int)
     if !(value in dom)
         return dom
     end
 
     value -= dom.offset
+
+    exchangePositions!(dom, value, dom.size.value)
+    setValue!(dom.size, dom.size.value - 1)
+
+    return dom
+end
+
+"""
+    exchangePositions!(dom::IntDomain, v1::Int, v2::Int)
+
+Intended for internal use only, exchange the position of `v1` and `v2` in the array of the domain.
+"""
+function exchangePositions!(dom::IntDomain, v1::Int, v2::Int)
+    @assert(v1 <= length(dom.values) && v2 <= length(dom.values))
+
+    i1, i2 = dom.indexes[v1], dom.indexes[v2]
+
+    dom.values[i1] = v2
+    dom.values[i2] = v1
+    dom.indexes[v1] = i2
+    dom.indexes[v2] = i1
+
+    return dom
 end
