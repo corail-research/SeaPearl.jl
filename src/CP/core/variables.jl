@@ -24,6 +24,15 @@ struct IntDomain
     end
 end
 
+function Base.show(io::IO, dom::IntDomain)
+    toPrint = "["
+    for i in dom
+        toPrint *= string(i)*" "
+    end
+    toPrint *= "]"
+    print(toPrint)
+end
+
 struct IntVar
     onDomainChange     ::Array{Constraint}
     domain             ::CPRL.IntDomain

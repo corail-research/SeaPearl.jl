@@ -58,6 +58,14 @@ mutable struct Equal <: EqualConstraint
     end
 end
 
+function Base.show(io::IO, constraint::Equal)
+    print("Equal constraint:"*"\n"*"x=")
+    println(constraint.x.domain)
+    
+    print("y=")
+    println(constraint.y.domain)
+end
+
 """
     propagate!(constraint::Equal, toPropagate::Set{Constraint})
 
