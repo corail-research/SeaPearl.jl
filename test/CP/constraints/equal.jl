@@ -75,6 +75,14 @@ using CPRL
         constraint2 = CPRL.Equal(y, z)
         CPRL.propagate!(constraint2, toPropagate)
 
+        # Domain not reduced => not propagation
+        @test !(constraint in toPropagate)
+        @test !(constraint2 in toPropagate)
+
+        # Domain reduced => propagation
+        CPRL.remove!(z.domain, 5)
+        CPRL.propagate!(constraint2, toPropagate)
         @test constraint in toPropagate
+        @test !(constraint2 in toPropagate)
     end
 end

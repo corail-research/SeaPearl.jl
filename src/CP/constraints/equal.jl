@@ -80,6 +80,8 @@ function propagate!(constraint::Equal, toPropagate::Set{Constraint})
         union!(toPropagate, constraint.y.onDomainChange)
     end
 
+    pop!(toPropagate, constraint)
+
     if length(constraint.x.domain) <= 1
         constraint.active = false
     end
