@@ -14,10 +14,10 @@ using CPRL
 
         model = CPRL.CPModel()
 
-        push!(model.variables, x)
-        push!(model.variables, y)
-        push!(model.variables, z)
-        push!(model.variables, t)
+        CPRL.addVariable!(model, x)
+        CPRL.addVariable!(model, y)
+        CPRL.addVariable!(model, z)
+        CPRL.addVariable!(model, t)
 
         push!(model.constraints, constraint)
         push!(model.constraints, constraint3)
