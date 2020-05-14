@@ -55,4 +55,15 @@ using CPRL
         @test !(11 in dom)
         @test length(dom) == 4
     end
+
+    @testset "assign!()" begin
+        trailer = CPRL.Trailer()
+        dom = CPRL.IntDomain(trailer, 5, 10)
+
+        CPRL.assign!(dom, 14)
+
+        @test !(12 in dom)
+        @test 14 in dom
+        @test length(dom) == 1
+    end
 end

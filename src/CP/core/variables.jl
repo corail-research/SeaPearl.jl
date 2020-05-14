@@ -75,6 +75,23 @@ function remove!(dom::IntDomain, value::Int)
 end
 
 """
+    assign!(dom::IntDomain, value::Int)
+
+Remove everything from the domain but the given `value`.
+"""
+function assign!(dom::IntDomain, value::Int)
+    @assert value in dom
+
+    value -= dom.offset
+
+    exchangePositions!(dom, value, dom.values[1])
+
+    setValue!(dom.size, 1)
+
+    return dom
+end
+
+"""
     exchangePositions!(dom::IntDomain, v1::Int, v2::Int)
 
 Intended for internal use only, exchange the position of `v1` and `v2` in the array of the domain.
