@@ -27,7 +27,7 @@ end
 struct IntVar
     onDomainChange     ::Array{Constraint}
     domain             ::CPRL.IntDomain
-    
+
     function IntVar(min::Int, max::Int, trailer::Trailer)
         offset = min - 1
 
@@ -79,6 +79,16 @@ function remove!(dom::IntDomain, value::Int)
     exchangePositions!(dom, value, dom.size.value)
     setValue!(dom.size, dom.size.value - 1)
 
+    return dom
+end
+
+"""
+    removeAll!(dom::IntDomain)
+
+Remove every value from `dom`
+"""
+function removeAll!(dom::IntDomain)
+    setValue!(dom.size, 0)
     return dom
 end
 

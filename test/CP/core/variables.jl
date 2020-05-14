@@ -78,4 +78,13 @@ using CPRL
         end
 
     end
+
+    @testset "removeAll!()" begin
+        trailer = CPRL.Trailer()
+        dom = CPRL.IntDomain(trailer, 3, 10)
+
+        CPRL.removeAll!(dom)
+
+        @test isempty(dom)
+    end
 end
