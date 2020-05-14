@@ -60,11 +60,12 @@ using CPRL
         trailer = CPRL.Trailer()
         dom = CPRL.IntDomain(trailer, 5, 10)
 
-        CPRL.assign!(dom, 14)
+        removed = CPRL.assign!(dom, 14)
 
         @test !(12 in dom)
         @test 14 in dom
         @test length(dom) == 1
+        @test sort(removed) == [11, 12, 13, 15]
     end
 
     @testset "iterate()" begin
@@ -85,9 +86,10 @@ using CPRL
         trailer = CPRL.Trailer()
         dom = CPRL.IntDomain(trailer, 3, 10)
 
-        CPRL.removeAll!(dom)
+        removed = CPRL.removeAll!(dom)
 
         @test isempty(dom)
+        @test removed == [11, 12, 13]
     end
 
     @testset "isbound()" begin

@@ -107,17 +107,22 @@ end
 """
     removeAll!(dom::IntDomain)
 
-Remove every value from `dom`
+Remove every value from `dom`. Return the removed values.
 """
 function removeAll!(dom::IntDomain)
+    removed = zeros(dom.size.value)
+    for i in 1:dom.size.value
+        removed[i] = dom.values[i] + dom.offset
+    end
+    
     setValue!(dom.size, 0)
-    return dom
+    return removed
 end
 
 """
     assign!(dom::IntDomain, value::Int)
 
-Remove everything from the domain but `value`.
+Remove everything from the domain but `value`. Return the removed values.
 """
 function assign!(dom::IntDomain, value::Int)
     @assert value in dom
@@ -126,9 +131,14 @@ function assign!(dom::IntDomain, value::Int)
 
     exchangePositions!(dom, value, dom.values[1])
 
+    removed = zeros(dom.size.value - 1)
+    for i in 2:dom.size.value
+        removed[i-1] = dom.values[i] + dom.offset
+    end
+
     setValue!(dom.size, 1)
 
-    return dom
+    return removed
 end
 
 """

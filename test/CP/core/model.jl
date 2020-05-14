@@ -15,4 +15,13 @@
 
         @test_throws AssertionError CPRL.addVariable!(model, z)
     end
+
+    @testset "merge!()" begin
+        test1 = CPRL.CPModification("x" => [2, 3, 4],"z" => [11, 12, 13, 14, 15],"y" => [7, 8])
+        test2 = CPRL.CPModification("x" => [5],"y" => [7, 8])
+
+        CPRL.merge!(test1, test2)
+
+        @test test1 == CPRL.CPModification("x" => [2, 3, 4, 5],"z" => [11, 12, 13, 14, 15],"y" => [7, 8, 7, 8])
+    end
 end

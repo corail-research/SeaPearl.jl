@@ -21,7 +21,11 @@ using CPRL
 
         push!(model.constraints, constraint)
         push!(model.constraints, constraint3)
-        CPRL.fixPoint!(model)
+        prunedDomains = CPRL.fixPoint!(model)
+        
+        rightPruning = CPRL.CPModification("x" => [2, 3, 4],"z" => [11, 12, 13, 14, 15],"y" => [7, 8])
+
+        @test prunedDomains == rightPruning
 
         @test length(x.domain) == 2
         @test length(y.domain) == 2
@@ -32,6 +36,7 @@ using CPRL
         push!(model.constraints, constraint2)
 
         CPRL.fixPoint!(model, [constraint2])
+
 
         @test CPRL.isbound(x)
         @test CPRL.isbound(y)

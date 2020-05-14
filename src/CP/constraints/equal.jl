@@ -24,20 +24,21 @@ end
 function propagate!(constraint::EqualConstant, toPropagate::Set{Constraint})
     # Stop propagation if constraint not active
     if !constraint.active
-        return
+        return CPModification()
     end
 
     # Reduce the domain to a singleton if possible
     if constraint.v in constraint.x.domain
-        assign!(constraint.x.domain, constraint.v)
+        removed = assign!(constraint.x.domain, constraint.v)
         constraint.active = false
         union!(toPropagate, constraint.x.onDomainChange)
-        return
+        return CPModification(constraint.x.id => removed)
     end
 
     # Reduce the domain to an empty set if value not in domain
-    removeAll!(constraint.x.domain)
+    removed = removeAll!(constraint.x.domain)
     constraint.active = false
+    return CPModification(constraint.x.id => removed)
 end
 
 """
@@ -77,14 +78,17 @@ function propagate!(constraint::Equal, toPropagate::Set{Constraint})
     xFormerLength = length(constraint.x.domain)
     yFormerLength = length(constraint.y.domain)
 
-    pruneEqual!(constraint.x, constraint.y)
-    pruneEqual!(constraint.y, constraint.x)
+    prunedX = pruneEqual!(constraint.x, constraint.y)
+    prunedY = pruneEqual!(constraint.y, constraint.x)
 
+    prunedDomains = CPModification()
     if xFormerLength > length(constraint.x.domain)
         union!(toPropagate, constraint.x.onDomainChange)
+        prunedDomains[constraint.x.id] = prunedX
     end
     if yFormerLength > length(constraint.y.domain)
         union!(toPropagate, constraint.y.onDomainChange)
+        prunedDomains[constraint.y.id] = prunedY
     end
 
     pop!(toPropagate, constraint)
@@ -92,7 +96,7 @@ function propagate!(constraint::Equal, toPropagate::Set{Constraint})
     if length(constraint.x.domain) <= 1
         constraint.active = false
     end
-    return
+    return prunedDomains
 end
 
 """
@@ -112,5 +116,5 @@ function pruneEqual!(x::IntVar, y::IntVar)
         remove!(x.domain, val)
     end
 
-    return x
+    return toRemove
 end

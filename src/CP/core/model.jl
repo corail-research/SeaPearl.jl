@@ -4,6 +4,8 @@ struct CPModel
     CPModel() = new(Dict{String, IntVar}(), Constraint[])
 end
 
+const CPModification = Dict{String, Array{Int}}
+
 """
     addVariable!(model::CPModel, x::IntVar)
 
@@ -14,4 +16,14 @@ function addVariable!(model::CPModel, x::IntVar)
     @assert !haskey(model.variables, x.id)
 
     model.variables[x.id] = x
+end
+
+function merge!(prunedDomains::CPModification, newPrunedDomains::CPModification)
+    for k in keys(newPrunedDomains)
+        if haskey(prunedDomains, k)
+            prunedDomains[k] = vcat(prunedDomains[k], newPrunedDomains[k])
+        else
+            prunedDomains[k] = newPrunedDomains[k]
+        end
+    end
 end
