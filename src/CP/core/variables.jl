@@ -27,6 +27,14 @@ end
 struct IntVar
     onDomainChange     ::Array{Constraint}
     domain             ::CPRL.IntDomain
+    
+    function IntVar(min::Int, max::Int, trailer::Trailer)
+        offset = min - 1
+
+        dom = IntDomain(trailer, max - min + 1, offset)
+
+        return new(Constraint[], dom)
+    end
 end
 
 """
