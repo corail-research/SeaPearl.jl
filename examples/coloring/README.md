@@ -2,7 +2,7 @@
 
 This is inspired from the __Discrete optimization__ course of Coursera, you can visualize data and solution files using their [website](https://discreteoptimization.github.io/vis/coloring/).
 
-To launch this example, you need to have the packages `DataStructures` and `CPRL` as dependencies.
+To launch this example, you need to have the package `CPRL` added to your environment.
 
 Being inside that folder in the terminal (`examples/coloring/`), you can launch:
 

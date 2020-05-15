@@ -1,10 +1,4 @@
-using DataStructures
 using CPRL
-
-mutable struct Vertex
-    id          :: Int
-    degree      :: Int
-end
 
 struct Edge
     vertex1     :: Int
