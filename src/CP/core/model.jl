@@ -32,3 +32,21 @@ function merge!(prunedDomains::CPModification, newPrunedDomains::CPModification)
         end
     end
 end
+
+"""
+    addToPrunedDomains!(prunedDomains::CPModification, x::IntVar, pruned::Array{Int})
+
+Update the `CPModification` by adding the pruned integers.
+
+# Arguments
+- `prunedDomains::CPModification`: the `CPModification` you want to update.
+- `x::IntVar`: the variable that had its domain pruned.
+- `pruned::Array{Int}`: the pruned integers.
+"""
+function addToPrunedDomains!(prunedDomains::CPModification, x::IntVar, pruned::Array{Int})
+    if haskey(prunedDomains, x.id)
+        prunedDomains[x.id] = vcat(prunedDomains[x.id], pruned)
+    else
+        prunedDomains[x.id] = pruned
+    end
+end

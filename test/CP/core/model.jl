@@ -24,4 +24,19 @@
 
         @test test1 == CPRL.CPModification("x" => [2, 3, 4, 5],"z" => [11, 12, 13, 14, 15],"y" => [7, 8, 7, 8])
     end
+
+    @testset "addToPrunedDomains!()" begin
+        test1 = CPRL.CPModification("x" => [2, 3, 4],"z" => [11, 12, 13, 14, 15],"y" => [7, 8])
+        trailer = CPRL.Trailer()
+        x = CPRL.IntVar(2, 6, "x", trailer)
+        t = CPRL.IntVar(2, 6, "t", trailer)
+
+        CPRL.addToPrunedDomains!(test1, x, [5, 6])
+
+        @test test1 == CPRL.CPModification("x" => [2, 3, 4, 5, 6],"z" => [11, 12, 13, 14, 15],"y" => [7, 8])
+
+        CPRL.addToPrunedDomains!(test1, t, [5, 6])
+
+        @test test1 == CPRL.CPModification("x" => [2, 3, 4, 5, 6],"z" => [11, 12, 13, 14, 15],"y" => [7, 8], "t" => [5, 6])
+    end
 end

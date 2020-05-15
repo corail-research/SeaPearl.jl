@@ -21,7 +21,7 @@ end
 
 `EqualConstant` propagation function. Basically set the `x` domain to the constant value.
 """
-function propagate!(constraint::EqualConstant, toPropagate::Set{Constraint})
+function propagate!(constraint::EqualConstant, toPropagate::Set{Constraint}, prunedDomains::CPModification)
     # Stop propagation if constraint not active
     if !constraint.active
         return CPModification()
@@ -32,13 +32,15 @@ function propagate!(constraint::EqualConstant, toPropagate::Set{Constraint})
         removed = assign!(constraint.x.domain, constraint.v)
         constraint.active = false
         union!(toPropagate, constraint.x.onDomainChange)
-        return CPModification(constraint.x.id => removed)
+        addToPrunedDomains!(prunedDomains, constraint.x, removed)
+        return true
     end
 
     # Reduce the domain to an empty set if value not in domain
     removed = removeAll!(constraint.x.domain)
     constraint.active = false
-    return CPModification(constraint.x.id => removed)
+    addToPrunedDomains!(prunedDomains, constraint.x, removed)
+    return false
 end
 
 """
@@ -71,7 +73,7 @@ end
 
 `Equal` propagation function.
 """
-function propagate!(constraint::Equal, toPropagate::Set{Constraint})
+function propagate!(constraint::Equal, toPropagate::Set{Constraint}, prunedDomains::CPModification)
     if !constraint.active
         return
     end
@@ -81,14 +83,13 @@ function propagate!(constraint::Equal, toPropagate::Set{Constraint})
     prunedX = pruneEqual!(constraint.x, constraint.y)
     prunedY = pruneEqual!(constraint.y, constraint.x)
 
-    prunedDomains = CPModification()
-    if xFormerLength > length(constraint.x.domain)
+    if !isempty(prunedX)
         union!(toPropagate, constraint.x.onDomainChange)
-        prunedDomains[constraint.x.id] = prunedX
+        addToPrunedDomains!(prunedDomains, constraint.x, prunedX)
     end
-    if yFormerLength > length(constraint.y.domain)
+    if !isempty(prunedY)
         union!(toPropagate, constraint.y.onDomainChange)
-        prunedDomains[constraint.y.id] = prunedY
+        addToPrunedDomains!(prunedDomains, constraint.y, prunedY)
     end
 
     pop!(toPropagate, constraint)
@@ -96,7 +97,10 @@ function propagate!(constraint::Equal, toPropagate::Set{Constraint})
     if length(constraint.x.domain) <= 1
         constraint.active = false
     end
-    return prunedDomains
+    if isempty(constraint.x.domain) || isempty(constraint.y.domain)
+        return false
+    end
+    return true
 end
 
 """

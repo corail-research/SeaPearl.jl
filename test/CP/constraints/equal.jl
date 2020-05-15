@@ -17,17 +17,19 @@ using CPRL
         constraint = CPRL.EqualConstant(x, 3)
 
         toPropagate = Set{CPRL.Constraint}()
+        prunedDomains = CPRL.CPModification()
 
-        CPRL.propagate!(constraint, toPropagate)
+        @test CPRL.propagate!(constraint, toPropagate, prunedDomains)
 
         @test length(x.domain) == 1
         @test 3 in x.domain
         @test !(2 in x.domain)
+        @test prunedDomains == CPRL.CPModification("x" => [2, 4, 5, 6])
 
 
         cons2 = CPRL.EqualConstant(x, 2)
 
-        CPRL.propagate!(cons2, toPropagate)
+        @test !CPRL.propagate!(cons2, toPropagate, prunedDomains)
 
         @test isempty(x.domain)
 
@@ -36,7 +38,7 @@ using CPRL
         constraint2 = CPRL.EqualConstant(y, 4)
 
         toPropagate2 = Set{CPRL.Constraint}()
-        CPRL.propagate!(constraint1, toPropagate2)
+        CPRL.propagate!(constraint1, toPropagate2, prunedDomains)
         
         @test constraint2 in toPropagate2
 
@@ -62,18 +64,21 @@ using CPRL
 
         constraint = CPRL.Equal(x, y)
         toPropagate = Set{CPRL.Constraint}()
-        CPRL.propagate!(constraint, toPropagate)
+        prunedDomains = CPRL.CPModification()
+
+        @test CPRL.propagate!(constraint, toPropagate, prunedDomains)
 
 
         @test length(x.domain) == 2
         @test length(y.domain) == 2
         @test !(2 in x.domain) && 5 in x.domain && 6 in x.domain
         @test !(8 in y.domain) && 5 in y.domain && 6 in y.domain
+        @test prunedDomains == CPRL.CPModification("x" => [2, 3, 4],"y" => [7, 8])
 
         # Propagation test
         z = CPRL.IntVar(5, 15, "z", trailer)
         constraint2 = CPRL.Equal(y, z)
-        CPRL.propagate!(constraint2, toPropagate)
+        CPRL.propagate!(constraint2, toPropagate, prunedDomains)
 
         # Domain not reduced => not propagation
         @test !(constraint in toPropagate)
@@ -81,8 +86,13 @@ using CPRL
 
         # Domain reduced => propagation
         CPRL.remove!(z.domain, 5)
-        CPRL.propagate!(constraint2, toPropagate)
+        CPRL.propagate!(constraint2, toPropagate, prunedDomains)
         @test constraint in toPropagate
         @test !(constraint2 in toPropagate)
+
+        #Unfeasible test
+        t = CPRL.IntVar(15, 30, "t", trailer)
+        constraint3 = CPRL.Equal(z, t)
+        @test !CPRL.propagate!(constraint3, toPropagate, prunedDomains)
     end
 end

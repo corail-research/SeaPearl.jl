@@ -28,7 +28,7 @@ function fixPoint!(model::CPModel, new_constraints=nothing)
 
     while !isempty(toPropagate)
         constraint = pop!(toPropagate)
-        merge!(prunedDomains, propagate!(constraint, toPropagate))
+        propagate!(constraint, toPropagate, prunedDomains)
     end
 
     return prunedDomains
