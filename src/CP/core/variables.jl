@@ -97,7 +97,7 @@ Remove `value` from `dom`.
 """
 function remove!(dom::IntDomain, value::Int)
     if !(value in dom)
-        return dom
+        return Int[]
     end
 
     value -= dom.offset
@@ -107,7 +107,7 @@ function remove!(dom::IntDomain, value::Int)
 
     updateBoundsFromRemovedVal!(dom, value+dom.offset)
 
-    return dom
+    return [value+dom.offset]
 end
 
 """

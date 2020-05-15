@@ -3,7 +3,7 @@ abstract type EqualConstraint <: Constraint end
 """
     EqualConstant(x::CPRL.IntVar, v::Int)
 
-Equality constraint, putting a constant value `v` for the variable `x`.
+Equality constraint, putting a constant value `v` for the variable `x` i.e. `x == v`
 """
 mutable struct EqualConstant <: EqualConstraint
     x       ::CPRL.IntVar
@@ -17,7 +17,7 @@ mutable struct EqualConstant <: EqualConstraint
 end
 
 """
-    propagate!(constraint::EqualConstant, toPropagate::Set{Constraint})
+    propagate!(constraint::EqualConstant, toPropagate::Set{Constraint}, prunedDomains::CPModification)
 
 `EqualConstant` propagation function. Basically set the `x` domain to the constant value.
 """
@@ -69,13 +69,13 @@ function Base.show(io::IO, constraint::Equal)
 end
 
 """
-    propagate!(constraint::Equal, toPropagate::Set{Constraint})
+    propagate!(constraint::Equal, toPropagate::Set{Constraint}, prunedDomains::CPModification)
 
 `Equal` propagation function.
 """
 function propagate!(constraint::Equal, toPropagate::Set{Constraint}, prunedDomains::CPModification)
     if !constraint.active
-        return
+        return true
     end
     xFormerLength = length(constraint.x.domain)
     yFormerLength = length(constraint.y.domain)
