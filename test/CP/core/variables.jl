@@ -54,6 +54,7 @@ using CPRL
 
         @test !(11 in dom)
         @test length(dom) == 4
+        @test dom.min.value == 12
     end
 
     @testset "assign!()" begin
@@ -66,6 +67,7 @@ using CPRL
         @test 14 in dom
         @test length(dom) == 1
         @test sort(removed) == [11, 12, 13, 15]
+        @test dom.max.value == 14 && dom.min.value == 14
     end
 
     @testset "iterate()" begin
@@ -119,5 +121,42 @@ using CPRL
 
         y = CPRL.IntVar(5, 8, "y", trailer)
         @test_throws AssertionError CPRL.assignedValue(y)
+    end
+
+    @testset "updateMinFromRemovedVal!()" begin
+        trailer = CPRL.Trailer()
+        x = CPRL.IntVar(5, 10, "x", trailer)
+
+        @test x.domain.min.value == 5
+
+        CPRL.remove!(x.domain, 5)
+        CPRL.updateMinFromRemovedVal!(x.domain, 5)
+
+        @test x.domain.min.value == 6
+    end
+
+    @testset "updateMaxFromRemovedVal!()" begin
+        trailer = CPRL.Trailer()
+        x = CPRL.IntVar(5, 10, "x", trailer)
+
+        @test x.domain.max.value == 10
+
+        CPRL.remove!(x.domain, 10)
+        CPRL.updateMaxFromRemovedVal!(x.domain, 10)
+
+        @test x.domain.max.value == 9
+    end
+
+    @testset "updateBoundsFromRemovedVal!()" begin
+        trailer = CPRL.Trailer()
+        x = CPRL.IntVar(5, 10, "x", trailer)
+
+        CPRL.remove!(x.domain, 5)
+        CPRL.remove!(x.domain, 10)
+        CPRL.updateBoundsFromRemovedVal!(x.domain, 5)
+        CPRL.updateBoundsFromRemovedVal!(x.domain, 10)
+
+        @test x.domain.min.value == 6
+        @test x.domain.max.value == 9
     end
 end

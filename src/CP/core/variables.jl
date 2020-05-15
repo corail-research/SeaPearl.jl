@@ -4,6 +4,8 @@ struct IntDomain
     offset          ::Int
     initSize        ::Int
     size            ::CPRL.StateInt
+    min             ::CPRL.StateInt
+    max             ::CPRL.StateInt
     trailer         ::CPRL.Trailer
 
     """
@@ -14,13 +16,15 @@ struct IntDomain
     function IntDomain(trailer::Trailer, n::Int, offset::Int)
 
         size = CPRL.StateInt(n, trailer)
+        min = CPRL.StateInt(offset + 1, trailer)
+        max = CPRL.StateInt(offset + n, trailer)
         values = zeros(n)
         indexes = zeros(n)
         for i in 1:n
             values[i] = i
             indexes[i] = i
         end
-        return new(values, indexes, offset, n, size, trailer)
+        return new(values, indexes, offset, n, size, min, max, trailer)
     end
 end
 
@@ -101,6 +105,8 @@ function remove!(dom::IntDomain, value::Int)
     exchangePositions!(dom, value, dom.size.value)
     setValue!(dom.size, dom.size.value - 1)
 
+    updateBoundsFromRemovedVal!(dom, value+dom.offset)
+
     return dom
 end
 
@@ -114,7 +120,7 @@ function removeAll!(dom::IntDomain)
     for i in 1:dom.size.value
         removed[i] = dom.values[i] + dom.offset
     end
-    
+
     setValue!(dom.size, 0)
     return removed
 end
@@ -137,6 +143,8 @@ function assign!(dom::IntDomain, value::Int)
     end
 
     setValue!(dom.size, 1)
+    setValue!(dom.max, value + dom.offset)
+    setValue!(dom.min, value + dom.offset)
 
     return removed
 end
@@ -190,4 +198,52 @@ function exchangePositions!(dom::IntDomain, v1::Int, v2::Int)
     dom.indexes[v2] = i1
 
     return dom
+end
+
+"""
+    updateMaxFromRemovedVal!(dom::IntDomain, v::Int)
+
+Knowing that `v` just got removed from `dom`, update `dom`'s maximum value.
+"""
+function updateMaxFromRemovedVal!(dom::IntDomain, v::Int)
+    if !isempty(dom) && dom.max.value == v
+        @assert !(v in dom)
+        currentVal = v - 1
+        while currentVal >= dom.min.value
+            if currentVal in dom
+                break
+            end
+            currentVal -= 1
+        end
+        setValue!(dom.max, currentVal)
+    end
+end
+
+"""
+    updateMinFromRemovedVal!(dom::IntDomain, v::Int)
+
+Knowing that `v` just got removed from `dom`, update `dom`'s minimum value.
+"""
+function updateMinFromRemovedVal!(dom::IntDomain, v::Int)
+    if !isempty(dom) && dom.min.value == v
+        @assert !(v in dom)
+        currentVal = v + 1
+        while currentVal <= dom.max.value
+            if currentVal in dom
+                break
+            end
+            currentVal += 1
+        end
+        setValue!(dom.min, currentVal)
+    end
+end
+
+"""
+    updateBoundsFromRemovedVal!(dom::IntDomain, v::Int)
+
+Knowing that `v` just got removed from `dom`, update `dom`'s minimum and maximum value.
+"""
+function updateBoundsFromRemovedVal!(dom::IntDomain, v::Int)
+    updateMaxFromRemovedVal!(dom, v)
+    updateMinFromRemovedVal!(dom, v)
 end
