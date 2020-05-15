@@ -3,9 +3,9 @@ struct IntDomain
     indexes         ::Array{Int}
     offset          ::Int
     initSize        ::Int
-    size            ::CPRL.StateInt
-    min             ::CPRL.StateInt
-    max             ::CPRL.StateInt
+    size            ::CPRL.StateObject{Int}
+    min             ::CPRL.StateObject{Int}
+    max             ::CPRL.StateObject{Int}
     trailer         ::CPRL.Trailer
 
     """
@@ -15,9 +15,9 @@ struct IntDomain
     """
     function IntDomain(trailer::Trailer, n::Int, offset::Int)
 
-        size = CPRL.StateInt(n, trailer)
-        min = CPRL.StateInt(offset + 1, trailer)
-        max = CPRL.StateInt(offset + n, trailer)
+        size = CPRL.StateObject{Int}(n, trailer)
+        min = CPRL.StateObject{Int}(offset + 1, trailer)
+        max = CPRL.StateObject{Int}(offset + n, trailer)
         values = zeros(n)
         indexes = zeros(n)
         for i in 1:n

@@ -5,13 +5,13 @@ using DataStructures
 
 What can be stacked into the trailer
 """
-abstract type StateEntry end
+abstract type AbstractStateEntry end
 
 
 mutable struct Trailer
-    current     ::Stack{StateEntry}
-    prior       ::Stack{Stack{StateEntry}}
-    Trailer() = new(Stack{StateEntry}(), Stack{Stack{StateEntry}}())
+    current     ::Stack{AbstractStateEntry}
+    prior       ::Stack{Stack{AbstractStateEntry}}
+    Trailer() = new(Stack{AbstractStateEntry}(), Stack{Stack{AbstractStateEntry}}())
 end
 
 
@@ -20,26 +20,25 @@ end
 
 A reversible integer of value `value`, storing its modification into `trailer`.
 """
-mutable struct StateInt
-    value       ::Int
+mutable struct StateObject{T}
+    value       ::T
     trailer     ::Trailer
 end
 
-struct IntStateEntry <: StateEntry
-    value       ::Int
-    object      ::StateInt
+struct StateEntry{T} <: AbstractStateEntry
+    value       ::T
+    object      ::StateObject{T}
 end
 
 
 """
-    trail!(var::StateInt)
+    trail!(var::StateObject{T})
 
 Store the current value of `var` into its trailer.
 """
-function trail!(var::StateInt)
-    push!(var.trailer.current, IntStateEntry(var.value, var))
+function trail!(var::StateObject)
+    push!(var.trailer.current, StateEntry(var.value, var))
 end
-
 
 """
     setValue!(var::StateInt, value::Int)
@@ -47,7 +46,7 @@ end
 Change the value of `var`, replacing it with `value`, and if needed, stores the
 former value into `var`'s trailer.
 """
-function setValue!(var::StateInt, value::Int)
+function setValue!(var::StateObject{T}, value::T) where {T}
     if (value != var.value)
         trail!(var)
         var.value = value
@@ -62,7 +61,7 @@ Store the current state into the trailer, replacing the current stack with an em
 """
 function saveState!(trailer::Trailer)
     push!(trailer.prior, trailer.current)
-    trailer.current = Stack{StateEntry}()
+    trailer.current = Stack{AbstractStateEntry}()
 end
 
 """
@@ -76,7 +75,7 @@ function restoreState!(trailer::Trailer)
     end
 
     if isempty(trailer.prior)
-        trailer.current = Stack{StateEntry}()
+        trailer.current = Stack{AbstractStateEntry}()
     else
         trailer.current = pop!(trailer.prior)
     end
@@ -92,7 +91,7 @@ Call the `func` function with a new state, restoring it after. Aimed to be used 
 ```jldoctest
 julia> using CPRL
 julia> trailer = CPRL.Trailer()
-julia> reversibleInt = CPRL.StateInt(3, trailer)
+julia> reversibleInt = CPRL.StateObject{Int}(3, trailer)
 julia> CPRL.withNewState!(trailer) do
         CPRL.setValue!(reversibleInt, 5)
     end

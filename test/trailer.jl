@@ -2,17 +2,25 @@ using CPRL
 
 @testset "trailer.jl" begin
 
-    @testset "StateInt()" begin
+    @testset "StateObject{Int}()" begin
         trailer = CPRL.Trailer()
-        reversibleInt = CPRL.StateInt(3, trailer)
+        reversibleInt = CPRL.StateObject{Int}(3, trailer)
 
         @test reversibleInt.value == 3
         @test reversibleInt.trailer == trailer
     end
 
+    @testset "StateObject{Bool}()" begin
+        trailer = CPRL.Trailer()
+        reversibleInt = CPRL.StateObject{Bool}(true, trailer)
+
+        @test reversibleInt.value == true
+        @test reversibleInt.trailer == trailer
+    end
+
     @testset "trail!()" begin
         trailer = CPRL.Trailer()
-        reversibleInt = CPRL.StateInt(3, trailer)
+        reversibleInt = CPRL.StateObject{Int}(3, trailer)
 
         CPRL.trail!(reversibleInt)
 
@@ -26,7 +34,7 @@ using CPRL
 
     @testset "setValue!()" begin
         trailer = CPRL.Trailer()
-        reversibleInt = CPRL.StateInt(3, trailer)
+        reversibleInt = CPRL.StateObject{Int}(3, trailer)
 
         # Check when same value
         CPRL.setValue!(reversibleInt, 3)
@@ -45,7 +53,7 @@ using CPRL
 
     @testset "saveState!()" begin
         trailer = CPRL.Trailer()
-        reversibleInt = CPRL.StateInt(3, trailer)
+        reversibleInt = CPRL.StateObject{Int}(3, trailer)
 
         current = trailer.current
 
@@ -58,7 +66,7 @@ using CPRL
 
     @testset "restoreState!()" begin
         trailer = CPRL.Trailer()
-        reversibleInt = CPRL.StateInt(3, trailer)
+        reversibleInt = CPRL.StateObject{Int}(3, trailer)
 
         current = trailer.current
 
@@ -80,7 +88,7 @@ using CPRL
     @testset "withNewState!()" begin
 
         trailer = CPRL.Trailer()
-        reversibleInt = CPRL.StateInt(3, trailer)
+        reversibleInt = CPRL.StateObject{Int}(3, trailer)
 
         CPRL.withNewState!(trailer) do
             CPRL.setValue!(reversibleInt, 5)
