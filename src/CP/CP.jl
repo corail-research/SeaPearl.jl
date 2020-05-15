@@ -8,4 +8,4 @@ include("constraints/constraints.jl")
 
 include("core/fixPoint.jl")
 
-solve() = @info "Solved !"
+include("core/solver.jl")

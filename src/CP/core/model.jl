@@ -1,8 +1,11 @@
+const Solution = Dict{String, Int}
+
 struct CPModel
     variables       ::Dict{String, IntVar}
     constraints     ::Array{Constraint}
     trailer         ::Trailer
-    CPModel(trailer) = new(Dict{String, IntVar}(), Constraint[], trailer)
+    solutions       ::Array{Solution}
+    CPModel(trailer) = new(Dict{String, IntVar}(), Constraint[], trailer, Solution[])
 end
 
 const CPModification = Dict{String, Array{Int}}

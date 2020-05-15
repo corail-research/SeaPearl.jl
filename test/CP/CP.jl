@@ -6,7 +6,7 @@
 
     include("core/fixPoint.jl")
 
-    @testset "solve()" begin
-        @test (@test_logs (:info, "Solved !") CPRL.solve()) == nothing
-    end
+    # @testset "solve()" begin
+    #     @test (@test_logs (:info, "Solved !") CPRL.solve()) == nothing
+    # end
 end
