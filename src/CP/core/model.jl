@@ -18,6 +18,11 @@ function addVariable!(model::CPModel, x::IntVar)
     model.variables[x.id] = x
 end
 
+"""
+    merge!(prunedDomains::CPModification, newPrunedDomains::CPModification)
+
+Merge `newPrunedDomains` into `prunedDomains`, concatenating the arrays if concerning the same variable.
+"""
 function merge!(prunedDomains::CPModification, newPrunedDomains::CPModification)
     for k in keys(newPrunedDomains)
         if haskey(prunedDomains, k)
