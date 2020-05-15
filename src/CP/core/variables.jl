@@ -102,7 +102,7 @@ function remove!(dom::IntDomain, value::Int)
 
     value -= dom.offset
 
-    exchangePositions!(dom, value, dom.size.value)
+    exchangePositions!(dom, value, dom.values[dom.size.value])
     setValue!(dom.size, dom.size.value - 1)
 
     updateBoundsFromRemovedVal!(dom, value+dom.offset)

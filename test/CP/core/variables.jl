@@ -43,6 +43,11 @@ using CPRL
 
         @test dom.values == [1, 5, 3, 4, 2]
         @test dom.indexes == [1, 5, 3, 4, 2]
+
+        CPRL.exchangePositions!(dom, 2, 1)
+
+        @test dom.values == [2, 5, 3, 4, 1]
+        @test dom.indexes == [5, 1, 3, 4, 2]
     end
 
     @testset "remove!()" begin
