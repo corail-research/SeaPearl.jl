@@ -4,7 +4,7 @@
         x = CPRL.IntVar(2, 6, "x", trailer)
         y = CPRL.IntVar(2, 6, "y", trailer)
 
-        model = CPRL.CPModel()
+        model = CPRL.CPModel(trailer)
 
         CPRL.addVariable!(model, x)
         CPRL.addVariable!(model, y)
@@ -45,7 +45,7 @@
         x = CPRL.IntVar(2, 6, "x", trailer)
         y = CPRL.IntVar(2, 6, "y", trailer)
 
-        model = CPRL.CPModel()
+        model = CPRL.CPModel(trailer)
 
         CPRL.addVariable!(model, x)
         CPRL.addVariable!(model, y)

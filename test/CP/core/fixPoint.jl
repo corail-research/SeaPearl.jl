@@ -13,7 +13,7 @@ using CPRL
         
         constraint3 = CPRL.Equal(z, t)
 
-        model = CPRL.CPModel()
+        model = CPRL.CPModel(trailer)
 
         CPRL.addVariable!(model, x)
         CPRL.addVariable!(model, y)
