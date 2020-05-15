@@ -116,7 +116,7 @@ end
 Remove every value from `dom`. Return the removed values.
 """
 function removeAll!(dom::IntDomain)
-    removed = zeros(dom.size.value)
+    removed = Array{Int}(undef, dom.size.value)
     for i in 1:dom.size.value
         removed[i] = dom.values[i] + dom.offset
     end
@@ -137,7 +137,7 @@ function assign!(dom::IntDomain, value::Int)
 
     exchangePositions!(dom, value, dom.values[1])
 
-    removed = zeros(dom.size.value - 1)
+    removed = Array{Int}(undef, dom.size.value - 1)
     for i in 2:dom.size.value
         removed[i-1] = dom.values[i] + dom.offset
     end
