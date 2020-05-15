@@ -50,3 +50,17 @@ function addToPrunedDomains!(prunedDomains::CPModification, x::IntVar, pruned::A
         prunedDomains[x.id] = pruned
     end
 end
+
+"""
+    solutionFound(model::CPModel)
+
+Return a boolean, checking whether a solution was found, i.e. every variable is bound.
+"""
+function solutionFound(model::CPModel)
+    for (k, x) in model.variables
+        if !isbound(x)
+            return false
+        end
+    end
+    return true
+end

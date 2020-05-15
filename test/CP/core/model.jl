@@ -39,4 +39,26 @@
 
         @test test1 == CPRL.CPModification("x" => [2, 3, 4, 5, 6],"z" => [11, 12, 13, 14, 15],"y" => [7, 8], "t" => [5, 6])
     end
+
+    @testset "solutionFound()" begin
+        trailer = CPRL.Trailer()
+        x = CPRL.IntVar(2, 6, "x", trailer)
+        y = CPRL.IntVar(2, 6, "y", trailer)
+
+        model = CPRL.CPModel()
+
+        CPRL.addVariable!(model, x)
+        CPRL.addVariable!(model, y)
+
+        @test !CPRL.solutionFound(model)
+
+        constraint = CPRL.EqualConstant(x, 3)
+        constraint2 = CPRL.Equal(x, y)
+        push!(model.constraints, constraint)
+        push!(model.constraints, constraint2)
+
+        CPRL.fixPoint!(model)
+
+        @test CPRL.solutionFound(model)
+    end
 end

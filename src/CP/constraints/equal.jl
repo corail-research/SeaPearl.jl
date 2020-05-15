@@ -24,7 +24,7 @@ end
 function propagate!(constraint::EqualConstant, toPropagate::Set{Constraint}, prunedDomains::CPModification)
     # Stop propagation if constraint not active
     if !constraint.active
-        return CPModification()
+        return true
     end
 
     # Reduce the domain to a singleton if possible
@@ -92,7 +92,9 @@ function propagate!(constraint::Equal, toPropagate::Set{Constraint}, prunedDomai
         addToPrunedDomains!(prunedDomains, constraint.y, prunedY)
     end
 
-    pop!(toPropagate, constraint)
+    if constraint in toPropagate
+        pop!(toPropagate, constraint)
+    end
 
     if length(constraint.x.domain) <= 1
         constraint.active = false
