@@ -5,16 +5,16 @@ using CPRL
         trailer = CPRL.Trailer()
         x = CPRL.IntVar(2, 6, "x", trailer)
 
-        constraint = CPRL.NotEqualConstant(x, 3)
+        constraint = CPRL.NotEqualConstant(x, 3, trailer)
 
         @test constraint in x.onDomainChange
-        @test constraint.active
+        @test constraint.active.value
     end
     @testset "propagate!(::NotEqualConstant)" begin
         trailer = CPRL.Trailer()
         x = CPRL.IntVar(2, 6, "x", trailer)
 
-        constraint = CPRL.NotEqualConstant(x, 3)
+        constraint = CPRL.NotEqualConstant(x, 3, trailer)
 
         toPropagate = Set{CPRL.Constraint}()
         prunedDomains = CPRL.CPModification()
@@ -28,15 +28,15 @@ using CPRL
 
         y = CPRL.IntVar(2, 2, "y", trailer)
 
-        cons2 = CPRL.NotEqualConstant(y, 2)
+        cons2 = CPRL.NotEqualConstant(y, 2, trailer)
 
         @test !CPRL.propagate!(cons2, toPropagate, prunedDomains)
 
         @test isempty(y.domain)
 
         z = CPRL.IntVar(2, 6, "z", trailer)
-        constraint1 = CPRL.NotEqualConstant(z, 3)
-        constraint2 = CPRL.NotEqualConstant(z, 4)
+        constraint1 = CPRL.NotEqualConstant(z, 3, trailer)
+        constraint2 = CPRL.NotEqualConstant(z, 4, trailer)
 
         toPropagate2 = Set{CPRL.Constraint}()
         CPRL.propagate!(constraint1, toPropagate2, prunedDomains)
@@ -50,7 +50,7 @@ using CPRL
         x = CPRL.IntVar(2, 6, "x", trailer)
         y = CPRL.IntVar(5, 8, "y", trailer)
 
-        constraint = CPRL.NotEqual(x, y)
+        constraint = CPRL.NotEqual(x, y, trailer)
         toPropagate = Set{CPRL.Constraint}()
         prunedDomains = CPRL.CPModification()
 
@@ -63,7 +63,7 @@ using CPRL
 
         # Propagation test
         z = CPRL.IntVar(5, 6, "z", trailer)
-        constraint2 = CPRL.NotEqual(y, z)
+        constraint2 = CPRL.NotEqual(y, z, trailer)
         @test CPRL.propagate!(constraint2, toPropagate, prunedDomains)
 
         # Domain not reduced => not propagation
@@ -80,7 +80,7 @@ using CPRL
 
         #Unfeasible test
         t = CPRL.IntVar(5, 5, "t", trailer)
-        constraint3 = CPRL.NotEqual(z, t)
+        constraint3 = CPRL.NotEqual(z, t, trailer)
         @test !CPRL.propagate!(constraint3, toPropagate, prunedDomains)
     end
 end

@@ -8,9 +8,9 @@ Equality constraint, putting a constant value `v` for the variable `x` i.e. `x =
 mutable struct EqualConstant <: EqualConstraint
     x       ::CPRL.IntVar
     v       ::Int
-    active  ::Bool
-    function EqualConstant(x::CPRL.IntVar, v::Int)
-        constraint = new(x, v, true)
+    active  ::StateObject{Bool}
+    function EqualConstant(x::CPRL.IntVar, v::Int, trailer)
+        constraint = new(x, v, StateObject{Bool}(true, trailer))
         push!(x.onDomainChange, constraint)
         return constraint
     end
@@ -23,14 +23,14 @@ end
 """
 function propagate!(constraint::EqualConstant, toPropagate::Set{Constraint}, prunedDomains::CPModification)
     # Stop propagation if constraint not active
-    if !constraint.active
+    if !constraint.active.value
         return true
     end
 
     # Reduce the domain to a singleton if possible
     if constraint.v in constraint.x.domain
         removed = assign!(constraint.x.domain, constraint.v)
-        constraint.active = false
+        setValue!(constraint.active, false)
         union!(toPropagate, constraint.x.onDomainChange)
         addToPrunedDomains!(prunedDomains, constraint.x, removed)
         return true
@@ -38,7 +38,7 @@ function propagate!(constraint::EqualConstant, toPropagate::Set{Constraint}, pru
 
     # Reduce the domain to an empty set if value not in domain
     removed = removeAll!(constraint.x.domain)
-    constraint.active = false
+    setValue!(constraint.active, false)
     addToPrunedDomains!(prunedDomains, constraint.x, removed)
     return false
 end
@@ -51,10 +51,10 @@ Equality constraint between two variables, stating that `x == y`.
 mutable struct Equal <: EqualConstraint
     x       ::CPRL.IntVar
     y       ::CPRL.IntVar
-    active  ::Bool
+    active  ::StateObject{Bool}
 
-    function Equal(x::CPRL.IntVar, y::CPRL.IntVar)
-        constraint = new(x, y, true)
+    function Equal(x::CPRL.IntVar, y::CPRL.IntVar, trailer::Trailer)
+        constraint = new(x, y, StateObject(true, trailer))
         push!(x.onDomainChange, constraint)
         push!(y.onDomainChange, constraint)
         return constraint
@@ -74,7 +74,7 @@ end
 `Equal` propagation function.
 """
 function propagate!(constraint::Equal, toPropagate::Set{Constraint}, prunedDomains::CPModification)
-    if !constraint.active
+    if !constraint.active.value
         return true
     end
     xFormerLength = length(constraint.x.domain)
@@ -97,7 +97,7 @@ function propagate!(constraint::Equal, toPropagate::Set{Constraint}, prunedDomai
     end
 
     if length(constraint.x.domain) <= 1
-        constraint.active = false
+        setValue!(constraint.active, false)
     end
     if isempty(constraint.x.domain) || isempty(constraint.y.domain)
         return false

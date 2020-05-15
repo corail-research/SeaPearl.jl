@@ -9,9 +9,9 @@ using CPRL
         t = CPRL.IntVar(6, 10, "t", trailer)
         u = CPRL.IntVar(10, 25, "u", trailer)
 
-        constraint = CPRL.Equal(x, y)
+        constraint = CPRL.Equal(x, y, trailer)
         
-        constraint3 = CPRL.Equal(z, t)
+        constraint3 = CPRL.Equal(z, t, trailer)
 
         model = CPRL.CPModel(trailer)
 
@@ -35,7 +35,7 @@ using CPRL
         @test length(z.domain) == 5
         @test length(t.domain) == 5
 
-        constraint2 = CPRL.Equal(y, z)
+        constraint2 = CPRL.Equal(y, z, trailer)
         push!(model.constraints, constraint2)
 
         CPRL.fixPoint!(model, [constraint2])
@@ -46,7 +46,7 @@ using CPRL
         @test CPRL.isbound(z)
         @test CPRL.isbound(t)
 
-        constraint4 = CPRL.Equal(u, z)
+        constraint4 = CPRL.Equal(u, z, trailer)
         push!(model.constraints, constraint4)
 
         feasability2, pruned = CPRL.fixPoint!(model, [constraint4])

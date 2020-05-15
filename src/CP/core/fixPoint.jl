@@ -18,7 +18,7 @@ function fixPoint!(model::CPModel, new_constraints=nothing)
     # If we did not specify the second argument, it is the beginning so we propagate every constraint
     if isnothing(new_constraints)
         for constraint in model.constraints
-            if constraint.active
+            if constraint.active.value
                 push!(toPropagate, constraint)
             end
         end
@@ -28,7 +28,7 @@ function fixPoint!(model::CPModel, new_constraints=nothing)
 
     while !isempty(toPropagate)
         constraint = pop!(toPropagate)
-        if !propagate!(constraint, toPropagate, prunedDomains)
+        if constraint.active.value && !propagate!(constraint, toPropagate, prunedDomains)
             return false, prunedDomains
         end
     end

@@ -52,8 +52,8 @@
 
         @test !CPRL.solutionFound(model)
 
-        constraint = CPRL.EqualConstant(x, 3)
-        constraint2 = CPRL.Equal(x, y)
+        constraint = CPRL.EqualConstant(x, 3, trailer)
+        constraint2 = CPRL.Equal(x, y, trailer)
         push!(model.constraints, constraint)
         push!(model.constraints, constraint2)
 
