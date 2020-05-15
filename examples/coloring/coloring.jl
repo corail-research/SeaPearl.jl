@@ -35,6 +35,8 @@ function outputFromCPRL(sol::CPRL.Solution; optimality=false)
     return OutputData(numberOfColors, edgeColors, optimality)
 end
 
+
+
 function solve_coloring(input_file; benchmark=false)
     input = getInputData(input_file)
 
@@ -46,48 +48,90 @@ function solve_coloring(input_file; benchmark=false)
         CPRL.addVariable!(model, last(x))
     end
 
+    degrees = zeros(Int, input.numberOfVertices)
+
     for e in input.edges
         push!(model.constraints, CPRL.NotEqual(x[e.vertex1], x[e.vertex2], trailer))
+        degrees[e.vertex1] += 1
+        degrees[e.vertex2] += 1
         # println(e.vertex1, " ", e.vertex2)
     end
 
+    sortedPermutation = sortperm(degrees; rev=true)
 
+    function selectVariable(model::CPRL.CPModel)
+        maxDegree = 0
+        toReturn = nothing
+        for i in sortedPermutation
+            if !CPRL.isbound(model.variables[string(i)])
+                if isnothing(toReturn)
+                    toReturn = model.variables[string(i)]
+                    maxDegree = degrees[i]
+                end
+                if degrees[i] < maxDegree
+                    return toReturn
+                end
 
-    found = CPRL.solve!(model)
-
-    if (found)
-        oneSolution = last(model.solutions)
-        output = outputFromCPRL(oneSolution)
-        printSolution(output)
-
-
-        
-
-        while found
-            trailer = CPRL.Trailer()
-            model = CPRL.CPModel(trailer)
-            x = CPRL.IntVar[]
-            for i in 1:input.numberOfVertices
-                push!(x, CPRL.IntVar(1, output.numberOfColors-1, string(i), trailer))
-                CPRL.addVariable!(model, last(x))
-            end
-
-            for e in input.edges
-                push!(model.constraints, CPRL.NotEqual(x[e.vertex1], x[e.vertex2], trailer))
-                # println(e.vertex1, " ", e.vertex2)
-            end
-
-            found = CPRL.solve!(model)
-            if (found)
-                oneSolution = last(model.solutions)
-                output = outputFromCPRL(oneSolution)
-                printSolution(output)
+                if length(model.variables[string(i)].domain) < length(toReturn.domain)
+                    toReturn = model.variables[string(i)]
+                end
             end
         end
-
-        filename = last(split(input_file, "/"))
-
-        writeSolution(output, "solution/"*filename)
+        return toReturn
     end
-    return
+
+    output = nothing
+
+    try
+        found = CPRL.solve!(model; variableHeuristic=selectVariable)
+
+        if (found)
+            oneSolution = last(model.solutions)
+            output = outputFromCPRL(oneSolution)
+            if !benchmark
+                printSolution(output)
+            end
+
+
+            
+
+            while found
+                trailer = CPRL.Trailer()
+                model = CPRL.CPModel(trailer)
+                x = CPRL.IntVar[]
+                for i in 1:input.numberOfVertices
+                    push!(x, CPRL.IntVar(1, output.numberOfColors-1, string(i), trailer))
+                    CPRL.addVariable!(model, last(x))
+                end
+
+                for e in input.edges
+                    push!(model.constraints, CPRL.NotEqual(x[e.vertex1], x[e.vertex2], trailer))
+                    # println(e.vertex1, " ", e.vertex2)
+                end
+
+                found = CPRL.solve!(model; variableHeuristic=selectVariable)
+                if (found)
+                    oneSolution = last(model.solutions)
+                    output = outputFromCPRL(oneSolution)
+                    if !benchmark
+                        printSolution(output)
+                    end
+                end
+            end
+
+            filename = last(split(input_file, "/"))
+
+            if !benchmark
+                printSolution(output)
+                writeSolution(output, "solution/"*filename)
+            end
+        end
+    catch e
+        if isa(e, InterruptException)
+            if !benchmark
+                filename = last(split(input_file, "/"))
+                writeSolution(output, "solution/"*filename)
+            end
+        end
+    end
 end

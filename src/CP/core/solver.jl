@@ -1,4 +1,4 @@
-function solve!(model::CPModel, new_constraint=nothing)
+function solve!(model::CPModel, new_constraint=nothing; variableHeuristic=selectVariable)
     
     feasible, pruned = fixPoint!(model, new_constraint)
     
@@ -24,7 +24,7 @@ function solve!(model::CPModel, new_constraint=nothing)
         return true
     end
 
-    x = selectVariable(model)
+    x = variableHeuristic(model)
     
     
 
@@ -44,7 +44,7 @@ function solve!(model::CPModel, new_constraint=nothing)
 
                 assign!(x, v)
                 
-                if solve!(model, x.onDomainChange)
+                if solve!(model, x.onDomainChange; variableHeuristic=variableHeuristic)
                     foundASolution = true
                 end
             end
