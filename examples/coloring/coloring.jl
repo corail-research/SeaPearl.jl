@@ -85,7 +85,9 @@ function solve_coloring(input_file; benchmark=false)
             end
         end
 
-        writeSolution(output, "solution/"*string(input.numberOfVertices))
+        filename = last(split(input_file, "/"))
+
+        writeSolution(output, "solution/"*filename)
     end
     return
 end
