@@ -3,7 +3,7 @@
 
 Run the fix-point algorithm. Will prune the domain of every variable of `model` as much
 as possible, using its constraints.
-Return a CPModification object, containing all the pruned domains.
+Return a tuple with a boolean corresponding to the feasibility and a `CPModification` object, containing all the pruned domains.
 
 # Arguments
 - `model::CPModel`: the model you want to apply the algorithm on.
@@ -28,8 +28,10 @@ function fixPoint!(model::CPModel, new_constraints=nothing)
 
     while !isempty(toPropagate)
         constraint = pop!(toPropagate)
-        propagate!(constraint, toPropagate, prunedDomains)
+        if !propagate!(constraint, toPropagate, prunedDomains)
+            return false, prunedDomains
+        end
     end
 
-    return prunedDomains
+    return true, prunedDomains
 end

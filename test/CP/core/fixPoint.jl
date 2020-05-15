@@ -7,6 +7,7 @@ using CPRL
         y = CPRL.IntVar(5, 8, "y", trailer)
         z = CPRL.IntVar(6, 15, "z", trailer)
         t = CPRL.IntVar(6, 10, "t", trailer)
+        u = CPRL.IntVar(10, 25, "u", trailer)
 
         constraint = CPRL.Equal(x, y)
         
@@ -18,14 +19,16 @@ using CPRL
         CPRL.addVariable!(model, y)
         CPRL.addVariable!(model, z)
         CPRL.addVariable!(model, t)
+        CPRL.addVariable!(model, u)
 
         push!(model.constraints, constraint)
         push!(model.constraints, constraint3)
-        prunedDomains = CPRL.fixPoint!(model)
+        feasability, prunedDomains = CPRL.fixPoint!(model)
         
         rightPruning = CPRL.CPModification("x" => [2, 3, 4],"z" => [11, 12, 13, 14, 15],"y" => [7, 8])
 
         @test prunedDomains == rightPruning
+        @test feasability
 
         @test length(x.domain) == 2
         @test length(y.domain) == 2
@@ -42,5 +45,11 @@ using CPRL
         @test CPRL.isbound(y)
         @test CPRL.isbound(z)
         @test CPRL.isbound(t)
+
+        constraint4 = CPRL.Equal(u, z)
+        push!(model.constraints, constraint4)
+
+        feasability2, pruned = CPRL.fixPoint!(model, [constraint4])
+        @test !feasability2
     end
 end
