@@ -5,7 +5,7 @@ abstract type NotEqualConstraint <: Constraint end
 
 Inequality constraint, `x != v`
 """
-mutable struct NotEqualConstant <: NotEqualConstraint
+struct NotEqualConstant <: NotEqualConstraint
     x       ::IntVar
     v       ::Int
     active  ::StateObject{Bool}
@@ -41,7 +41,7 @@ end
 
 Inequality constraint between two variables, stating that `x != y`.
 """
-mutable struct NotEqual <: NotEqualConstraint
+struct NotEqual <: NotEqualConstraint
     x       ::CPRL.IntVar
     y       ::CPRL.IntVar
     active  ::StateObject{Bool}

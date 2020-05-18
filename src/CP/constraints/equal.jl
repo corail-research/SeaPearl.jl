@@ -5,7 +5,7 @@ abstract type EqualConstraint <: Constraint end
 
 Equality constraint, putting a constant value `v` for the variable `x` i.e. `x == v`
 """
-mutable struct EqualConstant <: EqualConstraint
+struct EqualConstant <: EqualConstraint
     x       ::CPRL.IntVar
     v       ::Int
     active  ::StateObject{Bool}
@@ -48,7 +48,7 @@ end
 
 Equality constraint between two variables, stating that `x == y`.
 """
-mutable struct Equal <: EqualConstraint
+struct Equal <: EqualConstraint
     x       ::CPRL.IntVar
     y       ::CPRL.IntVar
     active  ::StateObject{Bool}
