@@ -164,4 +164,36 @@ using CPRL
         @test x.domain.min.value == 6
         @test x.domain.max.value == 9
     end
+
+    @testset "removeAbove!()" begin
+        trailer = CPRL.Trailer()
+        x = CPRL.IntVar(5, 10, "x", trailer)
+
+        CPRL.removeAbove!(x.domain, 7)
+
+        @test length(x.domain) == 3
+        @test 7 in x.domain
+        @test 6 in x.domain
+        @test !(8 in x.domain)
+
+        CPRL.removeAbove!(x.domain, 4)
+
+        @test isempty(x.domain)
+    end
+
+    @testset "removeBelow!()" begin
+        trailer = CPRL.Trailer()
+        x = CPRL.IntVar(5, 10, "x", trailer)
+
+        CPRL.removeBelow!(x.domain, 7)
+
+        @test length(x.domain) == 4
+        @test 7 in x.domain
+        @test 8 in x.domain
+        @test !(6 in x.domain)
+
+        CPRL.removeBelow!(x.domain, 11)
+
+        @test isempty(x.domain)
+    end
 end

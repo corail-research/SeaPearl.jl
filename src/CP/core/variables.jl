@@ -126,6 +126,42 @@ function removeAll!(dom::IntDomain)
 end
 
 """
+    removeAbove!(dom::IntDomain, value::Int)
+
+Remove every integer of `dom` that is *strictly* above `value`.
+"""
+function removeAbove!(dom::IntDomain, value::Int)
+    if dom.min.value > value
+        removeAll!(dom)
+        return
+    end
+
+    for i in (value+1):dom.max.value
+        if i in dom
+            remove!(dom, i)
+        end
+    end
+end
+
+"""
+    removeBelow!(dom::IntDomain, value::Int)
+
+Remove every integer of `dom` that is *strictly* below `value`.
+"""
+function removeBelow!(dom::IntDomain, value::Int)
+    if dom.max.value < value
+        removeAll!(dom)
+        return
+    end
+
+    for i in dom.min.value:(value-1)
+        if i in dom
+            remove!(dom, i)
+        end
+    end
+end
+
+"""
     assign!(dom::IntDomain, value::Int)
 
 Remove everything from the domain but `value`. Return the removed values.
