@@ -95,19 +95,11 @@ function solve_coloring(input_file; benchmark=false)
             
 
             while found
-                trailer = CPRL.Trailer()
-                model = CPRL.CPModel(trailer)
-                x = CPRL.IntVar[]
-                for i in 1:input.numberOfVertices
-                    push!(x, CPRL.IntVar(1, output.numberOfColors-1, string(i), trailer))
-                    CPRL.addVariable!(model, last(x))
-                end
-
-                for e in input.edges
-                    push!(model.constraints, CPRL.NotEqual(x[e.vertex1], x[e.vertex2], trailer))
-                    # println(e.vertex1, " ", e.vertex2)
+                for y in x
+                    push!(model.constraints, CPRL.LessOrEqualConstant(y, output.numberOfColors-1, trailer))
                 end
                 found = CPRL.solve!(model; variableHeuristic=((m) -> selectVariable(m, sortedPermutation, degrees)))
+
                 if (found)
                     oneSolution = last(model.solutions)
                     output = outputFromCPRL(oneSolution)
