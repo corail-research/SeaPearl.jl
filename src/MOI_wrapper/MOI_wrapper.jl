@@ -3,10 +3,6 @@ using MathOptInterface
 const MOI = MathOptInterface
 const MOIU = MathOptInterface.Utilities
 
-include("supports.jl")
-include("variables.jl")
-include("constraints.jl")
-
 """
 WIP 
 
@@ -26,5 +22,8 @@ mutable struct Optimizer <: MOI.AbstractOptimizer
     end
 end
 
-
+include("sets.jl")
+include("supports.jl")
+include("variables.jl")
+include("constraints.jl")
 
