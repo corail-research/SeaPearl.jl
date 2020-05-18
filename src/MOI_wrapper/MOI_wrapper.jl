@@ -22,8 +22,15 @@ mutable struct Optimizer <: MOI.AbstractOptimizer
     end
 end
 
+function MOI.is_empty(model::Optimizer)
+    return isempty(model.cpmodel.variables) && isempty(model.cpmodel.constraints)
+end
+
 include("sets.jl")
 include("supports.jl")
 include("variables.jl")
 include("constraints.jl")
 
+function MOI.optimize!(model::Optimizer)
+    nothing 
+end
