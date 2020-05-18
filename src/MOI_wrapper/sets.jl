@@ -4,7 +4,7 @@ struct NotEqualTo <: MOI.AbstractScalarSet
 end
 
 # if true, variables are equal, else they are different
-struct VariablesEquality <: MOI.AbstractScalarSet
+struct VariablesEquality <: MOI.AbstractVectorSet
     value::Bool
 end
 
