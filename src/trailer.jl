@@ -41,9 +41,9 @@ function trail!(var::StateObject)
 end
 
 """
-    setValue!(var::StateInt, value::Int)
+    setValue!(var::StateObject{T}, value::T) where {T}
 
-Change the value of `var`, replacing it with `value`, and if needed, stores the
+Change the value of `var`, replacing it with `value`, and if needed, store the
 former value into `var`'s trailer.
 """
 function setValue!(var::StateObject{T}, value::T) where {T}
@@ -102,5 +102,17 @@ julia> reversibleInt.value
 function withNewState!(func, trailer::Trailer)
     saveState!(trailer)
     func()
+    restoreState!(trailer)
+end
+
+"""
+    restoreInitialState!(trailer::Trailer)
+
+Restore every linked object to its initial state. Basically call [`restoreState!`](@ref) until not possible.
+"""
+function restoreInitialState!(trailer::Trailer)
+    while !isempty(trailer.prior)
+        restoreState!(trailer)
+    end
     restoreState!(trailer)
 end

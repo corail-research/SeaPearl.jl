@@ -100,4 +100,22 @@ using CPRL
 
     end
 
+    @testset "restoreInitialState!()" begin
+        trailer = CPRL.Trailer()
+        reversibleInt = CPRL.StateObject{Int}(3, trailer)
+
+        CPRL.saveState!(trailer)
+        CPRL.setValue!(reversibleInt, 4)
+        CPRL.saveState!(trailer)
+        CPRL.setValue!(reversibleInt, 5)
+        CPRL.saveState!(trailer)
+        CPRL.setValue!(reversibleInt, 6)
+        CPRL.saveState!(trailer)
+        CPRL.setValue!(reversibleInt, 7)
+
+        CPRL.restoreInitialState!(trailer)
+
+        @test reversibleInt.value == 3
+    end
+
 end
