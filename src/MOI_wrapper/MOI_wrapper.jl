@@ -1,6 +1,7 @@
 using MathOptInterface
 
 const MOI = MathOptInterface
+const MOIU = MathOptInterface.Utilities
 
 """
 WIP 
@@ -68,6 +69,9 @@ end
 struct NotEqualTo <: MOI.AbstractScalarSet
     value::Int
 end
+
+sense_to_set(::Function, ::Val{:!=}) = NotEqualTo(0)
+MOIU.shift_constant(set::NotEqualTo, value) = NotEqualTo(set.value + value)
 
 """
     MOI.add_constraint(model::Optimizer, sgvar::MOI.SingleVariable, set::NotEqualTo)
