@@ -98,6 +98,7 @@ function solve_coloring(input_file; benchmark=false)
                 for y in x
                     push!(model.constraints, CPRL.LessOrEqualConstant(y, output.numberOfColors-1, trailer))
                 end
+                CPRL.restoreInitialState!(trailer)
                 found = CPRL.solve!(model; variableHeuristic=((m) -> selectVariable(m, sortedPermutation, degrees)))
 
                 if (found)

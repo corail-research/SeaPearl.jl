@@ -28,27 +28,22 @@ function solve!(model::CPModel, new_constraint=nothing; variableHeuristic=select
 
 
     
-    withNewState!(model.trailer) do
-
-        assign!(x, v)
-        
-        if solve!(model, x.onDomainChange; variableHeuristic=variableHeuristic)
-            foundASolution = true
-        end
-    end
-    if foundASolution
+    saveState!(model.trailer)
+    assign!(x, v)
+    
+    if solve!(model, x.onDomainChange; variableHeuristic=variableHeuristic)
         return true
     end
-    withNewState!(model.trailer) do
+    restoreState!(model.trailer)
 
-        remove!(x.domain, v)
-        
-        if solve!(model, x.onDomainChange; variableHeuristic=variableHeuristic)
-            foundASolution = true
-        end
-
+    saveState!(model.trailer)
+    remove!(x.domain, v)
+    
+    if solve!(model, x.onDomainChange; variableHeuristic=variableHeuristic)
+        return true
     end
-    return foundASolution
+    restoreState!(model.trailer)
+    return false
 end
 
 function selectVariable(model::CPModel)
