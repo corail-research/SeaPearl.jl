@@ -3,19 +3,9 @@ function solve!(model::CPModel, new_constraint=nothing; variableHeuristic=select
     feasible, pruned = fixPoint!(model, new_constraint)
     
     if !feasible
-        # println("Not feasible !")
         return false
     end
     if solutionFound(model)
-        # feasible, pruned = fixPoint!(model)
-        # for i in 1:length(keys(model.variables))
-        #     println(model.variables[string(i)])
-        # end
-        # println(model.constraints[1])
-
-        # if !feasible
-        #     return false
-        # end
         solution = Solution()
         for (k, x) in model.variables
             solution[k] = x.domain.min.value
@@ -33,25 +23,32 @@ function solve!(model::CPModel, new_constraint=nothing; variableHeuristic=select
     end
     foundASolution = false
 
+    v = selectValue(x)
 
-    for v in x.domain.min.value:x.domain.max.value
 
-        if foundASolution
-            return true
-        end
-        if v in x.domain
-            withNewState!(model.trailer) do
 
-                assign!(x, v)
-                
-                if solve!(model, x.onDomainChange; variableHeuristic=variableHeuristic)
-                    foundASolution = true
-                end
-            end
+    
+    withNewState!(model.trailer) do
+
+        assign!(x, v)
+        
+        if solve!(model, x.onDomainChange; variableHeuristic=variableHeuristic)
+            foundASolution = true
         end
     end
-    
-    return false
+    if foundASolution
+        return true
+    end
+    withNewState!(model.trailer) do
+
+        remove!(x.domain, v)
+        
+        if solve!(model, x.onDomainChange; variableHeuristic=variableHeuristic)
+            foundASolution = true
+        end
+
+    end
+    return foundASolution
 end
 
 function selectVariable(model::CPModel)
