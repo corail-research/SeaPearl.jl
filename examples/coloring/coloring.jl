@@ -124,6 +124,7 @@ function solve_coloring(input_file; benchmark=false)
                 writeSolution(output, "solution/"*filename)
             end
         end
+        rethrow(e)
     end
     return
 end
