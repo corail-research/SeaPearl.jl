@@ -44,6 +44,7 @@ function writeSolution(solution::OutputData, filename::String)
     open(filename, "w") do openedFile
         write(openedFile, solutionString(solution))
     end
+    return
 end
 
 function getInputData(filename)

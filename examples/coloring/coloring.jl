@@ -54,12 +54,11 @@ function solve_coloring(input_file; benchmark=false)
         push!(model.constraints, CPRL.NotEqual(x[e.vertex1], x[e.vertex2], trailer))
         degrees[e.vertex1] += 1
         degrees[e.vertex2] += 1
-        # println(e.vertex1, " ", e.vertex2)
     end
 
     sortedPermutation = sortperm(degrees; rev=true)
 
-    function selectVariable(model::CPRL.CPModel)
+    function selectVariable(model::CPRL.CPModel, sortedPermutation, degrees)
         maxDegree = 0
         toReturn = nothing
         for i in sortedPermutation
@@ -83,7 +82,7 @@ function solve_coloring(input_file; benchmark=false)
     output = nothing
 
     try
-        found = CPRL.solve!(model; variableHeuristic=selectVariable)
+        found = CPRL.solve!(model; variableHeuristic=((m) -> selectVariable(m, sortedPermutation, degrees)))
 
         if (found)
             oneSolution = last(model.solutions)
@@ -108,8 +107,7 @@ function solve_coloring(input_file; benchmark=false)
                     push!(model.constraints, CPRL.NotEqual(x[e.vertex1], x[e.vertex2], trailer))
                     # println(e.vertex1, " ", e.vertex2)
                 end
-
-                found = CPRL.solve!(model; variableHeuristic=selectVariable)
+                found = CPRL.solve!(model; variableHeuristic=((m) -> selectVariable(m, sortedPermutation, degrees)))
                 if (found)
                     oneSolution = last(model.solutions)
                     output = outputFromCPRL(oneSolution)
@@ -122,8 +120,9 @@ function solve_coloring(input_file; benchmark=false)
             filename = last(split(input_file, "/"))
 
             if !benchmark
-                printSolution(output)
+                # printSolution(output)
                 writeSolution(output, "solution/"*filename)
+                
             end
         end
     catch e
@@ -134,4 +133,5 @@ function solve_coloring(input_file; benchmark=false)
             end
         end
     end
+    return
 end
