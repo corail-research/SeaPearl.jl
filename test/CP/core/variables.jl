@@ -169,14 +169,14 @@ using CPRL
         trailer = CPRL.Trailer()
         x = CPRL.IntVar(5, 10, "x", trailer)
 
-        CPRL.removeAbove!(x.domain, 7)
+        @test sort(CPRL.removeAbove!(x.domain, 7)) == [8, 9, 10]
 
         @test length(x.domain) == 3
         @test 7 in x.domain
         @test 6 in x.domain
         @test !(8 in x.domain)
 
-        CPRL.removeAbove!(x.domain, 4)
+        @test sort(CPRL.removeAbove!(x.domain, 4)) == [5, 6, 7]
 
         @test isempty(x.domain)
     end
@@ -185,14 +185,14 @@ using CPRL
         trailer = CPRL.Trailer()
         x = CPRL.IntVar(5, 10, "x", trailer)
 
-        CPRL.removeBelow!(x.domain, 7)
+        @test sort(CPRL.removeBelow!(x.domain, 7)) == [5, 6]
 
         @test length(x.domain) == 4
         @test 7 in x.domain
         @test 8 in x.domain
         @test !(6 in x.domain)
 
-        CPRL.removeBelow!(x.domain, 11)
+        @test sort(CPRL.removeBelow!(x.domain, 11)) == [7, 8, 9, 10]
 
         @test isempty(x.domain)
     end

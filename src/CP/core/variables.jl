@@ -132,39 +132,43 @@ Remove every integer of `dom` that is *strictly* above `value`.
 """
 function removeAbove!(dom::IntDomain, value::Int)
     if dom.min.value > value
-        removeAll!(dom)
-        return
+        return removeAll!(dom)
     end
 
+    pruned = Int[]
     for i in (value+1):dom.max.value
         if i in dom
             remove!(dom, i)
+            push!(pruned, i)
         end
     end
+    return pruned
 end
 
 """
     removeBelow!(dom::IntDomain, value::Int)
 
-Remove every integer of `dom` that is *strictly* below `value`.
+Remove every integer of `dom` that is *strictly* below `value`. Return the pruned values.
 """
 function removeBelow!(dom::IntDomain, value::Int)
     if dom.max.value < value
-        removeAll!(dom)
-        return
+        return removeAll!(dom)
     end
 
+    pruned = Int[]
     for i in dom.min.value:(value-1)
         if i in dom
             remove!(dom, i)
+            push!(pruned, i)
         end
     end
+    return pruned
 end
 
 """
     assign!(dom::IntDomain, value::Int)
 
-Remove everything from the domain but `value`. Return the removed values.
+Remove everything from the domain but `value`. Return the removed values. Return the pruned values.
 """
 function assign!(dom::IntDomain, value::Int)
     @assert value in dom
