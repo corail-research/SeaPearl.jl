@@ -9,7 +9,7 @@ MOI.supports_add_constrained_variable(::Optimizer, ::Type{MOI.Interval}) = true
 function MOI.supports_constraint(
     ::Optimizer, ::Type{MOI.SingleVariable}, ::Type{F}
 ) where {F <: Union{
-    MOI.EqualTo, NotEqual, MOI.LessThan
+    MOI.EqualTo, NotEqual, MOI.LessThan, MOI.GreaterThan
 }}
     return true
 end
