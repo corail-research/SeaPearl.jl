@@ -67,6 +67,12 @@ function MOI.get(model::Optimizer, ::Degrees)
 end
 """
 
+MOI.Utilities.supports_default_copy_to(::Optimizer, ::Bool) = true
+
+function MOI.copy_to(dest::Optimizer, src::MOI.ModelLike; kwargs...)
+    return MOI.Utilities.automatic_copy_to(dest, src; kwargs...)
+end
+
 """
     MOI.optimize!(model::Optimizer)
 
@@ -102,7 +108,7 @@ function MOI.optimize!(model::Optimizer)
     solution = nothing
 
     found = CPRL.solve!(model.cpmodel; variableHeuristic=((m) -> selectVariable(m, sortedPermutation, degrees)))
-
+    MAX = 4
     if (found)
         while found
             """
@@ -110,6 +116,11 @@ function MOI.optimize!(model::Optimizer)
                 push!(model.cpmodel.constraints, CPRL.LessOrEqualConstant(y, output.numberOfColors-1, trailer))
             end
             """
+            MAX = MAX - 1
+            for i in 1:4
+                MOI.add_constraint(model, MOI.SingleVariable(MOI.VariableIndex(i)), MOI.LessThan(MAX))
+            end
+
             CPRL.restoreInitialState!(model.cpmodel.trailer)
             found = CPRL.solve!(model.cpmodel; variableHeuristic=((m) -> selectVariable(m, sortedPermutation, degrees)))
 
