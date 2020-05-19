@@ -186,4 +186,28 @@
         @test CPRL.minimum(axDom) == 8
         @test CPRL.maximum(axDom) == 16
     end
+
+    @testset "isbound()" begin
+        trailer = CPRL.Trailer()
+        x = CPRL.IntVar(2, 6, "x", trailer)
+        ax = CPRL.IntVarViewMul(x, 3, "ax")
+
+        @test !CPRL.isbound(ax)
+
+        CPRL.assign!(ax, 6)
+
+        @test CPRL.isbound(ax)
+    end
+
+    @testset "assignedValue()" begin
+        trailer = CPRL.Trailer()
+        x = CPRL.IntVar(5, 5, "x", trailer)
+        ax = CPRL.IntVarViewMul(x, 3, "ax")
+
+        @test CPRL.assignedValue(ax) == 15
+
+        y = CPRL.IntVar(5, 8, "y", trailer)
+        ay = CPRL.IntVarViewMul(y, 3, "ay")
+        @test_throws AssertionError CPRL.assignedValue(y)
+    end
 end

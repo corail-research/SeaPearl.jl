@@ -1,19 +1,33 @@
-struct IntDomainViewMul <: AbstractIntDomain
+struct IntDomainViewMul <: IntDomainView
     orig            ::IntDomain
     a               ::Int
 end
 
-struct IntVarViewMul <: AbstractIntVar
+
+struct IntVarViewMul <: IntVarView
     x               ::IntVar
     a               ::Int
     domain          ::IntDomainViewMul
+    id              ::String
 
-    function IntVarViewMul(x::IntVar, a::Int)
+    """
+        IntVarViewMul(x::IntVar, a::Int)
+
+    Create a *fake* variable `y`, such that `y == a*x`. This variable behaves like an usual one.
+    """
+    function IntVarViewMul(x::IntVar, a::Int, id::String)
         @assert a > 0
         dom = IntDomainViewMul(x.domain, a)
-        return new(x, a, dom)
+        return new(x, a, dom, id)
     end
 end
+
+"""
+    assignedValue(x::IntVarViewMul)
+
+Return the assigened value of `x`. Throw an error if `x` is not bound.
+"""
+assignedValue(x::IntVarViewMul) = x.a * assignedValue(x.x)
 
 """
     isempty(dom::IntDomainViewMul)
@@ -38,7 +52,7 @@ function Base.in(value::Int, dom::IntDomainViewMul)
     if value % dom.a != 0
         return false
     end
-    return (value / dom.a) in dom.orig
+    return (value ÷ dom.a) in dom.orig
 end
 
 """
