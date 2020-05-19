@@ -20,7 +20,7 @@ function Base.show(io::IO, var::IntVar)
 end
 
 """
-    isbound(x::IntVar)
+    isbound(x::AbstractIntVar)
 
 Check whether x has an assigned value.
 """

@@ -4,6 +4,7 @@ include("equal.jl")
 include("notequal.jl")
 include("lessorequal.jl")
 include("greaterorequal.jl")
+include("sumtozero.jl")
 
 """
     addOnDomainChange!(x::AbstractIntVar, constraint::Constraint)
