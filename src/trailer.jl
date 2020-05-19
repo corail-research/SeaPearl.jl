@@ -7,6 +7,7 @@ What can be stacked into the trailer
 """
 abstract type AbstractStateEntry end
 
+Base.show(io::IO, se::AbstractStateEntry) = write(io, "AbstractStateEntry")
 
 mutable struct Trailer
     current     ::Stack{AbstractStateEntry}
