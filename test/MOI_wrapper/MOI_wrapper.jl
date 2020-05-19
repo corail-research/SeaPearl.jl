@@ -38,7 +38,7 @@ const MOIU = MathOptInterface.Utilities
         # add new constraints
         MOI.add_constraint(model, MOI.SingleVariable(MOI.VariableIndex(1)), MOI.LessThan(2))
         MOI.add_constraint(model, MOI.SingleVariable(MOI.VariableIndex(2)), MOI.GreaterThan(2))
-        MOI.add_constraint(model, MOI.SingleVariable(MOI.VariableIndex(4)), MOI.Interval(2, 3))
+        #MOI.add_constraint(model, MOI.SingleVariable(MOI.VariableIndex(4)), MOI.Interval(2, 3))
 
         # use fixPoint 
         CPRL.fixPoint!(model.cpmodel, model.cpmodel.constraints)
@@ -46,8 +46,7 @@ const MOIU = MathOptInterface.Utilities
         # test if it had effect on the variables' domains
         @test model.cpmodel.variables[string(MOI.VariableIndex(1).value)].domain.max.value == 2
         @test model.cpmodel.variables[string(MOI.VariableIndex(2).value)].domain.min.value == 2
-        @test model.cpmodel.variables[string(MOI.VariableIndex(4).value)].domain.min.value == 2
-        @test model.cpmodel.variables[string(MOI.VariableIndex(4).value)].domain.max.value == 3
+        #@test model.cpmodel.variables[string(MOI.VariableIndex(3).value)].domain.values == [2, 3]
 
         # add some new constraints again
         MOI.add_constraint(model, MOI.SingleVariable(MOI.VariableIndex(3)), MOI.EqualTo(2))
@@ -58,8 +57,7 @@ const MOIU = MathOptInterface.Utilities
 
         # new bunch of test
         @test CPRL.isbound(model.cpmodel.variables[string(MOI.VariableIndex(1).value)])
-        @test model.cpmodel.variables[string(MOI.VariableIndex(3).value)].domain.min.value == 2
-        @test model.cpmodel.variables[string(MOI.VariableIndex(3).value)].domain.max.value == 2
+        #@test model.cpmodel.variables[string(MOI.VariableIndex(3).value)].domain.values == [2]
     end
 
     @testset "Optimizing" begin

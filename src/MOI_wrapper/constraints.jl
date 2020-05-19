@@ -118,28 +118,5 @@ function MOI.add_constraint(model::Optimizer, sgvar::MOI.SingleVariable, set::MO
     return MOI.ConstraintIndex{MOI.SingleVariable, MOI.GreaterThan}(constraint_index)
 end
 
-"""
-    MOI.add_constraint(model::Optimizer, sgvar::MOI.SingleVariable, set::MOI.Interval)
-
-Interface function which add a constraint to the model (which is himself an Optimizer).
-This constraints a single variable to be in a given Interval.  
-"""
-function MOI.add_constraint(model::Optimizer, sgvar::MOI.SingleVariable, set::MOI.Interval)
-    # get the VariableIndex and convert it to string
-    id = string(sgvar.variable.value)
-    lower = set.lower
-    upper = set.upper
-
-    # create the constraint
-    constraint = IntervalConstant(model.cpmodel.variables[id], lower, upper, model.cpmodel.trailer)
-
-    # add constraint to the model
-    push!(model.cpmodel.constraints, constraint)
-
-    # return the constraint Index (asked by MathOptInterface)
-    constraint_index = length(model.cpmodel.constraints) + 1
-    return MOI.ConstraintIndex{MOI.SingleVariable, MOI.Interval}(constraint_index)
-end
-
 
 add_constraint() = @info "Constraint added !"
