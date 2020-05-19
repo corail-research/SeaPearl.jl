@@ -36,10 +36,9 @@ function propagate!(constraint::EqualConstant, toPropagate::Set{Constraint}, pru
         return true
     end
 
-    # Reduce the domain to an empty set if value not in domain
+    # Reduce the domain to an empty set if value not in domain, not feasible => no propagation
     removed = removeAll!(constraint.x.domain)
     setValue!(constraint.active, false)
-    triggerDomainChange!(toPropagate, constraint.x)
     addToPrunedDomains!(prunedDomains, constraint.x, removed)
     return false
 end
