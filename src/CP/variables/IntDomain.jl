@@ -1,4 +1,6 @@
-struct IntDomain
+abstract type AbstractIntDomain end
+
+struct IntDomain <: AbstractIntDomain
     values          ::Array{Int}
     indexes         ::Array{Int}
     offset          ::Int
@@ -34,7 +36,7 @@ function Base.show(io::IO, dom::IntDomain)
         toPrint *= string(i)*" "
     end
     toPrint *= "]"
-    print(toPrint)
+    write(io, toPrint)
 end
 
 """
@@ -171,7 +173,7 @@ end
     Base.iterate(dom::IntDomain, state=1)
 
 Iterate over the domain in an efficient way. The order may not be consistent.
-WARNING: Do *NOT* update the domain you are iterating on.
+WARNING: Do **NOT** update the domain you are iterating on.
 """
 function Base.iterate(dom::IntDomain, state=1)
     @assert state >= 1
@@ -206,10 +208,10 @@ end
 Knowing that `v` just got removed from `dom`, update `dom`'s maximum value.
 """
 function updateMaxFromRemovedVal!(dom::IntDomain, v::Int)
-    if !isempty(dom) && dom.max.value == v
+    if !isempty(dom) && maximum(dom) == v
         @assert !(v in dom)
         currentVal = v - 1
-        while currentVal >= dom.min.value
+        while currentVal >= minimum(dom)
             if currentVal in dom
                 break
             end
@@ -225,10 +227,10 @@ end
 Knowing that `v` just got removed from `dom`, update `dom`'s minimum value.
 """
 function updateMinFromRemovedVal!(dom::IntDomain, v::Int)
-    if !isempty(dom) && dom.min.value == v
+    if !isempty(dom) && minimum(dom) == v
         @assert !(v in dom)
         currentVal = v + 1
-        while currentVal <= dom.max.value
+        while currentVal <= maximum(dom)
             if currentVal in dom
                 break
             end
@@ -247,3 +249,17 @@ function updateBoundsFromRemovedVal!(dom::IntDomain, v::Int)
     updateMaxFromRemovedVal!(dom, v)
     updateMinFromRemovedVal!(dom, v)
 end
+
+"""
+    minimum(dom::IntDomain)
+
+Return the minimum value of `dom`.
+"""
+minimum(dom::IntDomain) = dom.min.value
+
+"""
+    maximum(dom::IntDomain)
+
+Return the maximum value of `dom`.
+"""
+maximum(dom::IntDomain) = dom.max.value

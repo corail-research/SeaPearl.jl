@@ -165,4 +165,19 @@
 
         @test isempty(x.domain)
     end
+
+    @testset "minimum()" begin
+        trailer = CPRL.Trailer()
+        x = CPRL.IntVar(5, 10, "x", trailer)
+
+        @test CPRL.minimum(x.domain) == 5
+    end
+
+    
+    @testset "maximum()" begin
+        trailer = CPRL.Trailer()
+        x = CPRL.IntVar(5, 10, "x", trailer)
+
+        @test CPRL.maximum(x.domain) == 10
+    end
 end
