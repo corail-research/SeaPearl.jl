@@ -40,7 +40,7 @@ end
 
 
 function solve_coloring(input_file; benchmark=false)
-    """
+    
     input = getInputData(input_file)
 
     model = Model(CPRL.Optimizer)
@@ -54,12 +54,11 @@ function solve_coloring(input_file; benchmark=false)
         degrees[e.vertex2] += 1
     end
 
-    sortedPermutation = sortperm(degrees; rev=true)
-
+    MOI.set(model, MOI.RawParameter("degrees"), degrees)
 
     solution = optimize!(model)
 
     output = outputFromCPRL(solution)
     printSolution(output)
-    """
+    
 end
