@@ -74,5 +74,27 @@ function MOI.add_constraint(model::Optimizer, vectOfVar::MOI.VectorOfVariables, 
     return MOI.ConstraintIndex{MOI.SingleVariable, MOI.NotEqualTo}(constraint_index)
 end
 
+"""
+    MOI.add_constraint(model::Optimizer, sgvar::MOI.SingleVariable, set::MOI.LessThan)
+
+Interface function which add a constraint to the model (which is himself an Optimizer).
+This constraints a single variable to be less than a given Integer.  
+"""
+function MOI.add_constraint(model::Optimizer, sgvar::MOI.SingleVariable, set::MOI.LessThan)
+    # get the VariableIndex and convert it to string
+    id = string(sgvar.variable)
+    constant = set.value
+
+    # create the constraint
+    constraint = LessOrEqualConstant(model.cpmodel.variables[id], constant, model.cpmodel.trailer)
+
+    # add constraint to the model
+    push!(model.cpmodel.constraints, constraint)
+
+    # return the constraint Index (asked by MathOptInterface)
+    constraint_index = length(model.cpmodel.constraints) + 1
+    return MOI.ConstraintIndex{MOI.SingleVariable, MOI.EqualTo}(constraint_index)
+end
+
 
 add_constraint() = @info "Constraint added !"
