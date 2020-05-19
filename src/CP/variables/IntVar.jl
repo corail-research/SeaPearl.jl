@@ -14,9 +14,9 @@ struct IntVar <: AbstractIntVar
     end
 end
 
-function Base.show(io::IO, var::AbstractIntVar)
-    print(var.id, "=")
-    print(var.domain)
+function Base.show(io::IO, var::IntVar)
+    write(io, var.id, "=")
+    show(io, var.domain)
 end
 
 """

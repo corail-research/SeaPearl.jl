@@ -13,25 +13,27 @@ using CPRL
     @testset "propagate!(::EqualConstant)" begin
         trailer = CPRL.Trailer()
         x = CPRL.IntVar(2, 6, "x", trailer)
+        ax = CPRL.IntVarViewMul(x, 3, "3x")
 
-        constraint = CPRL.EqualConstant(x, 3, trailer)
+        constraint = CPRL.EqualConstant(ax, 6, trailer)
 
         toPropagate = Set{CPRL.Constraint}()
         prunedDomains = CPRL.CPModification()
 
         @test CPRL.propagate!(constraint, toPropagate, prunedDomains)
 
-        @test length(x.domain) == 1
-        @test 3 in x.domain
-        @test !(2 in x.domain)
-        @test prunedDomains == CPRL.CPModification("x" => [2, 4, 5, 6])
+        @test length(ax.domain) == 1
+        @test 6 in ax.domain
+        @test !(9 in ax.domain)
+        @test !(10 in ax.domain)
+        @test prunedDomains == CPRL.CPModification("3x" => [9, 12, 15, 18])
 
 
-        cons2 = CPRL.EqualConstant(x, 2, trailer)
+        cons2 = CPRL.EqualConstant(ax, 9, trailer)
 
         @test !CPRL.propagate!(cons2, toPropagate, prunedDomains)
 
-        @test isempty(x.domain)
+        @test isempty(ax.domain)
 
         y = CPRL.IntVar(2, 6, "y", trailer)
         constraint1 = CPRL.EqualConstant(y, 3, trailer)

@@ -47,7 +47,7 @@ Update the `CPModification` by adding the pruned integers.
 - `x::IntVar`: the variable that had its domain pruned.
 - `pruned::Array{Int}`: the pruned integers.
 """
-function addToPrunedDomains!(prunedDomains::CPModification, x::IntVar, pruned::Array{Int})
+function addToPrunedDomains!(prunedDomains::CPModification, x::AbstractIntVar, pruned::Array{Int})
     if haskey(prunedDomains, x.id)
         prunedDomains[x.id] = vcat(prunedDomains[x.id], pruned)
     else

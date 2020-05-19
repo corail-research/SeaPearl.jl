@@ -1,20 +1,22 @@
 abstract type LessOrEqualConstraint <: Constraint end
 
 """
-    LessOrEqualConstant(x::CPRL.IntVar, v::Int)
+    LessOrEqualConstant(x::CPRL.AbstractIntVar, v::Int)
 
 Inequality constraint, `x <= v`
 """
 struct LessOrEqualConstant <: LessOrEqualConstraint
-    x       ::IntVar
+    x       ::AbstractIntVar
     v       ::Int
     active  ::StateObject{Bool}
     function LessOrEqualConstant(x, v, trailer)
         constraint = new(x, v, StateObject(true, trailer))
-        push!(x.onDomainChange, constraint)
+        addOnDomainChange!(x, constraint)
         return constraint
     end
 end
+
+Base.show(io::IO, c::LessOrEqualConstant) = write(io, "LessOrEqualConstant constraint")
 
 """
     propagate!(constraint::LessOrEqualConstant, toPropagate::Set{Constraint}, prunedDomains::CPModification)
@@ -23,13 +25,15 @@ end
 """
 function propagate!(constraint::LessOrEqualConstant, toPropagate::Set{Constraint}, prunedDomains::CPModification)
     if !constraint.active.value
-        return true
+        return false
     end
     setValue!(constraint.active, false)
-
+    
     addToPrunedDomains!(prunedDomains, constraint.x, removeAbove!(constraint.x.domain, constraint.v))
-    union!(toPropagate, constraint.x.onDomainChange)
-    pop!(toPropagate, constraint)
+    triggerDomainChange!(toPropagate, constraint.x)
+    if constraint in toPropagate
+        pop!(toPropagate, constraint)
+    end
     return !isempty(constraint.x.domain)
 end
 

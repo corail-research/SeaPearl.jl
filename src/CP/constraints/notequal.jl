@@ -6,12 +6,12 @@ abstract type NotEqualConstraint <: Constraint end
 Inequality constraint, `x != v`
 """
 struct NotEqualConstant <: NotEqualConstraint
-    x       ::IntVar
+    x       ::AbstractIntVar
     v       ::Int
     active  ::StateObject{Bool}
     function NotEqualConstant(x, v, trailer)
         constraint = new(x, v, StateObject(true, trailer))
-        push!(x.onDomainChange, constraint)
+        addOnDomainChange!(x, constraint)
         return constraint
     end
 end
@@ -48,8 +48,8 @@ struct NotEqual <: NotEqualConstraint
 
     function NotEqual(x::CPRL.IntVar, y::CPRL.IntVar, trailer::Trailer)
         constraint = new(x, y, StateObject(true, trailer))
-        push!(x.onDomainChange, constraint)
-        push!(y.onDomainChange, constraint)
+        addOnDomainChange!(x, constraint)
+        addOnDomainChange!(y, constraint)
         return constraint
     end
 end
@@ -70,26 +70,24 @@ function propagate!(constraint::NotEqual, toPropagate::Set{Constraint}, prunedDo
 
     if isbound(constraint.x)
         setValue!(constraint.active, false)
-        pruned = remove!(constraint.y.domain, constraint.x.domain.max.value)
+        pruned = remove!(constraint.y.domain, maximum(constraint.x.domain))
         if isempty(constraint.y.domain)
             return false
         end
         if !isempty(pruned)
-            union!(toPropagate, constraint.y.onDomainChange)
-            pop!(toPropagate, constraint)
+            triggerDomainChange!(toPropagate, constraint.y)
             addToPrunedDomains!(prunedDomains, constraint.y, pruned)
         end
         return true
     end
     if isbound(constraint.y)
         setValue!(constraint.active, false)
-        pruned = remove!(constraint.x.domain, constraint.y.domain.max.value)
+        pruned = remove!(constraint.x.domain, maximum(constraint.y.domain))
         if isempty(constraint.x.domain)
             return false
         end
         if !isempty(pruned)
-            union!(toPropagate, constraint.x.onDomainChange)
-            pop!(toPropagate, constraint)
+            triggerDomainChange!(toPropagate, constraint.x)
             addToPrunedDomains!(prunedDomains, constraint.x, pruned)
         end
         return true

@@ -1,17 +1,17 @@
 abstract type EqualConstraint <: Constraint end
 
 """
-    EqualConstant(x::CPRL.IntVar, v::Int)
+    EqualConstant(x::CPRL.AbstractIntVar, v::Int)
 
 Equality constraint, putting a constant value `v` for the variable `x` i.e. `x == v`
 """
 struct EqualConstant <: EqualConstraint
-    x       ::CPRL.IntVar
+    x       ::CPRL.AbstractIntVar
     v       ::Int
     active  ::StateObject{Bool}
-    function EqualConstant(x::CPRL.IntVar, v::Int, trailer)
+    function EqualConstant(x::CPRL.AbstractIntVar, v::Int, trailer)
         constraint = new(x, v, StateObject{Bool}(true, trailer))
-        push!(x.onDomainChange, constraint)
+        addOnDomainChange!(x, constraint)
         return constraint
     end
 end
@@ -31,7 +31,7 @@ function propagate!(constraint::EqualConstant, toPropagate::Set{Constraint}, pru
     if constraint.v in constraint.x.domain
         removed = assign!(constraint.x.domain, constraint.v)
         setValue!(constraint.active, false)
-        union!(toPropagate, constraint.x.onDomainChange)
+        triggerDomainChange!(toPropagate, constraint.x)
         addToPrunedDomains!(prunedDomains, constraint.x, removed)
         return true
     end
@@ -39,33 +39,34 @@ function propagate!(constraint::EqualConstant, toPropagate::Set{Constraint}, pru
     # Reduce the domain to an empty set if value not in domain
     removed = removeAll!(constraint.x.domain)
     setValue!(constraint.active, false)
+    triggerDomainChange!(toPropagate, constraint.x)
     addToPrunedDomains!(prunedDomains, constraint.x, removed)
     return false
 end
 
 """
-    Equal(x::CPRL.IntVar, y::CPRL.IntVar)
+    Equal(x::CPRL.AbstractIntVar, y::CPRL.AbstractIntVar)
 
 Equality constraint between two variables, stating that `x == y`.
 """
 struct Equal <: EqualConstraint
-    x       ::CPRL.IntVar
-    y       ::CPRL.IntVar
+    x       ::CPRL.AbstractIntVar
+    y       ::CPRL.AbstractIntVar
     active  ::StateObject{Bool}
 
-    function Equal(x::CPRL.IntVar, y::CPRL.IntVar, trailer::Trailer)
+    function Equal(x::CPRL.AbstractIntVar, y::CPRL.AbstractIntVar, trailer::Trailer)
         constraint = new(x, y, StateObject(true, trailer))
-        push!(x.onDomainChange, constraint)
-        push!(y.onDomainChange, constraint)
+        addOnDomainChange!(x, constraint)
+        addOnDomainChange!(y, constraint)
         return constraint
     end
 end
 
 function Base.show(io::IO, constraint::Equal)
-    println("Equal constraint:")
-    println(constraint.x)
+    write(io, "Equal constraint:\n")
+    show(io, constraint.x)
     
-    println(constraint.y)
+    show(io, constraint.y)
 end
 
 """
@@ -84,11 +85,11 @@ function propagate!(constraint::Equal, toPropagate::Set{Constraint}, prunedDomai
     prunedY = pruneEqual!(constraint.y, constraint.x)
 
     if !isempty(prunedX)
-        union!(toPropagate, constraint.x.onDomainChange)
+        triggerDomainChange!(toPropagate, constraint.x)
         addToPrunedDomains!(prunedDomains, constraint.x, prunedX)
     end
     if !isempty(prunedY)
-        union!(toPropagate, constraint.y.onDomainChange)
+        triggerDomainChange!(toPropagate, constraint.y)
         addToPrunedDomains!(prunedDomains, constraint.y, prunedY)
     end
 
@@ -106,11 +107,11 @@ function propagate!(constraint::Equal, toPropagate::Set{Constraint}, prunedDomai
 end
 
 """
-    pruneEqual!(x::IntVar, y::IntVar)
+    pruneEqual!(x::AbstractIntVar, y::AbstractIntVar)
 
 Remove the values from the domain of `x` that are not in the domain of `y`.
 """
-function pruneEqual!(x::IntVar, y::IntVar)
+function pruneEqual!(x::AbstractIntVar, y::AbstractIntVar)
     toRemove = Int[]
     for val in x.domain
         if !(val in y.domain)

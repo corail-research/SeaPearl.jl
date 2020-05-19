@@ -1,17 +1,17 @@
 abstract type GreaterOrEqualConstraint <: Constraint end
 
 """
-    GreaterOrEqualConstant(x::CPRL.IntVar, v::Int)
+    GreaterOrEqualConstant(x::CPRL.AbstractIntVar, v::Int)
 
 Inequality constraint, `x >= v`
 """
 struct GreaterOrEqualConstant <: GreaterOrEqualConstraint
-    x       ::IntVar
+    x       ::AbstractIntVar
     v       ::Int
     active  ::StateObject{Bool}
     function GreaterOrEqualConstant(x, v, trailer)
         constraint = new(x, v, StateObject(true, trailer))
-        push!(x.onDomainChange, constraint)
+        addOnDomainChange!(x, constraint)
         return constraint
     end
 end
@@ -28,7 +28,7 @@ function propagate!(constraint::GreaterOrEqualConstant, toPropagate::Set{Constra
     setValue!(constraint.active, false)
 
     addToPrunedDomains!(prunedDomains, constraint.x, removeBelow!(constraint.x.domain, constraint.v))
-    union!(toPropagate, constraint.x.onDomainChange)
+    triggerDomainChange!(toPropagate, constraint.x)
     pop!(toPropagate, constraint)
     return !isempty(constraint.x.domain)
 end
