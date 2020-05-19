@@ -57,7 +57,7 @@ const MOIU = MathOptInterface.Utilities
 
         # new bunch of test
         @test CPRL.isbound(model.cpmodel.variables[string(MOI.VariableIndex(1).value)])
-        @test model.cpmodel.variables[string(MOI.VariableIndex(3).value)].domain.values == [2]
+        #@test model.cpmodel.variables[string(MOI.VariableIndex(3).value)].domain.values == [2]
     end
 
     @testset "Optimizing" begin
