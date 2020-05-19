@@ -1,6 +1,6 @@
+abstract type AbstractIntVar end
 
-
-struct IntVar
+struct IntVar <: AbstractIntVar
     onDomainChange      ::Array{Constraint}
     domain              ::CPRL.IntDomain
     id                  ::String
@@ -14,7 +14,7 @@ struct IntVar
     end
 end
 
-function Base.show(io::IO, var::IntVar)
+function Base.show(io::IO, var::AbstractIntVar)
     print(var.id, "=")
     print(var.domain)
 end
@@ -24,7 +24,7 @@ end
 
 Check whether x has an assigned value.
 """
-isbound(x::IntVar) = length(x.domain) == 1
+isbound(x::AbstractIntVar) = length(x.domain) == 1
 
 
 
@@ -33,7 +33,7 @@ isbound(x::IntVar) = length(x.domain) == 1
 
 Remove everything from the domain of `x` but `value`.
 """
-assign!(x::IntVar, value::Int) = assign!(x.domain, value)
+assign!(x::AbstractIntVar, value::Int) = assign!(x.domain, value)
 
 """
     assignedValue(x::IntVar)
