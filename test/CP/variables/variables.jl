@@ -4,4 +4,5 @@ using CPRL
     include("IntDomain.jl")
     include("IntVar.jl")
     include("IntVarViewMul.jl")
+    include("IntVarViewOpposite.jl")
 end

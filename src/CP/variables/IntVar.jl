@@ -29,19 +29,19 @@ isbound(x::AbstractIntVar) = length(x.domain) == 1
 
 
 """
-    assign!(x::IntVar, value::Int)
+    assign!(x::AbstractIntVar, value::Int)
 
 Remove everything from the domain of `x` but `value`.
 """
 assign!(x::AbstractIntVar, value::Int) = assign!(x.domain, value)
 
 """
-    assignedValue(x::IntVar)
+    assignedValue(x::AbstractIntVar)
 
 Return the assigened value of `x`. Throw an error if `x` is not bound.
 """
-function assignedValue(x::IntVar)
+function assignedValue(x::AbstractIntVar)
     @assert isbound(x)
 
-    return x.domain.values[1] + x.domain.offset
+    return minimum(x.domain)
 end

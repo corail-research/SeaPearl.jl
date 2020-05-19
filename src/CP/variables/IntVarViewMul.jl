@@ -30,21 +30,21 @@ Return the assigened value of `x`. Throw an error if `x` is not bound.
 assignedValue(x::IntVarViewMul) = x.a * assignedValue(x.x)
 
 """
-    isempty(dom::IntDomainViewMul)
+    isempty(dom::IntDomainView)
 
 Return `true` iff `dom` is an empty set.
 """
-Base.isempty(dom::IntDomainViewMul) = isempty(dom.orig)
+Base.isempty(dom::IntDomainView) = isempty(dom.orig)
 
 """
-    length(dom::IntDomainViewMul)
+    length(dom::IntDomainView)
 
 Return the size of `dom`.
 """
-Base.length(dom::IntDomainViewMul) = length(dom.orig)
+Base.length(dom::IntDomainView) = length(dom.orig)
 
 """
-    Base.in(value::Int, dom::IntDomain)
+    Base.in(value::Int, dom::IntDomainViewMul)
 
 Check if an integer is in the domain.
 """
@@ -107,7 +107,7 @@ removeBelow!(dom::IntDomainViewMul, value::Int) = dom.a * removeBelow!(dom.orig,
 
 
 """
-    assign!(dom::IntDomain, value::Int)
+    assign!(dom::IntDomainViewOpposite, value::Int)
 
 Remove everything from the domain but `value`. Return the removed values. Return the pruned values.
 """

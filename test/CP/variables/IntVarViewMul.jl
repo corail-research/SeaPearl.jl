@@ -168,7 +168,7 @@
         @test CPRL.maximum(axDom) == 20
 
         CPRL.remove!(axDom, 20)
-        CPRL.updateMinFromRemovedVal!(axDom, 20)
+        CPRL.updateMaxFromRemovedVal!(axDom, 20)
 
         @test CPRL.maximum(axDom) == 16
     end
