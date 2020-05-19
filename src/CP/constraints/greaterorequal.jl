@@ -29,7 +29,6 @@ function propagate!(constraint::GreaterOrEqualConstant, toPropagate::Set{Constra
 
     addToPrunedDomains!(prunedDomains, constraint.x, removeBelow!(constraint.x.domain, constraint.v))
     triggerDomainChange!(toPropagate, constraint.x)
-    pop!(toPropagate, constraint)
     return !isempty(constraint.x.domain)
 end
 

@@ -3,6 +3,7 @@
     include("equal.jl")
     include("notequal.jl")
     include("lessorequal.jl")
+    include("greaterorequal.jl")
 
     @testset "addOnDomainChange!()" begin
         trailer = CPRL.Trailer()
