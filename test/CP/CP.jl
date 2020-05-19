@@ -1,6 +1,6 @@
 @testset "CP.jl" begin
 
-    include("core/variables.jl")
+    include("variables/variables.jl")
     include("constraints/constraints.jl")
     include("core/model.jl")
 

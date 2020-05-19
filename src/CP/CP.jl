@@ -1,7 +1,7 @@
 
 abstract type Constraint end
 
-include("core/variables.jl")
+include("variables/variables.jl")
 include("core/model.jl")
 include("constraints/constraints.jl")
 
