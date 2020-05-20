@@ -64,13 +64,10 @@ using JuMP
         @test model.cpmodel.variables[string(MOI.VariableIndex(3).value)].domain.max.value == 2
     end
 
-    @testset "Optimizing" begin
-        @test CPRL.add_constraint() == nothing
-        @test_logs (:info, "Constraint added !") CPRL.add_constraint()
-    end
-
     @testset "JuMP interface" begin
-        model = Model(CPRL.Optimizer)
+        model = Model()
+        set_optimizer(model, CPRL.Optimizer, bridge_constraints = true)
+        
         @variable(model, 1 <= x[1:3] <= 4)
         @constraint(model, x[1] in CPRL.NotEqualTo(2))
         @constraint(model, x[1] in CPRL.NotEqualTo(3))
