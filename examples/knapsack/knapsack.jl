@@ -27,6 +27,8 @@ function solve_knapsack(filename::String; benchmark=false, exact=true)
     
     input = parseFile!(filename)
 
+    permutation = sortperm(input.items; by=(x) -> x.value/x.weight, rev=true)
+
     n = input.numberOfItems
 
     trailer = CPRL.Trailer()
@@ -53,7 +55,7 @@ function solve_knapsack(filename::String; benchmark=false, exact=true)
 
     # Transition: x_s[i+1] = x_s[i] + w[i]*x_a[i]
     for i in 1:n
-        w_x_a_i = CPRL.IntVarViewMul(x_a[i], input.items[i].weight, "w["*string(i)*"]*x_a["*string(i)*"]")
+        w_x_a_i = CPRL.IntVarViewMul(x_a[i], input.items[permutation[i]].weight, "w["*string(i)*"]*x_a["*string(i)*"]")
         minusX_s = CPRL.IntVarViewOpposite(x_s[i+1], "-x_s["*string(i+1)*"]")
         CPRL.addVariable!(model, w_x_a_i)
         CPRL.addVariable!(model, minusX_s)
@@ -68,11 +70,27 @@ function solve_knapsack(filename::String; benchmark=false, exact=true)
     #     push!(model.constraints, validity)
     # end
 
+    # Objective: minimize: -sum(v[i]*x_a[i])
+    vars = CPRL.AbstractIntVar[]
+    maxValue = 0
+    for i in 1:n
+        vx_a_i = CPRL.IntVarViewMul(x_a[i], input.items[permutation[i]].value, "v["*string(i)*"]*x_a["*string(i)*"]")
+        push!(vars, vx_a_i)
+        maxValue += input.items[permutation[i]].value
+    end
+    y = CPRL.IntVar(-maxValue, 0, "y", trailer)
+    CPRL.addVariable!(model, y)
+    push!(vars, y)
+    objective = CPRL.SumToZero(vars, trailer)
+    push!(model.constraints, objective)
+    model.objective = y
+
+
+
     found = CPRL.solve!(model; variableHeuristic=selectVariable)
 
-    if (found)
-        oneSolution = last(model.solutions)
-        output = solutionFromCPRL(oneSolution, input)
+    for oneSolution in model.solutions
+        output = solutionFromCPRL(oneSolution, input, permutation)
         if !benchmark
             printSolution(output)
         end
@@ -87,16 +105,16 @@ function selectVariable(model::CPRL.CPModel)
     return model.variables["x_a[" * string(i) * "]"]
 end
 
-function solutionFromCPRL(cprlSol::CPRL.Solution, input::InputData)
+function solutionFromCPRL(cprlSol::CPRL.Solution, input::InputData, permutation::Array{Int})
     taken = falses(input.numberOfItems)
     value = 0
     weight = 0
     for i in 1:input.numberOfItems
         if haskey(cprlSol, "x_a[" * string(i) * "]")
-            taken[i] = convert(Bool, cprlSol["x_a[" * string(i) * "]"])
-            if taken[i]
-                value += input.items[i].value
-                weight += input.items[i].weight
+            taken[permutation[i]] = convert(Bool, cprlSol["x_a[" * string(i) * "]"])
+            if taken[permutation[i]]
+                value += input.items[permutation[i]].value
+                weight += input.items[permutation[i]].weight
             end
         end
     end
