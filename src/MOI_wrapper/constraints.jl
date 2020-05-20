@@ -122,7 +122,7 @@ end
     MOI.add_constraint(model::Optimizer, sgvar::MOI.SingleVariable, set::MOI.Interval)
 
 Interface function which add a constraint to the model (which is himself an Optimizer).
-This constraints a single variable to be greater in an Interval.  
+This constraints a single variable to be in an Interval.  
 """
 function MOI.add_constraint(model::Optimizer, sgvar::MOI.SingleVariable, set::MOI.Interval)
     # get the VariableIndex and convert it to string
