@@ -1,5 +1,5 @@
 
 
 function selectValue(x::IntVar)
-    return x.domain.min.value
+    return maximum(x.domain)
 end

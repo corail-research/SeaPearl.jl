@@ -12,7 +12,11 @@ include("sumtozero.jl")
 
 Make sure `constraint` will be propagated if `x`'s domain changes.
 """
-addOnDomainChange!(x::IntVar, constraint::Constraint) = push!(x.onDomainChange, constraint)
+function addOnDomainChange!(x::IntVar, constraint::Constraint)
+    if !(constraint in x.onDomainChange)
+        push!(x.onDomainChange, constraint)
+    end
+end
 addOnDomainChange!(x::IntVarView, constraint::Constraint) = addOnDomainChange!(x.x, constraint)
 
 """
@@ -33,5 +37,6 @@ end
 
 Add the constraints that have to be propagated when the domain of `x` changes to `toPropagate`.
 """
-triggerDomainChange!(toPropagate::Set{Constraint}, x::IntVar) = addToPropagate!(toPropagate, x.onDomainChange)
-triggerDomainChange!(toPropagate::Set{Constraint}, x::IntVarView) = triggerDomainChange!(toPropagate, x.x)
+triggerDomainChange!(toPropagate::Set{Constraint}, x::AbstractIntVar) = addToPropagate!(toPropagate, getOnDomainChange(x))
+getOnDomainChange(x::IntVar) = x.onDomainChange
+getOnDomainChange(x::IntVarView) = getOnDomainChange(x.x)

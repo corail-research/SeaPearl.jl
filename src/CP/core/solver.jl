@@ -8,7 +8,7 @@ function solve!(model::CPModel, new_constraint=nothing; variableHeuristic=select
     if solutionFound(model)
         solution = Solution()
         for (k, x) in model.variables
-            solution[k] = x.domain.min.value
+            solution[k] = assignedValue(x)
         end
         push!(model.solutions, solution)
         return true
@@ -26,12 +26,11 @@ function solve!(model::CPModel, new_constraint=nothing; variableHeuristic=select
     v = selectValue(x)
 
 
-
     
     saveState!(model.trailer)
     assign!(x, v)
     
-    if solve!(model, x.onDomainChange; variableHeuristic=variableHeuristic)
+    if solve!(model, getOnDomainChange(x); variableHeuristic=variableHeuristic)
         return true
     end
     restoreState!(model.trailer)
@@ -39,7 +38,7 @@ function solve!(model::CPModel, new_constraint=nothing; variableHeuristic=select
     saveState!(model.trailer)
     remove!(x.domain, v)
     
-    if solve!(model, x.onDomainChange; variableHeuristic=variableHeuristic)
+    if solve!(model, getOnDomainChange(x); variableHeuristic=variableHeuristic)
         return true
     end
     restoreState!(model.trailer)

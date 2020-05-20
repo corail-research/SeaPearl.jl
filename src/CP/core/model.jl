@@ -1,21 +1,22 @@
 const Solution = Dict{String, Int}
 
 struct CPModel
-    variables       ::Dict{String, IntVar}
+    variables       ::Dict{String, AbstractIntVar}
     constraints     ::Array{Constraint}
     trailer         ::Trailer
+    objective       ::Union{Nothing, AbstractIntVar}
     solutions       ::Array{Solution}
-    CPModel(trailer) = new(Dict{String, IntVar}(), Constraint[], trailer, Solution[])
+    CPModel(trailer) = new(Dict{String, AbstractIntVar}(), Constraint[], trailer, nothing, Solution[])
 end
 
 const CPModification = Dict{String, Array{Int}}
 
 """
-    addVariable!(model::CPModel, x::IntVar)
+    addVariable!(model::CPModel, x::AbstractIntVar)
 
 Add a variable to the model, throwing an error if `x`'s id is already in the model.
 """
-function addVariable!(model::CPModel, x::IntVar)
+function addVariable!(model::CPModel, x::AbstractIntVar)
     # Ensure the id is unique
     @assert !haskey(model.variables, x.id)
 
