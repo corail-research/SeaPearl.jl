@@ -3,6 +3,8 @@ using MathOptInterface
 const MOI = MathOptInterface
 const MOIU = MathOptInterface.Utilities
 
+using JuMP
+
 @testset "MOI_wrapper.jl" begin
 
     @testset "Creating an optimizer" begin
@@ -65,5 +67,14 @@ const MOIU = MathOptInterface.Utilities
     @testset "Optimizing" begin
         @test CPRL.add_constraint() == nothing
         @test_logs (:info, "Constraint added !") CPRL.add_constraint()
+    end
+
+    @testset "JuMP interface" begin
+        model = Model(CPRL.Optimizer)
+        @variable(model, 1 <= x[1:3] <= 4)
+        @constraint(model, x[1] in CPRL.NotEqualTo(2))
+        @constraint(model, x[1] in CPRL.NotEqualTo(3))
+        @constraint(model, x[2] in MOI.EqualTo(4))
+        @constraint(model, x[1:2] in CPRL.VariablesEquality(false))
     end
 end
