@@ -5,14 +5,14 @@ abstract type IntervalConstraint <: Constraint end
 
 Inequality constraint, `lower <= x <= upper`
 """
-struct IntervalConstant <: LessOrEqualConstraint
-    x::IntVar
+struct IntervalConstant <: IntervalConstraint
+    x::AbstractIntVar
     lower::Int
     upper::Int
     active::StateObject{Bool}
     function IntervalConstant(x, lower, upper, trailer)
         constraint = new(x, lower, upper, StateObject(true, trailer))
-        push!(x.onDomainChange, constraint)
+        addOnDomainChange!(x, constraint)
         return constraint
     end
 end
@@ -29,7 +29,9 @@ function propagate!(constraint::IntervalConstant, toPropagate::Set{Constraint}, 
     setValue!(constraint.active, false)
 
     addToPrunedDomains!(prunedDomains, constraint.x, vcat(removeBelow!(constraint.x.domain, constraint.lower), removeAbove!(constraint.x.domain, constraint.upper)))
-    union!(toPropagate, constraint.x.onDomainChange)
-    pop!(toPropagate, constraint)
+    triggerDomainChange!(toPropagate, constraint.x)
+    if constraint in toPropagate
+        pop!(toPropagate, constraint)
+    end
     return !isempty(constraint.x.domain)
 end
