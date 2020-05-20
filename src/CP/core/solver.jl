@@ -6,11 +6,9 @@ function solve!(model::CPModel, new_constraint=nothing; variableHeuristic=select
         return false
     end
     if solutionFound(model)
-        solution = Solution()
-        for (k, x) in model.variables
-            solution[k] = assignedValue(x)
-        end
-        push!(model.solutions, solution)
+        
+
+        triggerFoundSolution!(model)
         return true
     end
 
@@ -30,17 +28,13 @@ function solve!(model::CPModel, new_constraint=nothing; variableHeuristic=select
     saveState!(model.trailer)
     assign!(x, v)
     
-    if solve!(model, getOnDomainChange(x); variableHeuristic=variableHeuristic)
-        return true
-    end
+    solve!(model, getOnDomainChange(x); variableHeuristic=variableHeuristic)
     restoreState!(model.trailer)
 
     saveState!(model.trailer)
     remove!(x.domain, v)
     
-    if solve!(model, getOnDomainChange(x); variableHeuristic=variableHeuristic)
-        return true
-    end
+    solve!(model, getOnDomainChange(x); variableHeuristic=variableHeuristic)
     restoreState!(model.trailer)
     return false
 end

@@ -1,6 +1,6 @@
 const Solution = Dict{String, Int}
 
-struct CPModel
+mutable struct CPModel
     variables       ::Dict{String, AbstractIntVar}
     constraints     ::Array{Constraint}
     trailer         ::Trailer
@@ -71,4 +71,37 @@ function solutionFound(model::CPModel)
         end
     end
     return true
+end
+
+"""
+    triggerFoundSolution!(model::CPModel)
+
+Add the current solution to `model`, and set new constraints for the objective if needed.
+"""
+function triggerFoundSolution!(model::CPModel)
+    @assert solutionFound(model)
+
+    # Adding the solution
+    solution = Solution()
+    for (k, x) in model.variables
+        solution[k] = assignedValue(x)
+    end
+    push!(model.solutions, solution)
+
+    if !isnothing(model.objective)
+        println("Solution found! Current objective: ", assignedValue(model.objective))
+        tightenObjective!(model)
+    end
+end
+
+"""
+    tightenObjective!(model::CPModel)
+
+Set a new constraint to minimize the objective variable
+"""
+function tightenObjective!(model::CPModel)
+    @assert !isnothing(model.objective)
+
+    tighten = LessOrEqualConstant(model.objective, assignedValue(model.objective)-1, model.trailer)
+    push!(model.constraints, tighten)
 end

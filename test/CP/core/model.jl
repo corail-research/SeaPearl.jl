@@ -61,4 +61,44 @@
 
         @test CPRL.solutionFound(model)
     end
+
+    @testset "triggerFoundSolution!()" begin
+        trailer = CPRL.Trailer()
+        x = CPRL.IntVar(2, 2, "x", trailer)
+        y = CPRL.IntVar(3, 3, "y", trailer)
+
+        model = CPRL.CPModel(trailer)
+
+        CPRL.addVariable!(model, x)
+        CPRL.addVariable!(model, y)
+        model.objective = y
+
+        CPRL.triggerFoundSolution!(model)
+
+        @test length(model.solutions) == 1
+        @test model.solutions[1] == Dict("x" => 2,"y" => 3)
+        @test length(model.constraints) == 1
+        @test model.constraints[1].v == 2
+        @test model.constraints[1].x == y
+        @test isa(model.constraints[1], CPRL.LessOrEqualConstant)
+    end
+
+    @testset "tightenObjective!()" begin
+        trailer = CPRL.Trailer()
+        x = CPRL.IntVar(2, 2, "x", trailer)
+        y = CPRL.IntVar(3, 3, "y", trailer)
+
+        model = CPRL.CPModel(trailer)
+
+        CPRL.addVariable!(model, x)
+        CPRL.addVariable!(model, y)
+        model.objective = y
+
+        CPRL.tightenObjective!(model)
+
+        @test length(model.constraints) == 1
+        @test model.constraints[1].v == 2
+        @test model.constraints[1].x == y
+        @test isa(model.constraints[1], CPRL.LessOrEqualConstant)
+    end
 end
