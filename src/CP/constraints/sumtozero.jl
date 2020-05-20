@@ -68,9 +68,16 @@ function propagate!(constraint::SumToZero, toPropagate::Set{Constraint}, prunedD
         currentId = constraint.freeIds[i]
         currentMin = minimum(constraint.x[currentId].domain)
         currentMax = maximum(constraint.x[currentId].domain)
-        addToPrunedDomains!(prunedDomains, constraint.x[currentId], removeAbove!(constraint.x[currentId].domain, currentMin - sumOfMin))
-        addToPrunedDomains!(prunedDomains, constraint.x[currentId], removeBelow!(constraint.x[currentId].domain, currentMax - sumOfMax))
-        triggerDomainChange!(toPropagate, constraint.x[currentId])
+        pruned = vcat(removeAbove!(constraint.x[currentId].domain, currentMin - sumOfMin), removeBelow!(constraint.x[currentId].domain, currentMax - sumOfMax))
+        if !isempty(pruned)
+            addToPrunedDomains!(prunedDomains, constraint.x[currentId], pruned)
+            triggerDomainChange!(toPropagate, constraint.x[currentId])
+            
+        end
+    end
+
+    if newNumberOfFreeVars == 0
+        setValue!(constraint.active, false)
     end
 
     return true
