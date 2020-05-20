@@ -13,13 +13,20 @@ Should create a new type of Variables here or change IntVar's implementation. No
 
 """
 
+mutable struct VariableSelection <: MOI.AbstractOptimizerAttribute 
+    heuristic::Function
+
+    VariableSelection() = new(CPRL.selectVariable)
+end
+
 mutable struct Optimizer <: MOI.AbstractOptimizer
     cpmodel::CPModel
+    variableselection::VariableSelection
     options::Dict{String, Any}
 
     function Optimizer()
         cpmodel = CPRL.CPModel(CPRL.Trailer())
-        new(cpmodel, Dict{String, Any}())
+        new(cpmodel, VariableSelection(), Dict{String, Any}())
     end
 end
 
@@ -56,16 +63,16 @@ function MOI.empty!(model::Optimizer)
 end
 
 MOI.supports(::Optimizer, ::MOI.RawParameter) = true
+MOI.supports(::Optimizer, ::CPRL.VariableSelection) = true
 
 function MOI.set(model::Optimizer, p::MOI.RawParameter, value)
     model.options[p.name] = value
 end
 
-"""
-function MOI.get(model::Optimizer, ::Degrees)
-    return model.degrees
+function MOI.set(model::Optimizer, ::CPRL.VariableSelection, heuristic::Function)
+    model.variableselection.heuristic = heuristic
 end
-"""
+
 
 MOI.Utilities.supports_default_copy_to(::Optimizer, ::Bool) = true
 
@@ -80,53 +87,32 @@ Launch the solving process of the solver.
 """
 function MOI.optimize!(model::Optimizer)
 
-    degrees = model.options["degrees"]
-
-    sortedPermutation = sortperm(degrees; rev=true)
-
-    function selectVariable(model::CPRL.CPModel, sortedPermutation, degrees)
-        maxDegree = 0
-        toReturn = nothing
-        for i in sortedPermutation
-            if !CPRL.isbound(model.variables[string(i)])
-                if isnothing(toReturn)
-                    toReturn = model.variables[string(i)]
-                    maxDegree = degrees[i]
-                end
-                if degrees[i] < maxDegree
-                    return toReturn
-                end
-
-                if length(model.variables[string(i)].domain) < length(toReturn.domain)
-                    toReturn = model.variables[string(i)]
-                end
-            end
-        end
-        return toReturn
-    end
-
     solution = nothing
 
-    found = CPRL.solve!(model.cpmodel; variableHeuristic=((m) -> selectVariable(m, sortedPermutation, degrees)))
+    found = CPRL.solve!(model.cpmodel; variableHeuristic=model.variableselection.heuristic)
+    
     MAX = 4
     if (found)
         while found
-            """
-            for y in x
-                push!(model.cpmodel.constraints, CPRL.LessOrEqualConstant(y, output.numberOfColors-1, trailer))
-            end
-            """
+            
+            #for y in x
+            #    push!(model.cpmodel.constraints, CPRL.LessOrEqualConstant(y, output.numberOfColors-1, trailer))
+            #end
+            
+            
             MAX = MAX - 1
             for i in 1:4
                 MOI.add_constraint(model, MOI.SingleVariable(MOI.VariableIndex(i)), MOI.LessThan(MAX))
             end
+            
 
             CPRL.restoreInitialState!(model.cpmodel.trailer)
-            found = CPRL.solve!(model.cpmodel; variableHeuristic=((m) -> selectVariable(m, sortedPermutation, degrees)))
+            found = CPRL.solve!(model.cpmodel; variableHeuristic=model.variableselection.heuristic)
 
         end
         solution = last(model.cpmodel.solutions)
     end
+    
 
     return solution
 end

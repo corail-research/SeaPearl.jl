@@ -1,4 +1,3 @@
-using Revise
 using JuMP
 using CPRL
 
@@ -37,15 +36,33 @@ function outputFromCPRL(sol::CPRL.Solution; optimality=false)
     return OutputData(numberOfColors, edgeColors, optimality)
 end
 
+function selectVariable(model::CPRL.CPModel, sortedPermutation, degrees)
+    maxDegree = 0
+    toReturn = nothing
+    for i in sortedPermutation
+        if !CPRL.isbound(model.variables[string(i)])
+            if isnothing(toReturn)
+                toReturn = model.variables[string(i)]
+                maxDegree = degrees[i]
+            end
+            if degrees[i] < maxDegree
+                return toReturn
+            end
 
+            if length(model.variables[string(i)].domain) < length(toReturn.domain)
+                toReturn = model.variables[string(i)]
+            end
+        end
+    end
+    return toReturn
+end
 
-function solve_coloring(input_file; benchmark=false)
+function solve_coloring_MOI(input_file; benchmark=false)
     
+    # use input data to fill the model
     input = getInputData(input_file)
 
-    #model = Model(CPRL.Optimizer)
     model = CPRL.Optimizer()
-    #@variable(model, 1 <= x[1:input.numberOfVertices] <= input.numberOfVertices)
     
     for i in 1:input.numberOfVertices
         MOI.add_constrained_variable(model, MOI.Interval(1, input.numberOfVertices))
@@ -54,18 +71,75 @@ function solve_coloring(input_file; benchmark=false)
     degrees = zeros(Int, input.numberOfVertices)
 
     for e in input.edges
-        #@constraint(model, [x[e.vertex1], x[e.vertex2]] in CPRL.VariablesEquality(false))
         MOI.add_constraint(model, MOI.VectorOfVariables([MOI.VariableIndex(e.vertex1), MOI.VariableIndex(e.vertex2)]), CPRL.VariablesEquality(false))
         degrees[e.vertex1] += 1
         degrees[e.vertex2] += 1
     end
 
-    MOI.set(model, MOI.RawParameter("degrees"), degrees)
+    sortedPermutation = sortperm(degrees; rev=true)
 
-    #solution = optimize!(model)
+    # define the heuristic used for variable selection
+    variableheuristic(m) = selectVariable(m, sortedPermutation, degrees)
+
+    MOI.set(model, CPRL.VariableSelection(), variableheuristic)
+
     solution = MOI.optimize!(model)
 
     output = outputFromCPRL(solution)
     printSolution(output)
+end
+
+
+function solve_coloring_JuMP(input_file; benchmark=false)
     
+    # use input data to fill the model
+    input = getInputData(input_file)
+
+    model = Model(CPRL.Optimizer)
+
+    @variable(model, 1 <= x[1:input.numberOfVertices] <= input.numberOfVertices)
+
+    degrees = zeros(Int, input.numberOfVertices)
+    """
+    for e in input.edges
+        @constraint(model, [x[e.vertex1], x[e.vertex2]] in CPRL.VariablesEquality(false))
+        #update degrees
+        degrees[e.vertex1] += 1
+        degrees[e.vertex2] += 1
+    end
+    """
+    @constraint(model, [x[1], x[2]] in CPRL.VariablesEquality(false))
+
+    sortedPermutation = sortperm(degrees; rev=true)
+
+    # define the heuristic used for variable selection
+    variableheuristic(m) = selectVariable(m, sortedPermutation, degrees)
+
+    MOI.set(model, CPRL.VariableSelection(), variableheuristic)
+
+    optimize!(model)
+
+    output = outputFromCPRL(solution)
+    printSolution(output)
+    
+end
+
+function about_to_rage_quit()
+    # create model
+    model = Model(CPRL.Optimizer)
+
+    # create variables
+    @variable(model, 1 <= x1 <= 4)
+    @variable(model, 1 <= x2 <= 4)
+    @variable(model, 1 <= x3 <= 4)
+    @variable(model, 1 <= x4 <= 4)
+
+    # create constraints
+    @constraint(model, [x1, x2] in CPRL.VariablesEquality(false))
+    @constraint(model, [x2, x3] in CPRL.VariablesEquality(false))
+    @constraint(model, [x2, x4] in CPRL.VariablesEquality(false))
+
+    optimize!(model)
+
+    println(model)
 end

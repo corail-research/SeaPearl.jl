@@ -73,5 +73,6 @@ using JuMP
         @constraint(model, x[1] in CPRL.NotEqualTo(3))
         @constraint(model, x[2] in MOI.EqualTo(4))
         @constraint(model, x[1:2] in CPRL.VariablesEquality(false))
+        @constraint(model, [x[3], x[2]] in CPRL.VariablesEquality(false))
     end
 end
