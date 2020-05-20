@@ -16,7 +16,7 @@ struct LessOrEqualConstant <: LessOrEqualConstraint
     end
 end
 
-Base.show(io::IO, c::LessOrEqualConstant) = write(io, "LessOrEqualConstant constraint")
+Base.show(io::IO, ::LessOrEqualConstant) = write(io, "LessOrEqualConstant constraint")
 
 """
     propagate!(constraint::LessOrEqualConstant, toPropagate::Set{Constraint}, prunedDomains::CPModification)
