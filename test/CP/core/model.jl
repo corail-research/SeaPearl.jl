@@ -101,4 +101,25 @@
         @test model.constraints[1].x == y
         @test isa(model.constraints[1], CPRL.LessOrEqualConstant)
     end
+
+    @testset "belowLimits()" begin
+        trailer = CPRL.Trailer()
+        model = CPRL.CPModel(trailer)
+
+        model.statistics.numberOfNodes = 1500
+        model.statistics.numberOfSolutions = 15
+
+        @test CPRL.belowLimits(model)
+
+        model.limit.numberOfNodes = 1501
+        model.limit.numberOfSolutions = 16
+        @test CPRL.belowLimits(model)
+
+        model.statistics.numberOfNodes = 1501
+        @test !CPRL.belowLimits(model)
+
+        model.statistics.numberOfNodes = 1500
+        model.statistics.numberOfSolutions = 16
+        @test !CPRL.belowLimits(model)
+    end
 end

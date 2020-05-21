@@ -1,12 +1,24 @@
 const Solution = Dict{String, Int}
 
+mutable struct Statistics
+    numberOfNodes       ::Int
+    numberOfSolutions   ::Int
+end
+mutable struct Limit
+    numberOfNodes       ::Union{Int, Nothing}
+    numberOfSolutions   ::Union{Int, Nothing}
+end
+
+
 mutable struct CPModel
     variables       ::Dict{String, AbstractIntVar}
     constraints     ::Array{Constraint}
     trailer         ::Trailer
     objective       ::Union{Nothing, AbstractIntVar}
     solutions       ::Array{Solution}
-    CPModel(trailer) = new(Dict{String, AbstractIntVar}(), Constraint[], trailer, nothing, Solution[])
+    statistics      ::Statistics
+    limit           ::Limit
+    CPModel(trailer) = new(Dict{String, AbstractIntVar}(), Constraint[], trailer, nothing, Solution[], Statistics(0, 0), Limit(nothing, nothing))
 end
 
 const CPModification = Dict{String, Array{Int}}
@@ -81,6 +93,8 @@ Add the current solution to `model`, and set new constraints for the objective i
 function triggerFoundSolution!(model::CPModel)
     @assert solutionFound(model)
 
+    model.statistics.numberOfSolutions += 1
+
     # Adding the solution
     solution = Solution()
     for (k, x) in model.variables
@@ -104,4 +118,19 @@ function tightenObjective!(model::CPModel)
 
     tighten = LessOrEqualConstant(model.objective, assignedValue(model.objective)-1, model.trailer)
     push!(model.constraints, tighten)
+end
+
+"""
+    belowLimits(model::CPModel)
+
+Check if `model`' statistics are still under the limits.
+"""
+function belowLimits(model::CPModel)
+    if !isnothing(model.limit.numberOfNodes) && model.statistics.numberOfNodes >= model.limit.numberOfNodes
+        return false
+    end
+    if !isnothing(model.limit.numberOfSolutions) && model.statistics.numberOfSolutions >= model.limit.numberOfSolutions
+        return false
+    end
+    return true
 end

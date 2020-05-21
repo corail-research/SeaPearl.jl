@@ -1,4 +1,9 @@
 function solve!(model::CPModel, new_constraint=nothing; variableHeuristic=selectVariable)
+    if !belowLimits(model)
+        return false
+    end
+
+    model.statistics.numberOfNodes += 1
     
     feasible, pruned = fixPoint!(model, new_constraint)
     
