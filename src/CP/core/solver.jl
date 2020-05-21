@@ -1,6 +1,6 @@
-function solve!(model::CPModel, new_constraint::Array{Constraint}=nothing; variableHeuristic=selectVariable)
+function solve!(model::CPModel, new_constraint::Union{Array{Constraint}, Nothing}=nothing; variableHeuristic=selectVariable)
     if !belowLimits(model)
-        return false
+        return :LimitStop
     end
 
     model.statistics.numberOfNodes += 1
@@ -8,13 +8,13 @@ function solve!(model::CPModel, new_constraint::Array{Constraint}=nothing; varia
     feasible, pruned = fixPoint!(model, new_constraint)
     
     if !feasible
-        return false
+        return
     end
     if solutionFound(model)
         
 
         triggerFoundSolution!(model)
-        return true
+        return
     end
 
     x = variableHeuristic(model)
@@ -22,7 +22,7 @@ function solve!(model::CPModel, new_constraint::Array{Constraint}=nothing; varia
     
 
     if isnothing(x)
-        return false
+        return
     end
     foundASolution = false
 
@@ -41,7 +41,12 @@ function solve!(model::CPModel, new_constraint::Array{Constraint}=nothing; varia
     
     solve!(model, getOnDomainChange(x); variableHeuristic=variableHeuristic)
     restoreState!(model.trailer)
-    return false
+
+    if length(model.solutions) > 0
+        return :Optimal
+    end
+
+    return :Infeasible
 end
 
 function selectVariable(model::CPModel)
