@@ -79,53 +79,57 @@ function solve_coloring(input_file; benchmark=false)
         return toReturn
     end
 
-    output = nothing
+    model.limit.numberOfSolutions = 2000
 
-    try
-        found = CPRL.solve!(model; variableHeuristic=((m) -> selectVariable(m, sortedPermutation, degrees)))
-
-        if (found)
-            oneSolution = last(model.solutions)
+    CPRL.solve!(model; variableHeuristic=((m) -> selectVariable(m, sortedPermutation, degrees)))
+    if !benchmark
+        for oneSolution in model.solutions
             output = outputFromCPRL(oneSolution)
-            if !benchmark
-                printSolution(output)
-            end
+            printSolution(output)
+        end
+    end
+    return length(model.solutions)
+
+    # try
+        
+
+        # if (found)
 
 
             
 
-            while found
-                for y in x
-                    push!(model.constraints, CPRL.LessOrEqualConstant(y, output.numberOfColors-1, trailer))
-                end
-                CPRL.restoreInitialState!(trailer)
-                found = CPRL.solve!(model; variableHeuristic=((m) -> selectVariable(m, sortedPermutation, degrees)))
+        #     # while found
+        #     #     for y in x
+        #     #         push!(model.constraints, CPRL.LessOrEqualConstant(y, output.numberOfColors-1, trailer))
+        #     #     end
+        #     #     CPRL.restoreInitialState!(trailer)
+        #     #     found = CPRL.solve!(model; variableHeuristic=((m) -> selectVariable(m, sortedPermutation, degrees)))
 
-                if (found)
-                    oneSolution = last(model.solutions)
-                    output = outputFromCPRL(oneSolution)
-                    if !benchmark
-                        printSolution(output)
-                    end
-                end
-            end
+        #     #     if (found)
+        #     #         oneSolution = last(model.solutions)
+        #     #         output = outputFromCPRL(oneSolution)
+        #     #         if !benchmark
+        #     #             printSolution(output)
+        #     #         end
+        #     #     end
+        #     # end
 
-            filename = last(split(input_file, "/"))
+        #     filename = last(split(input_file, "/"))
 
-            if !benchmark
-                # printSolution(output)
-                writeSolution(output, "solution/"*filename)
+        #     if !benchmark
+        #         # printSolution(output)
+        #         writeSolution(output, "solution/"*filename)
                 
-            end
-        end
-    catch e
-        if isa(e, InterruptException)
-            if !benchmark
-                filename = last(split(input_file, "/"))
-                writeSolution(output, "solution/"*filename)
-            end
-        end
-        rethrow(e)
-    end
-    return
+        #     end
+    #     # end
+    # catch e
+    #     if isa(e, InterruptException)
+    #         if !benchmark
+    #             filename = last(split(input_file, "/"))
+    #             writeSolution(output, "solution/"*filename)
+    #         end
+    #     end
+    #     rethrow(e)
+    # end
+    # return
 end
