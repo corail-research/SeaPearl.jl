@@ -83,12 +83,14 @@ using JuMP
         set_optimizer(model, CPRL.Optimizer, bridge_constraints = true)
         
         @variable(model, 1 <= x[1:3] <= 4)
-        @constraint(model, x[1] in CPRL.NotEqualTo(2))
-        @constraint(model, x[1] in CPRL.NotEqualTo(3))
+        @constraint(model, x[1] != 2)
+        @constraint(model, x[1] != 3)
         @constraint(model, x[2] == 4)
         @constraint(model, x[1:2] in CPRL.VariablesEquality(false))
         @constraint(model, [x[3], x[2]] in CPRL.VariablesEquality(false))
         @constraint(model, 2x[1] + 3x[2] >= 2)
+
+        println(model)
     end
     
 end

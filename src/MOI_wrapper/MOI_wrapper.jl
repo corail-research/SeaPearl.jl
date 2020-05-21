@@ -3,6 +3,8 @@ using MathOptInterface
 const MOI = MathOptInterface
 const MOIU = MathOptInterface.Utilities
 
+using JuMP
+
 """
 WIP 
 
@@ -34,6 +36,7 @@ include("sets.jl")
 include("supports.jl")
 include("variables.jl")
 include("constraints.jl")
+include("utilities.jl")
 
 MOI.get(::Optimizer, ::MOI.SolverName) = "CPRL Solver"
 

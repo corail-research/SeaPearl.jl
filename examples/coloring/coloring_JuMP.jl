@@ -126,7 +126,9 @@ end
 
 function about_to_rage_quit()
     # create model
-    model = Model(CPRL.Optimizer)
+    #model = Model(CPRL.Optimizer)
+    model = Model()
+    set_optimizer(model, CPRL.Optimizer, bridge_constraints = true)
 
     # create variables
     @variable(model, 1 <= x1 <= 4)
