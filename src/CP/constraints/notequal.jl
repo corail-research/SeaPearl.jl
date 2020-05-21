@@ -22,9 +22,6 @@ end
 `NotEqualConstant` propagation function. Basically remove the constant value from the domain of the variable.
 """
 function propagate!(constraint::NotEqualConstant, toPropagate::Set{Constraint}, prunedDomains::CPModification)
-    if !constraint.active.value
-        return true
-    end
     setValue!(constraint.active, false)
 
     if constraint.v in constraint.x.domain

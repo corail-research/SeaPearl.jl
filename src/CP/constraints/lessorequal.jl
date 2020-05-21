@@ -24,9 +24,6 @@ Base.show(io::IO, ::LessOrEqualConstant) = write(io, "LessOrEqualConstant constr
 `LessOrEqualConstant` propagation function. Basically remove the values above `v`.
 """
 function propagate!(constraint::LessOrEqualConstant, toPropagate::Set{Constraint}, prunedDomains::CPModification)
-    if !constraint.active.value
-        return false
-    end
     setValue!(constraint.active, false)
     
     addToPrunedDomains!(prunedDomains, constraint.x, removeAbove!(constraint.x.domain, constraint.v))

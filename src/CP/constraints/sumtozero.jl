@@ -31,11 +31,6 @@ end
 `SumToZero` propagation function. The pruning is quite superficial.
 """
 function propagate!(constraint::SumToZero, toPropagate::Set{Constraint}, prunedDomains::CPModification)
-    # Stop propagation if constraint not active
-    if !constraint.active.value
-        return false
-    end
-
     # Computing maxSum, minSum, and refreshing other variables
     newNumberOfFreeVars = constraint.numberOfFreeVars.value
     sumOfMax, sumOfMin = constraint.sumOfFixedVars.value, constraint.sumOfFixedVars.value

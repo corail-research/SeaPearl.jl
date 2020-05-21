@@ -22,9 +22,6 @@ end
 `GreaterOrEqualConstant` propagation function. Basically remove the values above `v`.
 """
 function propagate!(constraint::GreaterOrEqualConstant, toPropagate::Set{Constraint}, prunedDomains::CPModification)
-    if !constraint.active.value
-        return true
-    end
     setValue!(constraint.active, false)
 
     addToPrunedDomains!(prunedDomains, constraint.x, removeBelow!(constraint.x.domain, constraint.v))

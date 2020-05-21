@@ -1,4 +1,4 @@
-function solve!(model::CPModel, new_constraint=nothing; variableHeuristic=selectVariable)
+function solve!(model::CPModel, new_constraint::Array{Constraint}=nothing; variableHeuristic=selectVariable)
     if !belowLimits(model)
         return false
     end

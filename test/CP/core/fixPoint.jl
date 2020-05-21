@@ -38,7 +38,7 @@ using CPRL
         constraint2 = CPRL.Equal(y, z, trailer)
         push!(model.constraints, constraint2)
 
-        CPRL.fixPoint!(model, [constraint2])
+        CPRL.fixPoint!(model, Array{CPRL.Constraint}([constraint2]))
 
 
         @test CPRL.isbound(x)
@@ -49,7 +49,7 @@ using CPRL
         constraint4 = CPRL.Equal(u, z, trailer)
         push!(model.constraints, constraint4)
 
-        feasability2, pruned = CPRL.fixPoint!(model, [constraint4])
+        feasability2, pruned = CPRL.fixPoint!(model, Array{CPRL.Constraint}([constraint4]))
         @test !feasability2
     end
 end

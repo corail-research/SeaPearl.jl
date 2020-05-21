@@ -22,11 +22,6 @@ end
 `EqualConstant` propagation function. Basically set the `x` domain to the constant value.
 """
 function propagate!(constraint::EqualConstant, toPropagate::Set{Constraint}, prunedDomains::CPModification)
-    # Stop propagation if constraint not active
-    if !constraint.active.value
-        return true
-    end
-
     # Reduce the domain to a singleton if possible
     if constraint.v in constraint.x.domain
         removed = assign!(constraint.x.domain, constraint.v)
