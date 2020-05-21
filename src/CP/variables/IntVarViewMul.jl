@@ -25,7 +25,7 @@ end
 """
     assignedValue(x::IntVarViewMul)
 
-Return the assigened value of `x`. Throw an error if `x` is not bound.
+Return the assigned value of `x`. Throw an error if `x` is not bound.
 """
 assignedValue(x::IntVarViewMul) = x.a * assignedValue(x.x)
 

@@ -15,6 +15,14 @@ function MOI.supports_constraint(
 end
 
 function MOI.supports_constraint(
+    ::Optimizer, ::Type{MOI.ScalarAffineFunction}, ::Type{F}
+) where {F <: Union{
+    MOI.LessThan, MOI.GreaterThan
+}}
+    return true
+end
+
+function MOI.supports_constraint(
     ::Optimizer, ::Type{MOI.VectorOfVariables}, ::Type{F}
 ) where {F <: Union{
     VariablesEquality
