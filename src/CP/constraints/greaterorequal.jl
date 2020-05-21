@@ -32,3 +32,26 @@ function propagate!(constraint::GreaterOrEqualConstant, toPropagate::Set{Constra
     return !isempty(constraint.x.domain)
 end
 
+
+struct GreaterOrEqual <: GreaterOrEqualConstraint
+    x       ::AbstractIntVar
+    y       ::AbstractIntVar
+    active  ::StateObject{Bool}
+
+    """
+        GreaterOrEqual(x::AbstractIntVar, y::AbstractIntVar, trailer::Trailer)
+
+    Greater constraint, states that `x <= y`
+    """
+    function GreaterOrEqual(x, y, trailer)
+        constraint = new(x, y, StateObject(true, trailer))
+        addOnDomainChange!(x, constraint)
+        addOnDomainChange!(y, constraint)
+        return constraint
+    end
+end
+
+function propagate!(constraint::GreaterOrEqual, toPropagate::Set{Constraint}, prunedDomains::CPModification)
+    return true
+end
+
