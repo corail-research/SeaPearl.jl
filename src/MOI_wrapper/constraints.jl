@@ -21,8 +21,10 @@ function MOI.add_constraint(model::Optimizer, sgvar::MOI.SingleVariable, set::MO
     return MOI.ConstraintIndex{MOI.SingleVariable, MOI.EqualTo}(constraint_index)
 end
 
+# sense_to_set does not work but i don't know why
 sense_to_set(::Function, ::Val{:!=}) = NotEqualTo(0)
 MOIU.shift_constant(set::NotEqualTo, value) = NotEqualTo(set.value + value)
+MOIU.shift_constant(set::MOI.GreaterThan, value::T) where T<:Real = MOI.GreaterThan(set.lower + value)
 
 """
     MOI.add_constraint(model::Optimizer, sgvar::MOI.SingleVariable, set::NotEqualTo)

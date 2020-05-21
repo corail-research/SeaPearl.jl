@@ -74,7 +74,7 @@ using JuMP
         @constraint(model, x[2] in MOI.EqualTo(4))
         @constraint(model, x[1:2] in CPRL.VariablesEquality(false))
         @constraint(model, [x[3], x[2]] in CPRL.VariablesEquality(false))
-        #@constraint(model, 2x[1] + 3x[2] in MOI.GreaterThan(2))
+        @constraint(model, 2x[1] + 3x[2] in MOI.GreaterThan(2))
     end
 
 
@@ -85,9 +85,10 @@ using JuMP
         @variable(model, 1 <= x[1:3] <= 4)
         @constraint(model, x[1] in CPRL.NotEqualTo(2))
         @constraint(model, x[1] in CPRL.NotEqualTo(3))
-        #@constraint(model, x[2] >= 4)
+        @constraint(model, x[2] == 4)
         @constraint(model, x[1:2] in CPRL.VariablesEquality(false))
         @constraint(model, [x[3], x[2]] in CPRL.VariablesEquality(false))
+        @constraint(model, 2x[1] + 3x[2] >= 2)
     end
     
 end
