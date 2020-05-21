@@ -34,3 +34,44 @@ function propagate!(constraint::LessOrEqualConstant, toPropagate::Set{Constraint
     return !isempty(constraint.x.domain)
 end
 
+struct LessOrEqual <: LessOrEqualConstraint
+    x       ::AbstractIntVar
+    y       ::AbstractIntVar
+    active  ::StateObject{Bool}
+
+    """
+        LessOrEqual(x::AbstractIntVar, y::AbstractIntVar, trailer::Trailer)
+
+    Inequality between variables constraint, states that `x <= y`
+    """
+    function LessOrEqual(x, y, trailer)
+        constraint = new(x, y, StateObject(true, trailer))
+        addOnDomainChange!(x, constraint)
+        addOnDomainChange!(y, constraint)
+        return constraint
+    end
+end
+
+"""
+    propagate!(constraint::LessOrEqual, toPropagate::Set{Constraint}, prunedDomains::CPModification)
+
+`LessOrEqual` propagation function.
+"""
+function propagate!(constraint::LessOrEqual, toPropagate::Set{Constraint}, prunedDomains::CPModification)
+    if minimum(constraint.x.domain) > maximum(constraint.y.domain)
+        return false
+    end
+
+    prunedX = removeAbove!(constraint.x.domain, maximum(constraint.y.domain))
+    if !isempty(prunedX)
+        addToPrunedDomains!(prunedDomains, constraint.x, prunedX)
+        triggerDomainChange!(toPropagate, constraint.x)
+    end
+    
+    prunedY = removeBelow!(constraint.y.domain, minimum(constraint.x.domain))
+    if !isempty(prunedY)
+        addToPrunedDomains!(prunedDomains, constraint.y, prunedY)
+        triggerDomainChange!(toPropagate, constraint.y)
+    end
+    return true
+end
