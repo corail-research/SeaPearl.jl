@@ -4,11 +4,11 @@ mutable struct Statistics
     numberOfNodes       ::Int
     numberOfSolutions   ::Int
 end
+
 mutable struct Limit
     numberOfNodes       ::Union{Int, Nothing}
     numberOfSolutions   ::Union{Int, Nothing}
 end
-
 
 mutable struct CPModel
     variables               ::Dict{String, AbstractIntVar}

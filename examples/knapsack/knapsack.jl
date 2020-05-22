@@ -12,6 +12,7 @@ mutable struct Solution
     weight      :: Int
     optimality  :: Bool
 end
+
 struct InputData
     items               :: AbstractArray{Union{Item, Nothing}}
     sortedItems         :: AbstractArray{Union{Item, Nothing}}
