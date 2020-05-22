@@ -11,14 +11,15 @@ end
 
 
 mutable struct CPModel
-    variables       ::Dict{String, AbstractIntVar}
-    constraints     ::Array{Constraint}
-    trailer         ::Trailer
-    objective       ::Union{Nothing, AbstractIntVar}
-    solutions       ::Array{Solution}
-    statistics      ::Statistics
-    limit           ::Limit
-    CPModel(trailer) = new(Dict{String, AbstractIntVar}(), Constraint[], trailer, nothing, Solution[], Statistics(0, 0), Limit(nothing, nothing))
+    variables               ::Dict{String, AbstractIntVar}
+    constraints             ::Array{Constraint}
+    trailer                 ::Trailer
+    objective               ::Union{Nothing, AbstractIntVar}
+    objectiveBound          ::Union{Nothing, Int}
+    solutions               ::Array{Solution}
+    statistics              ::Statistics
+    limit                   ::Limit
+    CPModel(trailer) = new(Dict{String, AbstractIntVar}(), Constraint[], trailer, nothing, nothing, Solution[], Statistics(0, 0), Limit(nothing, nothing))
 end
 
 const CPModification = Dict{String, Array{Int}}
@@ -114,10 +115,7 @@ end
 Set a new constraint to minimize the objective variable
 """
 function tightenObjective!(model::CPModel)
-    @assert !isnothing(model.objective)
-
-    tighten = LessOrEqualConstant(model.objective, assignedValue(model.objective)-1, model.trailer)
-    push!(model.constraints, tighten)
+    model.objectiveBound = assignedValue(model.objective)-1
 end
 
 """

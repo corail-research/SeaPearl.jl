@@ -16,7 +16,7 @@ struct LessOrEqualConstant <: LessOrEqualConstraint
     end
 end
 
-Base.show(io::IO, ::LessOrEqualConstant) = write(io, "LessOrEqualConstant constraint")
+# Base.show(io::IO, c::LessOrEqualConstant) = write(io, "LessOrEqualConstant constraint: ", c.x, " <= ", c.v)
 
 """
     propagate!(constraint::LessOrEqualConstant, toPropagate::Set{Constraint}, prunedDomains::CPModification)
@@ -58,8 +58,10 @@ end
 `LessOrEqual` propagation function.
 """
 function propagate!(constraint::LessOrEqual, toPropagate::Set{Constraint}, prunedDomains::CPModification)
-    if minimum(constraint.x.domain) > maximum(constraint.y.domain)
-        return false
+    
+
+    if maximum(constraint.x.domain) <= minimum(constraint.y.domain)
+        setValue!(constraint.active, false)
     end
 
     prunedX = removeAbove!(constraint.x.domain, maximum(constraint.y.domain))
@@ -73,5 +75,5 @@ function propagate!(constraint::LessOrEqual, toPropagate::Set{Constraint}, prune
         addToPrunedDomains!(prunedDomains, constraint.y, prunedY)
         triggerDomainChange!(toPropagate, constraint.y)
     end
-    return true
+    return !isempty(constraint.x.domain) && !isempty(constraint.y.domain)
 end

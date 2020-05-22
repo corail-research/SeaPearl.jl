@@ -24,8 +24,8 @@ function outputFromCPRL(sol::CPRL.Solution; optimality=false)
     numberOfColors = 0
     edgeColors = Int[]
 
-    for i in 1:length(keys(sol))
-        color = sol[string(i)]
+    for key in keys(sol)
+        color = sol[key]
         if !(color in edgeColors)
             numberOfColors += 1
         end
@@ -48,6 +48,10 @@ function solve_coloring(input_file; benchmark=false)
         CPRL.addVariable!(model, last(x))
     end
 
+    # Breaking some symetries
+    push!(model.constraints, CPRL.EqualConstant(x[1], 1, trailer))
+    push!(model.constraints, CPRL.LessOrEqual(x[1], x[2], trailer))
+
     degrees = zeros(Int, input.numberOfVertices)
 
     for e in input.edges
@@ -57,6 +61,13 @@ function solve_coloring(input_file; benchmark=false)
     end
 
     sortedPermutation = sortperm(degrees; rev=true)
+
+    numberOfColors = CPRL.IntVar(0, input.numberOfVertices, "numberOfColors", trailer)
+    CPRL.addVariable!(model, numberOfColors)
+    for var in x
+        push!(model.constraints, CPRL.LessOrEqual(var, numberOfColors, trailer))
+    end
+    model.objective = numberOfColors
 
     function selectVariable(model::CPRL.CPModel, sortedPermutation, degrees)
         maxDegree = 0
@@ -79,7 +90,7 @@ function solve_coloring(input_file; benchmark=false)
         return toReturn
     end
 
-    model.limit.numberOfSolutions = 2000
+    # model.limit.numberOfSolutions = 2000
 
     CPRL.solve!(model; variableHeuristic=((m) -> selectVariable(m, sortedPermutation, degrees)))
     if !benchmark

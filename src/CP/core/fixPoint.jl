@@ -22,6 +22,19 @@ function fixPoint!(model::CPModel, new_constraints::Union{Array{Constraint}, Not
         addToPropagate!(toPropagate, new_constraints)
     end
 
+    # Dealing with the objective
+    if !isnothing(model.objectiveBound)
+        prunedObj = removeAbove!(model.objective.domain, model.objectiveBound)
+        if isempty(model.objective.domain)
+            return false, prunedDomains
+        end
+
+        if !isempty(prunedObj)
+            addToPrunedDomains!(prunedDomains, model.objective, prunedObj)
+            triggerDomainChange!(toPropagate, model.objective)
+        end
+    end
+
     while !isempty(toPropagate)
         constraint = pop!(toPropagate)
         if !propagate!(constraint, toPropagate, prunedDomains)
