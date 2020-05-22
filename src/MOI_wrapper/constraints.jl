@@ -151,7 +151,9 @@ function MOI.add_constraint(model::Optimizer, saf::MOI.ScalarAffineFunction, set
     for term in saf.terms
         id = term.variable_index.value
         new_id = string(length(keys(model.cpmodel.variables)) + 1)
-        push!(var_array, IntVarViewMul(model.cpmodel.variables[id], term.coefficient, new_id))
+        newvariable = IntVarViewMul(model.cpmodel.variables[id], term.coefficient, new_id)
+        CPRL.addVariable!(model.cpmodel, newvariable)
+        push!(var_array, newvariable)
     end
 
     # create the constraint
@@ -177,7 +179,9 @@ function MOI.add_constraint(model::Optimizer, saf::MOI.ScalarAffineFunction, set
     for term in saf.terms
         id = term.variable_index.value
         new_id = string(length(keys(model.cpmodel.variables)) + 1)
-        push!(var_array, IntVarViewMul(model.cpmodel.variables[id], term.coefficient, new_id))
+        newvariable = IntVarViewMul(model.cpmodel.variables[id], term.coefficient, new_id)
+        CPRL.addVariable!(model.cpmodel, newvariable)
+        push!(var_array, newvariable)
     end
 
     # create the constraint
