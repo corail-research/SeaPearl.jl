@@ -1,31 +1,28 @@
 function solve!(model::CPModel, new_constraint::Union{Array{Constraint}, Nothing}=nothing; variableHeuristic=selectVariable)
+    # Dealing with limits
     if !belowLimits(model)
         return :LimitStop
     end
-
     model.statistics.numberOfNodes += 1
     
+    # Fix-point algorithm
     feasible, pruned = fixPoint!(model, new_constraint)
-    
     if !feasible
         return
     end
     if solutionFound(model)
-        
-
         triggerFoundSolution!(model)
         return
     end
 
+    # Variable selection
     x = variableHeuristic(model)
-    
-    
-
     if isnothing(x)
         return
     end
     foundASolution = false
 
+    # Value selection
     v = selectValue(x)
 
 
