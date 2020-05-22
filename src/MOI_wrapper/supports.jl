@@ -29,3 +29,10 @@ function MOI.supports_constraint(
 }}
     return true
 end
+
+"""
+    This a list of all the supported objective functions of the CPRL Solver
+"""
+#MOI.supports(::Optimizer, ::MOI.ObjectiveSense) = true
+MOI.supports(::Optimizer, ::MOI.ObjectiveFunction{MOI.SingleVariable}) = true
+MOI.supports(::Optimizer, ::MOI.ObjectiveFunction{MOI.SingleAffineFunction{T}}) where {T<:Real} = true

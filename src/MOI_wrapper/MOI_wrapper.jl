@@ -25,6 +25,7 @@ mutable struct Optimizer <: MOI.AbstractOptimizer
     cpmodel::CPModel
     variableselection::VariableSelection
     options::Dict{String, Any}
+    #status::MOI.TerminationStatusCode
 
     function Optimizer()
         cpmodel = CPRL.CPModel(CPRL.Trailer())
@@ -36,6 +37,7 @@ include("sets.jl")
 include("supports.jl")
 include("variables.jl")
 include("constraints.jl")
+include("objective.jl")
 include("utilities.jl")
 
 MOI.get(::Optimizer, ::MOI.SolverName) = "CPRL Solver"
