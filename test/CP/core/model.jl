@@ -77,10 +77,7 @@
 
         @test length(model.solutions) == 1
         @test model.solutions[1] == Dict("x" => 2,"y" => 3)
-        @test length(model.constraints) == 1
-        @test model.constraints[1].v == 2
-        @test model.constraints[1].x == y
-        @test isa(model.constraints[1], CPRL.LessOrEqualConstant)
+        @test model.objectiveBound == 2
     end
 
     @testset "tightenObjective!()" begin
@@ -94,12 +91,12 @@
         CPRL.addVariable!(model, y)
         model.objective = y
 
+        @test isnothing(model.objectiveBound)
+
+
         CPRL.tightenObjective!(model)
 
-        @test length(model.constraints) == 1
-        @test model.constraints[1].v == 2
-        @test model.constraints[1].x == y
-        @test isa(model.constraints[1], CPRL.LessOrEqualConstant)
+        @test model.objectiveBound == 2
     end
 
     @testset "belowLimits()" begin
