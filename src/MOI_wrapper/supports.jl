@@ -35,4 +35,4 @@ end
 """
 #MOI.supports(::Optimizer, ::MOI.ObjectiveSense) = true
 MOI.supports(::Optimizer, ::MOI.ObjectiveFunction{MOI.SingleVariable}) = true
-MOI.supports(::Optimizer, ::MOI.ObjectiveFunction{MOI.SingleAffineFunction{T}}) where {T<:Real} = true
+MOI.supports(::Optimizer, ::MOI.ObjectiveFunction{MOI.ScalarAffineFunction{T}}) where {T<:Real} = true
