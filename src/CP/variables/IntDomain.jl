@@ -241,11 +241,11 @@ function updateMinFromRemovedVal!(dom::IntDomain, v::Int)
 end
 
 """
-    updateBoundsFromRemovedVal!(dom::IntDomain, v::Int)
+    updateBoundsFromRemovedVal!(dom::AbstractIntDomain, v::Int)
 
 Knowing that `v` just got removed from `dom`, update `dom`'s minimum and maximum value.
 """
-function updateBoundsFromRemovedVal!(dom::IntDomain, v::Int)
+function updateBoundsFromRemovedVal!(dom::AbstractIntDomain, v::Int)
     updateMaxFromRemovedVal!(dom, v)
     updateMinFromRemovedVal!(dom, v)
 end
