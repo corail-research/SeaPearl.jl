@@ -1,9 +1,9 @@
 struct IntDomainViewOpposite <: IntDomainView
-    orig            ::IntDomain
+    orig            ::AbstractIntDomain
 end
 
 struct IntVarViewOpposite <: IntVarView
-    x               ::IntVar
+    x               ::AbstractIntVar
     domain          ::IntDomainViewOpposite
     id              ::String
 

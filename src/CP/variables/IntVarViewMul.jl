@@ -1,11 +1,11 @@
 struct IntDomainViewMul <: IntDomainView
-    orig            ::IntDomain
+    orig            ::AbstractIntDomain
     a               ::Int
 end
 
 
 struct IntVarViewMul <: IntVarView
-    x               ::IntVar
+    x               ::AbstractIntVar
     a               ::Int
     domain          ::IntDomainViewMul
     id              ::String
