@@ -23,7 +23,7 @@ end
 include("IOmanager.jl")
 
 
-function solve_knapsack(filename::String; benchmark=false, exact=true)
+function solve_knapsack(filename::String; benchmark=false)
     
     input = parseFile!(filename)
 
@@ -64,13 +64,7 @@ function solve_knapsack(filename::String; benchmark=false, exact=true)
         push!(model.constraints, transition)
     end
 
-    # Validity: x_s[i] <= capacity
-    # for i in 1:(n+1)
-    #     validity = CPRL.LessOrEqualConstant(x_s[i], input.capacity)
-    #     push!(model.constraints, validity)
-    # end
-
-    # Objective: minimize: -sum(v[i]*x_a[i])
+    ### Objective ### minimize: -sum(v[i]*x_a[i])
     vars = CPRL.AbstractIntVar[]
     maxValue = 0
     for i in 1:n
@@ -87,14 +81,16 @@ function solve_knapsack(filename::String; benchmark=false, exact=true)
 
 
 
-    found = CPRL.solve!(model; variableHeuristic=selectVariable)
+    status = CPRL.solve!(model; variableHeuristic=selectVariable)
 
-    for oneSolution in model.solutions
-        output = solutionFromCPRL(oneSolution, input, permutation)
-        if !benchmark
+    if !benchmark
+        print(status)
+        for oneSolution in model.solutions
+            output = solutionFromCPRL(oneSolution, input, permutation)
             printSolution(output)
         end
     end
+    return status
 end
 
 function solve_knapsack_without_dp(filename::String; benchmark=false)
@@ -117,64 +113,59 @@ function solve_knapsack_without_dp(filename::String; benchmark=false)
 
     ### Constraints ###
 
-    # # Transition: x_s[i+1] = x_s[i] + w[i]*x_a[i]
-    # for i in 1:n
-    #     w_x_a_i = CPRL.IntVarViewMul(x_a[i], input.items[permutation[i]].weight, "w["*string(i)*"]*x["*string(i)*"]")
-    #     minusX_s = CPRL.IntVarViewOpposite(x_s[i+1], "-x_s["*string(i+1)*"]")
-    #     CPRL.addVariable!(model, w_x_a_i)
-    #     CPRL.addVariable!(model, minusX_s)
-    #     vars = CPRL.AbstractIntVar[w_x_a_i, minusX_s, x_s[i]]
-    #     transition = CPRL.SumToZero(vars, trailer)
-    #     push!(model.constraints, transition)
-    # end
-
-    # Validity: x_s[i] <= capacity
-    # for i in 1:(n+1)
-    #     validity = CPRL.LessOrEqualConstant(x_s[i], input.capacity)
-    #     push!(model.constraints, validity)
-    # end
-
-    # Objective: minimize: -sum(v[i]*x_a[i])
-    varsValue = CPRL.AbstractIntVar[]
+    # Creating the totalWeight variable
     varsWeight = CPRL.AbstractIntVar[]
-    maxValue = 0
     maxWeight = 0
     for i in 1:n
-        vx_i = CPRL.IntVarViewMul(x[i], input.items[permutation[i]].value, "v["*string(i)*"]*x["*string(i)*"]")
         wx_i = CPRL.IntVarViewMul(x[i], input.items[permutation[i]].weight, "w["*string(i)*"]*x["*string(i)*"]")
-        push!(varsValue, vx_i)
         push!(varsWeight, wx_i)
-        maxValue += input.items[permutation[i]].value
         maxWeight += input.items[permutation[i]].weight
     end
-    totalValue = CPRL.IntVar(-maxValue, 0, "totalValue", trailer)
     totalWeight = CPRL.IntVar(0, maxWeight, "totalWeight", trailer)
     minusTotalWeight = CPRL.IntVarViewOpposite(totalWeight, "-totalWeight")
+    CPRL.addVariable!(model, totalWeight)
+    CPRL.addVariable!(model, minusTotalWeight)
+    push!(varsWeight, minusTotalWeight)
+    weightEquality = CPRL.SumToZero(varsWeight, trailer)
+    push!(model.constraints, weightEquality)
 
+    # Making sure it is below the capacity
     weightConstraint = CPRL.LessOrEqualConstant(totalWeight, input.capacity, trailer)
     push!(model.constraints, weightConstraint)
 
+
+
+    ### Objective ### minimize: -sum(v[i]*x_a[i])
+
+    # Creating the sum
+    varsValue = CPRL.AbstractIntVar[]
+    maxValue = 0
+    for i in 1:n
+        vx_i = CPRL.IntVarViewMul(x[i], input.items[permutation[i]].value, "v["*string(i)*"]*x["*string(i)*"]")
+        push!(varsValue, vx_i)
+        maxValue += input.items[permutation[i]].value
+    end
+    totalValue = CPRL.IntVar(-maxValue, 0, "totalValue", trailer)
     CPRL.addVariable!(model, totalValue)
-    CPRL.addVariable!(model, totalWeight)
-    CPRL.addVariable!(model, minusTotalWeight)
     push!(varsValue, totalValue)
-    push!(varsWeight, minusTotalWeight)
-    objective = CPRL.SumToZero(varsValue, trailer)
-    weight = CPRL.SumToZero(varsWeight, trailer)
-    push!(model.constraints, objective)
-    push!(model.constraints, weight)
+    valueEquality = CPRL.SumToZero(varsValue, trailer)
+    push!(model.constraints, valueEquality)
+
+    # Setting it as the objective
     model.objective = totalValue
 
 
 
-    found = CPRL.solve!(model; variableHeuristic=selectVariableWithoutDP)
+    status = CPRL.solve!(model; variableHeuristic=selectVariableWithoutDP)
 
-    for oneSolution in model.solutions
-        output = solutionFromCPRLWithoutDP(oneSolution, input, permutation)
-        if !benchmark
+    if !benchmark
+        print(status)
+        for oneSolution in model.solutions
+            output = solutionFromCPRLWithoutDP(oneSolution, input, permutation)
             printSolution(output)
         end
     end
+    return status
 end
 
 function selectVariable(model::CPRL.CPModel)
