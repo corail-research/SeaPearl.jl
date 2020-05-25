@@ -8,17 +8,17 @@ function solve!(model::CPModel, new_constraint::Union{Array{Constraint}, Nothing
     # Fix-point algorithm
     feasible, pruned = fixPoint!(model, new_constraint)
     if !feasible
-        return
+        return :Infeasible
     end
     if solutionFound(model)
         triggerFoundSolution!(model)
-        return
+        return :Feasible
     end
 
     # Variable selection
     x = variableHeuristic(model)
     if isnothing(x)
-        return
+        return  :Infeasible
     end
     foundASolution = false
 
