@@ -121,25 +121,16 @@ function solve_coloring_JuMP(input_file; benchmark=false)
 
     output = outputFromCPRL(solution)
     printSolution(output)
-    
+
 end
 
 function about_to_rage_quit()
-    # create model
-    #model = Model(CPRL.Optimizer)
-    model = Model()
-    set_optimizer(model, CPRL.Optimizer, bridge_constraints = true)
+    model = Model(CPRL.Optimizer)
 
-    # create variables
-    @variable(model, 1 <= x1 <= 4)
-    @variable(model, 1 <= x2 <= 4)
-    @variable(model, 1 <= x3 <= 4)
-    @variable(model, 1 <= x4 <= 4)
+    @variable(model, x1 in MOI.Interval(1, 4))
+    @variable(model, x2 in MOI.Interval(1, 4))
 
-    # create constraints
     @constraint(model, [x1, x2] in CPRL.VariablesEquality(false))
-    @constraint(model, [x2, x3] in CPRL.VariablesEquality(false))
-    @constraint(model, [x2, x4] in CPRL.VariablesEquality(false))
 
     optimize!(model)
 

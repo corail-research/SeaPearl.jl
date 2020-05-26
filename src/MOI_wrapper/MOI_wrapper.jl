@@ -79,7 +79,7 @@ function MOI.set(model::Optimizer, ::CPRL.VariableSelection, heuristic::Function
 end
 
 
-MOI.Utilities.supports_default_copy_to(::Optimizer, ::Bool) = true
+MOI.Utilities.supports_default_copy_to(model::Optimizer, copy_names::Bool) = !copy_names
 
 function MOI.copy_to(dest::Optimizer, src::MOI.ModelLike; kwargs...)
     return MOI.Utilities.automatic_copy_to(dest, src; kwargs...)
@@ -91,33 +91,15 @@ end
 Launch the solving process of the solver.
 """
 function MOI.optimize!(model::Optimizer)
+    status = CPRL.solve!(model.cpmodel; variableHeuristic=model.variableselection.heuristic)
 
-    solution = nothing
-
-    found = CPRL.solve!(model.cpmodel; variableHeuristic=model.variableselection.heuristic)
+    # println(model.cpmodel.constraints)
     
-    MAX = 4
-    if (found)
-        while found
-            
-            #for y in x
-            #    push!(model.cpmodel.constraints, CPRL.LessOrEqualConstant(y, output.numberOfColors-1, trailer))
-            #end
-            
-            
-            MAX = MAX - 1
-            for i in 1:4
-                MOI.add_constraint(model, MOI.SingleVariable(MOI.VariableIndex(i)), MOI.LessThan(MAX))
-            end
-            
-
-            CPRL.restoreInitialState!(model.cpmodel.trailer)
-            found = CPRL.solve!(model.cpmodel; variableHeuristic=model.variableselection.heuristic)
-
-        end
+    solution = nothing
+    solutions = model.cpmodel
+    if !isempty(model.cpmodel.solutions)
         solution = last(model.cpmodel.solutions)
     end
-    
-
-    return solution
+    println(solution)
+    return status, solution
 end

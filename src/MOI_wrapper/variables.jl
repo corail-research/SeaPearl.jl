@@ -1,14 +1,10 @@
 
 """
-    MOI.add_constrained_variable(model::Optimizer)
+    MOI.add_constrained_variable(model::Optimizer, set::MOI.Interval{Int})
 
-Interface function which add a variable to the model (which is himself an Optimizer)
+Add a variable to the model, enforcing to give an interval with it as you cannot create variables without bounds in CPRL.
 """
-function MOI.add_constrained_variable(model::Optimizer, set::MOI.Interval)
-    """
-    Might be compulsory to create a new constraint: variable in interval, to create it 
-    in this function and to throw it at the end (instead of nothing)
-    """
+function MOI.add_constrained_variable(model::Optimizer, set::MOI.Interval{Int})
     # create new id
     id = string(length(keys(model.cpmodel.variables)) + 1)
 
@@ -18,5 +14,6 @@ function MOI.add_constrained_variable(model::Optimizer, set::MOI.Interval)
 
     newvariable = CPRL.IntVar(min, max, id, model.cpmodel.trailer)
     CPRL.addVariable!(model.cpmodel, newvariable)
-    return MOI.VariableIndex(parse(Int, id)), nothing
+
+    return MOI.VariableIndex(parse(Int, id)), MOI.ConstraintIndex{MOI.SingleVariable, MOI.Interval{Int64}}(parse(Int, id))
 end
