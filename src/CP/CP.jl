@@ -8,4 +8,5 @@ include("constraints/constraints.jl")
 
 include("core/fixPoint.jl")
 
+include("core/search/search.jl")
 include("core/solver.jl")

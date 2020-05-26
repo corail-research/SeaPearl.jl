@@ -5,6 +5,7 @@
     include("core/model.jl")
 
     include("core/fixPoint.jl")
+    include("core/search/search.jl")
 
     # @testset "solve()" begin
     #     @test (@test_logs (:info, "Solved !") CPRL.solve()) == nothing
