@@ -26,6 +26,10 @@ Implmentation of the RL.AbstractEnv type coming from ReinforcementLearning's int
 """
 mutable struct RLEnv <: RL.AbstractEnv 
     params::RLEnvParams
+    action_space::Any
+    observation_space::Any
+    state::Any
+    action
     done::Bool
 end
 
@@ -40,5 +44,27 @@ function RLEnv(model::CPModel)
 end
 
 RL.reset!(::RLEnv) = nothing
-RL.observe(::RLEnv) = nothing
-(::RLEnv)(a) = nothing
+
+"""
+    RL.observe(::RLEnv)
+
+Return what is observe by the agent at each stage. It typically contains the
+rewards, thus it might be a function to modify during our experiments.
+"""
+function RL.observe(::RLEnv)
+    nothing
+end
+
+"""
+    (env::RLEnv)(a)
+
+This is the equivalent of the step! function. Here a implemented all the stuff that 
+happen when an action is taken.
+"""
+(env::RLEnv)(a) = nothing
+
+"""
+
+Not a priority at all.
+"""
+RL.render(env::RLEnv)
