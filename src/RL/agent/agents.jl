@@ -6,5 +6,7 @@ to the interface of JuliaReinforcementLearning/ReinforcementLearning.jl
 """
 
 using Flux
+using Random
 
+include("randomagent.jl")
 include("basicdqnagent.jl")
