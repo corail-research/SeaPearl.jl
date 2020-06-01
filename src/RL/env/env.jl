@@ -24,13 +24,15 @@ extract_params(::CPModel) = RLEnvParams("WIP")
 Implmentation of the RL.AbstractEnv type coming from ReinforcementLearning's interface.
 
 """
-mutable struct RLEnv <: RL.AbstractEnv 
+mutable struct RLEnv{R<:AbstractRNG} <: RL.AbstractEnv 
     params::RLEnvParams
-    action_space::Any
-    observation_space::Any
-    state::Any
-    action
+    action_space::RL.DiscreteSpace{UnitRange{Int64}}
+    observation_space::RL.MultiContinuousSpace{Vector}
+    state::Any # will probably be a graph at the beginning
+    action::Int64
     done::Bool
+    t::Int # time # number of steps
+    rng::R # random number generator
 end
 
 """
@@ -81,6 +83,10 @@ This is the equivalent of the step! function. Here a implemented all the stuff t
 happen when an action is taken. This will be a step of the CP model !
 """
 function (env::RLEnv)(a)
+    """
+    There might be nothing to implement here as the changes on the environment will be done
+    by the CP part and be the link between both parts. Or we will we use this to do the link...
+    """
     nothing
 end
 
@@ -96,6 +102,13 @@ No need to override it as we use the named tuple convention recognised by RL.jl 
 """
 #RL.ActionStyle(::RLEnv) = RL.FULL_ACTION_SET
 
+"""
+    Random.seed!(env::RLEnv, seed)
+
+We want our experiences to be reproducible, thus we provide this function to reseed the random
+number generator. rng will give a reproducible sequence of numbers if and only if a seed is provided.
+"""
+Random.seed!(env::RLEnv, seed) = Random.seed!(env.rng, seed)
 
 """
     RL.render(env::RLEnv)
