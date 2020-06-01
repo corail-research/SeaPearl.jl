@@ -43,28 +43,62 @@ function RLEnv(model::CPModel)
     return RLEnv(params, false)
 end
 
+"""
+    RL.reset!(::RLEnv)
+
+Reinitialise the environment so it is ready for a new episode.
+"""
 RL.reset!(::RLEnv) = nothing
 
 """
     RL.observe(::RLEnv)
 
-Return what is observe by the agent at each stage. It typically contains the
-rewards, thus it might be a function to modify during our experiments.
+Return what is observe by the agent at each stage. It contains (among others) the
+rewards, thus it might be a function to modify during our experiments. It also contains the 
+legal_actions !
+
+To do : Need to change the reward
+To do : Need to change the legal actions
 """
-function RL.observe(::RLEnv)
-    nothing
+function RL.observe(env::RLEnv)
+    # compute legal actions
+    legal_actions_mask = [true for i in 1:length(env.action_space)]
+
+    # compute legal actions
+    legal_actions = env.action_space
+
+    # compute reward
+    reward = env.done ? -1 : 0
+
+    # return the observation as a named tuple (useful for interface understanding)
+    return (reward = reward, terminal = env.done, state = env.state, legal_actions = legal_actions, legal_actions_mask = legal_actions_mask)
 end
 
 """
     (env::RLEnv)(a)
 
 This is the equivalent of the step! function. Here a implemented all the stuff that 
-happen when an action is taken.
+happen when an action is taken. This will be a step of the CP model !
 """
-(env::RLEnv)(a) = nothing
+function (env::RLEnv)(a)
+    nothing
+end
 
 """
 
-Not a priority at all.
+
+Necessary in order to have a mask ! 
+The observe function throw a named tuple (:reward, :terminal, :state, :legal_actions), hence, the interface
+of ReinforcementLearningBase.jl already provide the get_legal_actions functions. The way the legal actions 
+are found is build in the oberve(env::RLEnv) function. 
+
+No need to override it as we use the named tuple convention recognised by RL.jl interface
 """
-RL.render(env::RLEnv)
+#RL.ActionStyle(::RLEnv) = RL.FULL_ACTION_SET
+
+
+"""
+    RL.render(env::RLEnv)
+Not a priority at all. Give a human friendly representation of what's happening.
+"""
+RL.render(env::RLEnv) = nothing
