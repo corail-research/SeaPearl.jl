@@ -9,3 +9,4 @@ using Flux
 
 include("randomagent.jl")
 include("basicdqnagent.jl")
+include("dqnagent.jl")
