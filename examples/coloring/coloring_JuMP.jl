@@ -58,12 +58,12 @@ function selectVariable(model::CPRL.CPModel, sortedPermutation, degrees)
 end
 
 function solve_coloring_MOI(input_file; benchmark=false)
-    
+
     # use input data to fill the model
     input = getInputData(input_file)
 
     model = CPRL.Optimizer()
-    
+
     for i in 1:input.numberOfVertices
         MOI.add_constrained_variable(model, MOI.Interval(1, input.numberOfVertices))
     end
@@ -91,24 +91,24 @@ end
 
 
 function solve_coloring_JuMP(input_file; benchmark=false)
-    
+
     # use input data to fill the model
     input = getInputData(input_file)
 
     model = Model(CPRL.Optimizer)
 
-    @variable(model, 1 <= x[1:input.numberOfVertices] <= input.numberOfVertices)
+    @variable(model, x[1:input.numberOfVertices])
+    for var in x
+        @constraint(model, var in MOI.Interval(1, input.numberOfVertices))
+    end
 
     degrees = zeros(Int, input.numberOfVertices)
-    """
     for e in input.edges
         @constraint(model, [x[e.vertex1], x[e.vertex2]] in CPRL.VariablesEquality(false))
         #update degrees
         degrees[e.vertex1] += 1
         degrees[e.vertex2] += 1
     end
-    """
-    @constraint(model, [x[1], x[2]] in CPRL.VariablesEquality(false))
 
     sortedPermutation = sortperm(degrees; rev=true)
 
@@ -119,20 +119,28 @@ function solve_coloring_JuMP(input_file; benchmark=false)
 
     optimize!(model)
 
-    output = outputFromCPRL(solution)
-    printSolution(output)
+    # output = outputFromCPRL(solution)
+    # printSolution(output)
+    println(model)
 
 end
 
 function about_to_rage_quit()
     model = Model(CPRL.Optimizer)
 
-    @variable(model, x1 in MOI.Interval(1, 4))
-    @variable(model, x2 in MOI.Interval(1, 4))
 
-    @constraint(model, [x1, x2] in CPRL.VariablesEquality(false))
+    @variable(model, x[1:2] in CPRL.VariablesEquality(false))
+    @constraint(model, x[1] in MOI.Interval(1, 4))
+    @constraint(model, x[2] in MOI.Interval(1, 4))
+
+    # @variable(model, x1 in MOI.Interval(1, 4))
+    # @variable(model, x2 in MOI.Interval(1, 4))
+    # @constraint(model, [x1, x2] in CPRL.VariablesEquality(false))
 
     optimize!(model)
 
+    status = MOI.get(model, MOI.TerminationStatus())
+
     println(model)
+    println(status)
 end
