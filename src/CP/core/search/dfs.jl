@@ -14,7 +14,7 @@ function search!(model::CPModel, ::Type{DFSearch}, variableHeuristic)
     
     while !isempty(toCall)
         # Stop right away if reached a limit
-        if currentStatus == :LimitStop
+        if currentStatus == :NodeLimitStop || currentStatus == :SolutionLimitStop
             break
         end
 
@@ -22,8 +22,8 @@ function search!(model::CPModel, ::Type{DFSearch}, variableHeuristic)
         currentStatus = currentProcedure(model)
     end
 
-    if currentStatus == :LimitStop
-        return :LimitStop
+    if currentStatus == :NodeLimitStop || currentStatus == :SolutionLimitStop
+        return currentStatus
     end
     
 
@@ -43,8 +43,11 @@ Some procedures will contain a call to `expandDfs!` itself.
 function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::Function, newConstraints=nothing)
     # Dealing with limits
     model.statistics.numberOfNodes += 1
-    if !belowLimits(model)
-        return :LimitStop
+    if !belowNodeLimit(model)
+        return :NodeLimitStop
+    end
+    if !belowSolutionLimit(model)
+        return :SolutionLimitStop
     end
 
     # Fix-point algorithm

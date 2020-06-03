@@ -123,12 +123,6 @@ end
 
 Check if `model`' statistics are still under the limits.
 """
-function belowLimits(model::CPModel)
-    if !isnothing(model.limit.numberOfNodes) && model.statistics.numberOfNodes >= model.limit.numberOfNodes
-        return false
-    end
-    if !isnothing(model.limit.numberOfSolutions) && model.statistics.numberOfSolutions >= model.limit.numberOfSolutions
-        return false
-    end
-    return true
-end
+belowLimits(model::CPModel) = belowNodeLimit(model) && belowSolutionLimit(model)
+belowNodeLimit(model::CPModel) = isnothing(model.limit.numberOfNodes) || model.statistics.numberOfNodes < model.limit.numberOfNodes
+belowSolutionLimit(model::CPModel) = isnothing(model.limit.numberOfSolutions) || model.statistics.numberOfSolutions < model.limit.numberOfSolutions

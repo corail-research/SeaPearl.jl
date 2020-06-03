@@ -119,4 +119,34 @@
         model.statistics.numberOfSolutions = 16
         @test !CPRL.belowLimits(model)
     end
+
+    @testset "belowNodeLimit()" begin
+        trailer = CPRL.Trailer()
+        model = CPRL.CPModel(trailer)
+
+        model.statistics.numberOfNodes = 1500
+
+        @test CPRL.belowNodeLimit(model)
+
+        model.limit.numberOfNodes = 1501
+        @test CPRL.belowNodeLimit(model)
+
+        model.statistics.numberOfNodes = 1501
+        @test !CPRL.belowNodeLimit(model)
+    end
+
+    @testset "belowSolutionLimits()" begin
+        trailer = CPRL.Trailer()
+        model = CPRL.CPModel(trailer)
+
+        model.statistics.numberOfSolutions = 15
+
+        @test CPRL.belowSolutionLimit(model)
+
+        model.limit.numberOfSolutions = 16
+        @test CPRL.belowSolutionLimit(model)
+
+        model.statistics.numberOfSolutions = 16
+        @test !CPRL.belowSolutionLimit(model)
+    end
 end

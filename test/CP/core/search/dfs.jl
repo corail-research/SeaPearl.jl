@@ -3,12 +3,21 @@ using DataStructures
 @testset "dfs.jl" begin
     @testset "expandDfs!()" begin
         ### Checking status ###
-        # :LimitStop
+        # :NodeLimitStop
         trailer = CPRL.Trailer()
         model = CPRL.CPModel(trailer)
         model.limit.numberOfNodes = 1
         toCall = Stack{Function}()
-        @test CPRL.expandDfs!(toCall, model, (model) -> nothing) == :LimitStop
+        @test CPRL.expandDfs!(toCall, model, (model) -> nothing) == :NodeLimitStop
+        @test isempty(toCall)
+
+        # :SolutionLimitStop
+        trailer = CPRL.Trailer()
+        model = CPRL.CPModel(trailer)
+        model.limit.numberOfSolutions = 0
+        
+        toCall = Stack{Function}()
+        @test CPRL.expandDfs!(toCall, model, (model) -> nothing) == :SolutionLimitStop
         @test isempty(toCall)
 
         # :Infeasible
@@ -79,7 +88,18 @@ using DataStructures
         trailer = CPRL.Trailer()
         model = CPRL.CPModel(trailer)
         model.limit.numberOfNodes = 1
-        @test CPRL.search!(model, CPRL.DFSearch, () -> nothing) == :LimitStop
+        @test CPRL.search!(model, CPRL.DFSearch, () -> nothing) == :NodeLimitStop
+
+        # :SolutionLimitStop
+        trailer = CPRL.Trailer()
+        model = CPRL.CPModel(trailer)
+        model.limit.numberOfSolutions = 0
+        
+        x = CPRL.IntVar(2, 3, "x", trailer)
+        y = CPRL.IntVar(2, 3, "y", trailer)
+        CPRL.addVariable!(model, x)
+        CPRL.addVariable!(model, y)
+        @test CPRL.search!(model, CPRL.DFSearch, () -> nothing) == :SolutionLimitStop
 
         # :Infeasible
         trailer = CPRL.Trailer()

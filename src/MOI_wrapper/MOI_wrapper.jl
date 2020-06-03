@@ -25,11 +25,11 @@ mutable struct Optimizer <: MOI.AbstractOptimizer
     cpmodel::CPModel
     variableselection::VariableSelection
     options::Dict{String, Any}
-    #status::MOI.TerminationStatusCode
+    status::MOI.TerminationStatusCode
 
     function Optimizer()
         cpmodel = CPRL.CPModel(CPRL.Trailer())
-        new(cpmodel, VariableSelection(), Dict{String, Any}())
+        new(cpmodel, VariableSelection(), Dict{String, Any}(), MOI.OPTIMIZE_NOT_CALLED)
     end
 end
 
@@ -41,6 +41,7 @@ include("objective.jl")
 include("utilities.jl")
 
 MOI.get(::Optimizer, ::MOI.SolverName) = "CPRL Solver"
+MOI.get(model::Optimizer, ::MOI.TerminationStatus) = model.status
 
 """
     MOI.is_empty(model::Optimizer)
@@ -93,6 +94,18 @@ Launch the solving process of the solver.
 function MOI.optimize!(model::Optimizer)
     status = CPRL.solve!(model.cpmodel; variableHeuristic=model.variableselection.heuristic)
 
+    if status == :Optimal
+        model.status = MOI.OPTIMAL
+    elseif status == :Infeasible
+        model.status = MOI.INFEASIBLE
+    elseif status == :NodeLimitStop
+        model.status = MOI.NODE_LIMIT
+    elseif status == :SolutionLimitStop
+        model.status = MOI.SOLUTION_LIMIT
+    else
+        model.status == MOI.OTHER_ERROR
+    end
+
     # println(model.cpmodel.constraints)
     
     solution = nothing
@@ -103,3 +116,4 @@ function MOI.optimize!(model::Optimizer)
     println(solution)
     return status, solution
 end
+
