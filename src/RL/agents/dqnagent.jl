@@ -1,24 +1,24 @@
 """
-    BasicDQNAgent(state_space_size, action_space_size, hidden_size = 32; 
-                optimizer = ADAM(), 
-                batch_size = 32, min_replay_history = 100, loss_func = huber_loss, learner_seed = 22,
-                kind = :exp, ϵ_stable = 0.01, decay_steps = 500, explorer_seed = 33,
-                capacity = 1000, state_type = Float32, state_size = (state_space_size,)
-                )
+    DQNAgent(state_space_size, action_space_size, hidden_size = 32; 
+            optimizer = ADAM, 
+            loss_func = huber_loss, stack_size = nothing, γ = 0.99f0, batch_size = 32, update_horizon = 1, min_replay_history = 100, update_freq = 1, target_update_freq = 100, update_step = 0, learner_seed = 22,
+            kind = :exp, ϵ_stable = 0.01, decay_steps = 500, explorer_seed = 33,
+            capacity = 1000, state_type = Float32, state_size = (state_space_size,), reward_type = Float32
+    )
 
-This is a standard basic DQN Agent with an epsilon greed explorer and circular compact sarsat trajectory.
+This is a standard DQN Agent with an epsilon greed explorer and circular compact sarsat trajectory.
 
-Using the structure of ReinforcementLearning.jl agents. This is the structure of a basic 
-DQN agent (the one from Playing Atari - Google Deep Mind). This function give the possibility 
+Using the structure of ReinforcementLearning.jl agents. This is the structure of a 
+DQN agent (the one from Human-level control through deep reinforcement learning - Google Deep Mind). This function give the possibility 
 to parametrize this agent without having to think about the entire structure. 
 If user, wants to go further, he can create its own agent. 
 """
 function DQNAgent(state_space_size, action_space_size, hidden_size = 32; 
-                        optimizer = ADAM, 
-                        loss_func = huber_loss, γ = 0.99f0, batch_size = 32, min_replay_history = 100, learner_seed = 22,
-                        kind = :exp, ϵ_stable = 0.01, decay_steps = 500, explorer_seed = 33,
-                        capacity = 1000, state_type = Float32, state_size = (state_space_size,), reward_type = Float32
-                        )
+                optimizer = ADAM, η = 0.001,
+                loss_func = huber_loss, stack_size = nothing, γ = 0.99f0, batch_size = 32, update_horizon = 1, min_replay_history = 1, update_freq = 1, target_update_freq = 100, learner_seed = 22,
+                kind = :exp, ϵ_stable = 0.01, decay_steps = 500, explorer_seed = 33,
+                capacity = 1000, state_type = Float32, state_size = (state_space_size,), reward_type = Float32
+        )
     # function
     agent = RL.Agent(
         policy = RL.QBasedPolicy(
@@ -37,17 +37,16 @@ function DQNAgent(state_space_size, action_space_size, hidden_size = 32;
                         Dense(hidden_size, hidden_size, relu; initW = seed_glorot_uniform(seed = 23)), 
                         Dense(hidden_size, action_space_size; initW = seed_glorot_uniform(seed = 39))
                     ),
-                    optimizer = optimizer()
+                    optimizer = optimizer(η)
                 ),
                 loss_func = loss_func,
-                stack_size = nothing,
+                stack_size = stack_size,
                 γ = γ,
                 batch_size = batch_size,
-                update_horizon = 1,
+                update_horizon = update_horizon,
                 min_replay_history = min_replay_history,
-                update_freq = 1,
-                target_update_freq = 100,
-                update_step = 0,
+                update_freq = update_freq,
+                target_update_freq = target_update_freq,
                 seed = learner_seed,
             ), 
             explorer = RL.EpsilonGreedyExplorer(

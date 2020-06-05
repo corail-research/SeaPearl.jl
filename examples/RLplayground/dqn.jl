@@ -8,64 +8,49 @@ gr()
 
 const RL = ReinforcementLearning
 
-TYPE = Float64
-NB_EPISODE = 50
+MountainC_PARAMS = Dict(
+    "type" => Float64,
+    "max_steps" => 5000,
+    "nb_episode" => 20,
+    "hidden_size" => 16,
+    "optimizer" => ADAM,
+    "η" => 0.001,
+    "target_update_freq" => 100,
+    "γ" => 0.95f0,
+    "capacity" => 50000,
+    "decay_steps" => 5000
+)
 
-#env = RL.CartPoleEnv(;T=Float32, seed=11)
-env = MountainCarEnv(; T = TYPE, max_steps = 5000, seed=21)
+CartP_PARAMS = Dict(
+    "type" => Float32,
+    "max_steps" => 200,
+    "nb_episode" => 800,
+    "hidden_size" => 12,
+    "optimizer" => RMSProp,
+    "η" => 0.0001,
+    "target_update_freq" => 500,
+    "γ" => 1.0f0,
+    "capacity" => 2000,
+    "decay_steps" => 500
+)
+
+if true
+    PARAMS = CartP_PARAMS
+    env = RL.CartPoleEnv(; T = PARAMS["type"], max_steps = PARAMS["max_steps"], seed=11)
+else
+    PARAMS = MountainC_PARAMS
+    env = RL.MountainCarEnv(; T = PARAMS["type"], max_steps = PARAMS["max_steps"], seed=21)
+end
 
 # get problem parameters for state and action
 ns, na = length(rand(RL.get_observation_space(env))), length(RL.get_action_space(env))
 
-hidden_size = 16
-
-"""
-# creating my own hook to render the MountainCarEnv
-function f(t, agent, env::RL.MountainCarEnv, obs)
-    RL.render(env)
-end
-
-mutable struct DoEveryNStep{F} <: AbstractHook
-    f::F
-    n::Int
-    t::Int
-end
-
-function (hook::DoEveryNStep)(::PostActStage, agent, env, obs)
-    hook.t += 1
-    if hook.t % hook.n == 0
-        hook.f(hook.t, agent, env, obs)
-    end
-end
-
-renderHook() = DoEveryNStep(f, 1, 0)
-"""
-
-
-@inline function _buffer_frame(cb::CircularArrayBuffer, i::Int)
-    n = capacity(cb)
-    idx = cb.first + i - 1
-    if idx > n
-        idx - n
-    else
-        idx
-    end
-end
-
-_buffer_frame(cb::CircularArrayBuffer, I::Vector{Int}) = map(i -> _buffer_frame(cb, i), I)
-
-function RL.update!(cb::CircularArrayBuffer{T,N}, data::AbstractArray) where {T,N}
-    select_last_dim(cb.buffer, _buffer_frame(cb, cb.length)) .= data
-    cb
-end
-
-
 # create a smart agent 
-smart_agent = CPRL.BasicDQNAgent(ns, na, hidden_size; γ = 0.95f0, capacity = 50000, decay_steps = 5000, state_type = TYPE, reward_type = TYPE)
+smart_agent = CPRL.BasicDQNAgent(ns, na, PARAMS["hidden_size"]; γ = PARAMS["γ"], capacity = PARAMS["capacity"], decay_steps = PARAMS["decay_steps"], state_type = PARAMS["type"], reward_type = PARAMS["type"])
 hook1 = RL.ComposedHook(RL.TotalRewardPerEpisode(), RL.TimePerStep())
 
 # create a smart agent 
-very_smart_agent = CPRL.DQNAgent(ns, na, hidden_size; γ = 0.95f0, capacity = 50000, decay_steps = 5000, state_type = TYPE, reward_type = TYPE)
+very_smart_agent = CPRL.DQNAgent(ns, na, PARAMS["hidden_size"]; optimizer = PARAMS["optimizer"], η = PARAMS["η"], target_update_freq = PARAMS["target_update_freq"], γ = PARAMS["γ"], capacity = PARAMS["capacity"], decay_steps = PARAMS["decay_steps"], state_type = PARAMS["type"], reward_type = PARAMS["type"])
 hook2 = RL.ComposedHook(RL.TotalRewardPerEpisode(), RL.TimePerStep())
 
 
@@ -74,18 +59,18 @@ random_agent = CPRL.RandomAgent(env, ns)
 hook3 = RL.ComposedHook(RL.TotalRewardPerEpisode(), RL.TimePerStep())
 
 # run an experiment with a stop condition
-run(smart_agent, env, RL.StopAfterEpisode(NB_EPISODE), hook1)
-@info "Stats for BasicDQNAgent" avg_reward = mean(hook1[1].rewards) avg_last_rewards = mean(hook1[1].rewards[end-min(NB_EPISODE-1, 10):end]) avg_fps = 1 / mean(hook1[2].times)
+run(smart_agent, env, RL.StopAfterEpisode(PARAMS["nb_episode"]), hook1)
+@info "Stats for BasicDQNAgent" avg_reward = mean(hook1[1].rewards) avg_last_rewards = mean(hook1[1].rewards[end-min(PARAMS["nb_episode"]-1, 10):end]) avg_fps = 1 / mean(hook1[2].times)
 
-run(very_smart_agent, env, RL.StopAfterEpisode(NB_EPISODE), hook2)
-@info "Stats for DQNAgent" avg_reward = mean(hook2[1].rewards) avg_last_rewards = mean(hook2[1].rewards[end-min(NB_EPISODE-1, 10):end]) avg_fps = 1 / mean(hook2[2].times)
+run(very_smart_agent, env, RL.StopAfterEpisode(PARAMS["nb_episode"]), hook2)
+@info "Stats for DQNAgent" avg_reward = mean(hook2[1].rewards) avg_last_rewards = mean(hook2[1].rewards[end-min(PARAMS["nb_episode"]-1, 10):end]) avg_fps = 1 / mean(hook2[2].times)
 
-run(random_agent, env, RL.StopAfterEpisode(NB_EPISODE), hook3)
-@info "Stats for RandomAgent" avg_reward = mean(hook3[1].rewards) avg_last_rewards = mean(hook3[1].rewards[end-min(NB_EPISODE-1, 10):end]) avg_fps = 1 / mean(hook3[2].times)
+run(random_agent, env, RL.StopAfterEpisode(PARAMS["nb_episode"]), hook3)
+@info "Stats for RandomAgent" avg_reward = mean(hook3[1].rewards) avg_last_rewards = mean(hook3[1].rewards[end-min(PARAMS["nb_episode"]-1, 10):end]) avg_fps = 1 / mean(hook3[2].times)
 
 
 # plot 
-x = 1:length(hook1[1].rewards)
+x = 1:length(hook2[1].rewards)
 
 p = plot(x, hook1[1].rewards, xlabel="Episode", ylabel="Reward")
 plot!(p, x, hook2[1].rewards)
