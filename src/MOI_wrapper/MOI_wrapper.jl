@@ -25,7 +25,8 @@ mutable struct Optimizer <: MOI.AbstractOptimizer
     cpmodel::CPModel
     variableselection::VariableSelection
     options::Dict{String, Any}
-    status::MOI.TerminationStatusCode
+    terminationStatus::MOI.TerminationStatusCode
+    primalStatus::MOI.ResultStatusCode
 
     function Optimizer()
         cpmodel = CPRL.CPModel(CPRL.Trailer())
@@ -41,7 +42,8 @@ include("objective.jl")
 include("utilities.jl")
 
 MOI.get(::Optimizer, ::MOI.SolverName) = "CPRL Solver"
-MOI.get(model::Optimizer, ::MOI.TerminationStatus) = model.status
+MOI.get(model::Optimizer, ::MOI.TerminationStatus) = model.terminationStatus
+MOI.get(model::Optimizer, ::MOI.PrimalStatus) = model.primalStatus
 
 """
     MOI.is_empty(model::Optimizer)
@@ -95,16 +97,18 @@ function MOI.optimize!(model::Optimizer)
     status = CPRL.solve!(model.cpmodel; variableHeuristic=model.variableselection.heuristic)
 
     if status == :Optimal
-        model.status = MOI.OPTIMAL
+        model.terminationStatus = MOI.OPTIMAL
     elseif status == :Infeasible
-        model.status = MOI.INFEASIBLE
+        model.terminationStatus = MOI.INFEASIBLE
     elseif status == :NodeLimitStop
-        model.status = MOI.NODE_LIMIT
+        model.terminationStatus = MOI.NODE_LIMIT
     elseif status == :SolutionLimitStop
-        model.status = MOI.SOLUTION_LIMIT
+        model.terminationStatus = MOI.SOLUTION_LIMIT
     else
-        model.status == MOI.OTHER_ERROR
+        model.terminationStatus == MOI.OTHER_ERROR
     end
+
+    model.primalStatus = !isempty(model.cpmodel.solutions) ? MOI.FEASIBLE_POINT : MOI.NO_SOLUTION
 
     # println(model.cpmodel.constraints)
     
