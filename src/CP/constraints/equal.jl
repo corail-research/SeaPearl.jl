@@ -119,3 +119,5 @@ function pruneEqual!(x::AbstractIntVar, y::AbstractIntVar)
 
     return toRemove
 end
+
+variablesArray(constraint::Equal) = [constraint.x, constraint.y]

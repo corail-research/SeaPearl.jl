@@ -1,5 +1,6 @@
-using LightGraphs
 using CPRL
+using GraphPlot
+using LightGraphs
 
 function testCPLayerGraph()
     trailer = CPRL.Trailer()
@@ -10,7 +11,9 @@ function testCPLayerGraph()
     CPRL.addVariable!(model, x)
     CPRL.addVariable!(model, y)
     push!(model.constraints, CPRL.Equal(x, y, trailer))
+    push!(model.constraints, CPRL.NotEqual(x, y, trailer))
 
     layerGraph = CPRL.CPLayerGraph(model)
+    gplot(layerGraph)
     return layerGraph
 end
