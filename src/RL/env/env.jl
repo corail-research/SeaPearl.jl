@@ -24,11 +24,12 @@ extract_params(::CPModel) = RLEnvParams("WIP")
 Implementation of the RL.AbstractEnv type coming from ReinforcementLearning's interface.
 
 """
-mutable struct RLEnv{R<:AbstractRNG} <: RL.AbstractEnv 
+mutable struct RLEnv{T, R<:AbstractRNG} <: RL.AbstractEnv 
     params::RLEnvParams
     action_space::RL.DiscreteSpace{UnitRange{Int64}}
-    observation_space::RL.MultiContinuousSpace{Vector}
-    state::Any # will probably be the adjacency matrix of a graph at the beginning
+    observation_space::RL.MultiContinuousSpace{Array{T,2}}
+    state::Array{T,2} # adjacency matrix and feature matrix of a graph
+    variable::Any # the variable we're working on - or we could even give the entire CPModel (useful for the graph creation)
     action::Int64
     done::Bool
     t::Int # time # number of steps
@@ -40,9 +41,23 @@ end
 
 Construct the RLEnv thanks to the informations which are in the CPModel.
 """
-function RLEnv(model::CPModel)
+function RLEnv(model::CPModel, T = Float32, seed = nothing)
     params = extract_params(model)
-    return RLEnv(params, false)
+    min = 1 # will depend on the CPModel
+    max = 2 # will depend on the CPModel
+    action_space = DiscreteSpace(min:max)
+    low = Array{T, 2}[ [1 1], [1 1]] # will depend on the CPModel
+    high = Array{T, 2}[ [3 3], [3 3]] # will depend on the CPModel
+    env = RLEnv(
+        params, 
+        action_space,
+        MultiContinuousSpace(low, high),
+        zeros(T, (2, 2)), # will be truly initialized by RL.reset!()
+        false,
+        0,
+        MersenneTwister(seed))
+    RL.reset!(env)
+    env
 end
 
 """
@@ -50,7 +65,13 @@ end
 
 Reinitialise the environment so it is ready for a new episode.
 """
-RL.reset!(::RLEnv) = nothing
+function RL.reset!(env::RLEnv{T}) where {T<:Number}
+    env.state = zeros(T, (2, 2)) # need to be changed
+    env.done = false
+    env.t = 0
+    nothing
+end
+
 
 """
     RL.observe(::RLEnv)
@@ -67,9 +88,9 @@ function RL.observe(env::RLEnv)
     legal_actions_mask = [true for i in 1:length(env.action_space)]
 
     # compute legal actions
-    legal_actions = env.action_space
+    legal_actions = env.action_space[legal_actions_mask]
 
-    # compute reward
+    # compute reward - we could add a transition function given by the user
     reward = env.done ? -1 : 0
 
     # return the observation as a named tuple (useful for interface understanding)
@@ -84,9 +105,18 @@ happen when an action is taken. This will be a step of the CP model !
 """
 function (env::RLEnv)(a)
     """
-    There might be nothing to implement here as the changes on the environment will be done
-    by the CP part and be the link between both parts. Or we will we use this to do the link...
+    Changes are made in the CPModel, here we get the useful informations from the CPModel to make 
+    sure the env has the latest updated informations.
+
+    It would be great to have an efficient function to get from a previous state to a new one. At the moment, 
+    we can use the whole constructor:  CPLayerGraph(::CPModel)
     """
+    @assert a in env.action_space
+    env.action = a
+    env.t += 1
+    # env.state = 
+    # env.done = 
+    # env.variable ou env.inner ou ??
     nothing
 end
 
