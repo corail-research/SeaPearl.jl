@@ -21,14 +21,14 @@ extract_params(::CPModel) = RLEnvParams("WIP")
 
 """
 
-Implmentation of the RL.AbstractEnv type coming from ReinforcementLearning's interface.
+Implementation of the RL.AbstractEnv type coming from ReinforcementLearning's interface.
 
 """
 mutable struct RLEnv{R<:AbstractRNG} <: RL.AbstractEnv 
     params::RLEnvParams
     action_space::RL.DiscreteSpace{UnitRange{Int64}}
     observation_space::RL.MultiContinuousSpace{Vector}
-    state::Any # will probably be a graph at the beginning
+    state::Any # will probably be the adjacency matrix of a graph at the beginning
     action::Int64
     done::Bool
     t::Int # time # number of steps
