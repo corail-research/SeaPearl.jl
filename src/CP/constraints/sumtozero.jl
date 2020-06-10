@@ -78,3 +78,4 @@ function propagate!(constraint::SumToZero, toPropagate::Set{Constraint}, prunedD
     return true
 end
 
+variablesArray(constraint::SumToZero) = constraint.x

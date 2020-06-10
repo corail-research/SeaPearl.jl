@@ -38,6 +38,9 @@ function propagate!(constraint::EqualConstant, toPropagate::Set{Constraint}, pru
     return false
 end
 
+variablesArray(constraint::EqualConstant) = [constraint.x]
+
+
 """
     Equal(x::CPRL.AbstractIntVar, y::CPRL.AbstractIntVar)
 
@@ -119,3 +122,5 @@ function pruneEqual!(x::AbstractIntVar, y::AbstractIntVar)
 
     return toRemove
 end
+
+variablesArray(constraint::Equal) = [constraint.x, constraint.y]

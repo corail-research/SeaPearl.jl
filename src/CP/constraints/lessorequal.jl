@@ -77,3 +77,4 @@ function propagate!(constraint::LessOrEqual, toPropagate::Set{Constraint}, prune
     end
     return !isempty(constraint.x.domain) && !isempty(constraint.y.domain)
 end
+variablesArray(constraint::LessOrEqual) = [constraint.x, constraint.y]

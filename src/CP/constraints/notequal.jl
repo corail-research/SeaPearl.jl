@@ -92,3 +92,5 @@ function propagate!(constraint::NotEqual, toPropagate::Set{Constraint}, prunedDo
     return true
 end
 
+variablesArray(constraint::NotEqual) = [constraint.x, constraint.y]
+

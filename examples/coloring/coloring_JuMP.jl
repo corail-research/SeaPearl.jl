@@ -143,4 +143,6 @@ function about_to_rage_quit()
 
     println(model)
     println(status)
+    println(has_values(model))
+    println(value(x))
 end
