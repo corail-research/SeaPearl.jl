@@ -1,6 +1,6 @@
 using CPRL
 using GraphPlot
-using LightGraphs
+using Gadfly
 
 function testCPLayerGraph()
     trailer = CPRL.Trailer()
