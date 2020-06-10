@@ -38,7 +38,7 @@ LightGraphs.edgetype(g::CPLayerGraph) = LightGraphs.SimpleEdge{eltype(g)}
 LightGraphs.has_vertex(g::CPLayerGraph, v::Int) = 1 <= v && v <= g.totalLength
 
 function LightGraphs.has_edge(g::CPLayerGraph, s::Int64, d::Int64)
-    if d > s
+    if d < s
         s, d = d, s
     end
 
