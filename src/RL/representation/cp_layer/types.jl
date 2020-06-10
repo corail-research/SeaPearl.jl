@@ -1,16 +1,65 @@
 
+"""
+    abstract type CPLayerVertex end
+
+A vertex that contains the CP "true" object.
+"""
 abstract type CPLayerVertex end
+
+"""
+    abstract type FixedEdgesVertex <: CPLayerVertex end
+
+A vertex whose edges won't be modified during the solving.
+"""
 abstract type FixedEdgesVertex <: CPLayerVertex end
+
+"""
+    struct ValueVertex <: CPLayerVertex 
+
+A vertex corresponding to the value of a domain, that is connected to
+a variable only if the value is in the domain of that variable.
+"""
 struct ValueVertex <: CPLayerVertex 
     value       ::Int
 end
+
+"""
+    struct ConstraintVertex <: CPLayerVertex 
+
+A vertex corresponding to a constraint, that is connected to
+a variable only if the constraint affects that variable.
+"""
 struct ConstraintVertex <: FixedEdgesVertex
     constraint  ::Constraint
 end
+
+"""
+    struct VariableVertex <: CPLayerVertex 
+
+A vertex corresponding to a variable, that is connected to
+a constraint only if that constraint affects the variable,
+and connected to a value only if that value is in the domain
+of the variable.
+"""
 struct VariableVertex <: FixedEdgesVertex 
     variable    ::AbstractIntVar
 end
 
+
+"""
+    struct CPLayerGraph <: AbstractGraph{Int}
+
+Graph representing the current status of the CPModel.
+It is a tripartite graph, linking 3 types of nodes: constraints, variables and values.
+A constraint is connected to a variable if the constraint affects the variable.
+A variable is connected to a value if the value is in the variable's domain.
+
+Since the relations between constraints and variables are not modified during the solving,
+they are stored in an inner graph, `fixedEdgesGraph`, that won't be edited after creation.
+On the contrary, domains get pruned during the solving. To always keep an up-to-date representation,
+none of the value-variables edges are stored, and everytime they're needed, they are gotten from
+the `CPModel` directly, hence the "layer" in the name of the struct.
+"""
 struct CPLayerGraph <: AbstractGraph{Int} 
     inner                       ::Union{CPModel, Nothing}
     idToNode                    ::Array{CPLayerVertex}
@@ -21,6 +70,12 @@ struct CPLayerGraph <: AbstractGraph{Int}
     numberOfValues              ::Int
     totalLength                 ::Int
 
+    """
+        function CPLayerGraph(cpmodel::CPModel)
+
+    Create the graph corresponding to the CPModel.
+    The graph gets linked to `cpmodel` and does not need to get updated by anyone when domains are pruned.
+    """
     function CPLayerGraph(cpmodel::CPModel)
         variables = collect(values(cpmodel.variables))
         valuesOfVariables = arrayOfEveryValue(variables)
@@ -64,132 +119,14 @@ struct CPLayerGraph <: AbstractGraph{Int}
 
         return new(cpmodel, idToNode, nodeToId, fixedEdgesGraph, numberOfConstraints, numberOfVariables, numberOfValues, totalLength)
     end
+
+    """
+        function CPLayerGraph()
+
+    Create an empty graph, needed to implement the `zero` function for the LightGraphs.jl interface.
+    """
     function CPLayerGraph()
         return new(nothing, CPLayerVertex[], Dict{CPLayerVertex, Int}(), Graph(0), 0, 0, 0, 0)
     end
 end
 
-
-
-
-function arrayOfEveryValue(variables::Array{AbstractIntVar})
-    setOfValues = Set{Int}()
-    for x in variables
-        for value in x.domain
-            push!(setOfValues, value)
-        end
-    end
-    return collect(setOfValues)
-end
-
-function cpVertexFromIndex(graph::CPLayerGraph, id::Int)
-    return graph.idToNode[id]
-end
-function index(g::CPLayerGraph, v::CPLayerVertex)
-    return g.nodeToId[v]
-end
-
-Base.eltype(g::CPLayerGraph) = Int64
-LightGraphs.edgetype(g::CPLayerGraph) = LightGraphs.SimpleEdge{eltype(g)}
-LightGraphs.is_directed(::Type{CPLayerGraph}) = false
-LightGraphs.has_vertex(g::CPLayerGraph, v::Int) = 1 <= v && v <= g.totalLength
-
-function LightGraphs.has_edge(g::CPLayerGraph, s::Int64, d::Int64)
-    if d > s
-        s, d = d, s
-    end
-
-    LightGraphs.has_edge(g, cpVertexFromIndex(g, s), cpVertexFromIndex(g, d))
-end
-
-LightGraphs.has_edge(g::CPLayerGraph, s::FixedEdgesVertex, d::FixedEdgesVertex) = LightGraphs.has_edge(g.fixedEdgesGraph, index(g, s), index(g, d))
-LightGraphs.has_edge(g::CPLayerGraph, s::ConstraintVertex, d::ValueVertex) = false
-LightGraphs.has_edge(g::CPLayerGraph, s::VariableVertex, d::ValueVertex) = d in s.variable.domain
-LightGraphs.has_edge(g::CPLayerGraph, s::ValueVertex, d::ValueVertex) = false
-
-function LightGraphs.edges(g::CPLayerGraph)
-    if isnothing(g.inner)
-        return []
-    end
-    edgesSet = Set{edgetype(g::CPLayerGraph)}()
-
-    for id in (g.numberOfConstraints + 1):(g.numberOfConstraints + g.numberOfVariables)
-        xVertex = cpVertexFromIndex(g, id)
-        @assert isa(xVertex, VariableVertex)
-        x = xVertex.variable
-        for v in x.domain
-            push!(edgesSet, edgetype(g::CPLayerGraph)(id, g.nodeToId[ValueVertex(v)]))
-        end
-    end
-
-    for edge in edges(g.fixedEdgesGraph)
-        push!(edgesSet, edgetype(g::CPLayerGraph)(src(edge), dst(edge)))
-    end
-
-    return collect(edgesSet)
-end
-
-function LightGraphs.ne(g::CPLayerGraph)
-    if isnothing(g.inner)
-        return 0
-    end
-    numberOfEdges = LightGraphs.ne(g.fixedEdgesGraph)
-    for id in (g.numberOfConstraints + 1):(g.numberOfConstraints + g.numberOfVariables)
-        xVertex = cpVertexFromIndex(g, id)
-        numberOfEdges += length(xVertex.variable.domain)
-    end
-    return numberOfEdges
-end
-
-LightGraphs.nv(g::CPLayerGraph) = g.totalLength
-
-function LightGraphs.inneighbors(g::CPLayerGraph, id::Int)
-    if isnothing(g.inner)
-        return []
-    end
-    cpVertex = cpVertexFromIndex(g, id)
-    LightGraphs.inneighbors(g, cpVertex)
-end
-LightGraphs.outneighbors(g::CPLayerGraph, id::Int) = inneighbors(g, id)
-
-LightGraphs.inneighbors(g::CPLayerGraph, v::ConstraintVertex) = LightGraphs.inneighbors(g.fixedEdgesGraph, g.nodeToId[v])
-function LightGraphs.inneighbors(g::CPLayerGraph, vertex::VariableVertex)
-    constraints = LightGraphs.inneighbors(g.fixedEdgesGraph, g.nodeToId[vertex])
-    x = vertex.variable
-    values = zeros(length(x.domain))
-    i = 1
-    for v in x.domain
-        values[i] = g.nodeToId[ValueVertex(v)]
-        i += 1
-    end
-    return vcat(constraints, values)
-end
-function LightGraphs.inneighbors(g::CPLayerGraph, vertex::ValueVertex)
-    value = vertex.value
-    neigh = Int64[]
-    for i in (g.numberOfConstraints + 1):(g.numberOfConstraints + g.numberOfVariables)
-        xVertex = cpVertexFromIndex(g, i)
-        x = xVertex.variable
-        if value in x.domain
-            push!(neigh, index(g, VariableVertex(x)))
-        end
-    end
-    return neigh
-end
-
-LightGraphs.vertices(g::CPLayerGraph) = collect(1:(g.totalLength))
-
-LightGraphs.is_directed(g::CPLayerGraph) = false
-LightGraphs.is_directed(g::Type{CPLayerGraph}) = false
-
-Base.zero(::Type{CPLayerGraph}) = CPLayerGraph()
-Base.reverse(g::CPLayerGraph) = g
-
-function labelOfVertex(g::CPLayerGraph, d::Int64)
-    cpVertex = cpVertexFromIndex(g, d)
-    labelOfVertex(g, cpVertex)
-end
-
-labelOfVertex(g::CPLayerGraph, d::ConstraintVertex) = string(typeof(d.constraint)), 1
-labelOfVertex(g::CPLayerGraph, d::VariableVertex) = "x"*d.variable.id, 2
-labelOfVertex(g::CPLayerGraph, d::ValueVertex) = string(d.value), 3
