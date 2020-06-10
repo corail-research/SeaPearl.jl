@@ -1,7 +1,9 @@
 using ReinforcementLearning
 using Random
+using GeometricFlux
 
 const RL = ReinforcementLearning
+const GFlux = GeometricFlux
 
 include("representation/cp_layer/cp_layer.jl")
 include("env/env.jl")
