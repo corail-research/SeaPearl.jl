@@ -48,7 +48,8 @@ end
 
 LightGraphs.has_edge(g::CPLayerGraph, s::FixedEdgesVertex, d::FixedEdgesVertex) = LightGraphs.has_edge(g.fixedEdgesGraph, index(g, s), index(g, d))
 LightGraphs.has_edge(g::CPLayerGraph, s::ConstraintVertex, d::ValueVertex) = false
-LightGraphs.has_edge(g::CPLayerGraph, s::VariableVertex, d::ValueVertex) = d in s.variable.domain
+LightGraphs.has_edge(g::CPLayerGraph, s::VariableVertex, d::ValueVertex) = d.value in s.variable.domain
+
 LightGraphs.has_edge(g::CPLayerGraph, s::ValueVertex, d::ValueVertex) = false
 
 function LightGraphs.edges(g::CPLayerGraph)
