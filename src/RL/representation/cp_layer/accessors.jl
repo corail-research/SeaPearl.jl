@@ -35,7 +35,6 @@ end
 
 Base.eltype(g::CPLayerGraph) = Int64
 LightGraphs.edgetype(g::CPLayerGraph) = LightGraphs.SimpleEdge{eltype(g)}
-LightGraphs.is_directed(::Type{CPLayerGraph}) = false
 LightGraphs.has_vertex(g::CPLayerGraph, v::Int) = 1 <= v && v <= g.totalLength
 
 function LightGraphs.has_edge(g::CPLayerGraph, s::Int64, d::Int64)
