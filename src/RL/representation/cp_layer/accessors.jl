@@ -53,7 +53,7 @@ LightGraphs.has_edge(g::CPLayerGraph, s::VariableVertex, d::ValueVertex) = d.val
 LightGraphs.has_edge(g::CPLayerGraph, s::ValueVertex, d::ValueVertex) = false
 
 function LightGraphs.edges(g::CPLayerGraph)
-    if isnothing(g.inner)
+    if isnothing(g.cpmodel)
         return []
     end
     edgesSet = Set{edgetype(g::CPLayerGraph)}()
@@ -75,7 +75,7 @@ function LightGraphs.edges(g::CPLayerGraph)
 end
 
 function LightGraphs.ne(g::CPLayerGraph)
-    if isnothing(g.inner)
+    if isnothing(g.cpmodel)
         return 0
     end
     numberOfEdges = LightGraphs.ne(g.fixedEdgesGraph)
@@ -89,7 +89,7 @@ end
 LightGraphs.nv(g::CPLayerGraph) = g.totalLength
 
 function LightGraphs.inneighbors(g::CPLayerGraph, id::Int)
-    if isnothing(g.inner)
+    if isnothing(g.cpmodel)
         return []
     end
     cpVertex = cpVertexFromIndex(g, id)

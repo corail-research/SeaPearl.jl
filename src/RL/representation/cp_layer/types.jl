@@ -59,9 +59,12 @@ they are stored in an inner graph, `fixedEdgesGraph`, that won't be edited after
 On the contrary, domains get pruned during the solving. To always keep an up-to-date representation,
 none of the value-variables edges are stored, and everytime they're needed, they are gotten from
 the `CPModel` directly, hence the "layer" in the name of the struct.
+
+Each vertex is indexed by an integer, in a specific order. You first have the constraints,
+then the variables and finally the values.
 """
 struct CPLayerGraph <: AbstractGraph{Int} 
-    inner                       ::Union{CPModel, Nothing}
+    cpmodel                     ::Union{CPModel, Nothing}
     idToNode                    ::Array{CPLayerVertex}
     nodeToId                    ::Dict{CPLayerVertex, Int}
     fixedEdgesGraph             ::Graph

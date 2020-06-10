@@ -95,6 +95,8 @@ function solve_coloring(input_file; benchmark=false)
         return toReturn
     end
 
+    return model
+
 
     status = CPRL.solve!(model; variableHeuristic=((m) -> selectVariable(m, sortedPermutation, degrees)))
     if !benchmark
@@ -104,4 +106,26 @@ function solve_coloring(input_file; benchmark=false)
         end
     end
     return status
+end
+
+using Gadfly
+using LightGraphs
+using GraphPlot
+
+function testGraph(input_file)
+    model = solve_coloring(input_file)
+    g = CPRL.CPLayerGraph(model)
+    nodelabel = map((x) -> CPRL.labelOfVertex(g, x)[1], collect(1:nv(g)))
+
+    nlist = Vector{Int}[] # two shells
+    push!(nlist, collect((g.numberOfConstraints+1):(g.numberOfConstraints+g.numberOfVariables))) # second shell
+    push!(nlist, collect((g.numberOfConstraints+g.numberOfVariables+1):(g.numberOfConstraints+g.numberOfVariables+g.numberOfValues))) # second shell
+    push!(nlist, collect(1:g.numberOfConstraints)) # first shell
+
+    membership = map((x) -> CPRL.labelOfVertex(g, x)[2], collect(1:nv(g)))
+    nodecolor = [colorant"red", colorant"purple", colorant"green"]
+    # membership color
+    nodefillc = nodecolor[membership]
+    # locs_x, locs_y = shell_layout(g, nlist)
+    return g, nodefillc, nodelabel
 end
