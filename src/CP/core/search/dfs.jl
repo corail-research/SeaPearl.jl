@@ -13,8 +13,7 @@ function search!(model::CPModel, ::Type{DFSearch}, variableHeuristic, agent::RL.
     # create the environment: state is taken randomly but will be synchronized later
     env = RLEnv(model::CPModel)
     false_x = first(values(model.variables))
-    sync_state!(env, model, false_x)
-    obs = observe(env, false_x)
+    obs = observe!(env, model, false_x)
     agent(RL.PRE_EPISODE_STAGE, obs) # just empty the buffer
     # eventually hook(PRE_EPISODE_STAGE, agent, env, obs)
 
@@ -47,8 +46,7 @@ function search!(model::CPModel, ::Type{DFSearch}, variableHeuristic, agent::RL.
     # the RL EPISODE stops
     set_done!(env, true)
     set_final_reward!(env, model)
-    sync_state!(env, model, false_x)
-    obs = observe(env, false_x)
+    obs = observe!(env, model, false_x)
     
     agent(RL.POST_ACT_STAGE, obs) # get terminal and reward
     # eventually: hook(POST_ACT_STAGE, agent, env, obs, action)
@@ -99,13 +97,9 @@ function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
     # Variable selection
     x = variableHeuristic(model)
 
-    # in our framework, the changes are made by the cpmodel, thus, the env do not launch the 
-    # changes, that is why there is no env(action) here but there is a synchronisation of the env with
-    # the cpmodel: sync!(env, model, x)
-    sync_state!(env, model, x)
 
-    obs = observe(env, x)
-    if model.statistics.numberOfNodes >= 1
+    obs = observe!(env, model, x)
+    if model.statistics.numberOfNodes > 1
         agent(RL.POST_ACT_STAGE, obs) # get terminal and reward
         # eventually: hook(POST_ACT_STAGE, agent, env, obs, action)
     end

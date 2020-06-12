@@ -45,7 +45,7 @@ function RLEnv(cpmodel::CPModel, seed = nothing)
         false,  
         rng)
     
-    RL.reset!(env)
+    #RL.reset!(env)
     env
 end
 
@@ -116,7 +116,7 @@ legal_actions !
 To do : Need to change the reward
 To do : Need to change the legal actions
 """
-function observe!(env::RLEnv, x::AbstractIntVar)
+function observe!(env::RLEnv, model::CPModel, x::AbstractIntVar)
     # get legal_actions_mask
     legal_actions_mask = [value in x.domain for value in env.action_space]
 
@@ -126,6 +126,9 @@ function observe!(env::RLEnv, x::AbstractIntVar)
     # compute reward - we could add a transition function given by the user
     reward = env.reward 
     env.reward = -1
+
+    # synchronize state: we could delete env.state, we do not need it 
+    sync_state!(env, model, x)
 
     # return the observation as a named tuple (useful for interface understanding)
     return (reward = reward, terminal = env.done, state = env.state, legal_actions = legal_actions, legal_actions_mask = legal_actions_mask)
