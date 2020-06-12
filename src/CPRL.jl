@@ -1,6 +1,7 @@
 module CPRL
 
-
+using ReinforcementLearning
+const RL = ReinforcementLearning
 
 include("trailer.jl")
 include("CP/CP.jl")

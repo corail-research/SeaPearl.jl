@@ -1,8 +1,6 @@
-using ReinforcementLearning
 using Random
 using GeometricFlux
 
-const RL = ReinforcementLearning
 
 include("representation/cp_layer/cp_layer.jl")
 include("env/spaces/spaces.jl")
