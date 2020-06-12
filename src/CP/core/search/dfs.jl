@@ -7,6 +7,12 @@ Perform a Depth-First search in the `model` using `variableHeuristic` to choose 
 at each branching. This strategy, starting at the root node, will explore as deep as possible before backtracking.
 """
 function search!(model::CPModel, ::Type{DFSearch}, variableHeuristic)
+
+    # the agent will probably be given as a parameter of the search function
+
+    # create the environment (will be under valueSelection later)
+    # env = RLEnv(model::CPModel)
+
     toCall = Stack{Function}()
 
     # Starting at the root node with an empty stack
@@ -63,8 +69,21 @@ function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
     # Variable selection
     x = variableHeuristic(model)
 
+    # in our framework, the changesare made by the cpmodel, thus, the env do not launch the 
+    # changes, that is why there is no env(action) here but there is a synchronisation of the env with
+    # the cpmodel: sync!(env, model, x)
+    # sync!(env, model, x)
+
+    # obs = observe(env, x)
+    # agent(POST_ACT_STAGE, obs) # get terminal and reward
+    # eventually: hook(POST_ACT_STAGE, agent, env, obs, action)
+
+    # v = agent(PRE_ACT_STAGE, obs) # choose action, store it with the state
+    # eventually hook(PRE_ACT_STAGE, agent, env, obs, action)
+
+    
     # Value selection
-    v = selectValue(x)
+    v = selectValue(x) # will disappear
 
 
     push!(toCall, (model) -> (restoreState!(model.trailer); :Feasible))
