@@ -1,32 +1,49 @@
+using LinearAlgebra
+
 export CPGraphSpace
 
 mutable struct CPGraph
-    featuredgraph::GFlux.FeaturedGraph
+    featuredgraph::GeometricFlux.FeaturedGraph
     variable_id::Int64
 end
 
 """
-    CPGraphSpace(graphtype::Int64, featuretype::DataType, variable_id_low::Int64, variable_id_high::Int64)
+    CPGraph(cplayergraph::CPLayerGraph, x::AbstractIntVar)
+
+Construct a CPGraph from the CPLayerGraph and the variable we want to branch on. 
+Here we will define how the node feature will look like. Thus, it might be transformed later.
+"""
+function CPGraph(g::CPLayerGraph, x::AbstractIntVar, featuretype::Type{Number}=Float32)
+    graph = LightGraphs.LinAlg.adjacency_matrix(g)
+    # temporary use of a one hot encoder for each node. 
+    feature = Matrix{featuretype}(I, nv(g))
+    variable_id = index(g, CPLayerVertex(x))
+    
+    CPGraph(GeometricFlux.FeaturedGraph(graph, feature), variable_id)
+end
+
+"""
+    CPGraphSpace(variable_id_low::Int64, variable_id_high::Int64, featuretype::Type{Number})
 
 This characterises all the CPGraph's that can be encountered. 
 """
 struct CPGraphSpace <: RL.AbstractSpace
-    graphtype::Int64
-    featuretype::DataType
     variable_id_low::Int64
     variable_id_high::Int64
+    featuretype::Type{Number}
 
-    function CPGraphSpace(graphtype::Int64, featuretype::DataType, variable_id_low::Int64, variable_id_high::Int64)
+    function CPGraphSpace(variable_id_low::Int64, variable_id_high::Int64, featuretype::Type{Number}=Float32)
         variable_id_high >= variable_id_low || throw(ArgumentError("$variable_id_high must be >= $variable_id_low"))
-        new(graphtype, featuretype, variable_id_low, variable_id_high)
+        new(variable_id_low, variable_id_high, featuretype)
     end
 end
 
 """
-    CPGraphSpace(variable_id_high::Int64)
-Create a `CPGraphSpace` with span of `1:high`
+    CPGraphSpace(variable_id_high::Int64, featuretype::Type{Number})
+
+Create a `CPGraphSpace` with span of `1:high`.
 """
-CPGraphSpace(graphtype::Int64, featuretype::DataType, variable_id_high::Int64) = CPGraphSpace(graphtype, featuretype, 1, variable_id_high)
+CPGraphSpace(variable_id_high::Int64, featuretype::Type{Number}=Float32) = CPGraphSpace(1, variable_id_high, featuretype)
 
 
 Base.eltype(s::CPGraphSpace) = s.featuretype
@@ -34,15 +51,21 @@ Base.eltype(s::CPGraphSpace) = s.featuretype
 """
     Base.in(x, s::CPGraphSpace)::Bool
 
-Test if 
+Test if x is a CPGraph
 """
 function Base.in(x, s::CPGraphSpace)::Bool
-    propertynames(x) == (:featuredgraph, :variable_id) && typeof(x.featuredgraph) == GFlux.FeaturedGraph && typeof(x.featuredgraph.feature) == s.featuretype && true && s.variable_id_low <= x.variable_id <= s.variable_id_high
+    propertynames(x) == (:featuredgraph, :variable_id) && typeof(x.featuredgraph) == GeometricFlux.FeaturedGraph && typeof(x.featuredgraph.feature) == s.featuretype && true && s.variable_id_low <= x.variable_id <= s.variable_id_high
 end 
 
 function Random.rand(rng::AbstractRNG, s::CPGraphSpace)
+    g = CPLayerGraph()
+    graph = LightGraphs.LinAlg.adjacency_matrix(g)
+    # temporary use of a one hot encoder for each node. 
+    feature = Matrix{s.featuretype}(I, nv(g))
 
-    rand(rng, s.span)
-end 
+    variable_id = 1
+    
+    CPGraph(GeometricFlux.FeaturedGraph(graph, feature), variable_id)
+end
 
-Base.length(s::DiscreteSpace) = length(s.span)
+Base.length(s::CPGraphSpace) = error("CPGraphSpace is uncountable")

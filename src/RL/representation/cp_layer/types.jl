@@ -63,11 +63,11 @@ the `CPModel` directly, hence the "layer" in the name of the struct.
 Each vertex is indexed by an integer, in a specific order. You first have the constraints,
 then the variables and finally the values.
 """
-struct CPLayerGraph <: AbstractGraph{Int} 
+struct CPLayerGraph <: LightGraphs.AbstractGraph{Int} 
     cpmodel                     ::Union{CPModel, Nothing}
     idToNode                    ::Array{CPLayerVertex}
     nodeToId                    ::Dict{CPLayerVertex, Int}
-    fixedEdgesGraph             ::Graph
+    fixedEdgesGraph             ::LightGraphs.Graph
     numberOfConstraints         ::Int
     numberOfVariables           ::Int
     numberOfValues              ::Int
