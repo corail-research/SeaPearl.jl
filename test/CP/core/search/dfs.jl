@@ -8,7 +8,7 @@ using DataStructures
         model = CPRL.CPModel(trailer)
         model.limit.numberOfNodes = 1
         toCall = Stack{Function}()
-        @test CPRL.expandDfs!(toCall, model, (model) -> nothing) == :NodeLimitStop
+        @test CPRL.expandDfs!(toCall, model, (model) -> nothing, CPRL.BasicHeuristic()) == :NodeLimitStop
         @test isempty(toCall)
 
         # :SolutionLimitStop
@@ -17,7 +17,7 @@ using DataStructures
         model.limit.numberOfSolutions = 0
         
         toCall = Stack{Function}()
-        @test CPRL.expandDfs!(toCall, model, (model) -> nothing) == :SolutionLimitStop
+        @test CPRL.expandDfs!(toCall, model, (model) -> nothing, CPRL.BasicHeuristic()) == :SolutionLimitStop
         @test isempty(toCall)
 
         # :Infeasible
@@ -31,7 +31,7 @@ using DataStructures
         push!(model.constraints, CPRL.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
-        @test CPRL.expandDfs!(toCall, model, (model) -> nothing) == :Infeasible
+        @test CPRL.expandDfs!(toCall, model, (model) -> nothing, CPRL.BasicHeuristic()) == :Infeasible
         @test isempty(toCall)
 
         # :Feasible
@@ -45,7 +45,7 @@ using DataStructures
         push!(model.constraints, CPRL.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
-        @test CPRL.expandDfs!(toCall, model, (model) -> nothing) == :Feasible
+        @test CPRL.expandDfs!(toCall, model, (model) -> nothing, CPRL.BasicHeuristic()) == :Feasible
         @test isempty(toCall)
 
 
@@ -60,7 +60,7 @@ using DataStructures
         push!(model.constraints, CPRL.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
-        @test CPRL.expandDfs!(toCall, model, (model) -> x) == :Feasible
+        @test CPRL.expandDfs!(toCall, model, (model) -> x, CPRL.BasicHeuristic()) == :Feasible
         @test length(toCall) == 6
 
         @test pop!(toCall)(model) == :Feasible
