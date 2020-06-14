@@ -138,12 +138,12 @@ end
     CPRL.assign!(x, 2)
 
     @test LightGraphs.edges(g) == [
-        LightGraphs.SimpleEdge{Int64}(2, 4),
-        LightGraphs.SimpleEdge{Int64}(1, 3),
-        LightGraphs.SimpleEdge{Int64}(4, 5),
-        LightGraphs.SimpleEdge{Int64}(4, 6),
         LightGraphs.SimpleEdge{Int64}(1, 4),
+        LightGraphs.SimpleEdge{Int64}(2, 4),
+        LightGraphs.SimpleEdge{Int64}(4, 5),
         LightGraphs.SimpleEdge{Int64}(3, 5),
+        LightGraphs.SimpleEdge{Int64}(4, 6),
+        LightGraphs.SimpleEdge{Int64}(1, 3),
         LightGraphs.SimpleEdge{Int64}(2, 3)
     ]
 
