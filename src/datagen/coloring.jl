@@ -17,23 +17,19 @@ function fill_with_coloring!(cpmodel::CPModel, nb_nodes::Int64, density::Number)
     end
     @assert nb_edges >= nb_nodes - 1
     connexions = [1 for i in 1:nb_nodes]
-    println(connexions)
     # create Geometric distribution
     p = 2 / nb_nodes
     distr = Truncated(Geometric(p), 0, nb_nodes+1)
     new_connexions = rand(distr, nb_edges - nb_nodes)
-    println(new_connexions)
     for new_co in new_connexions
         connexions[convert(Int64, new_co)] += 1
     end
-    println(connexions)
 
     # should make sure that every node has less than nb_nodes - 1 connexions
 
     # edge constraints
     for i in 1:length(connexions)
         neighbors = sample([j for j in 1:length(connexions) if j != i && connexions[i] > 0], connexions[i], replace=false)
-        println("Neigbors :", neighbors)
         for j in neighbors
             push!(cpmodel.constraints, CPRL.NotEqual(x[i], x[j], cpmodel.trailer))
         end

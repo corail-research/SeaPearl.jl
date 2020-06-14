@@ -13,11 +13,11 @@ end
 Construct a CPGraph from the CPLayerGraph and the variable we want to branch on. 
 Here we will define how the node feature will look like. Thus, it might be transformed later.
 """
-function CPGraph(g::CPLayerGraph, x::AbstractIntVar, featuretype::Type{Number}=Float32)
+function CPGraph(g::CPLayerGraph, x::AbstractIntVar)
     graph = LightGraphs.LinAlg.adjacency_matrix(g)
     # temporary use of a one hot encoder for each node. 
-    feature = Matrix{featuretype}(I, nv(g))
-    variable_id = index(g, CPLayerVertex(x))
+    feature = Matrix{Float32}(I, nv(g), nv(g))
+    variable_id = index(g, VariableVertex(x))
     
     CPGraph(GeometricFlux.FeaturedGraph(graph, feature), variable_id)
 end
