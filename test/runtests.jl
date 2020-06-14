@@ -6,4 +6,5 @@ using Test
     include("RL/RL.jl")
     include("MOI_wrapper/MOI_wrapper.jl")
     include("trailer.jl")
+    include("datagen/datagen.jl")
 end
