@@ -5,7 +5,7 @@ include("variables/variables.jl")
 include("core/model.jl")
 include("constraints/constraints.jl")
 
-include("../RL/RL.jl")
+include("valueselection/valueselection.jl")
 
 include("core/fixPoint.jl")
 
