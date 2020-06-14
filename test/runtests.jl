@@ -1,6 +1,9 @@
 using CPRL
 using Test
 
+using ReinforcementLearning
+const RL = ReinforcementLearning
+
 @testset "CPRL.jl" begin
     include("CP/CP.jl")
     include("RL/RL.jl")
