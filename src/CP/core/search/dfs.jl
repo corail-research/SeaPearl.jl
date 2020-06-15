@@ -1,4 +1,3 @@
-abstract type DFSearch <: SearchStrategy end
 
 """
     search!(model::CPModel, ::Type{DFSearch}, variableHeuristic, valueSelection::ValueSelection=BasicHeuristic())
