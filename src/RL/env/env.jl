@@ -130,7 +130,7 @@ function observe!(env::RLEnv, model::CPModel, x::AbstractIntVar)
     legal_actions_mask = [value in x.domain for value in env.action_space]
 
     # compute legal actions
-    legal_actions = env.action_space[legal_actions_mask]
+    legal_actions = env.action_space.span[legal_actions_mask]
 
     # compute reward - we could add a transition function given by the user
     reward = env.reward 
