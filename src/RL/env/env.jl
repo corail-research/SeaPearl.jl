@@ -44,7 +44,7 @@ function RLEnv(cpmodel::CPModel, seed = nothing)
     env = RLEnv(
         action_space,
         observation_space,
-        Random.rand(rng, observation_space), # will be synchronised later
+        CPGraph(CPLayerGraph(cpmodel), 0), # use a fake variable index
         1,
         -1,
         false,  
@@ -100,6 +100,7 @@ Not sure this one will survive
 """
 function reset!(env::RLEnv)
     env.done = false
+    env.reward = -1
     nothing 
 end
 
@@ -110,7 +111,8 @@ Synchronize the env with the CPModel.
 """
 function sync_state!(env::RLEnv, cpmodel::CPModel, x::AbstractIntVar)
     g = CPLayerGraph(cpmodel)
-    env.state = CPGraph(g, x)
+    update!(env.state, g, x)
+    nothing 
 end
 
 """

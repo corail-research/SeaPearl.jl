@@ -64,11 +64,88 @@
     end
 
     @testset "set_reward!()" begin
-        nothing
+        trailer = CPRL.Trailer()
+        model = CPRL.CPModel(trailer)
+
+        env = CPRL.RLEnv(model)
+
+        CPRL.set_reward!(env, :Infeasible)
+        @test env.reward == -6
+
+        CPRL.set_reward!(env, :FoundSolution)
+        @test env.reward == -1
+
     end
 
     @testset "set_final_reward!()" begin
         nothing
+    end
+
+    @testset "reset!()" begin
+        trailer = CPRL.Trailer()
+        model = CPRL.CPModel(trailer)
+
+        env = CPRL.RLEnv(model)
+
+        CPRL.set_reward!(env, :FoundSolution)
+        CPRL.set_done!(env, true)
+
+        CPRL.reset!(env)
+
+        @test env.done == false
+        @test env.reward == -1
+    end
+
+    @testset "sync_state!()" begin
+        trailer = CPRL.Trailer()
+        model = CPRL.CPModel(trailer)
+
+        x = CPRL.IntVar(2, 3, "x", trailer)
+        y = CPRL.IntVar(2, 3, "y", trailer)
+        CPRL.addVariable!(model, x)
+        CPRL.addVariable!(model, y)
+        push!(model.constraints, CPRL.Equal(x, y, trailer))
+        push!(model.constraints, CPRL.NotEqual(x, y, trailer))
+
+        env = CPRL.RLEnv(model)
+
+        CPRL.sync_state!(env, model, x)
+
+        @test Matrix(env.state.featuredgraph.graph[]) == [0 0 1 1 0 0
+                                                          0 0 1 1 0 0
+                                                          1 1 0 0 1 1
+                                                          1 1 0 0 1 1
+                                                          0 0 1 1 0 0
+                                                          0 0 1 1 0 0]
+
+        @test env.state.featuredgraph.feature[] == [1.0 0 0 0 0 0
+                                              0 1.0 0 0 0 0
+                                              0 0 1.0 0 0 0
+                                              0 0 0 1.0 0 0
+                                              0 0 0 0 1.0 0
+                                              0 0 0 0 0 1.0]
+        
+        @test env.state.variable_id == 3
+
+        CPRL.assign!(x, 2)
+        CPRL.sync_state!(env, model, y)
+
+        @test Matrix(env.state.featuredgraph.graph[]) == [0 0 1 1 0 0
+                                                          0 0 1 1 0 0
+                                                          1 1 0 0 1 0
+                                                          1 1 0 0 1 1
+                                                          0 0 1 1 0 0
+                                                          0 0 0 1 0 0]
+
+        @test env.state.featuredgraph.feature[] == [1.0 0 0 0 0 0
+                                              0 1.0 0 0 0 0
+                                              0 0 1.0 0 0 0
+                                              0 0 0 1.0 0 0
+                                              0 0 0 0 1.0 0
+                                              0 0 0 0 0 1.0]
+        
+        @test env.state.variable_id == 4
+
     end
 
 end
