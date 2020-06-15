@@ -10,4 +10,5 @@ const RL = ReinforcementLearning
     include("MOI_wrapper/MOI_wrapper.jl")
     include("trailer.jl")
     include("datagen/datagen.jl")
+    include("training.jl")
 end
