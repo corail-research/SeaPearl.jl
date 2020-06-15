@@ -3,8 +3,13 @@ using CPRL
 
 makedocs(
     sitename = "CPRL",
+    doctest = VERSION >= v"1.4",
     format = Documenter.HTML(),
-    modules = [CPRL]
+    modules = [CPRL],
+    pages = ["Home" => "index.md",
+    "Building Models" =>
+      ["Basics" => "models/basics.md"],
+    "Community" => "community.md"],
 )
 
 # Documenter can also automatically deploy documentation to gh-pages.
