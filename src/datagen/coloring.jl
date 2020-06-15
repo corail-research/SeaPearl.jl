@@ -19,7 +19,7 @@ function fill_with_coloring!(cpmodel::CPModel, nb_nodes::Int64, density::Number)
     connexions = [1 for i in 1:nb_nodes]
     # create Geometric distribution
     p = 2 / nb_nodes
-    distr = Truncated(Geometric(p), 0, nb_nodes+1)
+    distr = Truncated(Geometric(p), 0, nb_nodes)
     new_connexions = rand(distr, nb_edges - nb_nodes)
     for new_co in new_connexions
         connexions[convert(Int64, new_co)] += 1
