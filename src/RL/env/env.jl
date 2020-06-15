@@ -10,14 +10,19 @@ happening and this role is taken by the CP part in our framework.
 We will keep the env.done for now for convenience reasons (to stay near enough to the RL 
 framework in order to be able to use its useful functions)
 """
-mutable struct RLEnv{T, R<:AbstractRNG} <: RL.AbstractEnv 
-    action_space::RL.DiscreteSpace{UnitRange{Int64}}
+mutable struct RLEnv <: RL.AbstractEnv 
+    action_space::RL.DiscreteSpace{Array{Int64,1}}
     observation_space::CPGraphSpace
     state::CPGraph
     action::Int64
     reward::Int64
     done::Bool
-    rng::R # random number generator
+    rng::Random.MersenneTwister # random number generator
+
+    function RLEnv(action_space::RL.DiscreteSpace{Array{Int64,1}}, observation_space::CPGraphSpace, 
+                   state::CPGraph, action::Int64, reward::Int64, done::Bool, rng::Random.MersenneTwister)
+        new(action_space, observation_space, state, action, reward, done, rng) 
+    end
 end
 
 """
@@ -29,10 +34,10 @@ function RLEnv(cpmodel::CPModel, seed = nothing)
     # construct the action_space
     variables = collect(values(cpmodel.variables))
     valuesOfVariables = sort(arrayOfEveryValue(variables))
-    action_space = DiscreteSpace(valuesOfVariables)
+    action_space = RL.DiscreteSpace(valuesOfVariables)
 
     # construct the observation space
-    observation_space = CPGraphSpace(length(variables), Float32)
+    observation_space = CPGraphSpace(length(variables))
     # get the random number generator
     rng = MersenneTwister(seed)
 
@@ -47,16 +52,6 @@ function RLEnv(cpmodel::CPModel, seed = nothing)
     
     #RL.reset!(env)
     env
-end
-
-"""
-    sync!(env::RLEnv, cpmodel::CPModel, x::AbstractIntVar)
-
-Synchronize the env with the CPModel.
-"""
-function sync_state!(env::RLEnv, cpmodel::CPModel, x::AbstractIntVar)
-    g = CPLayerGraph(cpmodel)
-    env.state = CPGraph(g, x)
 end
 
 """
@@ -90,8 +85,10 @@ for the training.
 function set_final_reward!(env::RLEnv, model::CPModel)
     if isempty(model.solutions)
         env.reward = 0
-    else
+    elseif !isnothing(model.objectiveBound)
         env.reward = model.objectiveBound + 1
+    else
+        env.reward = 1
     end
     nothing
 end
@@ -104,6 +101,16 @@ Not sure this one will survive
 function reset!(env::RLEnv)
     env.done = false
     nothing 
+end
+
+"""
+    sync!(env::RLEnv, cpmodel::CPModel, x::AbstractIntVar)
+
+Synchronize the env with the CPModel.
+"""
+function sync_state!(env::RLEnv, cpmodel::CPModel, x::AbstractIntVar)
+    g = CPLayerGraph(cpmodel)
+    env.state = CPGraph(g, x)
 end
 
 """
