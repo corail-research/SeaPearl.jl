@@ -30,11 +30,10 @@ This characterises all the CPGraph's that can be encountered.
 struct CPGraphSpace <: RL.AbstractSpace
     variable_id_low::Int64
     variable_id_high::Int64
-    featuretype::Type{Number}
 
-    function CPGraphSpace(variable_id_low::Int64, variable_id_high::Int64, featuretype::Type{Number}=Float32)
+    function CPGraphSpace(variable_id_low::Int64, variable_id_high::Int64)
         variable_id_high >= variable_id_low || throw(ArgumentError("$variable_id_high must be >= $variable_id_low"))
-        new(variable_id_low, variable_id_high, featuretype)
+        new(variable_id_low, variable_id_high)
     end
 end
 
@@ -43,10 +42,10 @@ end
 
 Create a `CPGraphSpace` with span of `1:high`.
 """
-CPGraphSpace(variable_id_high::Int64, featuretype::Type{Number}=Float32) = CPGraphSpace(1, variable_id_high, featuretype)
+CPGraphSpace(variable_id_high::Int64) = CPGraphSpace(1, variable_id_high)
 
 
-Base.eltype(s::CPGraphSpace) = s.featuretype
+Base.eltype(s::CPGraphSpace) = CPGraph
 
 """
     Base.in(x, s::CPGraphSpace)::Bool
@@ -54,14 +53,14 @@ Base.eltype(s::CPGraphSpace) = s.featuretype
 Test if x is a CPGraph
 """
 function Base.in(x, s::CPGraphSpace)::Bool
-    propertynames(x) == (:featuredgraph, :variable_id) && typeof(x.featuredgraph) == GeometricFlux.FeaturedGraph && typeof(x.featuredgraph.feature) == s.featuretype && true && s.variable_id_low <= x.variable_id <= s.variable_id_high
+    propertynames(x) == (:featuredgraph, :variable_id) && typeof(x.featuredgraph) == GeometricFlux.FeaturedGraph && s.variable_id_low <= x.variable_id <= s.variable_id_high
 end 
 
 function Random.rand(rng::AbstractRNG, s::CPGraphSpace)
     g = CPLayerGraph()
     graph = LightGraphs.LinAlg.adjacency_matrix(g)
     # temporary use of a one hot encoder for each node. 
-    feature = Matrix{s.featuretype}(I, nv(g))
+    feature = Matrix{Float32}(I, nv(g), nv(g))
 
     variable_id = 1
     

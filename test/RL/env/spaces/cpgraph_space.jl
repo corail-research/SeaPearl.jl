@@ -29,6 +29,51 @@ adj = [0 1 0 1;
         g = CPRL.CPLayerGraph(model)
 
         cpg = CPRL.CPGraph(g, x)
+
+        @test Matrix(cpg.featuredgraph.graph[]) == [0 0 1 1 0 0
+                                                    0 0 1 1 0 0
+                                                    1 1 0 0 1 1
+                                                    1 1 0 0 1 1
+                                                    0 0 1 1 0 0
+                                                    0 0 1 1 0 0]
+
+        @test cpg.featuredgraph.feature[] == [1.0 0 0 0 0 0
+                                              0 1.0 0 0 0 0
+                                              0 0 1.0 0 0 0
+                                              0 0 0 1.0 0 0
+                                              0 0 0 0 1.0 0
+                                              0 0 0 0 0 1.0]
+        @test cpg.variable_id == 3
+        @test CPRL.cpVertexFromIndex(g, cpg.variable_id).variable == model.variables["x"]
     end
+
+    
+    @testset "CPGraphSpace" begin
+
+        cpgraphspace = CPGraphSpace(1, 9)
+
+        @test eltype(cpgraphspace) == CPRL.CPGraph
+
+        trailer = CPRL.Trailer()
+        model = CPRL.CPModel(trailer)
+
+        x = CPRL.IntVar(2, 3, "x", trailer)
+        y = CPRL.IntVar(2, 3, "y", trailer)
+        CPRL.addVariable!(model, x)
+        CPRL.addVariable!(model, y)
+        push!(model.constraints, CPRL.Equal(x, y, trailer))
+        push!(model.constraints, CPRL.NotEqual(x, y, trailer))
+
+        g = CPRL.CPLayerGraph(model)
+
+        cpg = CPRL.CPGraph(g, x)
+
+        #@test in(cpg, cpgraphspace)
+
+        rnd_cpg = rand(cpgraphspace)
+        #@test in(rnd_cpg, cpgraphspace)
+        
+    end
+    
 
 end
