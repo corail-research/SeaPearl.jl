@@ -42,11 +42,6 @@ struct IntVarViewOpposite <: IntVarView
     end
 end
 
-"""
-    assignedValue(x::IntVarView)
-
-Return the assigned value of `x`. Throw an error if `x` is not bound.
-"""
 assignedValue(x::IntVarViewMul) = x.a * assignedValue(x.x)
 assignedValue(x::IntVarViewOpposite) = -1 * assignedValue(x.x)
 

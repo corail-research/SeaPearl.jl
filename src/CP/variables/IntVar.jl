@@ -1,17 +1,27 @@
-abstract type AbstractIntVar end
+"""
+    struct IntVar <: AbstractIntVar
 
+A "simple" integer variable, whose domain can be any set of integers.
+The constraints that affect this variable are stored in the `onDomainChange` array.
+"""
 struct IntVar <: AbstractIntVar
     onDomainChange      ::Array{Constraint}
     domain              ::CPRL.IntDomain
     id                  ::String
+end
 
+"""
     function IntVar(min::Int, max::Int, id::String, trailer::Trailer)
-        offset = min - 1
 
-        dom = IntDomain(trailer, max - min + 1, offset)
+Create an `IntVar` with a domain being the integer range [`min`, `max`] with the `id` string identifier
+and that will be backtracked by `trailer`.
+"""
+function IntVar(min::Int, max::Int, id::String, trailer::Trailer)
+    offset = min - 1
 
-        return new(Constraint[], dom, id)
-    end
+    dom = IntDomain(trailer, max - min + 1, offset)
+
+    return IntVar(Constraint[], dom, id)
 end
 
 function Base.show(io::IO, var::IntVar)

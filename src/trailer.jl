@@ -1,9 +1,9 @@
 using DataStructures
 
 """
-    StateEntry
+    abstract type AbstractStateEntry end
 
-What can be stacked into the trailer
+Any object that can be stacked into the trailer must be a subtype of this.
 """
 abstract type AbstractStateEntry end
 
@@ -17,15 +17,21 @@ end
 
 
 """
-    StateInt(value::Int, trailer::Trailer)
+    StateObject{T}(value::T, trailer::Trailer)
 
-A reversible integer of value `value`, storing its modification into `trailer`.
+A reversible object of value `value` that has a type `T`, storing its modification into `trailer`.
 """
 mutable struct StateObject{T}
     value       ::T
     trailer     ::Trailer
 end
 
+"""
+    StateEntry{T}(value::T, object::StateObject{T})
+
+An entry that can be stacked in the trailer, containing the former `value of the object, and a reference to
+the `object` so that it can be restored by the trailer.
+"""
 struct StateEntry{T} <: AbstractStateEntry
     value       ::T
     object      ::StateObject{T}
@@ -68,7 +74,8 @@ end
 """
     restoreState!(trailer::Trailer)
 
-Iterate over the last state to restore every former value, used to backtrack every change made after the last call to [`saveState!`](@ref)
+Iterate over the last state to restore every former value, used to backtrack every change 
+made after the last call to [`saveState!`](@ref).
 """
 function restoreState!(trailer::Trailer)
     for se in trailer.current
@@ -89,15 +96,14 @@ end
 Call the `func` function with a new state, restoring it after. Aimed to be used with the `do` block syntax.
 
 # Examples
-```jldoctest
-julia> using CPRL
-julia> trailer = CPRL.Trailer()
-julia> reversibleInt = CPRL.StateObject{Int}(3, trailer)
-julia> CPRL.withNewState!(trailer) do
-        CPRL.setValue!(reversibleInt, 5)
-    end
-julia> reversibleInt.value
-3
+```julia
+using CPRL
+trailer = CPRL.Trailer()
+reversibleInt = CPRL.StateObject{Int}(3, trailer)
+CPRL.withNewState!(trailer) do
+    CPRL.setValue!(reversibleInt, 5)
+end
+reversibleInt.value # 3
 ```
 """
 function withNewState!(func, trailer::Trailer)

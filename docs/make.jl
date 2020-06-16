@@ -7,6 +7,9 @@ makedocs(
     format = Documenter.HTML(),
     modules = [CPRL],
     pages = ["Home" => "index.md",
+    "Trailer" => "trailer.md",
+    "Constraint Programming solver" =>
+        ["Variables" => "CP/int_variable.md"],
     "Building Models" =>
       ["Basics" => "models/basics.md"],
     "Community" => "community.md"],

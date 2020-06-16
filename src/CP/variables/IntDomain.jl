@@ -1,5 +1,18 @@
+"""
+    abstract type AbstractIntDomain end
+
+Abstract domain type. Every integer domain must inherit from this type.
+"""
 abstract type AbstractIntDomain end
 
+"""
+    struct IntDomain <: AbstractIntDomain
+
+Sparse integer domain. Can contain any set of integer.
+
+You must note that this implementation takes as much space as the size of the initial domain.
+However, it can be pretty efficient in accessing and editing. Operation costs are detailed for each method.
+"""
 struct IntDomain <: AbstractIntDomain
     values          ::Array{Int}
     indexes         ::Array{Int}
@@ -9,25 +22,26 @@ struct IntDomain <: AbstractIntDomain
     min             ::CPRL.StateObject{Int}
     max             ::CPRL.StateObject{Int}
     trailer         ::CPRL.Trailer
+end
 
-    """
-        IntDomain(trailer::Trailer, n::Int, offset::Int)
+"""
+    IntDomain(trailer::Trailer, n::Int, offset::Int)
 
-    Create an integer domain going from `ofs + 1` to `ofs + n`.
-    """
-    function IntDomain(trailer::Trailer, n::Int, offset::Int)
+Create an integer domain going from `ofs + 1` to `ofs + n`.
+Will be backtracked by the given `trailer`.
+"""
+function IntDomain(trailer::Trailer, n::Int, offset::Int)
 
-        size = CPRL.StateObject{Int}(n, trailer)
-        min = CPRL.StateObject{Int}(offset + 1, trailer)
-        max = CPRL.StateObject{Int}(offset + n, trailer)
-        values = zeros(n)
-        indexes = zeros(n)
-        for i in 1:n
-            values[i] = i
-            indexes[i] = i
-        end
-        return new(values, indexes, offset, n, size, min, max, trailer)
+    size = CPRL.StateObject{Int}(n, trailer)
+    min = CPRL.StateObject{Int}(offset + 1, trailer)
+    max = CPRL.StateObject{Int}(offset + n, trailer)
+    values = zeros(n)
+    indexes = zeros(n)
+    for i in 1:n
+        values[i] = i
+        indexes[i] = i
     end
+    return IntDomain(values, indexes, offset, n, size, min, max, trailer)
 end
 
 function Base.show(io::IO, dom::IntDomain)
@@ -42,7 +56,7 @@ end
 """
     isempty(dom::IntDomain)
 
-Return `true` iff `dom` is an empty set.
+Return `true` iff `dom` is an empty set. Done in constant time.
 """
 Base.isempty(dom::CPRL.IntDomain) = dom.size.value == 0
 
@@ -51,14 +65,14 @@ Base.isempty(dom::CPRL.IntDomain) = dom.size.value == 0
 """
     length(dom::IntDomain)
 
-Return the size of `dom`.
+Return the size of `dom`. Done in constant time.
 """
 Base.length(dom::CPRL.IntDomain) = dom.size.value
 
 """
     Base.in(value::Int, dom::IntDomain)
 
-Check if an integer is in the domain.
+Check if an integer is in the domain. Done in constant time.
 """
 function Base.in(value::Int, dom::IntDomain)
     value -= dom.offset
@@ -72,7 +86,7 @@ end
 """
     remove!(dom::IntDomain, value::Int)
 
-Remove `value` from `dom`.
+Remove `value` from `dom`. Done in constant time.
 """
 function remove!(dom::IntDomain, value::Int)
     if !(value in dom)
@@ -92,7 +106,7 @@ end
 """
     removeAll!(dom::IntDomain)
 
-Remove every value from `dom`. Return the removed values.
+Remove every value from `dom`. Return the removed values. Done in constant time.
 """
 function removeAll!(dom::IntDomain)
     removed = Array{Int}(undef, dom.size.value)
@@ -107,7 +121,7 @@ end
 """
     removeAbove!(dom::IntDomain, value::Int)
 
-Remove every integer of `dom` that is *strictly* above `value`.
+Remove every integer of `dom` that is *strictly* above `value`. Done in *linear* time.
 """
 function removeAbove!(dom::IntDomain, value::Int)
     if dom.min.value > value
@@ -128,6 +142,7 @@ end
     removeBelow!(dom::IntDomain, value::Int)
 
 Remove every integer of `dom` that is *strictly* below `value`. Return the pruned values.
+Done in *linear* time.
 """
 function removeBelow!(dom::IntDomain, value::Int)
     if dom.max.value < value
@@ -148,6 +163,7 @@ end
     assign!(dom::IntDomain, value::Int)
 
 Remove everything from the domain but `value`. Return the removed values. Return the pruned values.
+Done in *constant* time.
 """
 function assign!(dom::IntDomain, value::Int)
     @assert value in dom
@@ -206,6 +222,7 @@ end
     updateMaxFromRemovedVal!(dom::IntDomain, v::Int)
 
 Knowing that `v` just got removed from `dom`, update `dom`'s maximum value.
+Done in *constant* time.
 """
 function updateMaxFromRemovedVal!(dom::IntDomain, v::Int)
     if !isempty(dom) && maximum(dom) == v
@@ -225,6 +242,7 @@ end
     updateMinFromRemovedVal!(dom::IntDomain, v::Int)
 
 Knowing that `v` just got removed from `dom`, update `dom`'s minimum value.
+Done in *constant* time.
 """
 function updateMinFromRemovedVal!(dom::IntDomain, v::Int)
     if !isempty(dom) && minimum(dom) == v
@@ -244,6 +262,7 @@ end
     updateBoundsFromRemovedVal!(dom::AbstractIntDomain, v::Int)
 
 Knowing that `v` just got removed from `dom`, update `dom`'s minimum and maximum value.
+Done in *constant* time.
 """
 function updateBoundsFromRemovedVal!(dom::AbstractIntDomain, v::Int)
     updateMaxFromRemovedVal!(dom, v)
@@ -254,6 +273,7 @@ end
     minimum(dom::IntDomain)
 
 Return the minimum value of `dom`.
+Done in *constant* time.
 """
 minimum(dom::IntDomain) = dom.min.value
 
@@ -261,5 +281,6 @@ minimum(dom::IntDomain) = dom.min.value
     maximum(dom::IntDomain)
 
 Return the maximum value of `dom`.
+Done in *constant* time.
 """
 maximum(dom::IntDomain) = dom.max.value
