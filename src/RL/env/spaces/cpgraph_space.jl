@@ -36,6 +36,10 @@ function CPGraph(g::CPLayerGraph, var_id::Int64)
     CPGraph(GeometricFlux.FeaturedGraph(sparse_adj, feature), var_id)
 end
 
+# Base.ndims(g::CPGraph) = ndims(feature(g.featuredgraph))
+# Base.size(g::CPGraph) = size(feature(g.featuredgraph))
+# Base.reshape(g::CPGraph, t) = FeaturedGraph(graph(g.graoh), reshape(feature(g.featuredgraph), t))
+
 """
     update!(cpgraph::CPGraph, g::CPLayerGraph, x::AbstractIntVar)
 

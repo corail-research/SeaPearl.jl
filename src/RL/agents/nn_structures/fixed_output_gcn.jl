@@ -19,7 +19,6 @@ end
 What will be used as model in the learner of the agent (... of the value selection).
 """
 Base.@kwdef struct FixedOutputGCN <: NNStructure
-    args                    ::ArgsFixedOutputGCN
     firstGCNHiddenLayer     ::GeometricFlux.GCNConv
     secondGCNHiddenLayer    ::GeometricFlux.GCNConv
     denseLayer              ::Flux.Dense
@@ -33,7 +32,6 @@ Build a model thanks to the args.
 """
 function build_model(::Type{FixedOutputGCN}, args::ArgsFixedOutputGCN)
     return FixedOutputGCN(
-        args = args,
         firstGCNHiddenLayer = GeometricFlux.GCNConv(args.numInFeatures=>args.firstHiddenGCN, Flux.relu),
         secondGCNHiddenLayer = GeometricFlux.GCNConv(args.firstHiddenGCN=>args.secondHiddenGCN, Flux.relu),
         denseLayer = Flux.Dense(args.secondHiddenGCN, args.hiddenDense, Flux.relu),
@@ -42,6 +40,8 @@ function build_model(::Type{FixedOutputGCN}, args::ArgsFixedOutputGCN)
 end
 
 Flux.@functor FixedOutputGCN
+
+# functor(::Type{FixedOutputGCN}, c) = (c.firstGCNHiddenLayer, c.secondGCNHiddenLayer, c.denseLayer, c.outputLayer), ls -> FixedOutputGCN(ls...)
 
 """
     (nn::FixedOutputGCN)(x::CPGraph)
