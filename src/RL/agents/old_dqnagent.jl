@@ -13,23 +13,30 @@ DQN agent (the one from Human-level control through deep reinforcement learning 
 to parametrize this agent without having to think about the entire structure. 
 If user, wants to go further, he can create its own agent. 
 """
-function DQNAgent(; 
-            nn_model,
-            optimizer = ADAM, η = 0.001,
-            loss_func = huber_loss, stack_size = nothing, γ = 0.99f0, batch_size = 32, update_horizon = 1, min_replay_history = 1, update_freq = 1, target_update_freq = 100, learner_seed = 22,
-            kind = :exp, ϵ_stable = 0.01, decay_steps = 500, explorer_seed = 33,
-            state_type = CPGraph, action_type = Int64, reward_type = Float32, terminal_type = Bool
+function DQNAgent(state_space_size, action_space_size, hidden_size = 32; 
+                optimizer = ADAM, η = 0.001,
+                loss_func = huber_loss, stack_size = nothing, γ = 0.99f0, batch_size = 32, update_horizon = 1, min_replay_history = 1, update_freq = 1, target_update_freq = 100, learner_seed = 22,
+                kind = :exp, ϵ_stable = 0.01, decay_steps = 500, explorer_seed = 33,
+                capacity = 1000, state_type = Float32, state_size = (state_space_size,), reward_type = Float32
         )
     # function
     agent = RL.Agent(
         policy = RL.QBasedPolicy(
             learner = RL.DQNLearner(
                 approximator = RL.NeuralNetworkApproximator(
-                    model = nn_model,
-                    optimizer = optimizer(η)
+                    model = Chain(
+                        Dense(state_space_size, hidden_size, relu; initW = seed_glorot_uniform(seed = 17)),
+                        Dense(hidden_size, hidden_size, relu; initW = seed_glorot_uniform(seed = 23)), 
+                        Dense(hidden_size, action_space_size; initW = seed_glorot_uniform(seed = 39))
+                    ),
+                    optimizer = optimizer()
                 ),
                 target_approximator = RL.NeuralNetworkApproximator(
-                    model = nn_model,
+                    model = Chain(
+                        Dense(state_space_size, hidden_size, relu; initW = seed_glorot_uniform(seed = 17)),
+                        Dense(hidden_size, hidden_size, relu; initW = seed_glorot_uniform(seed = 23)), 
+                        Dense(hidden_size, action_space_size; initW = seed_glorot_uniform(seed = 39))
+                    ),
                     optimizer = optimizer(η)
                 ),
                 loss_func = loss_func,
@@ -54,11 +61,16 @@ function DQNAgent(;
                 seed = explorer_seed
             )
         ),
-        trajectory = RL.VectorialCompactSARTSATrajectory(
+        trajectory = RL.CircularCompactSARTSATrajectory(
+            capacity = capacity, 
             state_type = state_type, 
-            action_type = action_type,
+            state_size = state_size,
+            action_type = Int,
+            action_size = (),
             reward_type = reward_type,
-            terminal_type = terminal_type,
+            reward_size = (),
+            terminal_type = Bool,
+            terminal_size = ()
         ),
         role = :DEFAULT_PLAYER
     )
