@@ -11,7 +11,7 @@ function search!(model::CPModel, ::Type{DFSearch}, variableHeuristic, valueSelec
         # create the environment
         valueSelection.current_env = RLEnv(model::CPModel)
         false_x = first(values(model.variables))
-        obs = observe!(valueSelection.env, model, false_x)
+        obs = observe!(valueSelection.current_env, model, false_x)
         valueSelection.agent(RL.PRE_EPISODE_STAGE, obs) # just empty the buffer
         # eventually hook(PRE_EPISODE_STAGE, agent, env, obs)
     end

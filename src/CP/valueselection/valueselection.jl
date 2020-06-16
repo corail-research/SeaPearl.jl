@@ -10,8 +10,8 @@ end
 
 mutable struct LearnedHeuristic <: ValueSelection
     agent::RL.Agent
-    fitted_problem::Symbol
-    fitted_strategy::SearchStrategy
+    fitted_problem::Union{Nothing, Symbol}
+    fitted_strategy::Union{Nothing, Type{S}} where S <: SearchStrategy
     current_env::Union{Nothing, RLEnv}
 
     LearnedHeuristic(agent::RL.Agent) = new(agent, nothing, nothing, nothing)
