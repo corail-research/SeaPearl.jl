@@ -59,6 +59,8 @@ function update!(cpgraph::CPGraph, g::CPLayerGraph, x::AbstractIntVar)
     nothing
 end
 
+RL.get_state(cpg::CPGraph) = cpg
+
 """
     CPGraphSpace(variable_id_low::Int64, variable_id_high::Int64, featuretype::Type{Number})
 
