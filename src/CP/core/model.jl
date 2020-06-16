@@ -1,3 +1,5 @@
+using LightGraphs
+
 const Solution = Dict{String, Int}
 
 mutable struct Statistics
@@ -19,7 +21,8 @@ mutable struct CPModel
     solutions               ::Array{Solution}
     statistics              ::Statistics
     limit                   ::Limit
-    CPModel(trailer) = new(Dict{String, AbstractIntVar}(), Constraint[], trailer, nothing, nothing, Solution[], Statistics(0, 0), Limit(nothing, nothing))
+    RLRep                   ::Union{Nothing, LightGraphs.AbstractGraph{Int}}
+    CPModel(trailer) = new(Dict{String, AbstractIntVar}(), Constraint[], trailer, nothing, nothing, Solution[], Statistics(0, 0), Limit(nothing, nothing), nothing)
 end
 
 const CPModification = Dict{String, Array{Int}}
