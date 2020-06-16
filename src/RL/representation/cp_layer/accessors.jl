@@ -86,6 +86,7 @@ function LightGraphs.ne(g::CPLayerGraph)
 end
 
 LightGraphs.nv(g::CPLayerGraph) = g.totalLength
+LightGraphs.nv(::Nothing) = 0
 
 function LightGraphs.inneighbors(g::CPLayerGraph, id::Int)
     if isnothing(g.cpmodel)
