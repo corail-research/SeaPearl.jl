@@ -11,26 +11,3 @@ CPRL is compatible with [JuMP](https://jump.dev/JuMP.jl/v0.21.1/index.html) so y
 
 The new thing in CPRL is that the Reinforcement Learning part does *not* directly solve the CP problem, it is only used as a value-selection heuristic and therefore lets you use constraint propagation and different search strategies to, for example, prove optimality. The RL agent is only called when the CP solver has to branch and assign an arbitrary value to a variable.
 Therefore, the RL agent can be trained to find good solutions as well as proving their optimality and is completely integrated into the CP framework.
-
-
-### Trailer manipulation
-
-```@docs
-CPRL.trail!
-```
-
-```@docs
-CPRL.setValue!
-```
-
-```@docs
-CPRL.saveState!
-```
-
-```@docs
-CPRL.restoreState!
-```
-
-```@docs
-CPRL.withNewState!
-```
