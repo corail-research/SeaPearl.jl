@@ -110,8 +110,8 @@ end
 Synchronize the env with the CPModel.
 """
 function sync_state!(env::RLEnv, cpmodel::CPModel, x::AbstractIntVar)
-    g = CPLayerGraph(cpmodel)
-    update!(env.state, g, x)
+    # g = CPLayerGraph(cpmodel)
+    update!(env.state, env.state.featuredgraph.graph[], x)
     nothing 
 end
 

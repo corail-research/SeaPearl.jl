@@ -19,7 +19,7 @@ function CPGraph(g::CPLayerGraph, x::AbstractIntVar)
     feature = Matrix{Float32}(I, nv(g), nv(g))
     variable_id = index(g, VariableVertex(x))
     
-    CPGraph(GeometricFlux.FeaturedGraph(sparse_adj, feature), variable_id)
+    CPGraph(GeometricFlux.FeaturedGraph(g, feature), variable_id)
 end
 
 """
@@ -33,7 +33,7 @@ function CPGraph(g::CPLayerGraph, var_id::Int64)
     # temporary use of a one hot encoder for each node. 
     feature = Matrix{Float32}(I, nv(g), nv(g))
     
-    CPGraph(GeometricFlux.FeaturedGraph(sparse_adj, feature), var_id)
+    CPGraph(GeometricFlux.FeaturedGraph(g, feature), var_id)
 end
 
 """
@@ -50,12 +50,12 @@ the update!() function and we will create a new FeaturedGraph when we want to up
 CPGraph.
 """
 function update!(cpgraph::CPGraph, g::CPLayerGraph, x::AbstractIntVar)
-    cpgraph.variable_id = index(g, VariableVertex(x))
+    cpgraph.variable_id = index(cpgraph.featuredgraph.graph[], VariableVertex(x))
 
-    feature = cpgraph.featuredgraph.feature[]
-    sparse_adj = LightGraphs.LinAlg.adjacency_matrix(g)
+    # feature = cpgraph.featuredgraph.feature[]
+    # sparse_adj = LightGraphs.LinAlg.adjacency_matrix(cpgraph)
 
-    cpgraph.featuredgraph = GeometricFlux.FeaturedGraph(sparse_adj, feature)
+    # cpgraph.featuredgraph = GeometricFlux.FeaturedGraph(sparse_adj, feature)
     nothing
 end
 
