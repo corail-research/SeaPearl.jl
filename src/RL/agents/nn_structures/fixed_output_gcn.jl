@@ -41,16 +41,15 @@ function build_model(::Type{FixedOutputGCN}, args::ArgsFixedOutputGCN)
     )
 end
 
-# I feel like we will need this line but I am not sure yet
-# Flux.@functor FixedOutputGCN
+Flux.@functor FixedOutputGCN
 
 """
-    (nn::FixedOutputGCN)(x::CPGraph, inDomainValues::Tuple{Vararg{Int}})
+    (nn::FixedOutputGCN)(x::CPGraph)
 
 Take the CPGraph and output the q_values. Not that this could be changed a lot in the futur.
 Here we do not put a mask. We let the mask to the RL.jl but this is still under debate !
 """
-function (nn::FixedOutputGCN)(x::CPGraph, inDomainValues::Tuple{Vararg{Int}})
+function (nn::FixedOutputGCN)(x::CPGraph)
     # get informations from the CPGraph (input) 
     variableId = x.variable_id
     featuredGraph = x.featuredgraph
@@ -68,12 +67,6 @@ function (nn::FixedOutputGCN)(x::CPGraph, inDomainValues::Tuple{Vararg{Int}})
     println("After first dense layer :  ", variableFeatures)
     valueProbabilities = nn.outputLayer(variableFeatures)
     println("After output layer :  ", valueProbabilities)
-
-    """
-    # extract the authorized outputs 
-    valueProbabilities = valueProbabilities[inDomainValues]
-    println("After filtering :  ", valueProbabilities)
-    """
 
     # output a vector (of values of the possibles values)
     return Flux.softmax(valueProbabilities)

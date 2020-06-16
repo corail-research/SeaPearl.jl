@@ -91,7 +91,7 @@
 
         cpg = CPRL.CPGraph(g, x)
 
-        q_values = foGCN(cpg, (2, 3))
+        q_values = foGCN(cpg)
         println("Q values vector :  ", q_values)
 
         @test size(q_values) == (2,)
