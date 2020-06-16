@@ -71,3 +71,8 @@ function (nn::FixedOutputGCN)(x::CPGraph)
     # output a vector (of values of the possibles values)
     return Flux.softmax(valueProbabilities)
 end
+
+function (nn::FixedOutputGCN)(obs::NamedTuple{(:reward, :terminal, :state, :legal_actions, :legal_actions_mask)})
+    return nn(obs.state)
+end
+

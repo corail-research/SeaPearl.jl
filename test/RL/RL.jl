@@ -11,5 +11,5 @@ using GeometricFlux
     include("agents/agents.jl")
     include("hooks.jl")
     include("stop_conditions.jl")
-    
+
 end
