@@ -51,6 +51,24 @@ hook1 = RL.ComposedHook(RL.TotalRewardPerEpisode(), RL.TimePerStep())
 
 # create a smart agent 
 very_smart_agent = CPRL.DQNAgent(ns, na, PARAMS["hidden_size"]; optimizer = PARAMS["optimizer"], η = PARAMS["η"], target_update_freq = PARAMS["target_update_freq"], γ = PARAMS["γ"], capacity = PARAMS["capacity"], decay_steps = PARAMS["decay_steps"], state_type = PARAMS["type"], reward_type = PARAMS["type"])
+nn_model = Chain(
+    Dense(ns, PARAMS["hidden_size"], relu; initW = seed_glorot_uniform(seed = 17)),
+    Dense(PARAMS["hidden_size"], PARAMS["hidden_size"], relu; initW = seed_glorot_uniform(seed = 23)), 
+    Dense(PARAMS["hidden_size"], na; initW = seed_glorot_uniform(seed = 39))
+)
+"""
+very_smart_agent = CPRL.DQNAgent(
+    nn_model = Chain(
+        Dense(ns, PARAMS["hidden_size"], relu; initW = seed_glorot_uniform(seed = 17)),
+        Dense(PARAMS["hidden_size"], PARAMS["hidden_size"], relu; initW = seed_glorot_uniform(seed = 23)), 
+        Dense(PARAMS["hidden_size"], na; initW = seed_glorot_uniform(seed = 39))
+    ), 
+    state_size = (ns,1),
+    optimizer = PARAMS["optimizer"], η = PARAMS["η"], target_update_freq = PARAMS["target_update_freq"], γ = PARAMS["γ"], capacity = PARAMS["capacity"], 
+    decay_steps = PARAMS["decay_steps"], state_type = PARAMS["type"], reward_type = PARAMS["type"]
+)
+"""
+
 hook2 = RL.ComposedHook(RL.TotalRewardPerEpisode(), RL.TimePerStep())
 
 
