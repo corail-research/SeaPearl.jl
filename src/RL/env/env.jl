@@ -12,16 +12,15 @@ framework in order to be able to use its useful functions)
 """
 mutable struct RLEnv <: RL.AbstractEnv 
     action_space::RL.DiscreteSpace{Array{Int64,1}}
-    observation_space::CPGraphSpace
     state::CPGraph
     action::Int64
     reward::Int64
     done::Bool
     rng::Random.MersenneTwister # random number generator
 
-    function RLEnv(action_space::RL.DiscreteSpace{Array{Int64,1}}, observation_space::CPGraphSpace, 
+    function RLEnv(action_space::RL.DiscreteSpace{Array{Int64,1}}, 
                    state::CPGraph, action::Int64, reward::Int64, done::Bool, rng::Random.MersenneTwister)
-        new(action_space, observation_space, state, action, reward, done, rng) 
+        new(action_space, state, action, reward, done, rng) 
     end
 end
 
@@ -39,14 +38,11 @@ function RLEnv(cpmodel::CPModel, seed = nothing)
     valuesOfVariables = sort(arrayOfEveryValue(variables))
     action_space = RL.DiscreteSpace(valuesOfVariables)
 
-    # construct the observation space
-    observation_space = CPGraphSpace(length(variables))
     # get the random number generator
     rng = MersenneTwister(seed)
 
     env = RLEnv(
         action_space,
-        observation_space,
         CPGraph(CPLayerGraph(cpmodel), 0), # use a fake variable index
         1,
         -1,
@@ -145,7 +141,7 @@ function observe!(env::RLEnv, model::CPModel, x::AbstractIntVar)
     sync_state!(env, model, x)
 
     # return the observation as a named tuple (useful for interface understanding)
-    return (reward = reward, terminal = env.done, state = env.state, legal_actions = legal_actions, legal_actions_mask = legal_actions_mask)
+    return (reward = reward, terminal = env.done, state = vec(to_array(env.state)), legal_actions = legal_actions, legal_actions_mask = legal_actions_mask)
 end
 
 """

@@ -4,8 +4,7 @@
         rng = MersenneTwister(1)
         env = CPRL.RLEnv(
             RL.DiscreteSpace([1, 2, 3]),
-            CPRL.CPGraphSpace(4),
-            Random.rand(rng, CPRL.CPGraphSpace(4)),
+            CPRL.CPGraph(CPRL.CPLayerGraph(), 0),
             1,
             -1,
             false,
@@ -14,7 +13,6 @@
 
         @test typeof(env.action_space) == RL.DiscreteSpace{Array{Int64,1}}
         @test env.action_space.span == [1, 2, 3]
-        @test env.observation_space == CPRL.CPGraphSpace(4)
         @test typeof(env.state) == CPRL.CPGraph
         @test env.action == 1
         @test env.reward == -1 
@@ -36,7 +34,6 @@
 
         @test typeof(env.action_space) == RL.DiscreteSpace{Array{Int64,1}}
         @test env.action_space.span == [2, 3]
-        @test env.observation_space == CPRL.CPGraphSpace(2)
         @test typeof(env.state) == CPRL.CPGraph
         @test env.action == 1
         @test env.reward == -1 

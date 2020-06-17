@@ -41,7 +41,7 @@ end
 
 Flux.@functor FixedOutputGCN
 
-# functor(::Type{FixedOutputGCN}, c) = (c.firstGCNHiddenLayer, c.secondGCNHiddenLayer, c.denseLayer, c.outputLayer), ls -> FixedOutputGCN(ls...)
+functor(::Type{FixedOutputGCN}, c) = (c.firstGCNHiddenLayer, c.secondGCNHiddenLayer, c.denseLayer, c.outputLayer), ls -> FixedOutputGCN(ls...)
 
 """
     (nn::FixedOutputGCN)(x::CPGraph)
@@ -49,10 +49,13 @@ Flux.@functor FixedOutputGCN
 Take the CPGraph and output the q_values. Not that this could be changed a lot in the futur.
 Here we do not put a mask. We let the mask to the RL.jl but this is still under debate !
 """
-function (nn::FixedOutputGCN)(x::CPGraph)
+function (nn::FixedOutputGCN)(x::Array{Float32, 2})
+    # Create the CPGraph
+    cpg = CPGraph(x)
+
     # get informations from the CPGraph (input) 
-    variableId = x.variable_id
-    featuredGraph = x.featuredgraph
+    variableId = cpg.variable_id
+    featuredGraph = cpg.featuredgraph
 
     # go through the GCNConvs
     featuredGraph = nn.firstGCNHiddenLayer(featuredGraph)

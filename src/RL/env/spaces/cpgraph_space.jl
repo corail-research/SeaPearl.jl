@@ -1,4 +1,5 @@
 using LinearAlgebra
+using SparseArrays
 
 export CPGraphSpace
 
@@ -20,6 +21,21 @@ function CPGraph(g::CPLayerGraph, x::AbstractIntVar)
     variable_id = index(g, VariableVertex(x))
     
     CPGraph(GeometricFlux.FeaturedGraph(sparse_adj, feature), variable_id)
+end
+
+"""
+    CPGraph(array::Array{Float32})
+
+Takes an array an go back to a CPGraph 
+"""
+function CPGraph(array::Array{Float32, 2})::CPGraph
+    n = size(array, 1)
+    dense_adj = array[:, 1:n]
+    features = array[:, n+1:end-1]
+    var_code = array[:, end]
+
+    fg = GeometricFlux.FeaturedGraph(SparseArrays.sparse(convert(Array{Int64, 2}, dense_adj)), features)
+    return CPGraph(fg, convert(Int64, var_code[1]))
 end
 
 """
@@ -61,4 +77,20 @@ function update!(cpgraph::CPGraph, g::CPLayerGraph, x::AbstractIntVar)
 
     cpgraph.featuredgraph = GeometricFlux.FeaturedGraph(sparse_adj, feature)
     nothing
+end
+
+"""
+    to_array(cpg::CPGraph)
+
+Takes a CPGraph and transform it to an array.
+"""
+function to_array(cpg::CPGraph)::Array{Float32, 2}
+    adj = Matrix(cpg.featuredgraph.graph[])
+    features = cpg.featuredgraph.feature[]
+    var_id = cpg.variable_id
+
+    var_code = zeros(Float32, size(adj, 1))
+    var_code[1] = Float32(var_id)
+
+    return hcat(adj, features, var_code)
 end
