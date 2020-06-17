@@ -105,7 +105,7 @@ function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
             valueSelection.agent(RL.POST_ACT_STAGE, obs) # get terminal and reward
             # eventually: hook(POST_ACT_STAGE, agent, env, obs, action)
         end
-        v = valueSelection.agent(RL.PRE_ACT_STAGE, obs) - 1 # choose action, store it with the state
+        v = valueSelection.agent(RL.PRE_ACT_STAGE, obs) # choose action, store it with the state
         println("Action taken: ", v)
         # eventually hook(PRE_ACT_STAGE, agent, env, obs, action)
     else
