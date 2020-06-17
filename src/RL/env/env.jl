@@ -31,6 +31,9 @@ end
 Construct the RLEnv thanks to the informations which are in the CPModel.
 """
 function RLEnv(cpmodel::CPModel, seed = nothing)
+    if isnothing(cpmodel.RLRep)
+        cpmodel.RLRep = CPLayerGraph(cpmodel)
+    end
     # construct the action_space
     variables = collect(values(cpmodel.variables))
     valuesOfVariables = sort(arrayOfEveryValue(variables))
@@ -110,8 +113,10 @@ end
 Synchronize the env with the CPModel.
 """
 function sync_state!(env::RLEnv, cpmodel::CPModel, x::AbstractIntVar)
-    g = CPLayerGraph(cpmodel)
-    update!(env.state, g, x)
+    if isnothing(cpmodel.RLRep)
+        cpmodel.RLRep = CPLayerGraph(cpmodel)
+    end
+    update!(env.state, cpmodel.RLRep, x)
     nothing 
 end
 
