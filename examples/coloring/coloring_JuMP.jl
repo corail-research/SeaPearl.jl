@@ -99,7 +99,7 @@ function solve_coloring_JuMP(input_file; benchmark=false)
 
     @variable(model, 1 <= x[1:input.numberOfVertices] <= input.numberOfVertices)
 
-    @constraint(model, x[1] - 3*x[2] == 2)
+    @constraint(model, 2*x[1] + x[2] == 4)
 
     degrees = zeros(Int, input.numberOfVertices)
     for e in input.edges

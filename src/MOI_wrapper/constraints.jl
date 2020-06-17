@@ -15,6 +15,12 @@ function MOI.add_constraint(model::Optimizer, vectOfVar::MOI.VectorOfVariables, 
     return ci
 end
 
+function create_CPConstraint(moiconstraint::MOIConstraint{NotEqualSet}, optimizer::Optimizer)
+    id1, id2 = moiconstraint.args
+    x, y = get_cp_variable(optimizer, id1), get_cp_variable(optimizer, id2)
+    NotEqual(x, y, optimizer.cpmodel.trailer)
+end
+
 """
     MOI.add_constraint(model::Optimizer, sgvar::MOI.SingleVariable, set::MOI.LessThan)
 
@@ -68,8 +74,17 @@ function MOI.add_constraint(model::Optimizer, saf::MOI.ScalarAffineFunction{Floa
     newId = length(model.moimodel.constraints) + 1
     ci = MOI.ConstraintIndex{MOI.ScalarAffineFunction{Float64}, MOI.EqualTo{Float64}}(newId)
     constraint = MOIConstraint(MOI.EqualTo, (AffineIndex(length(model.moimodel.affines)),), ci)
+    push!(model.moimodel.constraints, constraint)
 
     return ci
+end
+
+function create_CPConstraint(moiconstraint::MOIConstraint{MOI.EqualTo}, optimizer::Optimizer)
+    x = get_cp_variable(optimizer, moiconstraint.args[1])
+    
+    @assert 0 in x.domain "Infeasible problem"
+    assign!(x, 0)
+    nothing
 end
 
 # """

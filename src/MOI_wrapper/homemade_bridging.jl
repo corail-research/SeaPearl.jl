@@ -25,7 +25,9 @@ end
 function bridge_constraints!(optimizer::Optimizer)
     for moiconstraint in optimizer.moimodel.constraints
         constraint = create_CPConstraint(moiconstraint, optimizer)
-
+        if isnothing(constraint)
+            continue
+        end
         # add constraint to the model
         push!(optimizer.cpmodel.constraints, constraint)
     end
