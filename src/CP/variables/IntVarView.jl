@@ -15,7 +15,7 @@ struct IntVarViewMul <: IntVarView
 
     Create a *fake* variable `y`, such that `y == a*x`. This variable behaves like an usual one.
     """
-    function IntVarViewMul(x::IntVar, a::Int, id::String)
+    function IntVarViewMul(x::AbstractIntVar, a::Int, id::String)
         @assert a > 0
         dom = IntDomainViewMul(x.domain, a)
         return new(x, a, dom, id)
@@ -36,14 +36,37 @@ struct IntVarViewOpposite <: IntVarView
 
     Create a *fake* variable `y`, such that `y = -x`. This variable behaves like an usual one.
     """
-    function IntVarViewOpposite(x::IntVar, id::String)
+    function IntVarViewOpposite(x::AbstractIntVar, id::String)
         dom = IntDomainViewOpposite(x.domain)
         return new(x, dom, id)
     end
 end
 
+struct IntDomainViewOffset <: IntDomainView
+    orig            ::AbstractIntDomain
+    c               ::Int
+end
+
+struct IntVarViewOffset <: IntVarView
+    x               ::AbstractIntVar
+    c               ::Int
+    domain          ::IntDomainViewOffset
+    id              ::String
+
+    """
+    IntDomainViewOffset(x::IntVar, id::String)
+
+    Create a *fake* variable `y`, such that `y = x + c`. This variable behaves like an usual one.
+    """
+    function IntVarViewOffset(x::AbstractIntVar, c::Int, id::String)
+        dom = IntDomainViewOffset(x.domain, c)
+        return new(x, c, dom, id)
+    end
+end
+
 assignedValue(x::IntVarViewMul) = x.a * assignedValue(x.x)
 assignedValue(x::IntVarViewOpposite) = -1 * assignedValue(x.x)
+assignedValue(x::IntVarViewOffset) = assignedValue(x.x) + x.c
 
 """
     isempty(dom::IntDomainView)
@@ -71,6 +94,7 @@ function Base.in(value::Int, dom::IntDomainViewMul)
     return (value ÷ dom.a) in dom.orig
 end
 Base.in(value::Int, dom::IntDomainViewOpposite) = -value in dom.orig
+Base.in(value::Int, dom::IntDomainViewOffset) = value - dom.c in dom.orig
 
 """
     remove!(dom::IntDomainView, value::Int)
@@ -82,9 +106,10 @@ function remove!(dom::IntDomainViewMul, value::Int)
         return Int[]
     end
 
-    return remove!(dom.orig, value ÷ dom.a)
+    return remove!(dom.orig, value ÷ dom.a) * dom.a
 end
 remove!(dom::IntDomainViewOpposite, value::Int) = -1 * remove!(dom.orig, -value)
+remove!(dom::IntDomainViewOffset, value::Int) = map(x -> x + dom.c, remove!(dom.orig, value - dom.c)) 
 
 """
     removeAll!(dom::IntDomainView)
@@ -93,6 +118,7 @@ Remove every value from `dom`. Return the removed values.
 """
 removeAll!(dom::IntDomainViewMul) = dom.a * removeAll!(dom.orig)
 removeAll!(dom::IntDomainViewOpposite) = -1 * removeAll!(dom.orig)
+removeAll!(dom::IntDomainViewOffset) = map(x -> x + dom.c, removeAll!(dom.orig)) 
 
 
 """
@@ -102,6 +128,7 @@ Return the minimum value of `dom`.
 """
 minimum(dom::IntDomainViewMul) = dom.a * minimum(dom.orig)
 minimum(dom::IntDomainViewOpposite) = -1 * maximum(dom.orig)
+minimum(dom::IntDomainViewOffset) = dom.c + minimum(dom.orig)
 
 """
     maximum(dom::IntDomainView)
@@ -110,6 +137,7 @@ Return the maximum value of `dom`.
 """
 maximum(dom::IntDomainViewMul) = dom.a * maximum(dom.orig)
 maximum(dom::IntDomainViewOpposite) = -1 * minimum(dom.orig)
+maximum(dom::IntDomainViewOffset) = dom.c + maximum(dom.orig)
 
 
 """
@@ -119,6 +147,7 @@ Remove every integer of `dom` that is *strictly* above `value`.
 """
 removeAbove!(dom::IntDomainViewMul, value::Int) = dom.a * removeAbove!(dom.orig, convert(Int, floor(value / dom.a)))
 removeAbove!(dom::IntDomainViewOpposite, value::Int) = -1 * removeBelow!(dom.orig, -value)
+removeAbove!(dom::IntDomainViewOffset, value::Int) = map(x -> x + dom.c, removeAbove!(dom.orig, value - dom.c)) 
 
 """
     removeBelow!(dom::IntDomainView, value::Int)
@@ -127,6 +156,7 @@ Remove every integer of `dom` that is *strictly* below `value`. Return the prune
 """
 removeBelow!(dom::IntDomainViewMul, value::Int) = dom.a * removeBelow!(dom.orig, convert(Int, ceil(value / dom.a)))
 removeBelow!(dom::IntDomainViewOpposite, value::Int) = -1 * removeAbove!(dom.orig, -value)
+removeBelow!(dom::IntDomainViewOffset, value::Int) = map(x -> x + dom.c, removeBelow!(dom.orig, value - dom.c)) 
 
 
 """
@@ -139,7 +169,7 @@ function assign!(dom::IntDomainViewMul, value::Int)
     return dom.a * assign!(dom.orig, value ÷ dom.a)
 end
 assign!(dom::IntDomainViewOpposite, value::Int) = -1 * assign!(dom.orig, -value)
-
+assign!(dom::IntDomainViewOffset, value::Int) = map(x -> x + dom.c, assign!(dom.orig, value - dom.c)) 
 
 """
     Base.iterate(dom::IntDomainView, state=1)
@@ -165,6 +195,15 @@ function Base.iterate(dom::IntDomainViewOpposite, state=1)
     value, newState = returned
     return -value, newState
 end
+function Base.iterate(dom::IntDomainViewOffset, state=1)
+    returned = iterate(dom.orig, state)
+    if isnothing(returned)
+        return nothing
+    end
+
+    value, newState = returned
+    return value + dom.c, newState
+end
 
 """
     updateMaxFromRemovedVal!(dom::IntDomainView, v::Int)
@@ -181,6 +220,11 @@ function updateMaxFromRemovedVal!(dom::IntDomainViewOpposite, v::Int)
         updateMinFromRemovedVal!(dom.orig, -v)
     end
 end
+function updateMaxFromRemovedVal!(dom::IntDomainViewOffset, v::Int)
+    if maximum(dom) == v
+        updateMaxFromRemovedVal!(dom.orig, v - dom.c)
+    end
+end
 
 """
     updateMinFromRemovedVal!(dom::IntDomainView, v::Int)
@@ -195,5 +239,10 @@ end
 function updateMinFromRemovedVal!(dom::IntDomainViewOpposite, v::Int)
     if minimum(dom) == v
         updateMaxFromRemovedVal!(dom.orig, -v)
+    end
+end
+function updateMinFromRemovedVal!(dom::IntDomainViewOffset, v::Int)
+    if minimum(dom) == v
+        updateMinFromRemovedVal!(dom.orig, v - dom.c)
     end
 end
