@@ -97,14 +97,11 @@ function solve_coloring_JuMP(input_file; benchmark=false)
 
     model = Model(CPRL.Optimizer)
 
-    @variable(model, x[1:input.numberOfVertices])
-    for var in x
-        @constraint(model, var in MOI.Interval(1, input.numberOfVertices))
-    end
+    @variable(model, 1 <= x[1:input.numberOfVertices] <= input.numberOfVertices)
 
     degrees = zeros(Int, input.numberOfVertices)
     for e in input.edges
-        @constraint(model, [x[e.vertex1], x[e.vertex2]] in CPRL.VariablesEquality(false))
+        @constraint(model, [x[e.vertex1], x[e.vertex2]] in CPRL.NotEqualSet())
         #update degrees
         degrees[e.vertex1] += 1
         degrees[e.vertex2] += 1
@@ -123,26 +120,4 @@ function solve_coloring_JuMP(input_file; benchmark=false)
     # printSolution(output)
     println(model)
 
-end
-
-function about_to_rage_quit()
-    model = Model(CPRL.Optimizer)
-
-
-    @variable(model, x[1:2] in CPRL.VariablesEquality(false))
-    @constraint(model, x[1] in MOI.Interval(1, 4))
-    @constraint(model, x[2] in MOI.Interval(1, 4))
-
-    # @variable(model, x1 in MOI.Interval(1, 4))
-    # @variable(model, x2 in MOI.Interval(1, 4))
-    # @constraint(model, [x1, x2] in CPRL.VariablesEquality(false))
-
-    optimize!(model)
-
-    status = MOI.get(model, MOI.TerminationStatus())
-
-    println(model)
-    println(status)
-    println(has_values(model))
-    println(value(x))
 end

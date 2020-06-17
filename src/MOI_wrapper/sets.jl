@@ -1,12 +1,11 @@
+struct NotEqualSet <: MOI.AbstractVectorSet end
 
-struct NotEqualTo <: MOI.AbstractScalarSet
-    value::Int
+function create_CPConstraint(moiconstraint::MOIConstraint{NotEqual}, optimizer::Optimizer)
+    id1, id2 = moiconstraint.args
+    string1, string2 = optimizer.moimodel.variables[id1].name, optimizer.moimodel.variables[id2].name
+    x = optimizer.cpmodel.variables[string1]
+    y = optimizer.cpmodel.variables[string2]
+    NotEqual(x, y, optimizer.cpmodel.trailer)
 end
 
-# if true, variables are equal, else they are different
-struct VariablesEquality <: MOI.AbstractVectorSet
-    value::Bool
-
-end
-
-MOI.dimension(s::VariablesEquality) = 2
+MOI.dimension(s::NotEqualSet) = 2

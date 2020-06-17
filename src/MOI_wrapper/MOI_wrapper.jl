@@ -15,6 +15,26 @@ Should create a new type of Variables here or change IntVar's implementation. No
 
 """
 
+mutable struct MOIVariable
+    name::String
+    min::Union{Nothing, Int}
+    max::Union{Nothing, Int}
+    vi::MOI.VariableIndex
+end
+
+struct MOIConstraint{T <: Constraint}
+    type::Type{T}
+    args::Tuple
+    ci::MOI.ConstraintIndex
+end
+
+mutable struct MOIModel
+    variables::Array{MOIVariable}
+    constraints::Array{MOIConstraint}
+    objectiveId::Union{Nothing, Int}
+    MOIModel() = new(MOIVariable[], MOIConstraint[], nothing)
+end
+
 mutable struct VariableSelection <: MOI.AbstractOptimizerAttribute 
     heuristic::Function
 
@@ -23,6 +43,7 @@ end
 
 mutable struct Optimizer <: MOI.AbstractOptimizer
     cpmodel::CPModel
+    moimodel::MOIModel
     variableselection::VariableSelection
     options::Dict{String, Any}
     terminationStatus::MOI.TerminationStatusCode
@@ -30,9 +51,11 @@ mutable struct Optimizer <: MOI.AbstractOptimizer
 
     function Optimizer()
         cpmodel = CPRL.CPModel(CPRL.Trailer())
-        new(cpmodel, VariableSelection(), Dict{String, Any}(), MOI.OPTIMIZE_NOT_CALLED)
+        new(cpmodel, MOIModel(), VariableSelection(), Dict{String, Any}(), MOI.OPTIMIZE_NOT_CALLED)
     end
 end
+
+
 
 include("sets.jl")
 include("supports.jl")
@@ -88,12 +111,40 @@ function MOI.copy_to(dest::Optimizer, src::MOI.ModelLike; kwargs...)
     return MOI.Utilities.automatic_copy_to(dest, src; kwargs...)
 end
 
+function fill_cpmodel!(optimizer::Optimizer)
+    # Adding variables
+    i = 1
+    for x in optimizer.moimodel.variables
+        @assert !isnothing(x.min) "Every variable must have a lower bound"
+        @assert !isnothing(x.max) "Every variable must have an upper bound"
+        x.name = x.name*string(i)
+        newvariable = CPRL.IntVar(x.min, x.max, x.name, optimizer.cpmodel.trailer)
+        CPRL.addVariable!(optimizer.cpmodel, newvariable)
+        i += 1
+    end
+
+    # Adding constraints
+    for moiconstraint in optimizer.moimodel.constraints
+        constraint = create_CPConstraint(moiconstraint, optimizer)
+
+        # add constraint to the model
+        push!(optimizer.cpmodel.constraints, constraint)
+    end
+
+    optimizer
+end
+
 """
     MOI.optimize!(model::Optimizer)
 
 Launch the solving process of the solver.
 """
 function MOI.optimize!(model::Optimizer)
+    fill_cpmodel!(model)
+
+    println(model.cpmodel)
+
+
     status = CPRL.solve!(model.cpmodel; variableHeuristic=model.variableselection.heuristic)
 
     if status == :Optimal
