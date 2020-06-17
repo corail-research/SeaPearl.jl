@@ -21,13 +21,13 @@ function MOI.supports_constraint(
 end
 # MOI.supports_constraint(::Optimizer, ::Type{MOI.SingleVariable}, ::MOI.Interval{Int64}) = false
 
-# function MOI.supports_constraint(
-#     ::Optimizer, ::Type{MOI.ScalarAffineFunction{Float64}}, ::Type{F}
-# ) where {F <: Union{
-#     MOI.LessThan{Float64}, MOI.GreaterThan{Float64}
-# }}
-#     return true
-# end
+function MOI.supports_constraint(
+    ::Optimizer, ::Type{MOI.ScalarAffineFunction{Float64}}, ::Type{F}
+) where {F <: Union{
+    MOI.EqualTo{Float64}
+}}
+    return true
+end
 
 function MOI.supports_constraint(
     ::Optimizer, ::Type{MOI.VectorOfVariables}, ::Type{F}
@@ -36,7 +36,6 @@ function MOI.supports_constraint(
 }}
     return true
 end
-MOI.supports_constraint(::Optimizer, ::Type{MOI.VectorOfVariables}, ::Type{VariablesEquality}) = true
 
 """
     This a list of all the supported objective functions of the CPRL Solver

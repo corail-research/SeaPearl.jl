@@ -4,12 +4,11 @@
 # Interface function which add a constraint to the model (which is himself an Optimizer)
 # This constraints a single variable to be different or equal to another variable.
 # """
-function MOI.add_constraint(model::Optimizer, vectOfVar::MOI.VectorOfVariables, set::NotEqualSet)
-    id1, id2 = vectOfVar.variables[1].value, vectOfVar.variables[2].value
+function MOI.add_constraint(model::Optimizer, vectOfVar::MOI.VectorOfVariables, ::NotEqualSet)
+    id1, id2 = vectOfVar.variables[1], vectOfVar.variables[2]
 
-    # add constraint to the model
     ci = MOI.ConstraintIndex{MOI.VectorOfVariables, NotEqualSet}(length(model.moimodel.constraints) + 1)
-    moiConstraint = MOIConstraint(CPRL.NotEqual, (id1, id2), ci)
+    moiConstraint = MOIConstraint(NotEqualSet, (id1, id2), ci)
     push!(model.moimodel.constraints, moiConstraint)
 
     
@@ -52,27 +51,26 @@ end
 # Interface function which add a constraint to the model (which is himself an Optimizer).
 # This constraints a scalar affine function to be less than a given Integer.  
 # """
-# function MOI.add_constraint(model::Optimizer, saf::MOI.ScalarAffineFunction, set::MOI.LessThan)
-#     # get the VariableIndexs, convert them to strings and create 
-#     var_array = IntVarViewMul[]
-#     for term in saf.terms
-#         id = term.variable_index.value
-#         new_id = string(length(keys(model.cpmodel.variables)) + 1)
-#         newvariable = IntVarViewMul(model.cpmodel.variables[id], term.coefficient, new_id)
-#         CPRL.addVariable!(model.cpmodel, newvariable)
-#         push!(var_array, newvariable)
-#     end
+function term_to_variables(coeff::Float64, variableId::String, opt::Optimizer)
+    if coeff == 1
+        return AbstractIntVar[]
+    end
+    if coeff < 0
+        new_id = string()
+    end
+end
 
-#     # create the constraint
-#     constraint = SumLessThan(var_array, set.upper - saf.constant, model.cpmodel.trailer)
+function MOI.add_constraint(model::Optimizer, saf::MOI.ScalarAffineFunction{Float64}, set::MOI.EqualTo{Float64})
+    saf.constant -= set.value
+    moiaff = MOIAffineFunction(nothing, saf)
+    push!(model.moimodel.affines, moiaff)
 
-#     # add constraint to the model
-#     push!(model.cpmodel.constraints, constraint)
+    newId = length(model.moimodel.constraints) + 1
+    ci = MOI.ConstraintIndex{MOI.ScalarAffineFunction{Float64}, MOI.EqualTo{Float64}}(newId)
+    constraint = MOIConstraint(MOI.EqualTo, (AffineIndex(length(model.moimodel.affines)),), ci)
 
-#     # return the constraint Index (asked by MathOptInterface)
-#     constraint_index = length(model.cpmodel.constraints) + 1
-#     return MOI.ConstraintIndex{MOI.ScalarAffineFunction, MOI.LessThan}(constraint_index)
-# end
+    return ci
+end
 
 # """
 #     MOI.add_constraint(model::Optimizer, sgvar::MOI.ScalarAffineFunction, set::MOI.GreaterThan)
