@@ -29,14 +29,12 @@
         )
 
         foGCN = CPRL.FixedOutputGCN(
-            args = args_foGCN,
             firstGCNHiddenLayer = GeometricFlux.GCNConv(10 => 10, Flux.relu),
             secondGCNHiddenLayer = GeometricFlux.GCNConv(10 => 10, Flux.relu),
             denseLayer = Flux.Dense(10, 10, Flux.relu),
             outputLayer = Flux.Dense(10, 10, Flux.relu)
         )
 
-        @test foGCN.args == args_foGCN
         @test typeof(foGCN.firstGCNHiddenLayer) == GeometricFlux.GCNConv{Float32,typeof(relu), GeometricFlux.FeaturedGraph{Nothing,Nothing}}
         @test typeof(foGCN.secondGCNHiddenLayer) == GeometricFlux.GCNConv{Float32,typeof(relu), GeometricFlux.FeaturedGraph{Nothing,Nothing}}
         @test typeof(foGCN.denseLayer) == Flux.Dense{typeof(relu),Array{Float32,2},Array{Float32,1}}
@@ -56,7 +54,6 @@
 
         foGCN = CPRL.build_model(CPRL.FixedOutputGCN, args_foGCN)
 
-        @test foGCN.args == args_foGCN
         @test typeof(foGCN.firstGCNHiddenLayer) == GeometricFlux.GCNConv{Float32,typeof(relu), GeometricFlux.FeaturedGraph{Nothing,Nothing}}
         @test typeof(foGCN.secondGCNHiddenLayer) == GeometricFlux.GCNConv{Float32,typeof(relu), GeometricFlux.FeaturedGraph{Nothing,Nothing}}
         @test typeof(foGCN.denseLayer) == Flux.Dense{typeof(relu),Array{Float32,2},Array{Float32,1}}
