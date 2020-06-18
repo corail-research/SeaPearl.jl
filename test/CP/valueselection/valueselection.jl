@@ -2,6 +2,12 @@ using Flux
 
 @testset "valueselection.jl" begin 
 
+    @testset "RL.jl" begin 
+
+        include("../../RL/RL.jl") 
+
+    end
+
     @testset "selectValue function" begin 
         trailer = CPRL.Trailer()
         model = CPRL.CPModel(trailer)

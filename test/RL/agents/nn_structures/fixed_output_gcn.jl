@@ -96,7 +96,7 @@
         println("Q values vector :  ", q_values)
 
         @test size(q_values) == (2,)
-        @test sum(q_values) == 1
+        @test round(sum(q_values), digits=5) == 1
 
         
 
