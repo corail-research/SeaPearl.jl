@@ -140,8 +140,11 @@ function observe!(env::RLEnv, model::CPModel, x::AbstractIntVar)
     # synchronize state: we could delete env.state, we do not need it 
     sync_state!(env, model, x)
 
+    state = to_array(env.state)
+    state = reshape(state, size(state)..., 1)
+    
     # return the observation as a named tuple (useful for interface understanding)
-    return (reward = reward, terminal = env.done, state = vec(to_array(env.state)), legal_actions = legal_actions, legal_actions_mask = legal_actions_mask)
+    return (reward = reward, terminal = env.done, state = state, legal_actions = legal_actions, legal_actions_mask = legal_actions_mask)
 end
 
 """

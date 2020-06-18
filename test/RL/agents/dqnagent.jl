@@ -83,6 +83,7 @@
                 learner = RL.DQNLearner(
                     approximator = RL.NeuralNetworkApproximator(
                         model = Chain(
+                            Flux.flatten,
                             Dense(11*23, 20, Flux.relu),
                             Dense(20, 20, Flux.relu),
                             Dense(20, 4, Flux.relu)
@@ -91,6 +92,7 @@
                     ),
                     target_approximator = RL.NeuralNetworkApproximator(
                         model = Chain(
+                            Flux.flatten,
                             Dense(11*23, 20, Flux.relu),
                             Dense(20, 20, Flux.relu),
                             Dense(20, 4, Flux.relu)
@@ -122,7 +124,7 @@
             trajectory = RL.CircularCompactSARTSATrajectory(
                 capacity = 1000, 
                 state_type = Float32, 
-                state_size = (11*23,),
+                state_size = (11, 23, 1),
                 action_type = Int,
                 action_size = (),
                 reward_type = Float32,
@@ -186,6 +188,18 @@
         println("Value ", v3, " is assigned to ", x3.id)    
         println(" ----------------- ")
         
+        CPRL.assign!(x3, v3)
+        _, _ = CPRL.fixPoint!(model, CPRL.getOnDomainChange(x2))
+
+        
+        obs = CPRL.observe!(env, model, x4)
+        agent(RL.POST_ACT_STAGE, obs)
+
+        v4 = agent(RL.PRE_ACT_STAGE, obs)
+
+        println(" ----------------- ")
+        println("Value ", v4, " is assigned to ", x4.id)    
+        println(" ----------------- ")
 
     end
 
