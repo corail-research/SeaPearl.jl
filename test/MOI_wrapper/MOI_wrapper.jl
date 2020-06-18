@@ -13,6 +13,7 @@ using CPRL
     include("optimizer_accessors.jl")
     include("homemade_bridging.jl")
     include("variables.jl")
+    include("constraints.jl")
 
     # @testset "Creating an optimizer" begin
     #     model = CPRL.Optimizer()

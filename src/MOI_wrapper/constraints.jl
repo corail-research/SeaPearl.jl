@@ -39,8 +39,7 @@ end
 """
     MOI.add_constraint(model::Optimizer, sgvar::MOI.SingleVariable, set::MOI.GreaterThan)
 
-Interface function which add a constraint to the model (which is himself an Optimizer).
-This constraints a single variable to be greater than a given Integer.  
+Give an upper bound to `sgvar` 
 """
 function MOI.add_constraint(model::Optimizer, sgvar::MOI.SingleVariable, set::MOI.GreaterThan{Float64})
     # get the VariableIndex and convert it to string
@@ -49,21 +48,6 @@ function MOI.add_constraint(model::Optimizer, sgvar::MOI.SingleVariable, set::MO
         model.moimodel.variables[id].min = set.lower
     end
     return MOI.ConstraintIndex{MOI.SingleVariable, MOI.GreaterThan{Float64}}(1)
-end
-
-# """
-#     MOI.add_constraint(model::Optimizer, sgvar::MOI.ScalarAffineFunction, set::MOI.LessThan)
-
-# Interface function which add a constraint to the model (which is himself an Optimizer).
-# This constraints a scalar affine function to be less than a given Integer.  
-# """
-function term_to_variables(coeff::Float64, variableId::String, opt::Optimizer)
-    if coeff == 1
-        return AbstractIntVar[]
-    end
-    if coeff < 0
-        new_id = string()
-    end
 end
 
 function MOI.add_constraint(model::Optimizer, saf::MOI.ScalarAffineFunction{Float64}, set::MOI.EqualTo{Float64})
@@ -86,34 +70,3 @@ function create_CPConstraint(moiconstraint::MOIConstraint{MOI.EqualTo}, optimize
     assign!(x, 0)
     nothing
 end
-
-# """
-#     MOI.add_constraint(model::Optimizer, sgvar::MOI.ScalarAffineFunction, set::MOI.GreaterThan)
-
-# Interface function which add a constraint to the model (which is himself an Optimizer).
-# This constraints a scalar affine function to be greater than a given Integer.  
-# """
-# function MOI.add_constraint(model::Optimizer, saf::MOI.ScalarAffineFunction, set::MOI.GreaterThan)
-#     # get the VariableIndexs, convert them to strings and create 
-#     var_array = IntVarViewMul[]
-#     for term in saf.terms
-#         id = term.variable_index.value
-#         new_id = string(length(keys(model.cpmodel.variables)) + 1)
-#         newvariable = IntVarViewMul(model.cpmodel.variables[id], term.coefficient, new_id)
-#         CPRL.addVariable!(model.cpmodel, newvariable)
-#         push!(var_array, newvariable)
-#     end
-
-#     # create the constraint
-#     constraint = SumGreaterThan(var_array, set.lower - saf.constant, model.cpmodel.trailer)
-
-#     # add constraint to the model
-#     push!(model.cpmodel.constraints, constraint)
-
-#     # return the constraint Index (asked by MathOptInterface)
-#     constraint_index = length(model.cpmodel.constraints) + 1
-#     return MOI.ConstraintIndex{MOI.ScalarAffineFunction, MOI.GreaterThan}(constraint_index)
-# end
-
-
-# add_constraint() = @info "Constraint added !"
