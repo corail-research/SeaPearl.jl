@@ -143,4 +143,40 @@ using DataStructures
         @test model.solutions[2] == Dict("x" => 2,"y" => 2)
 
     end
+
+    @testset "search!() with a BasicHeuristic" begin
+
+        trailer = CPRL.Trailer()
+        model = CPRL.CPModel(trailer)
+        
+        x = CPRL.IntVar(2, 3, "x", trailer)
+        y = CPRL.IntVar(2, 3, "y", trailer)
+        CPRL.addVariable!(model, x)
+        CPRL.addVariable!(model, y)
+        push!(model.constraints, CPRL.Equal(x, y, trailer))
+
+        @test CPRL.search!(model, CPRL.DFSearch, (model) -> x, CPRL.BasicHeuristic()) == :Optimal
+        @test model.solutions[1] == Dict("x" => 3,"y" => 3)
+        @test model.solutions[2] == Dict("x" => 2,"y" => 2)
+
+        my_heuristic(x::CPRL.IntVar) = minimum(x.domain)
+        @test CPRL.search!(model, CPRL.DFSearch, (model) -> x, CPRL.BasicHeuristic(my_heuristic)) == :Optimal
+        @test model.solutions[1] == Dict("x" => 3,"y" => 3)
+        @test model.solutions[2] == Dict("x" => 2,"y" => 2)
+
+    end
+
+    @testset "search!() with a LearnedHeuristic I" begin
+
+        nothing
+
+    end
+
+    @testset "search!() with a LearnedHeuristic II" begin
+
+        nothing
+
+    end
+
+
 end
