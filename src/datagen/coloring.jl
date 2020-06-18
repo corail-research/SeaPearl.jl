@@ -36,7 +36,7 @@ function fill_with_coloring!(cpmodel::CPModel, nb_nodes::Int64, density::Number)
     end
 
     ### Objective ###
-    numberOfColors = CPRL.IntVar(0, nb_nodes, "numberOfColors", cpmodel.trailer)
+    numberOfColors = CPRL.IntVar(1, nb_nodes, "numberOfColors", cpmodel.trailer)
     CPRL.addVariable!(cpmodel, numberOfColors)
     for var in x
         push!(cpmodel.constraints, CPRL.LessOrEqual(var, numberOfColors, cpmodel.trailer))
