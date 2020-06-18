@@ -53,7 +53,7 @@ function build_affine_term!(optimizer::Optimizer, vi::MOI.VariableIndex, coeff::
     @assert intCoeff != 0 "Coefficient cannot be null."
 
     if intCoeff == 1
-        return optimizer.cpmodel.variables[optimizer.moimodel.variables[vi.value].cp_identifier]
+        return get_cp_variable(optimizer, vi)
     end
 
     if intCoeff < 0
@@ -67,6 +67,7 @@ function build_affine_term!(optimizer::Optimizer, vi::MOI.VariableIndex, coeff::
     x = build_affine_term!(optimizer, vi, 1.)
     new_id = string(length(keys(optimizer.cpmodel.variables)) + 1)
     new_var = IntVarViewMul(x, intCoeff, new_id)
+    addVariable!(optimizer.cpmodel, new_var)
     return new_var
 end
 
