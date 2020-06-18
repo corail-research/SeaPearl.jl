@@ -4,9 +4,10 @@ abstract type ValueSelection end
 
 mutable struct BasicHeuristic <: ValueSelection
     selectValue::Function
-
-    BasicHeuristic() = new(selectValue)
 end
+
+selectValue(x::IntVar) = maximum(x.domain)
+BasicHeuristic() = BasicHeuristic(selectValue)
 
 mutable struct LearnedHeuristic <: ValueSelection
     agent::RL.Agent
@@ -19,5 +20,3 @@ end
 
 require_env(::BasicHeuristic) = false
 require_env(::LearnedHeuristic) = true
-
-selectValue(x::IntVar) = maximum(x.domain)
