@@ -130,7 +130,7 @@
         @test_throws AssertionError CPRL.build_affine_term!(opt, MOI.VariableIndex(1), 0.)
         @test_throws AssertionError CPRL.build_affine_term!(opt, MOI.VariableIndex(1), -.2)
     end
-    
+
     @testset "build_affine!()" begin
         opt = CPRL.Optimizer()
         push!(opt.moimodel.variables, CPRL.MOIVariable("", 1, 2, MOI.VariableIndex(1)))
@@ -168,6 +168,101 @@
         @test opt.cpmodel.variables["8"].x == opt.cpmodel.variables["7"]
 
         @test length(opt.cpmodel.constraints) == 1
+        @test isa(opt.cpmodel.constraints[1], CPRL.SumToZero)
+        @test opt.cpmodel.constraints[1].x == [
+            opt.cpmodel.variables["3"],
+            opt.cpmodel.variables["6"],
+            opt.cpmodel.variables["8"]
+        ]
+    end
+
+    @testset "bridge_affines!()" begin
+        opt = CPRL.Optimizer()
+        push!(opt.moimodel.variables, CPRL.MOIVariable("", 1, 2, MOI.VariableIndex(1)))
+        push!(opt.moimodel.variables, CPRL.MOIVariable("", 1, 2, MOI.VariableIndex(2)))
+        CPRL.bridge_variables!(opt)
+        aff = CPRL.MOIAffineFunction(nothing, MOI.ScalarAffineFunction(MOI.ScalarAffineTerm.([5., -3.], [MOI.VariableIndex(1), MOI.VariableIndex(2)]), 3.))
+        push!(opt.moimodel.affines, aff)
+
+        CPRL.bridge_affines!(opt)
+        
+        @test CPRL.get_cp_variable(opt, CPRL.AffineIndex(1)) == opt.cpmodel.variables["7"]
+
+        @test length(keys(opt.cpmodel.variables)) == 8
+        @test isa(opt.cpmodel.variables["1"], CPRL.IntVar)
+        @test isa(opt.cpmodel.variables["2"], CPRL.IntVar)
+
+        @test isa(opt.cpmodel.variables["3"], CPRL.IntVarViewMul)
+        @test opt.cpmodel.variables["3"].a == 5
+        @test opt.cpmodel.variables["3"].x == opt.cpmodel.variables["1"]
+
+        @test isa(opt.cpmodel.variables["4"], CPRL.IntVarViewMul)
+        @test opt.cpmodel.variables["4"].a == 3
+        @test opt.cpmodel.variables["4"].x == opt.cpmodel.variables["2"]
+
+        @test isa(opt.cpmodel.variables["5"], CPRL.IntVarViewOpposite)
+        @test opt.cpmodel.variables["5"].x == opt.cpmodel.variables["4"]
+
+        @test isa(opt.cpmodel.variables["6"], CPRL.IntVarViewOffset)
+        @test opt.cpmodel.variables["6"].c == 3
+        @test opt.cpmodel.variables["6"].x == opt.cpmodel.variables["5"]
+
+        @test isa(opt.cpmodel.variables["7"], CPRL.IntVar)
+
+        @test isa(opt.cpmodel.variables["8"], CPRL.IntVarViewOpposite)
+        @test opt.cpmodel.variables["8"].x == opt.cpmodel.variables["7"]
+
+        @test length(opt.cpmodel.constraints) == 1
+        @test isa(opt.cpmodel.constraints[1], CPRL.SumToZero)
+        @test opt.cpmodel.constraints[1].x == [
+            opt.cpmodel.variables["3"],
+            opt.cpmodel.variables["6"],
+            opt.cpmodel.variables["8"]
+        ]
+    end
+
+    @testset "fill_cpmodel!()" begin
+        opt = CPRL.Optimizer()
+        push!(opt.moimodel.variables, CPRL.MOIVariable("", 1, 2, MOI.VariableIndex(1)))
+        push!(opt.moimodel.variables, CPRL.MOIVariable("", 1, 2, MOI.VariableIndex(2)))
+        aff = CPRL.MOIAffineFunction(nothing, MOI.ScalarAffineFunction(MOI.ScalarAffineTerm.([5., -3.], [MOI.VariableIndex(1), MOI.VariableIndex(2)]), 3.))
+        push!(opt.moimodel.affines, aff)
+        
+        ci1 = MOI.add_constraint(opt, MOI.VectorOfVariables([MOI.VariableIndex(1), MOI.VariableIndex(2)]), CPRL.NotEqualSet())
+
+
+
+        CPRL.fill_cpmodel!(opt)
+        
+        @test CPRL.get_cp_variable(opt, CPRL.AffineIndex(1)) == opt.cpmodel.variables["7"]
+
+        @test length(keys(opt.cpmodel.variables)) == 8
+        @test isa(opt.cpmodel.variables["1"], CPRL.IntVar)
+        @test isa(opt.cpmodel.variables["2"], CPRL.IntVar)
+
+        @test isa(opt.cpmodel.variables["3"], CPRL.IntVarViewMul)
+        @test opt.cpmodel.variables["3"].a == 5
+        @test opt.cpmodel.variables["3"].x == opt.cpmodel.variables["1"]
+
+        @test isa(opt.cpmodel.variables["4"], CPRL.IntVarViewMul)
+        @test opt.cpmodel.variables["4"].a == 3
+        @test opt.cpmodel.variables["4"].x == opt.cpmodel.variables["2"]
+
+        @test isa(opt.cpmodel.variables["5"], CPRL.IntVarViewOpposite)
+        @test opt.cpmodel.variables["5"].x == opt.cpmodel.variables["4"]
+
+        @test isa(opt.cpmodel.variables["6"], CPRL.IntVarViewOffset)
+        @test opt.cpmodel.variables["6"].c == 3
+        @test opt.cpmodel.variables["6"].x == opt.cpmodel.variables["5"]
+
+        @test isa(opt.cpmodel.variables["7"], CPRL.IntVar)
+
+        @test isa(opt.cpmodel.variables["8"], CPRL.IntVarViewOpposite)
+        @test opt.cpmodel.variables["8"].x == opt.cpmodel.variables["7"]
+
+        @test length(opt.cpmodel.constraints) == 2
+        @test isa(opt.cpmodel.constraints[2], CPRL.NotEqual)
+        @test CPRL.variablesArray(opt.cpmodel.constraints[2]) == [opt.cpmodel.variables["1"], opt.cpmodel.variables["2"]]
         @test isa(opt.cpmodel.constraints[1], CPRL.SumToZero)
         @test opt.cpmodel.constraints[1].x == [
             opt.cpmodel.variables["3"],
