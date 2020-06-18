@@ -90,11 +90,16 @@
 
         X = CPRL.to_array(cpg)
 
+        X = reshape(X, size(X)..., 1)
+
         q_values = foGCN(X)
         println("Q values vector :  ", q_values)
 
         @test size(q_values) == (2,)
         @test sum(q_values) == 1
+
+        
+
 
     end
 

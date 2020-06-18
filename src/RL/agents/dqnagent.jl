@@ -16,7 +16,7 @@ If user, wants to go further, he can create its own agent.
 function DQNAgent(; 
             nn_model,
             optimizer = ADAM, η = 0.001,
-            loss_func = huber_loss, stack_size = nothing, γ = 0.99f0, batch_size = 32, update_horizon = 1, min_replay_history = 1, update_freq = 1, target_update_freq = 100, learner_seed = 22,
+            loss_func = huber_loss, stack_size = nothing, γ = 0.99f0, batch_size = 32, update_horizon = 1, min_replay_history = 0, update_freq = 1, target_update_freq = 100, learner_seed = 22,
             kind = :exp, ϵ_stable = 0.01, decay_steps = 500, explorer_seed = 33,
             capacity = 1000, state_type = Float32, state_size = (1,), action_type = Int64, action_size = (), reward_type = Float32, reward_size = (), terminal_type = Bool, terminal_size = ()
         )

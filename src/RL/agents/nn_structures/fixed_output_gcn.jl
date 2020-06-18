@@ -49,9 +49,9 @@ functor(::Type{FixedOutputGCN}, c) = (c.firstGCNHiddenLayer, c.secondGCNHiddenLa
 Take the CPGraph and output the q_values. Not that this could be changed a lot in the futur.
 Here we do not put a mask. We let the mask to the RL.jl but this is still under debate !
 """
-function (nn::FixedOutputGCN)(x::Array{Float32, 2})
+function (nn::FixedOutputGCN)(x::Array{Float32, 3})
     # Create the CPGraph
-    cpg = CPGraph(x)
+    cpg = CPGraph(x[:, :, 1])
 
     # get informations from the CPGraph (input) 
     variableId = cpg.variable_id
@@ -74,6 +74,17 @@ function (nn::FixedOutputGCN)(x::Array{Float32, 2})
     # output a vector (of values of the possibles values)
     return Flux.softmax(valueProbabilities)
 end
+
+"""
+function (nn::FixedOutputGCN)(x::Array{Float32, 4})
+    batch_size = size(x)[end]
+    res = []
+    for i in 1:batch_size
+        push!(res, nn(x[:, :, :, i]))
+    end
+    reshape(res, size(res[1])..., batch_size)
+end
+"""
 
 function (nn::FixedOutputGCN)(obs::NamedTuple{(:reward, :terminal, :state, :legal_actions, :legal_actions_mask)})
     return nn(obs.state)
