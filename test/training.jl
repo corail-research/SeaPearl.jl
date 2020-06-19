@@ -72,7 +72,7 @@
         selectedVar = nothing
         minSize = typemax(Int)
         for (k, x) in model.variables
-            if length(x.domain) > 1 && length(x.domain) < minSize && k != "numberOfColors"
+            if length(x.domain) > 1 && length(x.domain) < minSize #&& k != "numberOfColors"
                 selectedVar = x
                 minSize = length(x.domain)
             end
@@ -81,14 +81,20 @@
         return selectedVar
     end
 
+    initial_params = params(learnedHeuristic.agent.policy.learner.approximator.model)
+
     bestsolutions, nodevisited = CPRL.train!(
         learnedHeuristic=learnedHeuristic, 
         problem_type=:coloring,
         problem_params=coloring_params,
-        nb_episodes=10,
+        nb_episodes=20,
         strategy=CPRL.DFSearch,
         variableHeuristic=selectNonObjVariable
     )
+
+    final_params = params(learnedHeuristic.agent.policy.learner.approximator.model)
+
+    @test final_params != initial_params
 
     println(bestsolutions)
     println(nodevisited)

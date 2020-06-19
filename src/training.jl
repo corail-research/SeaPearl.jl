@@ -32,8 +32,16 @@ function train!(;
     bestsolutions = []
     nodevisited = []
 
+    println(" -------------- START TRAINING : -------------- ")
+
     for i in 1:nb_episodes
-        isempty(model) || empty!(model)
+        println(" --- EPISODE : ", i)
+
+        #isempty(model) || empty!(model)
+
+        trailer = Trailer()
+        model = CPModel(trailer)
+
         fill_with_generator!(model, problem_params["nb_nodes"], problem_params["density"])
 
         search!(model, strategy, variableHeuristic, learnedHeuristic)
