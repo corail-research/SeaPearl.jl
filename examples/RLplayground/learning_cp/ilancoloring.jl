@@ -3,6 +3,10 @@ using ReinforcementLearning
 const RL = ReinforcementLearning
 using Flux
 
+using Plots
+gr()
+
+
 problem_generator = Dict(
     :coloring => CPRL.fill_with_coloring!,
     :filecoloring => CPRL.fill_with_coloring_file!
@@ -13,11 +17,11 @@ coloring_file_params = Dict(
 )
 
 coloring_params = Dict(
-    "nb_nodes" => 20,
+    "nb_nodes" => 10,
     "density" => 1.5
 )
 
-state_size = (86,173, 1)
+state_size = (46,93, 1)
 
 agent = RL.Agent(
         policy = RL.QBasedPolicy(
@@ -27,16 +31,16 @@ agent = RL.Agent(
                         Flux.flatten,
                         Dense(state_size[1]*state_size[2], 100, Flux.relu),
                         Dense(100, 50, Flux.relu),
-                        Dense(50, 20, Flux.relu)
+                        Dense(50, 10, Flux.relu)
                     ),
                     optimizer = ADAM(0.001f0)
                 ),
                 target_approximator = RL.NeuralNetworkApproximator(
                     model = Chain(
                         Flux.flatten,
-                        Dense(state_size[1]*state_size[2], 100, Flux.relu),
-                        Dense(100, 50, Flux.relu),
-                        Dense(50, 20, Flux.relu)
+                        Dense(state_size[1]*state_size[2], 500, Flux.relu),
+                        Dense(500, 100, Flux.relu),
+                        Dense(100, 10, Flux.relu)
                     ),
                     optimizer = ADAM(0.001f0)
                 ),
@@ -78,6 +82,8 @@ agent = RL.Agent(
 
 learnedHeuristic = CPRL.LearnedHeuristic(agent)
 
+basicHeuristic = CPRL.BasicHeuristic((x) -> CPRL.minimum(x.domain))
+
 function selectNonObjVariable(model::CPRL.CPModel)
     selectedVar = nothing
     minSize = typemax(Int)
@@ -91,20 +97,43 @@ function selectNonObjVariable(model::CPRL.CPModel)
     return selectedVar
 end
 
-initial_params = deepcopy(params(learnedHeuristic.agent.policy.learner.approximator.model))
 
-bestsolutions, nodevisited = CPRL.train!(
-    learnedHeuristic=learnedHeuristic, 
-    problem_type=:filecoloring,
-    problem_params=coloring_params,
-    nb_episodes=20,
-    strategy=CPRL.DFSearch,
-    variableHeuristic=selectNonObjVariable
-)
+function trytrain()
+    
+    bestsolutions, nodevisited = CPRL.train!(
+        learnedHeuristic=learnedHeuristic, 
+        problem_type=:filecoloring,
+        problem_params=coloring_params,
+        nb_episodes=50,
+        strategy=CPRL.DFSearch,
+        variableHeuristic=selectNonObjVariable
+    )
+    println(bestsolutions)
+    # nodevisited = Array{Any}([35, 51])
+    nodevisited = convert(Array{Int}, nodevisited)
+    println(nodevisited)
 
-final_params = params(learnedHeuristic.agent.policy.learner.approximator.model)
+    bestsolutions, nodevisitedbasic = CPRL.train!(
+        learnedHeuristic=basicHeuristic, 
+        problem_type=:filecoloring,
+        problem_params=coloring_params,
+        nb_episodes=1,
+        strategy=CPRL.DFSearch,
+        variableHeuristic=selectNonObjVariable
+    )
 
-@assert final_params != initial_params
 
-println(bestsolutions)
-println(nodevisited)
+    linebasic = [convert(Int, nodevisitedbasic[1]) for i in 1:length(nodevisited)]
+    linebasic = ones(length(nodevisited))
+    linebasic *= nodevisitedbasic[1]
+
+
+    
+    # plot 
+    x = 1:length(nodevisited)
+
+    p = plot(x, [nodevisited linebasic], xlabel="Episode", ylabel="Number of nodes visited", ylims = (0,100))
+    display(p)
+end
+
+
