@@ -84,7 +84,7 @@ function selectNonObjVariable(model::CPRL.CPModel)
     return selectedVar
 end
 
-initial_params = params(learnedHeuristic.agent.policy.learner.approximator.model)
+initial_params = deepcopy(params(learnedHeuristic.agent.policy.learner.approximator.model))
 
 bestsolutions, nodevisited = CPRL.train!(
     learnedHeuristic=learnedHeuristic, 
