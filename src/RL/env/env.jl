@@ -45,7 +45,7 @@ function RLEnv(cpmodel::CPModel, seed = nothing)
         action_space,
         CPGraph(CPLayerGraph(cpmodel), 0), # use a fake variable index
         1,
-        -1,
+        0,
         false,  
         rng)
     
@@ -71,7 +71,7 @@ Change the "reward" attribute of the env. This is compulsory as used in the buff
 for the training.
 """
 function set_reward!(env::RLEnv, symbol::Symbol)
-    env.reward += - 5 * (symbol == :Infeasible) + 5 * (symbol == :FoundSolution)
+    env.reward += 0 #- 5 * (symbol == :Infeasible) + 1 * (symbol == :FoundSolution)
     nothing
 end
 
@@ -82,12 +82,13 @@ Change the "reward" attribute of the env. This is compulsory as used in the buff
 for the training.
 """
 function set_final_reward!(env::RLEnv, model::CPModel)
+    env.reward = - model.statistics.numberOfNodes
     if isempty(model.solutions)
         env.reward = 0
     elseif !isnothing(model.objectiveBound)
-        env.reward = model.objectiveBound + 1
+        env.reward = 0#2 * (10 - model.objectiveBound) + 1
     else
-        env.reward = 1
+        env.reward = 0
     end
     nothing
 end
@@ -99,7 +100,7 @@ Not sure this one will survive
 """
 function reset!(env::RLEnv)
     env.done = false
-    env.reward = -1
+    env.reward = 0
     nothing 
 end
 
@@ -135,7 +136,7 @@ function observe!(env::RLEnv, model::CPModel, x::AbstractIntVar)
 
     # compute reward - we could add a transition function given by the user
     reward = env.reward 
-    env.reward = -1
+    env.reward = 0
 
     # synchronize state: we could delete env.state, we do not need it 
     sync_state!(env, model, x)
