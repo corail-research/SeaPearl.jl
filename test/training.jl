@@ -87,7 +87,7 @@
         learnedHeuristic=learnedHeuristic, 
         problem_type=:coloring,
         problem_params=coloring_params,
-        nb_episodes=20,
+        nb_episodes=3,
         strategy=CPRL.DFSearch,
         variableHeuristic=selectNonObjVariable
     )
