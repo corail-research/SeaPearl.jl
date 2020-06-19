@@ -1,5 +1,5 @@
 @testset "spaces.jl" begin
 
-    include("cpgraph_space.jl")
+    include("cpgraph.jl")
     
 end
