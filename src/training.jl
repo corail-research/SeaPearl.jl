@@ -1,5 +1,6 @@
 problem_generator = Dict(
-    :coloring => fill_with_coloring!
+    :coloring => fill_with_coloring!,
+    :filecoloring => CPRL.fill_with_coloring_file!
 )
 
 coloring_params = Dict(
