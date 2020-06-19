@@ -107,6 +107,8 @@ function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
         end
         v = valueSelection.agent(RL.PRE_ACT_STAGE, obs) # choose action, store it with the state
         # eventually hook(PRE_ACT_STAGE, agent, env, obs, action)
+
+        #println("Assign value : ", v, " to variable : ", x)
     else
         v = valueSelection.selectValue(x)
     end
