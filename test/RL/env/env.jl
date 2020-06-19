@@ -6,7 +6,7 @@
             RL.DiscreteSpace([1, 2, 3]),
             CPRL.CPGraph(CPRL.CPLayerGraph(), 0),
             1,
-            -1,
+            0,
             false,
             rng
         )
@@ -15,7 +15,7 @@
         @test env.action_space.span == [1, 2, 3]
         @test typeof(env.state) == CPRL.CPGraph
         @test env.action == 1
-        @test env.reward == -1 
+        @test env.reward == 0
         @test env.done == false 
     end
 
@@ -36,7 +36,7 @@
         @test env.action_space.span == [2, 3]
         @test typeof(env.state) == CPRL.CPGraph
         @test env.action == 1
-        @test env.reward == -1 
+        @test env.reward == 0
         @test env.done == false 
     end
 
@@ -67,10 +67,10 @@
         env = CPRL.RLEnv(model)
 
         CPRL.set_reward!(env, :Infeasible)
-        @test env.reward == -6
+        @test env.reward == 0
 
         CPRL.set_reward!(env, :FoundSolution)
-        @test env.reward == -1
+        @test env.reward == 0
 
     end
 
@@ -90,7 +90,7 @@
         CPRL.reset!(env)
 
         @test env.done == false
-        @test env.reward == -1
+        @test env.reward == 0
     end
 
     @testset "sync_state!()" begin
@@ -160,7 +160,7 @@
 
         obs = CPRL.observe!(env, model, x)
 
-        @test obs.reward == -1
+        @test obs.reward == 0
         @test obs.terminal == false 
         @test obs.legal_actions == [2, 3]
         @test obs.legal_actions_mask == [true, true]
@@ -169,7 +169,7 @@
 
         obs = CPRL.observe!(env, model, x)
 
-        @test obs.reward == -1
+        @test obs.reward == 0
         @test obs.terminal == false 
         @test obs.legal_actions == [3]
         @test obs.legal_actions_mask == [false, true]
