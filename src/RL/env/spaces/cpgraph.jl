@@ -90,7 +90,7 @@ function to_array(cpg::CPGraph)::Array{Float32, 2}
     var_id = cpg.variable_id
 
     var_code = zeros(Float32, size(adj, 1))
-    var_code[1] = Float32(var_id)
+    var_code[var_id] = 1.
 
     return hcat(adj, features, var_code)
 end
