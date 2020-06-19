@@ -3,6 +3,9 @@ using ReinforcementLearning
 const RL = ReinforcementLearning
 using Flux
 
+using Plots
+gr()
+
 problem_generator = Dict(
     :coloring => CPRL.fill_with_coloring!
 )
@@ -18,20 +21,24 @@ agent = RL.Agent(
                 approximator = RL.NeuralNetworkApproximator(
                     model = Chain(
                         Flux.flatten,
-                        Dense(46*93, 100, Flux.relu),
+                        Dense(46*93, 1000, Flux.relu),
+                        Dense(1000, 500, Flux.relu),
+                        Dense(500, 100, Flux.relu),
                         Dense(100, 50, Flux.relu),
                         Dense(50, 10, Flux.relu)
                     ),
-                    optimizer = ADAM(0.001f0)
+                    optimizer = ADAM(0.0005f0)
                 ),
                 target_approximator = RL.NeuralNetworkApproximator(
                     model = Chain(
                         Flux.flatten,
-                        Dense(46*93, 100, Flux.relu),
+                        Dense(46*93, 1000, Flux.relu),
+                        Dense(1000, 500, Flux.relu),
+                        Dense(500, 100, Flux.relu),
                         Dense(100, 50, Flux.relu),
                         Dense(50, 10, Flux.relu)
                     ),
-                    optimizer = ADAM(0.001f0)
+                    optimizer = ADAM(0.0005f0)
                 ),
                 loss_func = huber_loss,
                 stack_size = nothing,
@@ -40,7 +47,7 @@ agent = RL.Agent(
                 update_horizon = 1,
                 min_replay_history = 1,
                 update_freq = 1,
-                target_update_freq = 100,
+                target_update_freq = 50,
                 seed = 22,
             ), 
             explorer = RL.EpsilonGreedyExplorer(
@@ -56,7 +63,7 @@ agent = RL.Agent(
             )
         ),
         trajectory = RL.CircularCompactSARTSATrajectory(
-            capacity = 1000, 
+            capacity = 500, 
             state_type = Float32, 
             state_size = (46, 93, 1),
             action_type = Int,
@@ -90,14 +97,18 @@ bestsolutions, nodevisited = CPRL.train!(
     learnedHeuristic=learnedHeuristic, 
     problem_type=:coloring,
     problem_params=coloring_params,
-    nb_episodes=5,
+    nb_episodes=100,
     strategy=CPRL.DFSearch,
     variableHeuristic=selectNonObjVariable
 )
 
 final_params = params(learnedHeuristic.agent.policy.learner.approximator.model)
 
-@assert final_params != initial_params
-
 println(bestsolutions)
 println(nodevisited)
+
+# plot 
+x = 1:length(nodevisited)
+
+p = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited")
+display(p)
