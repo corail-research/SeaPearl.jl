@@ -50,15 +50,6 @@ Take the CPGraph and output the q_values. Not that this could be changed a lot i
 Here we do not put a mask. We let the mask to the RL.jl but this is still under debate !
 """
 function (nn::FixedOutputGCN)(x::AbstractArray{Float32,4})
-    # N = size(x, 4)
-    # probs = zeros(Float32, 1, size(nn.outputLayer.W)[1], size(x, 3), N)
-    # for j in 1:size(x, 3)
-    #     for i in 1:N
-    #     # println("(nn::FixedOutputGCN)(x::AbstractArray{Float32,4}): ", i, " ", j)
-    #     probs[1, :, j, i] = nn(x[:, :, j, i])
-    #     end
-    # end
-    # println("(nn::FixedOutputGCN)(x::AbstractArray{Float32,4}):end ", probs)
     y = nn(x[:, :, 1, 1])
     reshape(y, size(y, 1), size(y, 2), 1, 1)
 end
@@ -66,11 +57,11 @@ function (nn::FixedOutputGCN)(x::AbstractArray{Float32,3})
     N = size(x)[end]
     probs = zeros(Float32, 1, size(nn.outputLayer.W)[1], N)
     for i in 1:N
-        println("(nn::FixedOutputGCN)(x::AbstractArray{Float32,3}): ", i)
         probs[1, :, i] = nn(x[:, :, i])
     end
     probs
 end
+
 function (nn::FixedOutputGCN)(x::AbstractArray{Float32,2})
     # Create the CPGraph
     cpg = CPGraph(x)
@@ -87,11 +78,11 @@ function (nn::FixedOutputGCN)(x::AbstractArray{Float32,2})
     variableFeatures = GeometricFlux.feature(featuredGraph)[:, variableId+1]
 
     # get through the dense layers 
-    println("Variable features after GCNConvs :  ", variableFeatures)
+    # println("Variable features after GCNConvs :  ", variableFeatures)
     variableFeatures = nn.denseLayer(variableFeatures)
-    println("After first dense layer :  ", variableFeatures)
+    # println("After first dense layer :  ", variableFeatures)
     valueProbabilities = nn.outputLayer(variableFeatures)
-    println("After output layer :  ", valueProbabilities)
+    # println("After output layer :  ", valueProbabilities)
 
     # output a vector (of values of the possibles values)
     # println("size(Flux.softmax(valueProbabilities))", size(Flux.softmax(valueProbabilities)))
