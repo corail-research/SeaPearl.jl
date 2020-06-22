@@ -32,6 +32,13 @@ struct EndingPhase <: LearningProcess end
 (valueSelection::BasicHeuristic)(::EndingPhase, model::Union{Nothing, CPModel}=nothing, x::Union{Nothing, AbstractIntVar}=nothing, current_status::Union{Nothing, Symbol}=nothing) = nothing
 
 # Implementations for a learned heuristic
+
+"""
+    (valueSelection::LearnedHeuristic)(::InitializingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
+
+Create an RL environment and a first observation. Finally make the agent call the process of 
+the pre episode stage (basically making sure that the buffer is empty).
+"""
 function (valueSelection::LearnedHeuristic)(::InitializingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
     # create the environment
     valueSelection.current_env = RLEnv(model::CPModel)
@@ -41,6 +48,11 @@ function (valueSelection::LearnedHeuristic)(::InitializingPhase, model::CPModel,
     # eventually hook(PRE_EPISODE_STAGE, agent, env, obs)
 end
 
+"""
+    (valueSelection::LearnedHeuristic)(::BackTrackingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
+
+Set reward in case if needed.
+"""
 function (valueSelection::LearnedHeuristic)(::BackTrackingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
     # the RL EPISODE continue
     # change reward in case of :Unfeasible status (I would like it for :FoundSolution if possible)
@@ -49,6 +61,12 @@ function (valueSelection::LearnedHeuristic)(::BackTrackingPhase, model::CPModel,
     # when we go back to expandDfs, env will be able to add the reward to the observation
 end
 
+"""
+    (valueSelection::LearnedHeuristic)(::DecisionPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
+
+Observe, store useful informations in the buffer with agent(POST_ACT_STAGE, ...) and take a decision
+with the call of agent(PRE_ACT_STAGE).
+"""
 function (valueSelection::LearnedHeuristic)(::DecisionPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
     obs = observe!(valueSelection.current_env, model, x)
     if model.statistics.numberOfNodes > 1
@@ -61,6 +79,11 @@ function (valueSelection::LearnedHeuristic)(::DecisionPhase, model::CPModel, x::
     #println("Assign value : ", v, " to variable : ", x)
 end
 
+"""
+    (valueSelection::LearnedHeuristic)(::EndingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
+
+Set the final reward, do last observation.
+"""
 function (valueSelection::LearnedHeuristic)(::EndingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
     # the RL EPISODE stops
     set_done!(valueSelection.current_env, true)
