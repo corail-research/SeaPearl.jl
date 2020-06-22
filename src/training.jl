@@ -48,7 +48,7 @@ function train!(;
     println(" -------------- START TRAINING : -------------- ")
 
     for i in 1:nb_episodes
-        println(" --- EPISODE : ", i)
+        print(" --- EPISODE : ", i)
 
         empty!(model)
 
@@ -58,6 +58,7 @@ function train!(;
 
         push!(bestsolutions, model.objectiveBound + 1)
         push!(nodevisited, model.statistics.numberOfNodes)
+        println(", Visited nodes: ", model.statistics.numberOfNodes)
     end
 
     bestsolutions, nodevisited

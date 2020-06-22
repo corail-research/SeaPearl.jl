@@ -107,7 +107,7 @@ function triggerFoundSolution!(model::CPModel)
     push!(model.solutions, solution)
 
     if !isnothing(model.objective)
-        println("Solution found! Current objective: ", assignedValue(model.objective))
+        # println("Solution found! Current objective: ", assignedValue(model.objective))
         tightenObjective!(model)
     end
 end
