@@ -7,17 +7,8 @@ at each branching. This strategy, starting at the root node, will explore as dee
 """
 function search!(model::CPModel, ::Type{DFSearch}, variableHeuristic, valueSelection::ValueSelection=BasicHeuristic())
 
-    if require_env(valueSelection)
-        # create the environment
-        valueSelection.current_env = RLEnv(model::CPModel)
-        false_x = first(values(model.variables))
-        obs = observe!(valueSelection.current_env, model, false_x)
-        valueSelection.agent(RL.PRE_EPISODE_STAGE, obs) # just empty the buffer
-        # eventually hook(PRE_EPISODE_STAGE, agent, env, obs)
-    end
-
-    # the first decision will be taken after the first call at the fixPoint!
-    # consequently, we do nothing here nothing here 
+    # create env and get first observation
+    valueSelection(InitializingPhase(), model, nothing, nothing)
 
     toCall = Stack{Function}()
 
@@ -30,30 +21,15 @@ function search!(model::CPModel, ::Type{DFSearch}, variableHeuristic, valueSelec
             break
         end
 
-        # the RL EPISODE continue
-        # change reward in case of :Unfeasible status (I would like it for :FoundSolution if possible)
-        # if is unnecessary but i keep it for visual issue atm 
-        if require_env(valueSelection) && currentStatus in [:Unfeasible, :FoundSolution]
-            set_reward!(valueSelection.current_env, currentStatus)
-            # when we go back to expandDfs, env will be able to add the reward to the observation
-        end
+        # set reward if necessary
+        valueSelection(BackTrackingPhase(), model, nothing, currentStatus)
 
         currentProcedure = pop!(toCall)
         currentStatus = currentProcedure(model)
     end
 
-    if require_env(valueSelection)
-        # the RL EPISODE stops
-        set_done!(valueSelection.current_env, true)
-        set_final_reward!(valueSelection.current_env, model)
-        obs = observe!(valueSelection.current_env, model, false_x)
-    
-        valueSelection.agent(RL.POST_ACT_STAGE, obs) # get terminal and reward
-        # eventually: hook(POST_ACT_STAGE, agent, env, obs, action)
-    
-        valueSelection.agent(RL.POST_EPISODE_STAGE, obs)  # let the agent see the last observation
-        # eventually hook(POST_EPISODE_STAGE, agent, env, obs)
-    end
+    # set final reward and last observation
+    valueSelection(EndingPhase(), model, nothing, nothing)
 
     if currentStatus == :NodeLimitStop || currentStatus == :SolutionLimitStop
         return currentStatus
@@ -94,27 +70,11 @@ function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
         return :Feasible
     end
 
-    # All the transformations due to the next action have been done 
-
     # Variable selection
     x = variableHeuristic(model)
 
-    if require_env(valueSelection)
-        obs = observe!(valueSelection.current_env, model, x)
-        if model.statistics.numberOfNodes > 1
-            valueSelection.agent(RL.POST_ACT_STAGE, obs) # get terminal and reward
-            # eventually: hook(POST_ACT_STAGE, agent, env, obs, action)
-        end
-        v = valueSelection.agent(RL.PRE_ACT_STAGE, obs) # choose action, store it with the state
-        # eventually hook(PRE_ACT_STAGE, agent, env, obs, action)
-
-        #println("Assign value : ", v, " to variable : ", x)
-    else
-        v = valueSelection.selectValue(x)
-    end
-    # here we should check if we are still in the game ! But by definition, we are in it.
-    # the hard part are the :Infeasible, as they are not here even if still in the game !
-
+    # Value selection
+    v = valueSelection(DecisionPhase(), model, x, nothing)
 
     push!(toCall, (model) -> (restoreState!(model.trailer); :Feasible))
     push!(toCall, (model) -> (remove!(x.domain, v); expandDfs!(toCall, model, variableHeuristic, valueSelection, getOnDomainChange(x))))
