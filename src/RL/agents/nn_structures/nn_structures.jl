@@ -15,3 +15,4 @@ function build_model(structure::Type{T}, args::NNArgs) where {T <: NNStructure}
 end
 
 include("fixed_output_gcn.jl")
+include("fixed_output_gat.jl")
