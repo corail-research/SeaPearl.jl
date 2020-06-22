@@ -1,8 +1,6 @@
 using LinearAlgebra
 using SparseArrays
 
-export CPGraphSpace
-
 mutable struct CPGraph
     featuredgraph::GeometricFlux.FeaturedGraph
     variable_id::Int64
@@ -33,6 +31,7 @@ function CPGraph(array::Array{Float32, 2})::CPGraph
     dense_adj = array[:, 1:n]
     features = array[:, n+1:end-1]
     var_code = array[:, end]
+    var_code = findall(x -> x == 1, var_code)
 
     fg = GeometricFlux.FeaturedGraph(SparseArrays.sparse(convert(Array{Int64, 2}, dense_adj)), features)
     return CPGraph(fg, convert(Int64, var_code[1]))
