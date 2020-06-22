@@ -36,27 +36,15 @@ agent = RL.Agent(
             learner = CPRL.CPDQNLearner(
                 approximator = RL.NeuralNetworkApproximator(
                     model = CPRL.build_model(CPRL.FixedOutputGCN, fixedGCNargs),
-                    # model = Chain(
-                    #     Flux.flatten,
-                    #     Dense(state_size[1]*state_size[2], 100, Flux.relu),
-                    #     Dense(100, 50, Flux.relu),
-                    #     Dense(50, 10, Flux.relu)
-                    # ),
-                    optimizer = ADAM(0.001f0)
+                    optimizer = ADAM(0.0005f0)
                 ),
                 target_approximator = RL.NeuralNetworkApproximator(
                     model = CPRL.build_model(CPRL.FixedOutputGCN, fixedGCNargs),
-                    # model = Chain(
-                    #     Flux.flatten,
-                    #     Dense(state_size[1]*state_size[2], 100, Flux.relu),
-                    #     Dense(100, 50, Flux.relu),
-                    #     Dense(50, 10, Flux.relu)
-                    # ),
-                    optimizer = ADAM(0.001f0)
+                    optimizer = ADAM(0.0005f0)
                 ),
                 loss_func = huber_loss,
                 stack_size = nothing,
-                γ = 0.99f0,
+                γ = 0.999f0,
                 batch_size = 1,
                 update_horizon = 1,
                 min_replay_history = 1,
@@ -69,7 +57,7 @@ agent = RL.Agent(
                 kind = :exp,
                 ϵ_init = 1.0,
                 warmup_steps = 0,
-                decay_steps = 500,
+                decay_steps = 400,
                 step = 1,
                 is_break_tie = false, 
                 #is_training = true,
@@ -104,6 +92,9 @@ function selectNonObjVariable(model::CPRL.CPModel)
         end
     end
     # @assert !isnothing(selectedVar)
+    if isnothing(selectedVar)
+        return model.variables["numberOfColors"]
+    end
     return selectedVar
 end
 
@@ -143,7 +134,7 @@ function trytrain(nepisodes::Int)
     # plot 
     x = 1:length(nodevisited)
 
-    p = plot(x, [nodevisited linebasic], xlabel="Episode", ylabel="Number of nodes visited", ylims = (0,maximum(nodevisited)))
+    p = plot(x, [nodevisited linebasic], xlabel="Episode", ylabel="Number of nodes visited", ylims = (0,maximum(nodevisited)+20))
     display(p)
 end
 
