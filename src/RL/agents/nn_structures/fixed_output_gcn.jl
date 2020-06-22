@@ -74,19 +74,3 @@ function (nn::FixedOutputGCN)(x::Array{Float32, 3})
     # output a vector (of values of the possibles values)
     return Flux.softmax(valueProbabilities)
 end
-
-"""
-function (nn::FixedOutputGCN)(x::Array{Float32, 4})
-    batch_size = size(x)[end]
-    res = []
-    for i in 1:batch_size
-        push!(res, nn(x[:, :, :, i]))
-    end
-    reshape(res, size(res[1])..., batch_size)
-end
-"""
-
-function (nn::FixedOutputGCN)(obs::NamedTuple{(:reward, :terminal, :state, :legal_actions, :legal_actions_mask)})
-    return nn(obs.state)
-end
-

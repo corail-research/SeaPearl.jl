@@ -1,9 +1,37 @@
-using LinearAlgebra
 using SparseArrays
 
 mutable struct CPGraph
     featuredgraph::GeometricFlux.FeaturedGraph
     variable_id::Int64
+end
+
+"""
+    featurize(g::CPLayerGraph)
+
+Create features that will be associated to every node of the graph. This is highly 
+simplistic at the moment but will/must be improved later. Will be probably use the cpmodel 
+as argument in futur versions.
+"""
+function featurize(g::CPLayerGraph)
+    features = zeros(Float32, nv(g), nv(g))
+    for i in 1:size(features)[1]
+        features[i, i] = 1.0f0
+    end
+    features
+end
+
+"""
+    CPGraph(cplayergraph::CPLayerGraph, var_id::Int64)
+
+Construct a CPGraph from the CPLayerGraph and the variable we want to branch on. 
+Here we will define how the node feature will look like. Thus, it might be transformed later.
+"""
+function CPGraph(g::CPLayerGraph, variable_id::Int64)
+    sparse_adj = LightGraphs.LinAlg.adjacency_matrix(g)
+    # temporary use of a one hot encoder for each node. 
+    feature = featurize(g)
+    
+    CPGraph(GeometricFlux.FeaturedGraph(sparse_adj, feature), variable_id)
 end
 
 """
@@ -13,12 +41,8 @@ Construct a CPGraph from the CPLayerGraph and the variable we want to branch on.
 Here we will define how the node feature will look like. Thus, it might be transformed later.
 """
 function CPGraph(g::CPLayerGraph, x::AbstractIntVar)
-    sparse_adj = LightGraphs.LinAlg.adjacency_matrix(g)
-    # temporary use of a one hot encoder for each node. 
-    feature = Matrix{Float32}(I, nv(g), nv(g))
     variable_id = index(g, VariableVertex(x))
-    
-    CPGraph(GeometricFlux.FeaturedGraph(sparse_adj, feature), variable_id)
+    CPGraph(g, variable_id)
 end
 
 """
@@ -35,20 +59,6 @@ function CPGraph(array::Array{Float32, 2})::CPGraph
 
     fg = GeometricFlux.FeaturedGraph(SparseArrays.sparse(convert(Array{Int64, 2}, dense_adj)), features)
     return CPGraph(fg, convert(Int64, var_code[1]))
-end
-
-"""
-    CPGraph(cplayergraph::CPLayerGraph, var_id::Int64)
-
-Construct a CPGraph from the CPLayerGraph and the variable we want to branch on. 
-Here we will define how the node feature will look like. Thus, it might be transformed later.
-"""
-function CPGraph(g::CPLayerGraph, var_id::Int64)
-    sparse_adj = LightGraphs.LinAlg.adjacency_matrix(g)
-    # temporary use of a one hot encoder for each node. 
-    feature = Matrix{Float32}(I, nv(g), nv(g))
-    
-    CPGraph(GeometricFlux.FeaturedGraph(sparse_adj, feature), var_id)
 end
 
 #Base.ndims(g::CPGraph) = ndims(feature(g.featuredgraph))
