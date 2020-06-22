@@ -22,23 +22,19 @@ agent = RL.Agent(
                     model = Chain(
                         Flux.flatten,
                         Dense(46*93, 1000, Flux.relu),
-                        Dense(1000, 500, Flux.relu),
-                        Dense(500, 100, Flux.relu),
-                        Dense(100, 50, Flux.relu),
-                        Dense(50, 10, Flux.relu)
+                        Dense(1000, 100, Flux.relu),
+                        Dense(100, 10, Flux.relu)
                     ),
-                    optimizer = ADAM(0.001f0)
+                    optimizer = ADAM(0.0005f0)
                 ),
                 target_approximator = RL.NeuralNetworkApproximator(
                     model = Chain(
                         Flux.flatten,
                         Dense(46*93, 1000, Flux.relu),
-                        Dense(1000, 500, Flux.relu),
-                        Dense(500, 100, Flux.relu),
-                        Dense(100, 50, Flux.relu),
-                        Dense(50, 10, Flux.relu)
+                        Dense(1000, 100, Flux.relu),
+                        Dense(100, 10, Flux.relu)
                     ),
-                    optimizer = ADAM(0.001f0)
+                    optimizer = ADAM(0.0005f0)
                 ),
                 loss_func = huber_loss,
                 stack_size = nothing,
@@ -99,7 +95,7 @@ bestsolutions, nodevisited = CPRL.multi_train!(
     #learnedHeuristic=learnedHeuristic,
     problem_type=:coloring,
     problem_params=coloring_params,
-    nb_episodes=100,
+    nb_episodes=60,
     strategy=CPRL.DFSearch,
     variableHeuristic=selectNonObjVariable
 )
