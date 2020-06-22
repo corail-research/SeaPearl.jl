@@ -112,7 +112,7 @@ end
 function trytrain(nepisodes::Int)
     
     bestsolutions, nodevisited = CPRL.train!(
-        learnedHeuristic=learnedHeuristic, 
+        valueSelection=learnedHeuristic, 
         problem_type=:filecoloring,
         problem_params=coloring_params,
         nb_episodes=nepisodes,
@@ -125,7 +125,7 @@ function trytrain(nepisodes::Int)
     println(nodevisited)
 
     bestsolutions, nodevisitedbasic = CPRL.train!(
-        learnedHeuristic=basicHeuristic, 
+        valueSelection=basicHeuristic, 
         problem_type=:filecoloring,
         problem_params=coloring_params,
         nb_episodes=1,

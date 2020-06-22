@@ -23,17 +23,20 @@ prevented at the moment).
 We could rename it experiment and add a train::Bool argument.
 """
 function train!(;
-        learnedHeuristic::LearnedHeuristic, 
+        valueSelection::ValueSelection, 
         problem_type::Symbol=:coloring,
         problem_params::Dict=coloring_params,
         nb_episodes::Int64=10,
         strategy::Type{DFSearch}=DFSearch,
         variableHeuristic=selectVariable
     )
-    learnedHeuristic.fitted_problem = :coloring
-    learnedHeuristic.fitted_strategy = strategy
-    # we could add more information later ...
 
+    if isa(valueSelection, LearnedHeuristic)
+        valueSelection.fitted_problem = :coloring
+        valueSelection.fitted_strategy = strategy
+        # we could add more information later ...
+    end
+    
     trailer = Trailer()
     model = CPModel(trailer)
 
@@ -51,7 +54,7 @@ function train!(;
 
         fill_with_generator!(model, problem_params["nb_nodes"], problem_params["density"])
 
-        search!(model, strategy, variableHeuristic, learnedHeuristic)
+        search!(model, strategy, variableHeuristic, valueSelection)
 
         push!(bestsolutions, model.objectiveBound + 1)
         push!(nodevisited, model.statistics.numberOfNodes)
