@@ -21,33 +21,43 @@ coloring_params = Dict(
     "density" => 1.5
 )
 
+fixedGCNargs = CPRL.ArgsFixedOutputGCN(
+    maxDomainSize= 10,
+    numInFeatures = 46,
+    firstHiddenGCN = 20,
+    secondHiddenGCN = 20,
+    hiddenDense = 20
+)
+
 state_size = (46,93, 1)
 
 agent = RL.Agent(
         policy = RL.QBasedPolicy(
-            learner = RL.DQNLearner(
+            learner = CPRL.CPDQNLearner(
                 approximator = RL.NeuralNetworkApproximator(
-                    model = Chain(
-                        Flux.flatten,
-                        Dense(state_size[1]*state_size[2], 100, Flux.relu),
-                        Dense(100, 50, Flux.relu),
-                        Dense(50, 10, Flux.relu)
-                    ),
+                    model = CPRL.build_model(CPRL.FixedOutputGCN, fixedGCNargs),
+                    # model = Chain(
+                    #     Flux.flatten,
+                    #     Dense(state_size[1]*state_size[2], 100, Flux.relu),
+                    #     Dense(100, 50, Flux.relu),
+                    #     Dense(50, 10, Flux.relu)
+                    # ),
                     optimizer = ADAM(0.001f0)
                 ),
                 target_approximator = RL.NeuralNetworkApproximator(
-                    model = Chain(
-                        Flux.flatten,
-                        Dense(state_size[1]*state_size[2], 500, Flux.relu),
-                        Dense(500, 100, Flux.relu),
-                        Dense(100, 10, Flux.relu)
-                    ),
+                    model = CPRL.build_model(CPRL.FixedOutputGCN, fixedGCNargs),
+                    # model = Chain(
+                    #     Flux.flatten,
+                    #     Dense(state_size[1]*state_size[2], 100, Flux.relu),
+                    #     Dense(100, 50, Flux.relu),
+                    #     Dense(50, 10, Flux.relu)
+                    # ),
                     optimizer = ADAM(0.001f0)
                 ),
                 loss_func = huber_loss,
                 stack_size = nothing,
                 γ = 0.99f0,
-                batch_size = 32,
+                batch_size = 1,
                 update_horizon = 1,
                 min_replay_history = 1,
                 update_freq = 1,
@@ -104,7 +114,7 @@ function trytrain()
         learnedHeuristic=learnedHeuristic, 
         problem_type=:filecoloring,
         problem_params=coloring_params,
-        nb_episodes=50,
+        nb_episodes=1,
         strategy=CPRL.DFSearch,
         variableHeuristic=selectNonObjVariable
     )
