@@ -17,11 +17,7 @@ mutable struct RLEnv <: RL.AbstractEnv
     reward::Int64
     done::Bool
     rng::Random.MersenneTwister # random number generator
-
-    function RLEnv(action_space::RL.DiscreteSpace{Array{Int64,1}}, 
-                   state::CPGraph, action::Int64, reward::Int64, done::Bool, rng::Random.MersenneTwister)
-        new(action_space, state, action, reward, done, rng) 
-    end
+    
 end
 
 """
@@ -91,17 +87,6 @@ function set_final_reward!(env::RLEnv, model::CPModel)
         env.reward = 0
     end
     nothing
-end
-
-"""
-    reset!(env::RLEnv)
-
-Not sure this one will survive
-"""
-function reset!(env::RLEnv)
-    env.done = false
-    env.reward = 0
-    nothing 
 end
 
 """

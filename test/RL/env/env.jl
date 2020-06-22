@@ -78,21 +78,6 @@
         nothing
     end
 
-    @testset "reset!()" begin
-        trailer = CPRL.Trailer()
-        model = CPRL.CPModel(trailer)
-
-        env = CPRL.RLEnv(model)
-
-        CPRL.set_reward!(env, :FoundSolution)
-        CPRL.set_done!(env, true)
-
-        CPRL.reset!(env)
-
-        @test env.done == false
-        @test env.reward == 0
-    end
-
     @testset "sync_state!()" begin
         trailer = CPRL.Trailer()
         model = CPRL.CPModel(trailer)
