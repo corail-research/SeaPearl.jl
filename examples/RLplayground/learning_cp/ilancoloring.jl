@@ -108,13 +108,14 @@ function selectNonObjVariable(model::CPRL.CPModel)
 end
 
 
-function trytrain()
+
+function trytrain(nepisodes::Int)
     
     bestsolutions, nodevisited = CPRL.train!(
         learnedHeuristic=learnedHeuristic, 
         problem_type=:filecoloring,
         problem_params=coloring_params,
-        nb_episodes=1,
+        nb_episodes=nepisodes,
         strategy=CPRL.DFSearch,
         variableHeuristic=selectNonObjVariable
     )
@@ -142,8 +143,7 @@ function trytrain()
     # plot 
     x = 1:length(nodevisited)
 
-    p = plot(x, [nodevisited linebasic], xlabel="Episode", ylabel="Number of nodes visited", ylims = (0,100))
+    p = plot(x, [nodevisited linebasic], xlabel="Episode", ylabel="Number of nodes visited", ylims = (0,maximum(nodevisited)))
     display(p)
 end
-
 
