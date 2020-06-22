@@ -117,7 +117,7 @@ function trytrain(nepisodes::Int)
 
     bestsolutions, nodevisitedbasic = CPRL.train!(
         valueSelection=basicHeuristic, 
-        problem_type=:filecoloring,
+        problem_type=:coloring,
         problem_params=coloring_params,
         nb_episodes=1,
         strategy=CPRL.DFSearch,
