@@ -22,7 +22,8 @@ agent = RL.Agent(
                     model = Chain(
                         Flux.flatten,
                         Dense(46*93, 1000, Flux.relu),
-                        Dense(1000, 100, Flux.relu),
+                        Dense(1000, 500, Flux.relu),
+                        Dense(500, 100, Flux.relu),
                         Dense(100, 50, Flux.relu),
                         Dense(50, 10, Flux.relu)
                     ),
@@ -32,7 +33,8 @@ agent = RL.Agent(
                     model = Chain(
                         Flux.flatten,
                         Dense(46*93, 1000, Flux.relu),
-                        Dense(1000, 100, Flux.relu),
+                        Dense(1000, 500, Flux.relu),
+                        Dense(500, 100, Flux.relu),
                         Dense(100, 50, Flux.relu),
                         Dense(50, 10, Flux.relu)
                     ),
@@ -76,6 +78,9 @@ agent = RL.Agent(
 
 learnedHeuristic = CPRL.LearnedHeuristic(agent)
 
+selectMin(x::CPRL.IntVar) = CPRL.minimum(x.domain)
+basicHeuristic = CPRL.BasicHeuristic(selectMin)
+
 function selectNonObjVariable(model::CPRL.CPModel)
     selectedVar = nothing
     minSize = typemax(Int)
@@ -89,24 +94,32 @@ function selectNonObjVariable(model::CPRL.CPModel)
     return selectedVar
 end
 
-initial_params = deepcopy(params(learnedHeuristic.agent.policy.learner.approximator.model))
-
-bestsolutions, nodevisited = CPRL.train!(
-    learnedHeuristic=learnedHeuristic, 
+bestsolutions, nodevisited = CPRL.multi_train!(
+    ValueSelectionArray=[learnedHeuristic, basicHeuristic], 
+    #learnedHeuristic=learnedHeuristic,
     problem_type=:coloring,
     problem_params=coloring_params,
-    nb_episodes=80,
+    nb_episodes=100,
     strategy=CPRL.DFSearch,
     variableHeuristic=selectNonObjVariable
 )
 
-final_params = params(learnedHeuristic.agent.policy.learner.approximator.model)
-
 println(bestsolutions)
 println(nodevisited)
 
-# plot 
+
+"""
 x = 1:length(nodevisited)
 
 p = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited")
+
+
+"""
+# plot 
+x = 1:length(nodevisited[:, 1])
+
+p = plot(x, nodevisited[:, 1], xlabel="Episode", ylabel="Number of nodes visited")
+plot!(p, x, nodevisited[:, 2])
+
+
 display(p)
