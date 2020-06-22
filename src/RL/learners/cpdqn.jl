@@ -104,11 +104,24 @@ function RLBase.update!(learner::CPDQNLearner, batch)
     )
     actions = CartesianIndex.(batch.actions, 1:batch_size)
 
+    # println("Flux.params(Q)", Flux.params(Q))
+
     gs = gradient(Flux.params(Q)) do
-        q = batch_estimate(Q, states)[actions]
-        q′ = dropdims(Base.maximum(batch_estimate(Qₜ, next_states); dims = 1), dims = 1)
+        println()
+        println("size(states)", size(states))
+        println("Q(states[:, :, 1, 1])", size(Q(states[:, :, 1, 1])))
+        println("actions", actions)
+        println()
+
+
+        q = Q(states[:, :, 1, 1])[actions]
+
+
+        q′ = dropdims(Base.maximum(Q(next_states); dims = 1), dims = 1)
         G = rewards .+ γ^update_horizon .* (1 .- terminals) .* q′
         loss_func(G, q)
+
+        # Q(states[:, :, 1, 1])[actions]
     end
 
     RLBase.update!(Q, gs)
