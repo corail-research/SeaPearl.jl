@@ -17,19 +17,19 @@ coloring_file_params = Dict(
 )
 
 coloring_params = Dict(
-    "nb_nodes" => 10,
+    "nb_nodes" => 15,
     "density" => 1.5
 )
 
 fixedGCNargs = CPRL.ArgsFixedOutputGCN(
-    maxDomainSize= 10,
-    numInFeatures = 46,
+    maxDomainSize= 15,
+    numInFeatures = 68,
     firstHiddenGCN = 20,
     secondHiddenGCN = 20,
     hiddenDense = 20
 )
 
-state_size = (46,93, 1)
+state_size = (fixedGCNargs.numInFeatures,fixedGCNargs.numInFeatures*2+1, 1)
 
 agent = RL.Agent(
         policy = RL.QBasedPolicy(
@@ -104,7 +104,7 @@ function trytrain(nepisodes::Int)
     
     bestsolutions, nodevisited = CPRL.train!(
         valueSelection=learnedHeuristic, 
-        problem_type=:filecoloring,
+        problem_type=:coloring,
         problem_params=coloring_params,
         nb_episodes=nepisodes,
         strategy=CPRL.DFSearch,
