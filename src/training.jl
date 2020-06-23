@@ -86,7 +86,7 @@ function multi_train!(;
     )
     for valueSelection in ValueSelectionArray
         if isa(valueSelection, LearnedHeuristic)
-            valueSelection.fitted_problem = :coloring
+            valueSelection.fitted_problem = problem_type
             valueSelection.fitted_strategy = strategy
             # we could add more information later ...
         end
