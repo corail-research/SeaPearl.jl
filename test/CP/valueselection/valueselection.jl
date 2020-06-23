@@ -8,13 +8,13 @@ using Flux
 
     end
 
-    @testset "selectValue function" begin 
+    @testset "BasicHeuristic default function" begin 
         trailer = CPRL.Trailer()
         model = CPRL.CPModel(trailer)
 
         x = CPRL.IntVar(2, 6, "x", trailer)
-
-        @test CPRL.selectValue(x) == 6
+        heuristic = CPRL.BasicHeuristic()
+        @test heuristic.selectValue(x) == 6
     end
 
     @testset "BasicHeuristic" begin 
