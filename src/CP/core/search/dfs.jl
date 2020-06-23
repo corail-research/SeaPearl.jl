@@ -1,22 +1,19 @@
-abstract type DFSearch <: SearchStrategy end
 
 """
-    search!(model::CPModel, ::Type{DFSearch}, variableHeuristic)
+    search!(model::CPModel, ::Type{DFSearch}, variableHeuristic, valueSelection::ValueSelection=BasicHeuristic())
 
 Perform a Depth-First search in the `model` using `variableHeuristic` to choose which domain will be changed
 at each branching. This strategy, starting at the root node, will explore as deep as possible before backtracking.
 """
-function search!(model::CPModel, ::Type{DFSearch}, variableHeuristic)
+function search!(model::CPModel, ::Type{DFSearch}, variableHeuristic, valueSelection::ValueSelection=BasicHeuristic())
 
-    # the agent will probably be given as a parameter of the search function
-
-    # create the environment (will be under valueSelection later)
-    # env = RLEnv(model::CPModel)
+    # create env and get first observation
+    valueSelection(InitializingPhase(), model, nothing, nothing)
 
     toCall = Stack{Function}()
 
     # Starting at the root node with an empty stack
-    currentStatus = expandDfs!(toCall, model, variableHeuristic)
+    currentStatus = expandDfs!(toCall, model, variableHeuristic, valueSelection)
     
     while !isempty(toCall)
         # Stop right away if reached a limit
@@ -24,9 +21,15 @@ function search!(model::CPModel, ::Type{DFSearch}, variableHeuristic)
             break
         end
 
+        # set reward if necessary
+        valueSelection(BackTrackingPhase(), model, nothing, currentStatus)
+
         currentProcedure = pop!(toCall)
         currentStatus = currentProcedure(model)
     end
+
+    # set final reward and last observation
+    valueSelection(EndingPhase(), model, nothing, nothing)
 
     if currentStatus == :NodeLimitStop || currentStatus == :SolutionLimitStop
         return currentStatus
@@ -41,12 +44,12 @@ function search!(model::CPModel, ::Type{DFSearch}, variableHeuristic)
 end
 
 """
-    expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::Function, newConstraints=nothing)
+    expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::Function, valueSelection::ValueSelection, newConstraints=nothing)
 
 Add procedures to `toCall`, that, called in the stack order (LIFO) with the `model` parameter, will perform a DFS in the graph.
 Some procedures will contain a call to `expandDfs!` itself.
 """
-function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::Function, newConstraints=nothing)
+function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::Function, valueSelection::ValueSelection, newConstraints=nothing)
     # Dealing with limits
     model.statistics.numberOfNodes += 1
     if !belowNodeLimit(model)
@@ -63,35 +66,22 @@ function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
     end
     if solutionFound(model)
         triggerFoundSolution!(model)
+        #return :FoundSolution
         return :Feasible
     end
 
     # Variable selection
     x = variableHeuristic(model)
 
-    # in our framework, the changesare made by the cpmodel, thus, the env do not launch the 
-    # changes, that is why there is no env(action) here but there is a synchronisation of the env with
-    # the cpmodel: sync!(env, model, x)
-    # sync!(env, model, x)
-
-    # obs = observe(env, x)
-    # agent(POST_ACT_STAGE, obs) # get terminal and reward
-    # eventually: hook(POST_ACT_STAGE, agent, env, obs, action)
-
-    # v = agent(PRE_ACT_STAGE, obs) # choose action, store it with the state
-    # eventually hook(PRE_ACT_STAGE, agent, env, obs, action)
-
-    
     # Value selection
-    v = selectValue(x) # will disappear
-
+    v = valueSelection(DecisionPhase(), model, x, nothing)
 
     push!(toCall, (model) -> (restoreState!(model.trailer); :Feasible))
-    push!(toCall, (model) -> (remove!(x.domain, v); expandDfs!(toCall, model, variableHeuristic, getOnDomainChange(x))))
+    push!(toCall, (model) -> (remove!(x.domain, v); expandDfs!(toCall, model, variableHeuristic, valueSelection, getOnDomainChange(x))))
     push!(toCall, (model) -> (saveState!(model.trailer); :Feasible))
 
     push!(toCall, (model) -> (restoreState!(model.trailer); :Feasible))
-    push!(toCall, (model) -> (assign!(x, v); expandDfs!(toCall, model, variableHeuristic, getOnDomainChange(x))))
+    push!(toCall, (model) -> (assign!(x, v); expandDfs!(toCall, model, variableHeuristic, valueSelection, getOnDomainChange(x))))
     push!(toCall, (model) -> (saveState!(model.trailer); :Feasible))
 
     return :Feasible
