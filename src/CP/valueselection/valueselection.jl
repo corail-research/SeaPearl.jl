@@ -22,12 +22,12 @@ mutable struct LearnedHeuristic <: ValueSelection
     LearnedHeuristic(agent::RL.Agent) = new(agent, nothing, nothing, nothing)
 end
 
-abstract type LearningProcess end
+abstract type LearningPhase end
 
-struct InitializingPhase <: LearningProcess end
-struct BackTrackingPhase <: LearningProcess end 
-struct DecisionPhase <: LearningProcess end 
-struct EndingPhase <: LearningProcess end 
+struct InitializingPhase <: LearningPhase end
+struct BackTrackingPhase <: LearningPhase end 
+struct DecisionPhase <: LearningPhase end 
+struct EndingPhase <: LearningPhase end 
 
 # Implementations for a basic heuristic 
 (valueSelection::BasicHeuristic)(::InitializingPhase, model::Union{Nothing, CPModel}=nothing, x::Union{Nothing, AbstractIntVar}=nothing, current_status::Union{Nothing, Symbol}=nothing) = nothing
