@@ -6,8 +6,12 @@ mutable struct BasicHeuristic <: ValueSelection
     selectValue::Function
 end
 
-selectValue(x::IntVar) = maximum(x.domain)
-BasicHeuristic() = BasicHeuristic(selectValue)
+"""
+    BasicHeuristic()
+    
+Create the default `BasicHeuristic` that selects the maximum value of the domain
+"""
+BasicHeuristic() = BasicHeuristic(x -> maximum(x.domain)
 
 mutable struct LearnedHeuristic <: ValueSelection
     agent::RL.Agent
