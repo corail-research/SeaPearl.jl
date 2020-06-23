@@ -77,13 +77,13 @@ Call it multitrain because I am having an overwritting error with the simple one
 and I would like to keep both atm.
 """
 function multi_train!(;
-        ValueSelectionArray::Array{ValueSelection, 1}, 
+        ValueSelectionArray::Array{T, 1}, 
         problem_type::Symbol=:coloring,
         problem_params::Dict=coloring_params,
         nb_episodes::Int64=10,
         strategy::Type{DFSearch}=DFSearch,
         variableHeuristic=selectVariable
-    )
+    ) where T <: ValueSelection
     for valueSelection in ValueSelectionArray
         if isa(valueSelection, LearnedHeuristic)
             valueSelection.fitted_problem = problem_type
