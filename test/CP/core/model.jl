@@ -162,7 +162,8 @@
         @test !isempty(model)
     end
 
-    @testset "Base.isempty()" begin
+    @testset "Base.empty!()" begin
+
         trailer = CPRL.Trailer()
         model = CPRL.CPModel(trailer)
 
