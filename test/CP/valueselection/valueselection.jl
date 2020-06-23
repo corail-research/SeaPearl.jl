@@ -18,6 +18,7 @@ using Flux
     end
 
     @testset "BasicHeuristic" begin 
+        valueselection = CPRL.BasicHeuristic()
         my_heuristic(x::CPRL.IntVar) = minimum(x.domain)
         new_valueselection = CPRL.BasicHeuristic(my_heuristic)
 
