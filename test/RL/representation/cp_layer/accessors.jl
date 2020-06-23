@@ -145,7 +145,7 @@ end
         LightGraphs.SimpleEdge{Int64}(4, 6),
         LightGraphs.SimpleEdge{Int64}(1, 3),
         LightGraphs.SimpleEdge{Int64}(2, 3)
-    ]
+    ]; by=(e -> (e.src, e.dst))) 
 
     @test LightGraphs.ne(g) == 7
 end
