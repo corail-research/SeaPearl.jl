@@ -134,7 +134,9 @@ function trytrain(nepisodes::Int)
     # plot 
     x = 1:length(nodevisited)
 
-    p = plot(x, [nodevisited linebasic], xlabel="Episode", ylabel="Number of nodes visited", ylims = (0,maximum(nodevisited)+20))
+    p = plot(x, [nodevisited linebasic], xlabel="Episode", ylabel="Number of nodes visited", ylims = (0,200))
     display(p)
+
+    return nodevisited, linebasic
 end
 
