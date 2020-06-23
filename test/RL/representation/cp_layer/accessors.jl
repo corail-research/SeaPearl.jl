@@ -137,7 +137,7 @@ end
 
     CPRL.assign!(x, 2)
 
-    @test LightGraphs.edges(g) == [
+    @test sort(LightGraphs.edges(g); by=(e -> (e.src, e.dst))) == sort([
         LightGraphs.SimpleEdge{Int64}(1, 4),
         LightGraphs.SimpleEdge{Int64}(2, 4),
         LightGraphs.SimpleEdge{Int64}(4, 5),
@@ -175,4 +175,3 @@ end
     @test LightGraphs.outneighbors(g, 6) == [4]
     @test LightGraphs.outneighbors(g, 5) == [3, 4]
 end
-
