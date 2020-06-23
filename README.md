@@ -1,6 +1,6 @@
 # CPRL
 
-[![Build Status](https://travis-ci.com/CPRLSolver/CPRL.jl.svg?token=txSsK23gqDP8efBDxJzv&branch=master)](https://travis-ci.com/CPRLSolver/CPRL.jl)
+[![Build Status](https://travis-ci.com/ilancoulon/CPRL.jl.svg?token=txSsK23gqDP8efBDxJzv&branch=master)](https://travis-ci.com/ilancoulon/CPRL.jl)
 
 Hybrid solver using Constraint programming and Reinforcement learning. 
 Ilan Coulon, Félix Chalumeau & Quentin Cappart. 
