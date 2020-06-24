@@ -51,7 +51,7 @@ Here we do not put a mask. We let the mask to the RL.jl but this is still under 
 """
 function (nn::FixedOutputGCN)(x::AbstractArray{Float32,4})
     y = nn(x[:, :, 1, 1])
-    reshape(y, size(y, 1), size(y, 2), 1, 1)
+    reshape(y, size(y)..., 1)
 end
 function (nn::FixedOutputGCN)(x::AbstractArray{Float32,3})
     N = size(x)[end]

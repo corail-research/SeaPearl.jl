@@ -139,7 +139,7 @@ function (s::CPEpsilonGreedyExplorer{<:Any,false})(values, mask)
     # Line from RLBase:
     # rand(s.rng) >= ϵ ? findmax(i -> values[i], view(keys(values), mask))[2] : rand(s.rng, findall(mask))
     
-    rand(s.rng) >= ϵ ? findmax(i -> values[i], view(keys(values), mask))[2][1] : rand(s.rng, findall(mask))
+    rand(s.rng) >= ϵ ? findmax(i -> values[i], view(keys(values), mask))[2] : rand(s.rng, findall(mask))
 end
 
 Random.seed!(s::CPEpsilonGreedyExplorer, seed) = Random.seed!(s.rng, seed)
