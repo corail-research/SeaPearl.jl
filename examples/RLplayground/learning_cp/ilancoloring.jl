@@ -19,12 +19,12 @@ coloring_file_params = Dict(
 
 coloring_params = Dict(
     "nb_nodes" => 15,
-    "density" => 1.5
+    "density" => 2.5
 )
 
 fixedGCNargs = CPRL.ArgsFixedOutputGCN(
     maxDomainSize= 15,
-    numInFeatures = 68,
+    numInFeatures = 83,
     firstHiddenGCN = 20,
     secondHiddenGCN = 20,
     hiddenDense = 20
@@ -54,11 +54,11 @@ agent = RL.Agent(
                 seed = 22,
             ), 
             explorer = CPRL.CPEpsilonGreedyExplorer(
-                ϵ_stable = 0.01,
+                ϵ_stable = 0.001,
                 kind = :exp,
                 ϵ_init = 1.0,
                 warmup_steps = 0,
-                decay_steps = 500,
+                decay_steps = 300,
                 step = 1,
                 is_break_tie = false, 
                 #is_training = true,
@@ -100,6 +100,7 @@ function selectNonObjVariable(model::CPRL.CPModel)
 end
 
 meanNodeVisited = Float32[]
+meanNodeVisitedBasic = Float32[]
 nodeVisitedBasic = Int64[]
 nodeVisitedLearned = Int64[]
 
@@ -120,6 +121,14 @@ function metricsFun(;kwargs...)
     else
         currentNodeVisited = kwargs[:nodeVisited]
         push!(nodeVisitedBasic, currentNodeVisited)
+
+        currentMean = 0.
+        if length(nodeVisitedBasic) <= meanOver
+            currentMean = mean(nodeVisitedBasic)
+        else
+            currentMean = mean(nodeVisitedBasic[(end-meanOver+1):end])
+        end
+        push!(meanNodeVisitedBasic, currentMean)
     end
 end
 
@@ -145,7 +154,13 @@ function trytrain(nepisodes::Int)
     # plot 
     x = 1:length(nodeVisitedBasic)
 
-    p = plot(x, [nodeVisitedLearned meanNodeVisited nodeVisitedBasic], xlabel="Episode", ylabel="Number of nodes visited", ylims = (0,200))
+    p = plot(x, 
+            [nodeVisitedLearned meanNodeVisited nodeVisitedBasic meanNodeVisitedBasic (nodeVisitedLearned-nodeVisitedBasic) (meanNodeVisited-meanNodeVisitedBasic)], 
+            xlabel="Episode", 
+            ylabel="Number of nodes visited", 
+            label = ["Learned" "mean/$meanOver Learned" "Basic" "mean/$meanOver Learned" "Delta" "Mean Delta"],
+            ylims = (-50,300)
+            )
     display(p)
     return nodeVisitedLearned, meanNodeVisited, nodeVisitedBasic
 end
