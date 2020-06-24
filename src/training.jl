@@ -28,7 +28,8 @@ function train!(;
         problem_params::Dict=coloring_params,
         nb_episodes::Int64=10,
         strategy::Type{DFSearch}=DFSearch,
-        variableHeuristic=selectVariable
+        variableHeuristic=selectVariable,
+        metricsFun=((;kwargs...) -> nothing)
     )
     if isa(valueSelection, LearnedHeuristic)
         valueSelection.fitted_problem = :coloring
@@ -59,6 +60,7 @@ function train!(;
 
         push!(bestsolutions, model.objectiveBound + 1)
         push!(nodevisited, model.statistics.numberOfNodes)
+        metricsFun(;nodeVisited=model.statistics.numberOfNodes, bestSolution=(model.objectiveBound + 1))
         println(", Visited nodes: ", model.statistics.numberOfNodes)
     end
 
@@ -97,7 +99,8 @@ function multi_train!(;
         problem_params::Dict=coloring_params,
         nb_episodes::Int64=10,
         strategy::Type{DFSearch}=DFSearch,
-        variableHeuristic=selectVariable
+        variableHeuristic=selectVariable,
+        metricsFun=((;kwargs...) -> nothing)
     ) where T <: ValueSelection
 
     for valueSelection in ValueSelectionArray
@@ -112,9 +115,6 @@ function multi_train!(;
 
     nb_heuristics = length(ValueSelectionArray)
 
-    trailer = Trailer()
-    model = CPModel(trailer)
-
     fill_with_generator! = problem_generator[problem_type]
 
     bestsolutions = zeros(Int64, (nb_episodes, nb_heuristics))
@@ -123,9 +123,10 @@ function multi_train!(;
     println(" -------------- START TRAINING : -------------- ")
 
     for i in 1:nb_episodes
-        println(" --- EPISODE : ", i)
+        print(" --- EPISODE: ", i)
 
-        empty!(model)
+        trailer = Trailer()
+        model = CPModel(trailer)
 
         fill_with_generator!(model, problem_params["nb_nodes"], problem_params["density"])
 
@@ -133,10 +134,18 @@ function multi_train!(;
 
         for j in 1:nb_heuristics
             search!(models[j], strategy, variableHeuristic, ValueSelectionArray[j])
+            if isa(ValueSelectionArray[j], LearnedHeuristic)
+                print(", Visited nodes: ", models[j].statistics.numberOfNodes)
+            else
+                print(" vs ", models[j].statistics.numberOfNodes)
+            end
+
 
             bestsolutions[i, j] = models[j].objectiveBound + 1
             nodevisited[i, j] = models[j].statistics.numberOfNodes
+            metricsFun(;heuristic=ValueSelectionArray[j], nodeVisited=models[j].statistics.numberOfNodes, bestSolution=(models[j].objectiveBound + 1))
         end
+        println()
 
     end
 
