@@ -52,12 +52,12 @@ agent = RL.Agent(
                 target_update_freq = 100,
                 seed = 22,
             ), 
-            explorer = RL.EpsilonGreedyExplorer(
+            explorer = CPRL.CPEpsilonGreedyExplorer(
                 ϵ_stable = 0.01,
                 kind = :exp,
                 ϵ_init = 1.0,
                 warmup_steps = 0,
-                decay_steps = 400,
+                decay_steps = 500,
                 step = 1,
                 is_break_tie = false, 
                 #is_training = true,
