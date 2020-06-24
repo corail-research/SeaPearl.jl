@@ -24,7 +24,7 @@ function DQNAgent(;
     approx_nn_model = deepcopy(nn_model)
     agent = RL.Agent(
         policy = RL.QBasedPolicy(
-            learner = RL.DQNLearner(
+            learner = CPDQNLearner(
                 approximator = RL.NeuralNetworkApproximator(
                     model = nn_model,
                     optimizer = optimizer(η)
@@ -43,7 +43,7 @@ function DQNAgent(;
                 target_update_freq = target_update_freq,
                 seed = learner_seed,
             ), 
-            explorer = RL.EpsilonGreedyExplorer(
+            explorer = CPEpsilonGreedyExplorer(
                 ϵ_stable = ϵ_stable,
                 kind = kind,
                 ϵ_init = 1.0,
