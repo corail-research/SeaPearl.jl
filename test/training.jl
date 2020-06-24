@@ -19,7 +19,7 @@
                             Dense(100, 50, Flux.relu),
                             Dense(50, 10, Flux.relu)
                         ),
-                        optimizer = ADAM(0.001f0)
+                        optimizer = ADAM(0.0005f0)
                     ),
                     target_approximator = RL.NeuralNetworkApproximator(
                         model = Chain(
@@ -28,7 +28,7 @@
                             Dense(100, 50, Flux.relu),
                             Dense(50, 10, Flux.relu)
                         ),
-                        optimizer = ADAM(0.001f0)
+                        optimizer = ADAM(0.0005f0)
                     ),
                     loss_func = huber_loss,
                     stack_size = nothing,
@@ -53,7 +53,7 @@
                 )
             ),
             trajectory = RL.CircularCompactSARTSATrajectory(
-                capacity = 1000, 
+                capacity = 500, 
                 state_type = Float32, 
                 state_size = (46, 93, 1),
                 action_type = Int,

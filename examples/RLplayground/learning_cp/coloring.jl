@@ -30,9 +30,11 @@ agent = RL.Agent(
                 target_approximator = RL.NeuralNetworkApproximator(
                     model = Chain(
                         Flux.flatten,
-                        Dense(46*93, 1000, Flux.relu),
-                        Dense(1000, 100, Flux.relu),
-                        Dense(100, 10, Flux.relu)
+                        Dense(46*93, 1000, Flux.relu, initW = seed_glorot_uniform(seed = 17)),
+                        Dropout(0.2),
+                        Dense(1000, 100, Flux.relu, initW = seed_glorot_uniform(seed = 23)),
+                        Dropout(0.2),
+                        Dense(100, 10, Flux.relu, initW = seed_glorot_uniform(seed = 39))
                     ),
                     optimizer = ADAM(0.0005f0)
                 ),
@@ -90,12 +92,12 @@ function selectNonObjVariable(model::CPRL.CPModel)
     return selectedVar
 end
 
-bestsolutions, nodevisited = CPRL.multi_train!(
-    ValueSelectionArray=[learnedHeuristic, basicHeuristic], 
-    #learnedHeuristic=learnedHeuristic,
+bestsolutions, nodevisited = CPRL.train!(
+    #ValueSelectionArray=[learnedHeuristic, basicHeuristic], 
+    learnedHeuristic=learnedHeuristic,
     problem_type=:coloring,
     problem_params=coloring_params,
-    nb_episodes=60,
+    nb_episodes=10,
     strategy=CPRL.DFSearch,
     variableHeuristic=selectNonObjVariable
 )
@@ -104,7 +106,7 @@ println(bestsolutions)
 println(nodevisited)
 
 
-"""
+
 x = 1:length(nodevisited)
 
 p = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited")
@@ -116,6 +118,6 @@ x = 1:length(nodevisited[:, 1])
 
 p = plot(x, nodevisited[:, 1], xlabel="Episode", ylabel="Number of nodes visited")
 plot!(p, x, nodevisited[:, 2])
-
+"""
 
 display(p)

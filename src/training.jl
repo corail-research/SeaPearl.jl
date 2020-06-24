@@ -30,7 +30,6 @@ function train!(;
         strategy::Type{DFSearch}=DFSearch,
         variableHeuristic=selectVariable
     )
-
     if isa(valueSelection, LearnedHeuristic)
         valueSelection.fitted_problem = :coloring
         valueSelection.fitted_strategy = strategy
@@ -50,7 +49,8 @@ function train!(;
     for i in 1:nb_episodes
         print(" --- EPISODE : ", i)
 
-        empty!(model)
+        trailer = Trailer()
+        model = CPModel(trailer)
 
         fill_with_generator!(model, problem_params["nb_nodes"], problem_params["density"])
 
