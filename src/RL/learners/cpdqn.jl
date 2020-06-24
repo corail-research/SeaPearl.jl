@@ -4,8 +4,8 @@ using Random
 using Flux
 using Setfield: @set
 
-using ReinforcementLearningBase
-const RLBase = ReinforcementLearningBase
+using ReinforcementLearning
+const RLBase = ReinforcementLearning.ReinforcementLearningBase
 
 """
     DQNLearner(;kwargs...)
@@ -118,7 +118,7 @@ function RLBase.update!(learner::CPDQNLearner, batch)
     end
 end
 
-function RLBase.extract_experience(t::AbstractTrajectory, learner::CPDQNLearner)
+function extract_experience(t::AbstractTrajectory, learner::CPDQNLearner)
     s = learner.stack_size
     h = learner.update_horizon
     n = learner.batch_size
