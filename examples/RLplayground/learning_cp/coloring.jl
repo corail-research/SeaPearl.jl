@@ -17,7 +17,7 @@ coloring_params = Dict(
 
 agent = RL.Agent(
         policy = RL.QBasedPolicy(
-            learner = RL.DQNLearner(
+            learner = CPRL.CPDQNLearner(
                 approximator = RL.NeuralNetworkApproximator(
                     model = Chain(
                         Flux.flatten,
@@ -48,7 +48,7 @@ agent = RL.Agent(
                 target_update_freq = 50,
                 seed = 22,
             ), 
-            explorer = RL.EpsilonGreedyExplorer(
+            explorer = CPRL.CPEpsilonGreedyExplorer(
                 ϵ_stable = 0.01,
                 kind = :exp,
                 ϵ_init = 1.0,
@@ -77,7 +77,12 @@ agent = RL.Agent(
 learnedHeuristic = CPRL.LearnedHeuristic(agent)
 
 selectMin(x::CPRL.IntVar) = CPRL.minimum(x.domain)
-basicHeuristic = CPRL.BasicHeuristic(selectMin)
+selectMax(x::CPRL.IntVar) = CPRL.maximum(x.domain)
+selectRandom(x::CPRL.IntVar) = rand(collect(x.domain))
+
+heuristic_min = CPRL.BasicHeuristic(selectMin)
+heuristic_max = CPRL.BasicHeuristic(selectMax)
+heuristic_rand = CPRL.BasicHeuristic(selectRandom)
 
 function selectNonObjVariable(model::CPRL.CPModel)
     selectedVar = nothing
@@ -92,12 +97,12 @@ function selectNonObjVariable(model::CPRL.CPModel)
     return selectedVar
 end
 
-bestsolutions, nodevisited = CPRL.train!(
-    #ValueSelectionArray=[learnedHeuristic, basicHeuristic], 
-    learnedHeuristic=learnedHeuristic,
+bestsolutions, nodevisited = CPRL.multi_train!(
+    ValueSelectionArray=[learnedHeuristic, heuristic_min, heuristic_max, heuristic_rand], 
+    #valueSelection=learnedHeuristic,
     problem_type=:coloring,
     problem_params=coloring_params,
-    nb_episodes=10,
+    nb_episodes=2,
     strategy=CPRL.DFSearch,
     variableHeuristic=selectNonObjVariable
 )
@@ -106,18 +111,19 @@ println(bestsolutions)
 println(nodevisited)
 
 
-
+"""
 x = 1:length(nodevisited)
-
-p = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited")
-
-
+p = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 180])
 """
 # plot 
-x = 1:length(nodevisited[:, 1])
+a, b = size(nodevisited)
+x = 1:a
 
-p = plot(x, nodevisited[:, 1], xlabel="Episode", ylabel="Number of nodes visited")
-plot!(p, x, nodevisited[:, 2])
-"""
+p = plot(x, nodevisited[:, 1], xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 180])
+if b >= 2
+    for i in 2:b
+        plot!(p, x, nodevisited[:, b])
+    end
+end
 
 display(p)
