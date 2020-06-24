@@ -75,7 +75,7 @@ function (nn::FixedOutputGCN)(x::AbstractArray{Float32,2})
     featuredGraph = nn.secondGCNHiddenLayer(featuredGraph)
 
     # extract the feature of the variable we're working on 
-    variableFeatures = GeometricFlux.feature(featuredGraph)[:, variableId+1]
+    variableFeatures = GeometricFlux.feature(featuredGraph)[:, variableId]
 
     # get through the dense layers 
     # println("Variable features after GCNConvs :  ", variableFeatures)
