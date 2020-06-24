@@ -2,6 +2,7 @@ export CPDQNLearner
 using Random
 using Flux
 using Setfield: @set
+using Zygote
 
 using ReinforcementLearningBase
 const RLBase = ReinforcementLearningBase
@@ -102,7 +103,7 @@ end
             Flux.squeezebatch
 
 function RLBase.update!(learner::CPDQNLearner, t::AbstractTrajectory)
-    length(t) < learner.min_replay_history && return
+    length(t) <= learner.min_replay_history && return
 
     learner.update_step += 1
 
@@ -127,12 +128,12 @@ function RLBase.update!(learner::CPDQNLearner, t::AbstractTrajectory)
     terminals = send_to_device(D, experience.terminals)
     next_states = send_to_device(D, experience.next_states)
 
-    gs = gradient(params(Q)) do
+    gs = gradient(Flux.params(Q)) do
         q = Q(states)[actions]
-        q′ = dropdims(maximum(Qₜ(next_states); dims = 1), dims = 1)
+        q′ = dropdims(Base.maximum(Qₜ(next_states); dims = 1), dims = 1)
         G = rewards .+ γ^update_horizon .* (1 .- terminals) .* q′
         loss = loss_func(G, q)
-        ignore() do
+        Zygote.ignore() do
             learner.loss = loss
         end
         loss
@@ -148,6 +149,9 @@ function extract_experience(t::AbstractTrajectory, learner::CPDQNLearner)
     γ = learner.γ
 
     valid_ind_range = isnothing(s) ? (1:(length(t)-h)) : (s:(length(t)-h))
+    if length(t) <= learner.min_replay_history
+        return nothing
+    end
     inds = rand(learner.rng, valid_ind_range, n)
     states = consecutive_view(get_trace(t, :state), inds; n_stack = s)
     actions = consecutive_view(get_trace(t, :action), inds)
