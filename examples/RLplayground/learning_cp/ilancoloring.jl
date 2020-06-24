@@ -2,6 +2,7 @@ using CPRL
 using ReinforcementLearning
 const RL = ReinforcementLearning
 using Flux
+using Statistics
 
 using Plots
 gr()
@@ -98,45 +99,55 @@ function selectNonObjVariable(model::CPRL.CPModel)
     return selectedVar
 end
 
+meanNodeVisited = Float32[]
+nodeVisitedBasic = Int64[]
+nodeVisitedLearned = Int64[]
+
+meanOver = 50
+sum = 0
+function metricsFun(;kwargs...)
+    if kwargs[:heuristic] == learnedHeuristic
+        currentNodeVisited = kwargs[:nodeVisited]
+        push!(nodeVisitedLearned, currentNodeVisited)
+
+        currentMean = 0.
+        if length(nodeVisitedLearned) <= meanOver
+            currentMean = mean(nodeVisitedLearned)
+        else
+            currentMean = mean(nodeVisitedLearned[(end-meanOver+1):end])
+        end
+        push!(meanNodeVisited, currentMean)
+    else
+        currentNodeVisited = kwargs[:nodeVisited]
+        push!(nodeVisitedBasic, currentNodeVisited)
+    end
+end
+
 
 
 function trytrain(nepisodes::Int)
     
-    bestsolutions, nodevisited = CPRL.train!(
-        valueSelection=learnedHeuristic, 
+    bestsolutions, nodevisited = CPRL.multi_train!(
+        ValueSelectionArray=[learnedHeuristic, basicHeuristic], 
         problem_type=:coloring,
         problem_params=coloring_params,
         nb_episodes=nepisodes,
         strategy=CPRL.DFSearch,
-        variableHeuristic=selectNonObjVariable
+        variableHeuristic=selectNonObjVariable,
+        metricsFun=metricsFun
     )
-    println(bestsolutions)
+    # println(bestsolutions)
     # nodevisited = Array{Any}([35, 51])
-    nodevisited = convert(Array{Int}, nodevisited)
-    println(nodevisited)
-
-    bestsolutions, nodevisitedbasic = CPRL.train!(
-        valueSelection=basicHeuristic, 
-        problem_type=:coloring,
-        problem_params=coloring_params,
-        nb_episodes=1,
-        strategy=CPRL.DFSearch,
-        variableHeuristic=selectNonObjVariable
-    )
-
-
-    linebasic = [convert(Int, nodevisitedbasic[1]) for i in 1:length(nodevisited)]
-    linebasic = ones(length(nodevisited))
-    linebasic *= nodevisitedbasic[1]
-
+    # nodevisited = convert(Array{Int}, nodevisited)
+    # println(nodevisited)
 
     
     # plot 
-    x = 1:length(nodevisited)
+    x = 1:length(nodeVisitedBasic)
 
-    p = plot(x, [nodevisited linebasic], xlabel="Episode", ylabel="Number of nodes visited", ylims = (0,200))
+    p = plot(x, [nodeVisitedLearned meanNodeVisited nodeVisitedBasic], xlabel="Episode", ylabel="Number of nodes visited", ylims = (0,200))
     display(p)
-
-    return nodevisited, linebasic
+    return nodeVisitedLearned, meanNodeVisited, nodeVisitedBasic
 end
+
 
