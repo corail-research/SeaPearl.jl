@@ -34,6 +34,7 @@ function train!(;
         valueSelection.fitted_problem = :coloring
         valueSelection.fitted_strategy = strategy
         # we could add more information later ...
+        testmode!(valueSelection, false)
     end
     
     trailer = Trailer()
@@ -60,6 +61,16 @@ function train!(;
         push!(nodevisited, model.statistics.numberOfNodes)
         println(", Visited nodes: ", model.statistics.numberOfNodes)
     end
+
+    if isa(valueSelection, LearnedHeuristic)
+        print("Has been trained on : ", problem_type)
+        print(" ... with strategy : ", strategy)
+        println("During ", nb_episodes, " episodes.")
+
+        testmode!(valueSelection)
+        println("Training mode now desactivated !")
+    end
+    
 
     bestsolutions, nodevisited
 end
@@ -88,11 +99,14 @@ function multi_train!(;
         strategy::Type{DFSearch}=DFSearch,
         variableHeuristic=selectVariable
     ) where T <: ValueSelection
+
     for valueSelection in ValueSelectionArray
         if isa(valueSelection, LearnedHeuristic)
             valueSelection.fitted_problem = problem_type
             valueSelection.fitted_strategy = strategy
             # we could add more information later ...
+
+            testmode!(valueSelection, false)
         end
     end
 
@@ -124,6 +138,12 @@ function multi_train!(;
             nodevisited[i, j] = models[j].statistics.numberOfNodes
         end
 
+    end
+
+    for valueSelection in ValueSelectionArray
+        if isa(valueSelection, LearnedHeuristic)
+            testmode!(valueSelection)
+        end
     end
 
     bestsolutions, nodevisited

@@ -22,6 +22,8 @@ mutable struct LearnedHeuristic <: ValueSelection
     LearnedHeuristic(agent::RL.Agent) = new(agent, nothing, nothing, nothing)
 end
 
+Flux.testmode!(lh::LearnedHeuristic, mode = true) = Flux.testmode!(lh.agent, mode)
+
 abstract type LearningPhase end
 
 struct InitializingPhase <: LearningPhase end
