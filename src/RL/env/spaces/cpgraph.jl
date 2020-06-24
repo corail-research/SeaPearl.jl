@@ -79,7 +79,7 @@ adjacency matrix. But in order to get the things done quickly, we will start by 
 the update!() function and we will create a new FeaturedGraph when we want to update
 CPGraph.
 """
-function update!(cpgraph::CPGraph, g::CPLayerGraph, x::AbstractIntVar)
+function update_graph!(cpgraph::CPGraph, g::CPLayerGraph, x::AbstractIntVar)
     cpgraph.variable_id = indexFromCpVertex(g, VariableVertex(x))
 
     feature = cpgraph.featuredgraph.feature[]

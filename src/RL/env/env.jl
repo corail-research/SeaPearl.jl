@@ -98,7 +98,7 @@ function sync_state!(env::RLEnv, cpmodel::CPModel, x::AbstractIntVar)
     if isnothing(cpmodel.RLRep)
         cpmodel.RLRep = CPLayerGraph(cpmodel)
     end
-    update!(env.state, cpmodel.RLRep, x)
+    update_graph!(env.state, cpmodel.RLRep, x)
     nothing 
 end
 
@@ -141,8 +141,3 @@ number generator. rng will give a reproducible sequence of numbers if and only i
 """
 Random.seed!(env::RLEnv, seed) = Random.seed!(env.rng, seed)
 
-"""
-    RL.render(env::RLEnv)
-Not a priority at all. Give a human friendly representation of what's happening.
-"""
-render(env::RLEnv) = nothing

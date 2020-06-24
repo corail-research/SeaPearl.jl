@@ -47,7 +47,7 @@ adj = [0 1 0 1;
         @test CPRL.cpVertexFromIndex(g, cpg.variable_id).variable == model.variables["x"]
     end
 
-    @testset "update!()" begin
+    @testset "update_graph!()" begin
         trailer = CPRL.Trailer()
         model = CPRL.CPModel(trailer)
 
@@ -81,7 +81,7 @@ adj = [0 1 0 1;
         CPRL.assign!(x, 2)
         g = CPRL.CPLayerGraph(model)
 
-        CPRL.update!(cpg, g, y)
+        CPRL.update_graph!(cpg, g, y)
 
         @test Matrix(cpg.featuredgraph.graph[]) == [0 0 1 1 0 0
                                                     0 0 1 1 0 0
