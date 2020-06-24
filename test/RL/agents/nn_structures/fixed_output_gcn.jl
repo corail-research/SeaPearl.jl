@@ -57,7 +57,7 @@
         @test typeof(foGCN.firstGCNHiddenLayer) == GeometricFlux.GCNConv{Float32,typeof(relu), GeometricFlux.FeaturedGraph{Nothing,Nothing}}
         @test typeof(foGCN.secondGCNHiddenLayer) == GeometricFlux.GCNConv{Float32,typeof(relu), GeometricFlux.FeaturedGraph{Nothing,Nothing}}
         @test typeof(foGCN.denseLayer) == Flux.Dense{typeof(relu),Array{Float32,2},Array{Float32,1}}
-        @test typeof(foGCN.outputLayer) == Flux.Dense{typeof(relu),Array{Float32,2},Array{Float32,1}}
+        @test typeof(foGCN.outputLayer) == Flux.Dense{typeof(identity),Array{Float32,2},Array{Float32,1}}
 
     end
 
@@ -95,7 +95,7 @@
         q_values = foGCN(X)
         println("Q values vector :  ", q_values)
 
-        @test size(q_values) == (2,)
+        @test size(q_values) == (1, 2, 1)
         @test round(sum(q_values), digits=5) == 1
 
         

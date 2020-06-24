@@ -17,44 +17,42 @@ coloring_file_params = Dict(
 )
 
 coloring_params = Dict(
-    "nb_nodes" => 10,
+    "nb_nodes" => 15,
     "density" => 1.5
 )
 
-state_size = (46,93, 1)
+fixedGCNargs = CPRL.ArgsFixedOutputGCN(
+    maxDomainSize= 15,
+    numInFeatures = 68,
+    firstHiddenGCN = 20,
+    secondHiddenGCN = 20,
+    hiddenDense = 20
+)
+
+state_size = (fixedGCNargs.numInFeatures,fixedGCNargs.numInFeatures*2+1, 1)
 
 agent = RL.Agent(
         policy = RL.QBasedPolicy(
-            learner = RL.DQNLearner(
+            learner = CPRL.CPDQNLearner(
                 approximator = RL.NeuralNetworkApproximator(
-                    model = Chain(
-                        Flux.flatten,
-                        Dense(state_size[1]*state_size[2], 100, Flux.relu),
-                        Dense(100, 50, Flux.relu),
-                        Dense(50, 10, Flux.relu)
-                    ),
-                    optimizer = ADAM(0.001f0)
+                    model = CPRL.build_model(CPRL.FixedOutputGCN, fixedGCNargs),
+                    optimizer = ADAM(0.0005f0)
                 ),
                 target_approximator = RL.NeuralNetworkApproximator(
-                    model = Chain(
-                        Flux.flatten,
-                        Dense(state_size[1]*state_size[2], 500, Flux.relu),
-                        Dense(500, 100, Flux.relu),
-                        Dense(100, 10, Flux.relu)
-                    ),
-                    optimizer = ADAM(0.001f0)
+                    model = CPRL.build_model(CPRL.FixedOutputGCN, fixedGCNargs),
+                    optimizer = ADAM(0.0005f0)
                 ),
                 loss_func = huber_loss,
                 stack_size = nothing,
-                γ = 0.99f0,
-                batch_size = 32,
+                γ = 0.999f0,
+                batch_size = 1,
                 update_horizon = 1,
                 min_replay_history = 1,
                 update_freq = 1,
                 target_update_freq = 100,
                 seed = 22,
             ), 
-            explorer = RL.EpsilonGreedyExplorer(
+            explorer = CPRL.CPEpsilonGreedyExplorer(
                 ϵ_stable = 0.01,
                 kind = :exp,
                 ϵ_init = 1.0,
@@ -94,17 +92,21 @@ function selectNonObjVariable(model::CPRL.CPModel)
         end
     end
     # @assert !isnothing(selectedVar)
+    if isnothing(selectedVar)
+        return model.variables["numberOfColors"]
+    end
     return selectedVar
 end
 
 
-function trytrain()
+
+function trytrain(nepisodes::Int)
     
     bestsolutions, nodevisited = CPRL.train!(
-        learnedHeuristic=learnedHeuristic, 
-        problem_type=:filecoloring,
+        valueSelection=learnedHeuristic, 
+        problem_type=:coloring,
         problem_params=coloring_params,
-        nb_episodes=50,
+        nb_episodes=nepisodes,
         strategy=CPRL.DFSearch,
         variableHeuristic=selectNonObjVariable
     )
@@ -114,8 +116,8 @@ function trytrain()
     println(nodevisited)
 
     bestsolutions, nodevisitedbasic = CPRL.train!(
-        learnedHeuristic=basicHeuristic, 
-        problem_type=:filecoloring,
+        valueSelection=basicHeuristic, 
+        problem_type=:coloring,
         problem_params=coloring_params,
         nb_episodes=1,
         strategy=CPRL.DFSearch,
@@ -132,8 +134,9 @@ function trytrain()
     # plot 
     x = 1:length(nodevisited)
 
-    p = plot(x, [nodevisited linebasic], xlabel="Episode", ylabel="Number of nodes visited", ylims = (0,100))
+    p = plot(x, [nodevisited linebasic], xlabel="Episode", ylabel="Number of nodes visited", ylims = (0,200))
     display(p)
-end
 
+    return nodevisited, linebasic
+end
 

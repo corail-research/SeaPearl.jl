@@ -36,7 +36,7 @@ using Flux
     @testset "LearnedHeuristic" begin 
         agent = RL.Agent(
             policy = RL.QBasedPolicy(
-                learner = RL.DQNLearner(
+                learner = CPRL.CPDQNLearner(
                     approximator = RL.NeuralNetworkApproximator(
                         model = Chain(
                             Flux.flatten,
@@ -65,7 +65,7 @@ using Flux
                     target_update_freq = 100,
                     seed = 22,
                 ), 
-                explorer = RL.EpsilonGreedyExplorer(
+                explorer = CPRL.CPEpsilonGreedyExplorer(
                     ϵ_stable = 0.01,
                     kind = :exp,
                     ϵ_init = 1.0,
@@ -110,7 +110,7 @@ using Flux
     
         agent = RL.Agent(
             policy = RL.QBasedPolicy(
-                learner = RL.DQNLearner(
+                learner = CPRL.CPDQNLearner(
                     approximator = RL.NeuralNetworkApproximator(
                         model = Chain(
                             Flux.flatten,
@@ -139,7 +139,7 @@ using Flux
                     target_update_freq = 100,
                     seed = 22,
                 ), 
-                explorer = RL.EpsilonGreedyExplorer(
+                explorer = CPRL.CPEpsilonGreedyExplorer(
                     ϵ_stable = 0.01,
                     kind = :exp,
                     ϵ_init = 1.0,

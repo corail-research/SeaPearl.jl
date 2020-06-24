@@ -1,26 +1,26 @@
 using GeometricFlux
 
 """
-    ArgsFixedOutputGCN
+    ArgsFixedOutputGAT
 
 The args to create an adapted nn model with build_model.
 """
-Base.@kwdef mutable struct ArgsFixedOutputGCN <: NNArgs 
+Base.@kwdef mutable struct ArgsFixedOutputGAT <: NNArgs 
     maxDomainSize       ::Int = 20
     numInFeatures       ::Int = 20
-    firstHiddenGCN      ::Int = 20
-    secondHiddenGCN     ::Int = 20
+    firstHiddenGAT      ::Int = 20
+    secondHiddenGAT     ::Int = 20
     hiddenDense         ::Int = 20
 end
 
 """
-    FixedOutputGCN
+    FixedOutputGAT
 
 What will be used as model in the learner of the agent (... of the value selection).
 """
-Base.@kwdef struct FixedOutputGCN <: NNStructure
-    firstGCNHiddenLayer     ::GeometricFlux.GCNConv
-    secondGCNHiddenLayer    ::GeometricFlux.GCNConv
+Base.@kwdef struct FixedOutputGAT <: NNStructure
+    firstGATHiddenLayer     ::GeometricFlux.GATConv
+    secondGATHiddenLayer    ::GeometricFlux.GATConv
     denseLayer              ::Flux.Dense
     outputLayer             ::Flux.Dense
 end
@@ -30,18 +30,18 @@ end
 
 Build a model thanks to the args.
 """
-function build_model(::Type{FixedOutputGCN}, args::ArgsFixedOutputGCN)
-    return FixedOutputGCN(
-        firstGCNHiddenLayer = GeometricFlux.GCNConv(args.numInFeatures=>args.firstHiddenGCN, Flux.relu),
-        secondGCNHiddenLayer = GeometricFlux.GCNConv(args.firstHiddenGCN=>args.secondHiddenGCN, Flux.relu),
-        denseLayer = Flux.Dense(args.secondHiddenGCN, args.hiddenDense, Flux.relu),
+function build_model(::Type{FixedOutputGAT}, args::ArgsFixedOutputGAT)
+    return FixedOutputGAT(
+        firstGATHiddenLayer = GeometricFlux.GATConv(args.numInFeatures=>args.firstHiddenGAT),
+        secondGATHiddenLayer = GeometricFlux.GATConv(args.secondHiddenGAT=>args.secondHiddenGAT),
+        denseLayer = Flux.Dense(args.secondHiddenGAT, args.hiddenDense, Flux.relu),
         outputLayer = Flux.Dense(args.hiddenDense, args.maxDomainSize)
     )
 end
 
-Flux.@functor FixedOutputGCN
+Flux.@functor FixedOutputGAT
 
-functor(::Type{FixedOutputGCN}, c) = (c.firstGCNHiddenLayer, c.secondGCNHiddenLayer, c.denseLayer, c.outputLayer), ls -> FixedOutputGCN(ls...)
+functor(::Type{FixedOutputGAT}, c) = (c.firstGATHiddenLayer, c.secondGATHiddenLayer, c.denseLayer, c.outputLayer), ls -> FixedOutputGCN(ls...)
 
 """
     (nn::FixedOutputGCN)(x::CPGraph)
@@ -49,11 +49,11 @@ functor(::Type{FixedOutputGCN}, c) = (c.firstGCNHiddenLayer, c.secondGCNHiddenLa
 Take the CPGraph and output the q_values. Not that this could be changed a lot in the futur.
 Here we do not put a mask. We let the mask to the RL.jl but this is still under debate !
 """
-function (nn::FixedOutputGCN)(x::AbstractArray{Float32,4})
+function (nn::FixedOutputGAT)(x::AbstractArray{Float32,4})
     y = nn(x[:, :, 1, 1])
     reshape(y, size(y, 1), size(y, 2), 1, 1)
 end
-function (nn::FixedOutputGCN)(x::AbstractArray{Float32,3})
+function (nn::FixedOutputGAT)(x::AbstractArray{Float32,3})
     N = size(x)[end]
     probs = zeros(Float32, 1, size(nn.outputLayer.W)[1], N)
     for i in 1:N
@@ -62,7 +62,7 @@ function (nn::FixedOutputGCN)(x::AbstractArray{Float32,3})
     probs
 end
 
-function (nn::FixedOutputGCN)(x::AbstractArray{Float32,2})
+function (nn::FixedOutputGAT)(x::AbstractArray{Float32,2})
     # Create the CPGraph
     cpg = CPGraph(x)
 
@@ -71,8 +71,8 @@ function (nn::FixedOutputGCN)(x::AbstractArray{Float32,2})
     featuredGraph = cpg.featuredgraph
 
     # go through the GCNConvs
-    featuredGraph = nn.firstGCNHiddenLayer(featuredGraph)
-    featuredGraph = nn.secondGCNHiddenLayer(featuredGraph)
+    featuredGraph = nn.firstGATHiddenLayer(featuredGraph)
+    featuredGraph = nn.secondGATHiddenLayer(featuredGraph)
 
     # extract the feature of the variable we're working on 
     variableFeatures = GeometricFlux.feature(featuredGraph)[:, variableId+1]
