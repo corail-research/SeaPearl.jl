@@ -41,7 +41,7 @@ Construct a CPGraph from the CPLayerGraph and the variable we want to branch on.
 Here we will define how the node feature will look like. Thus, it might be transformed later.
 """
 function CPGraph(g::CPLayerGraph, x::AbstractIntVar)
-    variable_id = index(g, VariableVertex(x))
+    variable_id = indexFromCpVertex(g, VariableVertex(x))
     CPGraph(g, variable_id)
 end
 
@@ -80,7 +80,7 @@ the update!() function and we will create a new FeaturedGraph when we want to up
 CPGraph.
 """
 function update!(cpgraph::CPGraph, g::CPLayerGraph, x::AbstractIntVar)
-    cpgraph.variable_id = index(g, VariableVertex(x))
+    cpgraph.variable_id = indexFromCpVertex(g, VariableVertex(x))
 
     feature = cpgraph.featuredgraph.feature[]
     sparse_adj = LightGraphs.LinAlg.adjacency_matrix(g)

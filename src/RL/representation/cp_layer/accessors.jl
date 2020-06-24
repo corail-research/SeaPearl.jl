@@ -25,11 +25,11 @@ function cpVertexFromIndex(graph::CPLayerGraph, id::Int)
 end
 
 """
-    function index(g::CPLayerGraph, v::CPLayerVertex)
+    function indexFromCpVertex(g::CPLayerGraph, v::CPLayerVertex)
 
 Returns the integer corresponding to `v` in graph `g`.
 """
-function index(g::CPLayerGraph, v::CPLayerVertex)
+function indexFromCpVertex(g::CPLayerGraph, v::CPLayerVertex)
     return g.nodeToId[v]
 end
 
@@ -45,7 +45,7 @@ function LightGraphs.has_edge(g::CPLayerGraph, s::Int64, d::Int64)
     LightGraphs.has_edge(g, cpVertexFromIndex(g, s), cpVertexFromIndex(g, d))
 end
 
-LightGraphs.has_edge(g::CPLayerGraph, s::FixedEdgesVertex, d::FixedEdgesVertex) = LightGraphs.has_edge(g.fixedEdgesGraph, index(g, s), index(g, d))
+LightGraphs.has_edge(g::CPLayerGraph, s::FixedEdgesVertex, d::FixedEdgesVertex) = LightGraphs.has_edge(g.fixedEdgesGraph, indexFromCpVertex(g, s), indexFromCpVertex(g, d))
 LightGraphs.has_edge(g::CPLayerGraph, s::ConstraintVertex, d::ValueVertex) = false
 LightGraphs.has_edge(g::CPLayerGraph, s::VariableVertex, d::ValueVertex) = d.value in s.variable.domain
 
@@ -116,7 +116,7 @@ function LightGraphs.inneighbors(g::CPLayerGraph, vertex::ValueVertex)
         xVertex = cpVertexFromIndex(g, i)
         x = xVertex.variable
         if value in x.domain
-            push!(neigh, index(g, VariableVertex(x)))
+            push!(neigh, indexFromCpVertex(g, VariableVertex(x)))
         end
     end
     return neigh

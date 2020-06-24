@@ -37,7 +37,7 @@ end
     end
 end
 
-@testset "index()" begin
+@testset "indexFromCpVertex()" begin
     trailer = CPRL.Trailer()
     model = CPRL.CPModel(trailer)
 
@@ -60,7 +60,7 @@ end
     ]
 
     for i in 1:6
-        @test CPRL.index(g, true_idToNode[i]) == i
+        @test CPRL.indexFromCpVertex(g, true_idToNode[i]) == i
     end
 end
 
