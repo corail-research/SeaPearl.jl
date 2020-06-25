@@ -15,10 +15,21 @@ coloring_params = Dict(
     "density" => 1.5
 )
 
+fixedGCNargs = CPRL.ArgsFixedOutputGCN(
+    maxDomainSize= 10,
+    numInFeatures = 46,
+    firstHiddenGCN = 46,
+    secondHiddenGCN = 46,
+    hiddenDense = 46
+)
+numberOfCPNodes = 46
+
+state_size = (numberOfCPNodes,fixedGCNargs.numInFeatures + numberOfCPNodes + 1, 1)
+
 agent = RL.Agent(
         policy = RL.QBasedPolicy(
             learner = CPRL.CPDQNLearner(
-                approximator = RL.NeuralNetworkApproximator(
+                #= approximator = RL.NeuralNetworkApproximator(
                     model = Chain(
                         Flux.flatten,
                         Dense(46*93, 1000, Flux.relu),
@@ -37,11 +48,19 @@ agent = RL.Agent(
                         Dense(100, 10, Flux.relu, initW = seed_glorot_uniform(seed = 39))
                     ),
                     optimizer = ADAM(0.0005f0)
+                ), =#
+                approximator = RL.NeuralNetworkApproximator(
+                    model = CPRL.build_model(CPRL.FixedOutputGCN, fixedGCNargs),
+                    optimizer = ADAM(0.0005f0)
+                ),
+                target_approximator = RL.NeuralNetworkApproximator(
+                    model = CPRL.build_model(CPRL.FixedOutputGCN, fixedGCNargs),
+                    optimizer = ADAM(0.0005f0)
                 ),
                 loss_func = huber_loss,
                 stack_size = nothing,
-                γ = 0.99f0,
-                batch_size = 32,
+                γ = 0.999f0,
+                batch_size = 1, #32,
                 update_horizon = 1,
                 min_replay_history = 1,
                 update_freq = 1,
@@ -63,7 +82,7 @@ agent = RL.Agent(
         trajectory = RL.CircularCompactSARTSATrajectory(
             capacity = 500, 
             state_type = Float32, 
-            state_size = (46, 93, 1),
+            state_size = state_size,#(46, 93, 1),
             action_type = Int,
             action_size = (),
             reward_type = Float32,
@@ -104,15 +123,10 @@ bestsolutions, nodevisited, timeneeded = CPRL.train!(
     #valueSelectionArray=learnedHeuristic,
     problem_type=:coloring,
     problem_params=coloring_params,
-    nb_episodes=10,
+    nb_episodes=220,
     strategy=CPRL.DFSearch,
     variableHeuristic=selectNonObjVariable
 )
-
-println(bestsolutions)
-println(nodevisited)
-println(timeneeded)
-
 
 # plot 
 a, b = size(nodevisited)
@@ -129,14 +143,10 @@ bestsolutions, nodevisited, timeneeded = CPRL.benchmark_solving(
     #valueSelectionArray=learnedHeuristic,
     problem_type=:coloring,
     problem_params=coloring_params,
-    nb_episodes=10,
+    nb_episodes=100,
     strategy=CPRL.DFSearch,
     variableHeuristic=selectNonObjVariable
 )
-
-println(bestsolutions)
-println(nodevisited)
-println(timeneeded)
 
 
 # plot 
