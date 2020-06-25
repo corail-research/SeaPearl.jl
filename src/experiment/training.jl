@@ -15,7 +15,9 @@ coloring_params = Dict(
         problem_params::Dict=coloring_params,
         nb_episodes::Int64=10,
         strategy::Type{DFSearch}=DFSearch,
-        variableHeuristic=selectVariable
+        variableHeuristic=selectVariable,
+        metricsFun,
+        verbose::Bool=true
 )
 
 Training a LearnedHeuristic. Could perfectly work with basic heuristic. (even if 
@@ -29,53 +31,49 @@ function train!(;
         nb_episodes::Int64=10,
         strategy::Type{DFSearch}=DFSearch,
         variableHeuristic=selectVariable,
-        metricsFun=((;kwargs...) -> nothing)
+        metricsFun=((;kwargs...) -> nothing),
+        verbose::Bool=true
     )
+    # give information to the learned heuristic
     if isa(valueSelection, LearnedHeuristic)
-        valueSelection.fitted_problem = :coloring
+        valueSelection.fitted_problem = problem_type
         valueSelection.fitted_strategy = strategy
         # we could add more information later ...
+
+        # make sure it is in training mode
         testmode!(valueSelection, false)
     end
     
-    trailer = Trailer()
-    model = CPModel(trailer)
+    # launch the experiment
+    bestsolutions, nodevisited = launch_experiment!(
+        valueSelection, 
+        problem_type, 
+        problem_params, 
+        nb_episodes, 
+        strategy, 
+        variableHeuristic, 
+        metricsFun, 
+        verbose
+    )
 
-    fill_with_generator! = problem_generator[problem_type]
-
-    bestsolutions = []
-    nodevisited = []
-
-    println(" -------------- START TRAINING : -------------- ")
-
-    for i in 1:nb_episodes
-        print(" --- EPISODE : ", i)
-
-        trailer = Trailer()
-        model = CPModel(trailer)
-
-        fill_with_generator!(model, problem_params["nb_nodes"], problem_params["density"])
-
-        search!(model, strategy, variableHeuristic, valueSelection)
-
-        push!(bestsolutions, model.objectiveBound + 1)
-        push!(nodevisited, model.statistics.numberOfNodes)
-        metricsFun(;nodeVisited=model.statistics.numberOfNodes, bestSolution=(model.objectiveBound + 1))
-        println(", Visited nodes: ", model.statistics.numberOfNodes)
-    end
-
+    # get to testing mode
     if isa(valueSelection, LearnedHeuristic)
-        print("Has been trained on : ", problem_type)
-        print(" ... with strategy : ", strategy)
-        println("During ", nb_episodes, " episodes.")
-
         testmode!(valueSelection)
-        println("Training mode now desactivated !")
+
+        if verbose 
+            print("Has been trained on : ", problem_type)
+            print(" ... with strategy : ", strategy)
+            println("During ", nb_episodes, " episodes.")
+            println("Training mode now desactivated !")
+        end
     end
     
 
     bestsolutions, nodevisited
 end
+
+
+
 
 """
     multi_train!(;
