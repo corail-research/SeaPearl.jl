@@ -12,7 +12,7 @@ Create features that will be associated to every node of the graph. This is high
 simplistic at the moment but will/must be improved later. Will be probably use the cpmodel 
 as argument in futur versions.
 """
-function featurize(g::CPLayerGraph)
+function featurize2(g::CPLayerGraph)
     features = zeros(Float32, nv(g), 7)
     for i in 1:size(features)[1]
         if isa(cpVertexFromIndex(g, i), VariableVertex)
@@ -33,6 +33,14 @@ function featurize(g::CPLayerGraph)
         else
             features[i, 3] = 1.
         end
+    end
+    features
+end
+
+function featurize(g::CPLayerGraph)
+    features = zeros(Float32, nv(g), nv(g))
+    for i in 1:size(features)[1]
+        features[i, i] = 1.0f0
     end
     features
 end
