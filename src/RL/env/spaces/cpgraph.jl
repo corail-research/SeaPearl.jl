@@ -13,9 +13,26 @@ simplistic at the moment but will/must be improved later. Will be probably use t
 as argument in futur versions.
 """
 function featurize(g::CPLayerGraph)
-    features = zeros(Float32, nv(g), nv(g))
+    features = zeros(Float32, nv(g), 7)
     for i in 1:size(features)[1]
-        features[i, i] = 1.0f0
+        if isa(cpVertexFromIndex(g, i), VariableVertex)
+            features[i, 1] = 1.
+            var = cpVertexFromIndex(g, i).variable
+            if var == g.cpmodel.objective
+                features[i, 7] = 1.
+            end
+        elseif isa(cpVertexFromIndex(g, i), ConstraintVertex)
+            features[i, 2] = 1.
+            constraint = cpVertexFromIndex(g, i).constraint
+            if isa(constraint, NotEqual)
+                features[i, 4] = 1.
+            else
+                features[i, 5] = 1.
+            end
+
+        else
+            features[i, 3] = 1.
+        end
     end
     features
 end
@@ -58,7 +75,7 @@ function CPGraph(array::Array{Float32, 2})::CPGraph
     var_code = array[:, end]
     var_code = findall(x -> x == 1, var_code)
 
-    fg = GeometricFlux.FeaturedGraph(dense_adj, features)
+    fg = GeometricFlux.FeaturedGraph(dense_adj, transpose(features))
     return CPGraph(fg, convert(Int64, var_code[1]))
 end
 
