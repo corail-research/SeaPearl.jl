@@ -10,73 +10,6 @@ coloring_params = Dict(
 
 """
     train!(;
-        learnedHeuristic::LearnedHeuristic, 
-        problem_type::Symbol=:coloring,
-        problem_params::Dict=coloring_params,
-        nb_episodes::Int64=10,
-        strategy::Type{DFSearch}=DFSearch,
-        variableHeuristic=selectVariable,
-        metricsFun,
-        verbose::Bool=true
-)
-
-Training a LearnedHeuristic. Could perfectly work with basic heuristic. (even if 
-prevented at the moment).
-We could rename it experiment and add a train::Bool argument.
-"""
-function train!(;
-        valueSelection::ValueSelection, 
-        problem_type::Symbol=:coloring,
-        problem_params::Dict=coloring_params,
-        nb_episodes::Int64=10,
-        strategy::Type{DFSearch}=DFSearch,
-        variableHeuristic=selectVariable,
-        metricsFun=((;kwargs...) -> nothing),
-        verbose::Bool=true
-    )
-    # give information to the learned heuristic
-    if isa(valueSelection, LearnedHeuristic)
-        valueSelection.fitted_problem = problem_type
-        valueSelection.fitted_strategy = strategy
-        # we could add more information later ...
-
-        # make sure it is in training mode
-        testmode!(valueSelection, false)
-    end
-    
-    # launch the experiment
-    bestsolutions, nodevisited = launch_experiment!(
-        valueSelection, 
-        problem_type, 
-        problem_params, 
-        nb_episodes, 
-        strategy, 
-        variableHeuristic, 
-        metricsFun, 
-        verbose
-    )
-
-    # get to testing mode
-    if isa(valueSelection, LearnedHeuristic)
-        testmode!(valueSelection)
-
-        if verbose 
-            print("Has been trained on : ", problem_type)
-            print(" ... with strategy : ", strategy)
-            println("During ", nb_episodes, " episodes.")
-            println("Training mode now desactivated !")
-        end
-    end
-    
-
-    bestsolutions, nodevisited
-end
-
-
-
-
-"""
-    multi_train!(;
         ValueSelectionArray::Array{ValueSelection, 1}, 
         problem_type::Symbol=:coloring,
         problem_params::Dict=coloring_params,
@@ -91,8 +24,8 @@ We could rename it experiment and add a train::Bool argument.
 Call it multitrain because I am having an overwritting error with the simple one 
 and I would like to keep both atm.
 """
-function multi_train!(;
-        ValueSelectionArray::Union{T, Array{T, 1}}, 
+function train!(;
+        valueSelectionArray::Union{T, Array{T, 1}}, 
         problem_type::Symbol=:coloring,
         problem_params::Dict=coloring_params,
         nb_episodes::Int64=10,
@@ -102,22 +35,23 @@ function multi_train!(;
         verbose::Bool=true
     ) where T <: ValueSelection
 
-    if isa(ValueSelectionArray, T)
-        ValueSelectionArray = [ValueSelectionArray]
+    if isa(valueSelectionArray, T)
+        valueSelectionArray = [valueSelectionArray]
     end
 
-    for valueSelection in ValueSelectionArray
+    for valueSelection in valueSelectionArray
         if isa(valueSelection, LearnedHeuristic)
             valueSelection.fitted_problem = problem_type
             valueSelection.fitted_strategy = strategy
             # we could add more information later ...
 
+            # make sure it is in training mode
             testmode!(valueSelection, false)
         end
     end
 
-    bestsolutions, nodevisited = multi_experiment!(
-        ValueSelectionArray,
+    bestsolutions, nodevisited = launch_experiment!(
+        valueSelectionArray,
         problem_type,
         problem_params,
         nb_episodes,
@@ -127,8 +61,9 @@ function multi_train!(;
         verbose
     )
 
-    for valueSelection in ValueSelectionArray
+    for valueSelection in valueSelectionArray
         if isa(valueSelection, LearnedHeuristic)
+            # go to testing mode 
             testmode!(valueSelection)
 
             if verbose 

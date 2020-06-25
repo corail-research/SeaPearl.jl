@@ -97,12 +97,12 @@ function selectNonObjVariable(model::CPRL.CPModel)
     return selectedVar
 end
 
-bestsolutions, nodevisited = CPRL.multi_train!(
-    #ValueSelectionArray=[learnedHeuristic, heuristic_min, heuristic_max, heuristic_rand], 
-    ValueSelectionArray=learnedHeuristic,
+bestsolutions, nodevisited = CPRL.train!(
+    valueSelectionArray=[learnedHeuristic, heuristic_min, heuristic_max, heuristic_rand], 
+    #valueSelectionArray=learnedHeuristic,
     problem_type=:coloring,
     problem_params=coloring_params,
-    nb_episodes=2,
+    nb_episodes=10,
     strategy=CPRL.DFSearch,
     variableHeuristic=selectNonObjVariable
 )
@@ -119,11 +119,46 @@ p = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", yli
 a, b = size(nodevisited)
 x = 1:a
 
-p = plot(x, nodevisited[:, 1], xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 180])
+p1 = plot(x, nodevisited[:, 1], xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 180])
 if b >= 2
     for i in 2:b
-        plot!(p, x, nodevisited[:, b])
+        plot!(p1, x, nodevisited[:, b])
     end
 end
+
+display(p1)
+
+########################
+
+bestsolutions, nodevisited = CPRL.benchmark_solving(
+    valueSelectionArray=[learnedHeuristic, heuristic_min, heuristic_max, heuristic_rand], 
+    #valueSelectionArray=learnedHeuristic,
+    problem_type=:coloring,
+    problem_params=coloring_params,
+    nb_episodes=10,
+    strategy=CPRL.DFSearch,
+    variableHeuristic=selectNonObjVariable
+)
+
+println(bestsolutions)
+println(nodevisited)
+
+
+"""
+x = 1:length(nodevisited)
+p = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 180])
+"""
+# plot 
+a, b = size(nodevisited)
+x = 1:a
+
+p2 = plot(x, nodevisited[:, 1], xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 180])
+if b >= 2
+    for i in 2:b
+        plot!(p2, x, nodevisited[:, b])
+    end
+end
+
+p = plot(p1, p2, layout = 2)
 
 display(p)
