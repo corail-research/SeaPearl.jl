@@ -143,7 +143,7 @@ function multi_train!(;
 
             bestsolutions[i, j] = models[j].objectiveBound + 1
             nodevisited[i, j] = models[j].statistics.numberOfNodes
-            metricsFun(;heuristic=ValueSelectionArray[j], nodeVisited=models[j].statistics.numberOfNodes, bestSolution=(models[j].objectiveBound + 1))
+            metricsFun(;episode=i, heuristic=ValueSelectionArray[j], nodeVisited=models[j].statistics.numberOfNodes, bestSolution=(models[j].objectiveBound + 1))
         end
         println()
 

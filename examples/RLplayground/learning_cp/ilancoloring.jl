@@ -46,7 +46,7 @@ agent = RL.Agent(
                 ),
                 loss_func = huber_loss,
                 stack_size = nothing,
-                γ = 0.999f0,
+                γ = 0.99999f0,
                 batch_size = 1,
                 update_horizon = 1,
                 min_replay_history = 1,
@@ -59,7 +59,7 @@ agent = RL.Agent(
                 kind = :exp,
                 ϵ_init = 1.0,
                 warmup_steps = 0,
-                decay_steps = 300,
+                decay_steps = 200,
                 step = 1,
                 is_break_tie = false, 
                 #is_training = true,
@@ -100,36 +100,39 @@ function selectNonObjVariable(model::CPRL.CPModel)
     return selectedVar
 end
 
-meanNodeVisited = Float32[]
-meanNodeVisitedBasic = Float32[]
-nodeVisitedBasic = Int64[]
-nodeVisitedLearned = Int64[]
+maxNumOfEpisodes = 2000
+
+meanNodeVisited = Array{Float32}(undef, maxNumOfEpisodes)
+meanNodeVisitedBasic = Array{Float32}(undef, maxNumOfEpisodes)
+nodeVisitedBasic = Array{Int64}(undef, maxNumOfEpisodes)
+nodeVisitedLearned = Array{Int64}(undef, maxNumOfEpisodes)
 
 meanOver = 50
 sum = 0
 function metricsFun(;kwargs...)
+    i = kwargs[:episode]
     if kwargs[:heuristic] == learnedHeuristic
         currentNodeVisited = kwargs[:nodeVisited]
-        push!(nodeVisitedLearned, currentNodeVisited)
+        nodeVisitedLearned[i] = currentNodeVisited
 
         currentMean = 0.
-        if length(nodeVisitedLearned) <= meanOver
-            currentMean = mean(nodeVisitedLearned)
+        if i <= meanOver
+            currentMean = mean(nodeVisitedLearned[1:i])
         else
-            currentMean = mean(nodeVisitedLearned[(end-meanOver+1):end])
+            currentMean = mean(nodeVisitedLearned[(i-meanOver+1):i])
         end
-        push!(meanNodeVisited, currentMean)
+        meanNodeVisited[i] = currentMean
     else
         currentNodeVisited = kwargs[:nodeVisited]
-        push!(nodeVisitedBasic, currentNodeVisited)
+        nodeVisitedBasic[i] = currentNodeVisited
 
         currentMean = 0.
-        if length(nodeVisitedBasic) <= meanOver
-            currentMean = mean(nodeVisitedBasic)
+        if i <= meanOver
+            currentMean = mean(nodeVisitedBasic[1:i])
         else
-            currentMean = mean(nodeVisitedBasic[(end-meanOver+1):end])
+            currentMean = mean(nodeVisitedBasic[(i-meanOver+1):i])
         end
-        push!(meanNodeVisitedBasic, currentMean)
+        meanNodeVisitedBasic[i] = currentMean
     end
 end
 
@@ -153,13 +156,13 @@ function trytrain(nepisodes::Int)
 
     
     # plot 
-    x = 1:length(nodeVisitedBasic)
+    x = 1:nepisodes
 
     p = plot(x, 
-            [nodeVisitedLearned meanNodeVisited nodeVisitedBasic meanNodeVisitedBasic (nodeVisitedLearned-nodeVisitedBasic) (meanNodeVisited-meanNodeVisitedBasic)], 
+            [nodeVisitedLearned[1:nepisodes] meanNodeVisited[1:nepisodes] nodeVisitedBasic[1:nepisodes] meanNodeVisitedBasic[1:nepisodes] (nodeVisitedLearned-nodeVisitedBasic)[1:nepisodes] (meanNodeVisited-meanNodeVisitedBasic)[1:nepisodes]], 
             xlabel="Episode", 
             ylabel="Number of nodes visited", 
-            label = ["Learned" "mean/$meanOver Learned" "Basic" "mean/$meanOver Learned" "Delta" "Mean Delta"],
+            label = ["Learned" "mean/$meanOver Learned" "Basic" "mean/$meanOver Basic" "Delta" "Mean Delta"],
             ylims = (-50,300)
             )
     display(p)
