@@ -18,11 +18,7 @@ coloring_params = Dict(
         variableHeuristic=selectVariable
 )
 
-Same but with multiple ValueSelection instances (accepts BasicHeuristics)
-We could rename it experiment and add a train::Bool argument.
-
-Call it multitrain because I am having an overwritting error with the simple one 
-and I would like to keep both atm.
+Launch a training on several ValueSelection instances to get the different results on the same probem instances.
 """
 function train!(;
         valueSelectionArray::Union{T, Array{T, 1}}, 
