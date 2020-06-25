@@ -24,14 +24,13 @@ coloring_params = Dict(
 
 fixedGCNargs = CPRL.ArgsFixedOutputGCN(
     maxDomainSize= 15,
-    numInFeatures = 7,
+    numInFeatures = 83,
     firstHiddenGCN = 20,
     secondHiddenGCN = 20,
     hiddenDense = 20
 )
-numberOfCPNodes = 83
 
-state_size = (numberOfCPNodes,fixedGCNargs.numInFeatures + numberOfCPNodes + 1, 1)
+state_size = (fixedGCNargs.numInFeatures,fixedGCNargs.numInFeatures*2+1, 1)
 
 agent = RL.Agent(
         policy = RL.QBasedPolicy(
