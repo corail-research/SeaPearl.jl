@@ -98,8 +98,8 @@ function selectNonObjVariable(model::CPRL.CPModel)
 end
 
 bestsolutions, nodevisited = CPRL.multi_train!(
-    ValueSelectionArray=[learnedHeuristic, heuristic_min, heuristic_max, heuristic_rand], 
-    #valueSelection=learnedHeuristic,
+    #ValueSelectionArray=[learnedHeuristic, heuristic_min, heuristic_max, heuristic_rand], 
+    ValueSelectionArray=learnedHeuristic,
     problem_type=:coloring,
     problem_params=coloring_params,
     nb_episodes=2,
