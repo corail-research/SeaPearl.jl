@@ -50,7 +50,7 @@ function train!(;
         end
     end
 
-    bestsolutions, nodevisited = launch_experiment!(
+    bestsolutions, nodevisited, timeneeded = launch_experiment!(
         valueSelectionArray,
         problem_type,
         problem_params,
@@ -75,5 +75,5 @@ function train!(;
         end
     end
 
-    bestsolutions, nodevisited
+    bestsolutions, nodevisited, timeneeded
 end

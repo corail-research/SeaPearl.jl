@@ -83,7 +83,7 @@
 
     initial_params = deepcopy(params(learnedHeuristic.agent.policy.learner.approximator.model))
 
-    bestsolutions, nodevisited = CPRL.train!(
+    bestsolutions, nodevisited, timeneeded = CPRL.train!(
         valueSelectionArray=learnedHeuristic, 
         problem_type=:coloring,
         problem_params=coloring_params,

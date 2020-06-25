@@ -97,7 +97,9 @@ function selectNonObjVariable(model::CPRL.CPModel)
     return selectedVar
 end
 
-bestsolutions, nodevisited = CPRL.train!(
+############# TRAIN
+
+bestsolutions, nodevisited, timeneeded = CPRL.train!(
     valueSelectionArray=[learnedHeuristic, heuristic_min, heuristic_max, heuristic_rand], 
     #valueSelectionArray=learnedHeuristic,
     problem_type=:coloring,
@@ -109,28 +111,20 @@ bestsolutions, nodevisited = CPRL.train!(
 
 println(bestsolutions)
 println(nodevisited)
+println(timeneeded)
 
 
-"""
-x = 1:length(nodevisited)
-p = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 180])
-"""
 # plot 
 a, b = size(nodevisited)
 x = 1:a
 
-p1 = plot(x, nodevisited[:, 1], xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 180])
-if b >= 2
-    for i in 2:b
-        plot!(p1, x, nodevisited[:, b])
-    end
-end
+p1 = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 180])
 
-display(p1)
+#display(p1)
 
-########################
+############# BENCHMARK
 
-bestsolutions, nodevisited = CPRL.benchmark_solving(
+bestsolutions, nodevisited, timeneeded = CPRL.benchmark_solving(
     valueSelectionArray=[learnedHeuristic, heuristic_min, heuristic_max, heuristic_rand], 
     #valueSelectionArray=learnedHeuristic,
     problem_type=:coloring,
@@ -142,23 +136,17 @@ bestsolutions, nodevisited = CPRL.benchmark_solving(
 
 println(bestsolutions)
 println(nodevisited)
+println(timeneeded)
 
 
-"""
-x = 1:length(nodevisited)
-p = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 180])
-"""
 # plot 
 a, b = size(nodevisited)
 x = 1:a
 
-p2 = plot(x, nodevisited[:, 1], xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 180])
-if b >= 2
-    for i in 2:b
-        plot!(p2, x, nodevisited[:, b])
-    end
-end
+p2 = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 180])
+p3 = plot(x, timeneeded, xlabel="Episode", ylabel="Time needed")
 
-p = plot(p1, p2, layout = 2)
+
+p = plot(p1, p2, p3, layout = 3)
 
 display(p)

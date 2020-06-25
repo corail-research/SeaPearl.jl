@@ -16,7 +16,7 @@ Call it multitrain because I am having an overwritting error with the simple one
 and I would like to keep both atm.
 """
 function launch_experiment!(
-        valueSelectionArray::Union{T, Array{T, 1}}, 
+        valueSelectionArray::Array{T, 1}, 
         problem_type::Symbol,
         problem_params::Dict,
         nb_episodes::Int64,
@@ -32,8 +32,7 @@ function launch_experiment!(
 
     bestsolutions = zeros(Int64, (nb_episodes, nb_heuristics))
     nodevisited = zeros(Int64, (nb_episodes, nb_heuristics))
-
-    verbose && println(" -------------- START TRAINING : -------------- ")
+    timeneeded = zeros(Float64, (nb_episodes, nb_heuristics))
 
     #for i in ProgressBar(1:nb_episodes)
     for i in 1:nb_episodes
@@ -47,7 +46,7 @@ function launch_experiment!(
         models = [deepcopy(model) for _ in 1:nb_heuristics]
 
         for j in 1:nb_heuristics
-            search!(models[j], strategy, variableHeuristic, valueSelectionArray[j])
+            dt = @elapsed search!(models[j], strategy, variableHeuristic, valueSelectionArray[j])
             if isa(valueSelectionArray[j], LearnedHeuristic)
                 verbose && print(", Visited nodes: ", models[j].statistics.numberOfNodes)
             else
@@ -57,11 +56,12 @@ function launch_experiment!(
 
             bestsolutions[i, j] = models[j].objectiveBound + 1
             nodevisited[i, j] = models[j].statistics.numberOfNodes
+            timeneeded[i, j] = dt
             metricsFun(;episode=i, heuristic=valueSelectionArray[j], nodeVisited=models[j].statistics.numberOfNodes, bestSolution=(models[j].objectiveBound + 1))
         end
         println()
 
     end
 
-    bestsolutions, nodevisited
+    bestsolutions, nodevisited, timeneeded
 end
