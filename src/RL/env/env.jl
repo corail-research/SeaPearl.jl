@@ -14,7 +14,7 @@ mutable struct RLEnv <: RL.AbstractEnv
     action_space::RL.DiscreteSpace{Array{Int64,1}}
     state::CPGraph
     action::Int64
-    reward::Int64
+    reward::Float64
     done::Bool
     rng::Random.MersenneTwister # random number generator
     
@@ -78,14 +78,7 @@ Change the "reward" attribute of the env. This is compulsory as used in the buff
 for the training.
 """
 function set_final_reward!(env::RLEnv, model::CPModel)
-    env.reward = - model.statistics.numberOfNodes
-    if isempty(model.solutions)
-        env.reward = 0
-    elseif !isnothing(model.objectiveBound)
-        env.reward = 0#2 * (10 - model.objectiveBound) + 1
-    else
-        env.reward = 0
-    end
+    env.reward += 30/(model.statistics.numberOfNodes)
     nothing
 end
 
@@ -121,13 +114,16 @@ function observe!(env::RLEnv, model::CPModel, x::AbstractIntVar)
 
     # compute reward - we could add a transition function given by the user
     reward = env.reward 
-    env.reward = 0
+    env.reward = 0#-1/40
+    # reward = 0
+    # println("test")
 
     # synchronize state: we could delete env.state, we do not need it 
     sync_state!(env, model, x)
 
     state = to_array(env.state)
     state = reshape(state, size(state)..., 1)
+    # println("reward", reward)
     
     # return the observation as a named tuple (useful for interface understanding)
     return (reward = reward, terminal = env.done, state = state, legal_actions = legal_actions, legal_actions_mask = legal_actions_mask)
