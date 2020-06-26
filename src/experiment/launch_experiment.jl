@@ -34,8 +34,8 @@ function launch_experiment!(
     nodevisited = zeros(Int64, (nb_episodes, nb_heuristics))
     timeneeded = zeros(Float64, (nb_episodes, nb_heuristics))
 
-    #for i in ProgressBar(1:nb_episodes)
-    for i in 1:nb_episodes
+    for i in ProgressBar(1:nb_episodes)
+    # for i in 1:nb_episodes
         verbose && print(" --- EPISODE: ", i)
 
         trailer = Trailer()
@@ -59,7 +59,7 @@ function launch_experiment!(
             timeneeded[i, j] = dt
             metricsFun(;episode=i, heuristic=valueSelectionArray[j], nodeVisited=models[j].statistics.numberOfNodes, bestSolution=(models[j].objectiveBound + 1))
         end
-        println()
+        verbose && println()
 
     end
 
