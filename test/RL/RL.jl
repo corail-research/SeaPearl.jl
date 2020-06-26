@@ -11,6 +11,6 @@ using GeometricFlux
     include("agents/agents.jl")
     include("hooks.jl")
     include("stop_conditions.jl")
-    include("explorers/directed_learning.jl")
+    include("explorers/directed_explorer.jl")
 
 end

@@ -2,7 +2,7 @@ using Random
 using Flux
 using Distributions: Categorical
 
-@testset "directed_learning.jl" begin
+@testset "directed_explorer.jl" begin
     @testset "DirectedExplorer constructors" begin
         function dummyDirection(values, mask)
             nothing
