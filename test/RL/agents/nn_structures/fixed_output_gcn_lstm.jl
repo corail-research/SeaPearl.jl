@@ -7,7 +7,7 @@
             numInFeatures = 5,
             firstHiddenGCN = 20,
             secondHiddenGCN = 20,
-            hiddenDense = 20
+            hiddenDense = 20,
             lstmSize = 19
         )
 
@@ -27,7 +27,7 @@
             numInFeatures = 5,
             firstHiddenGCN = 20,
             secondHiddenGCN = 20,
-            hiddenDense = 20
+            hiddenDense = 20,
             lstmSize = 19
         )
 
@@ -54,7 +54,7 @@
             numInFeatures = 5,
             firstHiddenGCN = 20,
             secondHiddenGCN = 20,
-            hiddenDense = 20
+            hiddenDense = 20,
             lstmSize = 19
         )
 
@@ -64,18 +64,18 @@
         @test typeof(foGCNLSTM.secondGCNHiddenLayer) == GeometricFlux.GCNConv{Float32,typeof(relu), GeometricFlux.FeaturedGraph{Nothing,Nothing}}
         @test typeof(foGCNLSTM.denseLayer) == Flux.Dense{typeof(relu),Array{Float32,2},Array{Float32,1}}
         @test typeof(foGCNLSTM.LSTMLayer) == Flux.Recur{Flux.LSTMCell{Array{Float32,2},Array{Float32,1}}}
-        @test typeof(foGCNLSTM.outputLayer) == Flux.Dense{typeof(relu),Array{Float32,2},Array{Float32,1}}
+        @test typeof(foGCNLSTM.outputLayer) == Flux.Dense{typeof(identity),Array{Float32,2},Array{Float32,1}}
 
     end
 
     @testset "FixedOutputGCN as function" begin
 
         args_foGCNLSTM = CPRL.ArgsFixedOutputGCNLSTM(
-            maxDomainSize = 10,
-            numInFeatures = 5,
+            maxDomainSize = 2,
+            numInFeatures = 6,
             firstHiddenGCN = 20,
             secondHiddenGCN = 20,
-            hiddenDense = 20
+            hiddenDense = 20,
             lstmSize = 19
         )
 
@@ -100,7 +100,7 @@
 
         X = reshape(X, size(X)..., 1)
 
-        q_values = foGCN(X)
+        q_values = foGCNLSTM(X)
         println("Q values vector :  ", q_values)
 
         @test size(q_values) == (1, 2, 1)
