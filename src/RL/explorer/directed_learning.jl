@@ -52,9 +52,12 @@ function DirectedExplorer(;
     )
 end
 
-Flux.testmode!(p::DirectedExplorer, mode = true) = p.is_training = !mode
+function Flux.testmode!(p::DirectedExplorer, mode = true)
+    p.is_training = !mode
+    Flux.testmode!(p.explorer, mode)
+end
 
-DirectedExplorer(explorer; kwargs...) = DirectedExplorer(; explorer = explorer, kwargs...)
+DirectedExplorer(explorer, direction; kwargs...) = DirectedExplorer(; explorer = explorer, direction=direction, kwargs...)
 
 """
     (s::EpsilonGreedyExplorer)(values; step) where T
@@ -112,7 +115,7 @@ end
 
 function RLBase.get_prob(s::DirectedExplorer{<:Any}, values, mask)
     if s.step > s.directed_steps
-        return RLBase.get_prob(s.explorer, values)
+        return RLBase.get_prob(s.explorer, values, mask)
     end
     n = length(values)
     probs = zeros(n)
