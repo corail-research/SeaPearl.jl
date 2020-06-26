@@ -7,26 +7,31 @@ Base.@kwdef mutable struct ArgsExpGCN
 end
 
 Base.@kwdef struct ExpGCN
-    firstGCNHiddenLayer::GeometricFlux.GCNConv
-    secondGCNHiddenLayer::GeometricFlux.GCNConv
-    denseLayer::Flux.Dense
-    dropoutLayer::Flux.Dropout
+    GCNConv_1::GeometricFlux.GCNConv
+    GCNConv_2::GeometricFlux.GCNConv
+    GCNConv_3::GeometricFlux.GCNConv
+    Dense_1::Flux.Dense
+    Dense_2::Flux.Dense
     outputLayer::Flux.Dense
 end
 
 function build_model(::Type{ExpGCN}, args::ArgsExpGCN)
     return ExpGCN(
-        firstGCNHiddenLayer = GeometricFlux.GCNConv(args.numInFeatures=>args.firstHiddenGCN, Flux.relu),
-        secondGCNHiddenLayer = GeometricFlux.GCNConv(args.firstHiddenGCN=>args.secondHiddenGCN, Flux.relu),
-        denseLayer = Flux.Dense(args.secondHiddenGCN, args.hiddenDense, Flux.relu),
-        dropoutLayer = Flux.Dropout(0.1),
+        GCNConv_1 = GeometricFlux.GCNConv(args.numInFeatures => args.firstHiddenGCN),
+        GCNConv_2 = GeometricFlux.GCNConv(args.firstHiddenGCN => args.firstHiddenGCN),
+        GCNConv_3 = GeometricFlux.GCNConv(args.firstHiddenGCN => args.secondHiddenGCN),
+        Dense_1 = Flux.Dense(args.secondHiddenGCN, args.hiddenDense),
+        Dense_2 = Flux.Dense(args.secondHiddenGCN, args.hiddenDense),
         outputLayer = Flux.Dense(args.hiddenDense, args.maxDomainSize)
     )
 end
 
 Flux.@functor ExpGCN
 
-functor(::Type{ExpGCN}, c) = (c.firstGCNHiddenLayer, c.secondGCNHiddenLayer, c.denseLayer, c.outputLayer), ls -> ExpGCN(ls...)
+functor(::Type{ExpGCN}, c) = (
+        c.GCNConv_1, c.GCNConv_2, c.GCNConv_3, 
+        c.Dense_1, c.Dense_2, c.outputLayer
+    ), ls -> ExpGCN(ls...)
 
 
 """
@@ -54,18 +59,19 @@ function (nn::ExpGCN)(x::AbstractArray{Float32,2})
 
     # get informations from the CPGraph (input) 
     variableId = cpg.variable_id
-    featuredGraph = cpg.featuredgraph
+    fg = cpg.featuredgraph
 
     # go through the GCNConvs
-    featuredGraph = nn.firstGCNHiddenLayer(featuredGraph)
-    featuredGraph = nn.secondGCNHiddenLayer(featuredGraph)
+    fg = nn.GCNConv_1(fg)
+    fg = nn.GCNConv_2(fg)
+    fg = nn.GCNConv_3(fg)
 
     # extract the feature of the variable we're working on 
-    var_feature = GeometricFlux.feature(featuredGraph)[:, variableId]
+    var_feature = GeometricFlux.feature(fg)[:, variableId]
 
-    var_feature = nn.denseLayer(var_feature)
-    var_feature = nn.dropoutLayer(var_feature)
+    var_feature = nn.Dense_1(var_feature)
+    var_feature = nn.Dense_2(var_feature)
     var_feature = nn.outputLayer(var_feature)
 
-    return Flux.softmax(var_feature)
+    return var_feature
 end

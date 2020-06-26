@@ -16,20 +16,20 @@ problem_generator = Dict(
 )
 
 coloring_params = Dict(
-    "nb_nodes" => 10,
-    "density" => 1.5
+    "nb_nodes" => 20,
+    "density" => 3
 )
 
 expGCNargs = ArgsExpGCN(
-    maxDomainSize= 10,
-    numInFeatures = 46,
-    firstHiddenGCN = 46,
-    secondHiddenGCN = 46,
-    hiddenDense = 46
+    maxDomainSize= 20,
+    numInFeatures = 121,
+    firstHiddenGCN = 121,
+    secondHiddenGCN = 121,
+    hiddenDense = 121
 )
-numberOfCPNodes = 46
+numberOfCPNodes = 121
 
-state_size = (numberOfCPNodes,expGCNargs.numInFeatures + numberOfCPNodes + 1, 1)
+state_size = (numberOfCPNodes, expGCNargs.numInFeatures + numberOfCPNodes + 1, 1)
 
 agent = RL.Agent(
         policy = RL.QBasedPolicy(
@@ -48,8 +48,8 @@ agent = RL.Agent(
                 batch_size = 1, #32,
                 update_horizon = 1,
                 min_replay_history = 1,
-                update_freq = 1,
-                target_update_freq = 50,
+                update_freq = 10,
+                target_update_freq = 100,
                 seed = 22,
             ), 
             explorer = CPRL.CPEpsilonGreedyExplorer(
@@ -65,7 +65,7 @@ agent = RL.Agent(
             )
         ),
         trajectory = RL.CircularCompactSARTSATrajectory(
-            capacity = 500, 
+            capacity = 4000, 
             state_type = Float32, 
             state_size = state_size,#(46, 93, 1),
             action_type = Int,
@@ -108,7 +108,7 @@ bestsolutions, nodevisited, timeneeded = CPRL.train!(
     #valueSelectionArray=learnedHeuristic,
     problem_type=:coloring,
     problem_params=coloring_params,
-    nb_episodes=220,
+    nb_episodes=300,
     strategy=CPRL.DFSearch,
     variableHeuristic=selectNonObjVariable
 )
@@ -133,15 +133,14 @@ bestsolutions, nodevisited, timeneeded = CPRL.benchmark_solving(
     variableHeuristic=selectNonObjVariable
 )
 
-
 # plot 
 a, b = size(nodevisited)
 x = 1:a
 
-p2 = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 180])
-p3 = plot(x, timeneeded, xlabel="Episode", ylabel="Time needed")
+p2 = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 500])
+p3 = plot(x, timeneeded, xlabel="Episode", ylabel="Time needed", ylims = [0, 0.15])
 
 
-p = plot(p1, p2, p3, layout = 3)
+p = plot(p1, p2, p3, legend = false, layout = (3, 1))
 
 display(p)
