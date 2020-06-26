@@ -1,6 +1,6 @@
 using Random
 using Flux
-using Distributions: Categorical, params
+using Distributions: Categorical
 
 @testset "directed_learning.jl" begin
     @testset "DirectedExplorer constructors" begin
