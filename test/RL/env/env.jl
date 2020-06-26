@@ -4,7 +4,7 @@
         rng = MersenneTwister(1)
         env = CPRL.RLEnv(
             RL.DiscreteSpace([1, 2, 3]),
-            CPRL.CPGraph(CPRL.CPLayerGraph(), 0),
+            CPRL.CPGraph(CPRL.CPModel(CPRL.Trailer()), 0),
             1,
             0,
             false,
