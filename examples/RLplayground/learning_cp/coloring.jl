@@ -2,9 +2,14 @@ using CPRL
 using ReinforcementLearning
 const RL = ReinforcementLearning
 using Flux
+using GeometricFlux
 
 using Plots
 gr()
+
+####
+include("felix_utils/utils.jl")
+####
 
 problem_generator = Dict(
     :coloring => CPRL.fill_with_coloring!
@@ -15,7 +20,7 @@ coloring_params = Dict(
     "density" => 1.5
 )
 
-fixedGCNargs = CPRL.ArgsFixedOutputGCN(
+expGCNargs = ArgsExpGCN(
     maxDomainSize= 10,
     numInFeatures = 46,
     firstHiddenGCN = 46,
@@ -24,37 +29,17 @@ fixedGCNargs = CPRL.ArgsFixedOutputGCN(
 )
 numberOfCPNodes = 46
 
-state_size = (numberOfCPNodes,fixedGCNargs.numInFeatures + numberOfCPNodes + 1, 1)
+state_size = (numberOfCPNodes,expGCNargs.numInFeatures + numberOfCPNodes + 1, 1)
 
 agent = RL.Agent(
         policy = RL.QBasedPolicy(
             learner = CPRL.CPDQNLearner(
-                #= approximator = RL.NeuralNetworkApproximator(
-                    model = Chain(
-                        Flux.flatten,
-                        Dense(46*93, 1000, Flux.relu),
-                        Dense(1000, 100, Flux.relu),
-                        Dense(100, 10, Flux.relu)
-                    ),
-                    optimizer = ADAM(0.0005f0)
-                ),
-                target_approximator = RL.NeuralNetworkApproximator(
-                    model = Chain(
-                        Flux.flatten,
-                        Dense(46*93, 1000, Flux.relu, initW = seed_glorot_uniform(seed = 17)),
-                        Dropout(0.2),
-                        Dense(1000, 100, Flux.relu, initW = seed_glorot_uniform(seed = 23)),
-                        Dropout(0.2),
-                        Dense(100, 10, Flux.relu, initW = seed_glorot_uniform(seed = 39))
-                    ),
-                    optimizer = ADAM(0.0005f0)
-                ), =#
                 approximator = RL.NeuralNetworkApproximator(
-                    model = CPRL.build_model(CPRL.FixedOutputGCN, fixedGCNargs),
+                    model = build_model(ExpGCN, expGCNargs),
                     optimizer = ADAM(0.0005f0)
                 ),
                 target_approximator = RL.NeuralNetworkApproximator(
-                    model = CPRL.build_model(CPRL.FixedOutputGCN, fixedGCNargs),
+                    model = build_model(ExpGCN, expGCNargs),
                     optimizer = ADAM(0.0005f0)
                 ),
                 loss_func = huber_loss,
