@@ -6,13 +6,13 @@ mutable struct CPGraph
 end
 
 """
-    featurize(g::CPLayerGraph)
+    featurize(cpmodel::CPModel)
 
-Create features that will be associated to every node of the graph. This is highly 
-simplistic at the moment but will/must be improved later. Will be probably use the cpmodel 
-as argument in futur versions.
+Create features that will be associated to every node of the graph. This is a default value
+but a user might overwrite it if he wants.
 """
-function featurize(g::CPLayerGraph)
+function featurize(cpmodel::CPModel)
+    g = CPLayerGraph(cpmodel)
     features = zeros(Float32, nv(g), nv(g))
     for i in 1:size(features)[1]
         features[i, i] = 1.0f0
@@ -23,26 +23,25 @@ end
 """
     CPGraph(cplayergraph::CPLayerGraph, var_id::Int64)
 
-Construct a CPGraph from the CPLayerGraph and the variable we want to branch on. 
-Here we will define how the node feature will look like. Thus, it might be transformed later.
+Construct a CPGraph from the CPModel and the id (in the graph) of the variable we want to branch on. 
 """
-function CPGraph(g::CPLayerGraph, variable_id::Int64)
+function CPGraph(cpmodel::CPModel, variable_id::Int64)
+    # graph
+    g = CPLayerGraph(cpmodel)
     sparse_adj = LightGraphs.LinAlg.adjacency_matrix(g)
-    # temporary use of a one hot encoder for each node. 
-    feature = featurize(g)
-    
+    # feature
+    feature = featurize(cpmodel)
+
+    # all together
     CPGraph(GeometricFlux.FeaturedGraph(sparse_adj, feature), variable_id)
 end
 
 """
-    CPGraph(cplayergraph::CPLayerGraph, x::AbstractIntVar)
-
-Construct a CPGraph from the CPLayerGraph and the variable we want to branch on. 
-Here we will define how the node feature will look like. Thus, it might be transformed later.
+For convenience during tests but might be deleted later.
 """
-function CPGraph(g::CPLayerGraph, x::AbstractIntVar)
-    variable_id = indexFromCpVertex(g, VariableVertex(x))
-    CPGraph(g, variable_id)
+function CPGraph(cpmodel::CPModel, x::AbstractIntVar)
+    variable_id = indexFromCpVertex(CPLayerGraph(cpmodel), VariableVertex(x))
+    CPGraph(cpmodel, variable_id)
 end
 
 """
