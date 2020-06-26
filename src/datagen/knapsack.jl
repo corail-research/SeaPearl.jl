@@ -1,7 +1,7 @@
 using Distributions
 
 """
-    fill_with_coloring!(cpmodel::CPModel, nb_node, density, centrality)::CPModel    
+    fill_with_knapsack!(cpmodel::CPModel, nb_items, noise)::CPModel    
 
 Create a filled CPModel with the variables and constraints generated. We fill it directly instead of 
 creating temporary files for efficiency purpose ! Density should be more than 1.
