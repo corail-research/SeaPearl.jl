@@ -1,17 +1,22 @@
+"""
 
+This structure is here to provide a flexible way to create a nn model which respect this approach:
+Making modification on the graph, then extract one node feature and modify it. 
+"""
 Base.@kwdef struct FlexGNN
-    GNNs::Flux.Chain
-    ANNs::Flux.Chain
+    graphChain::Flux.Chain
+    nodeChain::Flux.Chain
     outputLayer::Flux.Dense
 end
 
 Flux.@functor FlexGNN
 
-functor(::Type{FlexGNN}, c) = (c.GNNs, c.ANNs, c.outputLayer), ls -> FlexGNN(ls...)
+# not sure about this line
+functor(::Type{FlexGNN}, c) = (c.graphChain, c.nodeChain, c.outputLayer), ls -> FlexGNN(ls...)
 
 
 """
-    (nn::FixedOutputGCN)(x::CPGraph)
+    (nn::FlexGNN)(x::CPGraph)
 
 Take the CPGraph and output the q_values. Not that this could be changed a lot in the futur.
 Here we do not put a mask. We let the mask to the RL.jl but this is still under debate !
@@ -37,14 +42,16 @@ function (nn::FlexGNN)(x::AbstractArray{Float32,2})
     variableId = cpg.variable_id
     fg = cpg.featuredgraph
 
-    # go through the GCNConvs
-    fg = nn.GNNs(fg)
+    # chain working on the graph
+    fg = nn.graphChain(fg)
 
     # extract the feature of the variable we're working on 
     var_feature = GeometricFlux.feature(fg)[:, variableId]
 
-    var_feature = nn.ANNs(var_feature)
-    
+    # chain working on the node feature (array)
+    var_feature = nn.nodeChain(var_feature)
+
+    # output layer
     var_feature = nn.outputLayer(var_feature)
 
     return var_feature

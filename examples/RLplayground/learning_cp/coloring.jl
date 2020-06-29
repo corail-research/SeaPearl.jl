@@ -20,29 +20,22 @@ coloring_params = Dict(
     "density" => 3
 )
 
-expGCNargs = ArgsExpGCN(
-    maxDomainSize= 20,
-    numInFeatures = 121,
-    firstHiddenGCN = 121,
-    secondHiddenGCN = 121,
-    hiddenDense = 121
-)
+numInFeatures = 121
 numberOfCPNodes = 121
 
-state_size = (numberOfCPNodes, expGCNargs.numInFeatures + numberOfCPNodes + 1, 1)
+state_size = (numberOfCPNodes, numInFeatures + numberOfCPNodes + 1, 1)
 
 agent = RL.Agent(
         policy = RL.QBasedPolicy(
             learner = CPRL.CPDQNLearner(
                 approximator = RL.NeuralNetworkApproximator(
-                    model = FlexGNN(
-                        GNNs = Flux.Chain(
+                    model = CPRL.FlexGNN(
+                        graphChain = Flux.Chain(
                             GeometricFlux.GCNConv(121 => 121),
                             GeometricFlux.GCNConv(121 => 121),
                             GeometricFlux.GCNConv(121 => 121),
-                            GeometricFlux.GCNConv(121 => 121)
                         ),
-                        ANNs = Flux.Chain(
+                        nodeChain = Flux.Chain(
                             Flux.Dense(121, 121),
                             Flux.Dense(121, 121),
                         ),
@@ -51,14 +44,13 @@ agent = RL.Agent(
                     optimizer = ADAM(0.0005f0)
                 ),
                 target_approximator = RL.NeuralNetworkApproximator(
-                    model = FlexGNN(
-                        GNNs = Flux.Chain(
+                    model = CPRL.FlexGNN(
+                        graphChain = Flux.Chain(
                             GeometricFlux.GCNConv(121 => 121),
                             GeometricFlux.GCNConv(121 => 121),
                             GeometricFlux.GCNConv(121 => 121),
-                            GeometricFlux.GCNConv(121 => 121)
                         ),
-                        ANNs = Flux.Chain(
+                        nodeChain = Flux.Chain(
                             Flux.Dense(121, 121),
                             Flux.Dense(121, 121),
                         ),
@@ -141,7 +133,7 @@ bestsolutions, nodevisited, timeneeded = CPRL.train!(
 a, b = size(nodevisited)
 x = 1:a
 
-p1 = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 180])
+p1 = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 700])
 
 #display(p1)
 
@@ -161,8 +153,8 @@ bestsolutions, nodevisited, timeneeded = CPRL.benchmark_solving(
 a, b = size(nodevisited)
 x = 1:a
 
-p2 = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 500])
-p3 = plot(x, timeneeded, xlabel="Episode", ylabel="Time needed", ylims = [0, 0.15])
+p2 = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 700])
+p3 = plot(x, timeneeded, xlabel="Episode", ylabel="Time needed", ylims = [0, 0.25])
 
 
 p = plot(p1, p2, p3, legend = false, layout = (3, 1))
