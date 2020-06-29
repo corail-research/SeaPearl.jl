@@ -33,7 +33,7 @@ function CPGraph(cpmodel::CPModel, variable_id::Int64)
     feature = featurize(cpmodel)
 
     # all together
-    CPGraph(GeometricFlux.FeaturedGraph(sparse_adj, feature), variable_id)
+    CPGraph(GeometricFlux.FeaturedGraph(sparse_adj, transpose(feature)), variable_id)
 end
 
 """
@@ -57,7 +57,7 @@ function CPGraph(array::Array{Float32, 2})::CPGraph
     var_code = array[:, end]
     var_code = findall(x -> x == 1, var_code)
 
-    fg = GeometricFlux.FeaturedGraph(dense_adj, features)
+    fg = GeometricFlux.FeaturedGraph(dense_adj, transpose(features))
     return CPGraph(fg, convert(Int64, var_code[1]))
 end
 
@@ -101,5 +101,5 @@ function to_array(cpg::CPGraph)::Array{Float32, 2}
     var_code = zeros(Float32, size(adj, 1))
     var_code[var_id] = 1f0
 
-    return hcat(adj, features, var_code)
+    return hcat(adj, transpose(features), var_code)
 end
