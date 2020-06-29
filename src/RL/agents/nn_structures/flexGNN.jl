@@ -14,7 +14,6 @@ Flux.@functor FlexGNN
 # not sure about this line
 functor(::Type{FlexGNN}, c) = (c.graphChain, c.nodeChain, c.outputLayer), ls -> FlexGNN(ls...)
 
-
 """
     (nn::FlexGNN)(x::CPGraph)
 
