@@ -35,11 +35,35 @@ agent = RL.Agent(
         policy = RL.QBasedPolicy(
             learner = CPRL.CPDQNLearner(
                 approximator = RL.NeuralNetworkApproximator(
-                    model = build_model(ExpGCN, expGCNargs),
+                    model = FlexGNN(
+                        GNNs = Flux.Chain(
+                            GeometricFlux.GCNConv(121 => 121),
+                            GeometricFlux.GCNConv(121 => 121),
+                            GeometricFlux.GCNConv(121 => 121),
+                            GeometricFlux.GCNConv(121 => 121)
+                        ),
+                        ANNs = Flux.Chain(
+                            Flux.Dense(121, 121),
+                            Flux.Dense(121, 121),
+                        ),
+                        outputLayer = Flux.Dense(121, 20)
+                    ),
                     optimizer = ADAM(0.0005f0)
                 ),
                 target_approximator = RL.NeuralNetworkApproximator(
-                    model = build_model(ExpGCN, expGCNargs),
+                    model = FlexGNN(
+                        GNNs = Flux.Chain(
+                            GeometricFlux.GCNConv(121 => 121),
+                            GeometricFlux.GCNConv(121 => 121),
+                            GeometricFlux.GCNConv(121 => 121),
+                            GeometricFlux.GCNConv(121 => 121)
+                        ),
+                        ANNs = Flux.Chain(
+                            Flux.Dense(121, 121),
+                            Flux.Dense(121, 121),
+                        ),
+                        outputLayer = Flux.Dense(121, 20)
+                    ),
                     optimizer = ADAM(0.0005f0)
                 ),
                 loss_func = huber_loss,
@@ -108,7 +132,7 @@ bestsolutions, nodevisited, timeneeded = CPRL.train!(
     #valueSelectionArray=learnedHeuristic,
     problem_type=:coloring,
     problem_params=coloring_params,
-    nb_episodes=300,
+    nb_episodes=50,
     strategy=CPRL.DFSearch,
     variableHeuristic=selectNonObjVariable
 )
@@ -128,7 +152,7 @@ bestsolutions, nodevisited, timeneeded = CPRL.benchmark_solving(
     #valueSelectionArray=learnedHeuristic,
     problem_type=:coloring,
     problem_params=coloring_params,
-    nb_episodes=100,
+    nb_episodes=10,
     strategy=CPRL.DFSearch,
     variableHeuristic=selectNonObjVariable
 )

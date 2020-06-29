@@ -21,7 +21,7 @@ function build_model(::Type{ExpGCN}, args::ArgsExpGCN)
         GCNConv_2 = GeometricFlux.GCNConv(args.firstHiddenGCN => args.firstHiddenGCN),
         GCNConv_3 = GeometricFlux.GCNConv(args.firstHiddenGCN => args.secondHiddenGCN),
         Dense_1 = Flux.Dense(args.secondHiddenGCN, args.hiddenDense),
-        Dense_2 = Flux.Dense(args.secondHiddenGCN, args.hiddenDense),
+        Dense_2 = Flux.Dense(args.hiddenDense, args.hiddenDense),
         outputLayer = Flux.Dense(args.hiddenDense, args.maxDomainSize)
     )
 end
