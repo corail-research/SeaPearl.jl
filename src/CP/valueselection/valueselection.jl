@@ -50,6 +50,10 @@ function (valueSelection::LearnedHeuristic)(::InitializingPhase, model::CPModel,
     valueSelection.current_env = RLEnv(model::CPModel)
     false_x = first(values(model.variables))
     obs = observe!(valueSelection.current_env, model, false_x)
+
+    # Reset the agent, useful for things like recurrent networks
+    Flux.reset!(valueSelection.agent)
+
     valueSelection.agent(RL.PRE_EPISODE_STAGE, obs) # just empty the buffer
     # eventually hook(PRE_EPISODE_STAGE, agent, env, obs)
 end

@@ -86,5 +86,6 @@ function (nn::FixedOutputGCN)(x::AbstractArray{Float32,2})
 
     # output a vector (of values of the possibles values)
     # println("size(Flux.softmax(valueProbabilities))", size(Flux.softmax(valueProbabilities)))
-    return Flux.softmax(valueProbabilities)
+    # println("valueProbabilities", valueProbabilities)
+    return valueProbabilities
 end

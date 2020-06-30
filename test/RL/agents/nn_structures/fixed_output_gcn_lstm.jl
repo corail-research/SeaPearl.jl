@@ -99,13 +99,9 @@
         X = reshape(X, size(X)..., 1)
 
         q_values = foGCNLSTM(X)
-        println("Q values vector :  ", q_values)
+        println("Q values vector for LSTM :  ", q_values)
 
         @test size(q_values) == (1, 2, 1)
-        @test round(sum(q_values), digits=5) == 1
-
-        
-
 
     end
 

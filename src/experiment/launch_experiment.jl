@@ -37,12 +37,11 @@ function launch_experiment!(
     trailer = Trailer()
     model = CPModel(trailer)
 
-    #for i in ProgressBar(1:nb_episodes)
-    for i in 1:nb_episodes
+    iter = ProgressBar(1:nb_episodes)
+    for i in iter
+    # for i in 1:nb_episodes
         verbose && print(" --- EPISODE: ", i)
 
-        # trailer = Trailer()
-        # model = CPModel(trailer)
         empty!(model)
 
         fill_with_generator!(model, problem_params["nb_nodes"], problem_params["density"])
@@ -57,13 +56,15 @@ function launch_experiment!(
                 verbose && print(" vs ", models[j].statistics.numberOfNodes)
             end
 
-
+            if j == 2
+                set_postfix(iter, Delta=string(models[1].statistics.numberOfNodes - models[2].statistics.numberOfNodes))
+            end
             bestsolutions[i, j] = models[j].objectiveBound + 1
             nodevisited[i, j] = models[j].statistics.numberOfNodes
             timeneeded[i, j] = dt
             metricsFun(;episode=i, heuristic=valueSelectionArray[j], nodeVisited=models[j].statistics.numberOfNodes, bestSolution=(models[j].objectiveBound + 1))
         end
-        println()
+        verbose && println()
 
     end
 

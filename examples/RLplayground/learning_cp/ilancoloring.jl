@@ -22,15 +22,16 @@ coloring_params = Dict(
     "density" => 2.5
 )
 
-fixedGCNargs = CPRL.ArgsFixedOutputGCN(
-    maxDomainSize= 15,
-    numInFeatures = 83,
-    firstHiddenGCN = 20,
-    secondHiddenGCN = 20,
-    hiddenDense = 20
-)
-
-state_size = (fixedGCNargs.numInFeatures,fixedGCNargs.numInFeatures*2+1, 1)
+fixedGCNargs = CPRL.ArgsFixedOutputGCN( 
+    maxDomainSize= 15, 
+    numInFeatures = 83, 
+    firstHiddenGCN = 20, 
+    secondHiddenGCN = 20, 
+    hiddenDense = 20 
+) 
+numberOfCPNodes = 83 
+ 
+state_size = (numberOfCPNodes,fixedGCNargs.numInFeatures + numberOfCPNodes + 1, 1) 
 
 agent = RL.Agent(
         policy = RL.QBasedPolicy(
@@ -45,28 +46,31 @@ agent = RL.Agent(
                 ),
                 loss_func = huber_loss,
                 stack_size = nothing,
-                γ = 0.99999f0,
+                γ = 0.999f0,
                 batch_size = 1,
                 update_horizon = 1,
                 min_replay_history = 1,
-                update_freq = 1,
-                target_update_freq = 100,
+                update_freq = 50,
+                target_update_freq = 200,
                 seed = 22,
             ), 
-            explorer = CPRL.CPEpsilonGreedyExplorer(
-                ϵ_stable = 0.001,
-                kind = :exp,
-                ϵ_init = 1.0,
-                warmup_steps = 0,
-                decay_steps = 200,
-                step = 1,
-                is_break_tie = false, 
-                #is_training = true,
-                seed = 33
-            )
+            # explorer = CPRL.DirectedExplorer(;
+                explorer = CPRL.CPEpsilonGreedyExplorer(
+                    ϵ_stable = 0.001,
+                    kind = :exp,
+                    ϵ_init = 1.0,
+                    warmup_steps = 0,
+                    decay_steps = 1000,
+                    step = 1,
+                    is_break_tie = false, 
+                    #is_training = true,
+                )
+                # direction = ((values, mask) -> view(keys(values), mask)[1]),
+                # directed_steps=1000
+            # )
         ),
         trajectory = RL.CircularCompactSARTSATrajectory(
-            capacity = 1000, 
+            capacity = 3000, 
             state_type = Float32, 
             state_size = state_size,
             action_type = Int,
@@ -99,7 +103,7 @@ function selectNonObjVariable(model::CPRL.CPModel)
     return selectedVar
 end
 
-maxNumOfEpisodes = 2000
+maxNumOfEpisodes = 4000
 
 meanNodeVisited = Array{Float32}(undef, maxNumOfEpisodes)
 meanNodeVisitedBasic = Array{Float32}(undef, maxNumOfEpisodes)
@@ -139,14 +143,15 @@ end
 
 function trytrain(nepisodes::Int)
     
-    bestsolutions, nodevisited = CPRL.multi_train!(
-        ValueSelectionArray=[learnedHeuristic, basicHeuristic], 
+    bestsolutions, nodevisited = CPRL.train!(
+        valueSelectionArray=[learnedHeuristic, basicHeuristic], 
         problem_type=:coloring,
         problem_params=coloring_params,
         nb_episodes=nepisodes,
         strategy=CPRL.DFSearch,
         variableHeuristic=selectNonObjVariable,
-        metricsFun=metricsFun
+        metricsFun=metricsFun,
+        verbose=false
     )
     # println(bestsolutions)
     # nodevisited = Array{Any}([35, 51])
