@@ -92,9 +92,7 @@
         push!(model.constraints, CPRL.Equal(x, y, trailer))
         push!(model.constraints, CPRL.NotEqual(x, y, trailer))
 
-        g = CPRL.CPLayerGraph(model)
-
-        cpg = CPRL.CPGraph(g, x)
+        cpg = CPRL.CPGraph(model, x)
 
         X = CPRL.to_array(cpg)
 

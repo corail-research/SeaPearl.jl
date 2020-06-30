@@ -15,7 +15,7 @@ adj = [0 1 0 1;
 
     end
 
-    @testset "CPGraph from CPLayerGraph" begin
+    @testset "CPGraph from CPModel" begin
         trailer = CPRL.Trailer()
         model = CPRL.CPModel(trailer)
 
@@ -26,9 +26,7 @@ adj = [0 1 0 1;
         push!(model.constraints, CPRL.Equal(x, y, trailer))
         push!(model.constraints, CPRL.NotEqual(x, y, trailer))
 
-        g = CPRL.CPLayerGraph(model)
-
-        cpg = CPRL.CPGraph(g, x)
+        cpg = CPRL.CPGraph(model, x)
 
         @test Matrix(cpg.featuredgraph.graph[]) == [0 0 1 1 0 0
                                                     0 0 1 1 0 0
@@ -44,7 +42,7 @@ adj = [0 1 0 1;
                                               0 0 0 0 1.0 0
                                               0 0 0 0 0 1.0]
         @test cpg.variable_id == 3
-        @test CPRL.cpVertexFromIndex(g, cpg.variable_id).variable == model.variables["x"]
+        @test CPRL.cpVertexFromIndex(CPRL.CPLayerGraph(model), cpg.variable_id).variable == model.variables["x"]
     end
 
     @testset "update_graph!()" begin
@@ -58,9 +56,7 @@ adj = [0 1 0 1;
         push!(model.constraints, CPRL.Equal(x, y, trailer))
         push!(model.constraints, CPRL.NotEqual(x, y, trailer))
 
-        g = CPRL.CPLayerGraph(model)
-
-        cpg = CPRL.CPGraph(g, x)
+        cpg = CPRL.CPGraph(model, x)
 
         @test Matrix(cpg.featuredgraph.graph[]) == [0 0 1 1 0 0
                                                     0 0 1 1 0 0
@@ -76,7 +72,7 @@ adj = [0 1 0 1;
                                               0 0 0 0 1.0 0
                                               0 0 0 0 0 1.0]
         @test cpg.variable_id == 3
-        @test CPRL.cpVertexFromIndex(g, cpg.variable_id).variable == model.variables["x"]
+        @test CPRL.cpVertexFromIndex(CPRL.CPLayerGraph(model), cpg.variable_id).variable == model.variables["x"]
 
         CPRL.assign!(x, 2)
         g = CPRL.CPLayerGraph(model)
@@ -141,9 +137,7 @@ adj = [0 1 0 1;
         push!(model.constraints, CPRL.Equal(x, y, trailer))
         push!(model.constraints, CPRL.NotEqual(x, y, trailer))
 
-        g = CPRL.CPLayerGraph(model)
-
-        cpg = CPRL.CPGraph(g, x)
+        cpg = CPRL.CPGraph(model, x)
 
         @test CPRL.to_array(cpg) == [0 0 1 1 0 0 1.0 0 0 0 0 0 0
                                      0 0 1 1 0 0 0 1.0 0 0 0 0 0

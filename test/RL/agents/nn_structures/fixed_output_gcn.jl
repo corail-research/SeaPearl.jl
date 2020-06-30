@@ -84,9 +84,7 @@
         push!(model.constraints, CPRL.Equal(x, y, trailer))
         push!(model.constraints, CPRL.NotEqual(x, y, trailer))
 
-        g = CPRL.CPLayerGraph(model)
-
-        cpg = CPRL.CPGraph(g, x)
+        cpg = CPRL.CPGraph(model, x)
 
         X = CPRL.to_array(cpg)
 
@@ -96,9 +94,6 @@
         println("Q values vector :  ", q_values)
 
         @test size(q_values) == (1, 2, 1)
-        @test round(sum(q_values), digits=5) == 1
-
-        
 
 
     end

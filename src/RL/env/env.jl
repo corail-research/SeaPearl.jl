@@ -39,7 +39,7 @@ function RLEnv(cpmodel::CPModel, seed = nothing)
 
     env = RLEnv(
         action_space,
-        CPGraph(CPLayerGraph(cpmodel), 0), # use a fake variable index
+        CPGraph(cpmodel, 0), # use a fake variable index
         1,
         0,
         false,  
@@ -67,7 +67,6 @@ Change the "reward" attribute of the env. This is compulsory as used in the buff
 for the training.
 """
 function set_reward!(env::RLEnv, symbol::Symbol)
-    env.reward += 0 #- 5 * (symbol == :Infeasible) + 1 * (symbol == :FoundSolution)
     nothing
 end
 

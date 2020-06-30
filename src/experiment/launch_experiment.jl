@@ -34,13 +34,15 @@ function launch_experiment!(
     nodevisited = zeros(Int64, (nb_episodes, nb_heuristics))
     timeneeded = zeros(Float64, (nb_episodes, nb_heuristics))
 
+    trailer = Trailer()
+    model = CPModel(trailer)
+
     iter = ProgressBar(1:nb_episodes)
     for i in iter
     # for i in 1:nb_episodes
         verbose && print(" --- EPISODE: ", i)
 
-        trailer = Trailer()
-        model = CPModel(trailer)
+        empty!(model)
 
         fill_with_generator!(model, problem_params["nb_nodes"], problem_params["density"])
 

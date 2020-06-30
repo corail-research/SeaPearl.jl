@@ -2,59 +2,60 @@ using CPRL
 using ReinforcementLearning
 const RL = ReinforcementLearning
 using Flux
+using GeometricFlux
 
 using Plots
 gr()
+
+####
+include("felix_utils/utils.jl")
+####
 
 problem_generator = Dict(
     :coloring => CPRL.fill_with_coloring!
 )
 
 coloring_params = Dict(
-    "nb_nodes" => 10,
-    "density" => 1.5
+    "nb_nodes" => 20,
+    "density" => 3
 )
 
-fixedGCNargs = CPRL.ArgsFixedOutputGCN(
-    maxDomainSize= 10,
-    numInFeatures = 46,
-    firstHiddenGCN = 46,
-    secondHiddenGCN = 46,
-    hiddenDense = 46
-)
-numberOfCPNodes = 46
+numInFeatures = 121
+numberOfCPNodes = 121
 
-state_size = (numberOfCPNodes,fixedGCNargs.numInFeatures + numberOfCPNodes + 1, 1)
+state_size = (numberOfCPNodes, numInFeatures + numberOfCPNodes + 1, 1)
 
 agent = RL.Agent(
         policy = RL.QBasedPolicy(
             learner = CPRL.CPDQNLearner(
-                #= approximator = RL.NeuralNetworkApproximator(
-                    model = Chain(
-                        Flux.flatten,
-                        Dense(46*93, 1000, Flux.relu),
-                        Dense(1000, 100, Flux.relu),
-                        Dense(100, 10, Flux.relu)
-                    ),
-                    optimizer = ADAM(0.0005f0)
-                ),
-                target_approximator = RL.NeuralNetworkApproximator(
-                    model = Chain(
-                        Flux.flatten,
-                        Dense(46*93, 1000, Flux.relu, initW = seed_glorot_uniform(seed = 17)),
-                        Dropout(0.2),
-                        Dense(1000, 100, Flux.relu, initW = seed_glorot_uniform(seed = 23)),
-                        Dropout(0.2),
-                        Dense(100, 10, Flux.relu, initW = seed_glorot_uniform(seed = 39))
-                    ),
-                    optimizer = ADAM(0.0005f0)
-                ), =#
                 approximator = RL.NeuralNetworkApproximator(
-                    model = CPRL.build_model(CPRL.FixedOutputGCN, fixedGCNargs),
+                    model = CPRL.FlexGNN(
+                        graphChain = Flux.Chain(
+                            GeometricFlux.GCNConv(121 => 121),
+                            GeometricFlux.GCNConv(121 => 121),
+                            GeometricFlux.GCNConv(121 => 121),
+                        ),
+                        nodeChain = Flux.Chain(
+                            Flux.Dense(121, 121),
+                            Flux.Dense(121, 121),
+                        ),
+                        outputLayer = Flux.Dense(121, 20)
+                    ),
                     optimizer = ADAM(0.0005f0)
                 ),
                 target_approximator = RL.NeuralNetworkApproximator(
-                    model = CPRL.build_model(CPRL.FixedOutputGCN, fixedGCNargs),
+                    model = CPRL.FlexGNN(
+                        graphChain = Flux.Chain(
+                            GeometricFlux.GCNConv(121 => 121),
+                            GeometricFlux.GCNConv(121 => 121),
+                            GeometricFlux.GCNConv(121 => 121),
+                        ),
+                        nodeChain = Flux.Chain(
+                            Flux.Dense(121, 121),
+                            Flux.Dense(121, 121),
+                        ),
+                        outputLayer = Flux.Dense(121, 20)
+                    ),
                     optimizer = ADAM(0.0005f0)
                 ),
                 loss_func = huber_loss,
@@ -63,8 +64,8 @@ agent = RL.Agent(
                 batch_size = 1, #32,
                 update_horizon = 1,
                 min_replay_history = 1,
-                update_freq = 1,
-                target_update_freq = 50,
+                update_freq = 10,
+                target_update_freq = 100,
                 seed = 22,
             ), 
             explorer = CPRL.CPEpsilonGreedyExplorer(
@@ -80,7 +81,7 @@ agent = RL.Agent(
             )
         ),
         trajectory = RL.CircularCompactSARTSATrajectory(
-            capacity = 500, 
+            capacity = 4000, 
             state_type = Float32, 
             state_size = state_size,#(46, 93, 1),
             action_type = Int,
@@ -123,7 +124,7 @@ bestsolutions, nodevisited, timeneeded = CPRL.train!(
     #valueSelectionArray=learnedHeuristic,
     problem_type=:coloring,
     problem_params=coloring_params,
-    nb_episodes=220,
+    nb_episodes=50,
     strategy=CPRL.DFSearch,
     variableHeuristic=selectNonObjVariable
 )
@@ -132,7 +133,7 @@ bestsolutions, nodevisited, timeneeded = CPRL.train!(
 a, b = size(nodevisited)
 x = 1:a
 
-p1 = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 180])
+p1 = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 700])
 
 #display(p1)
 
@@ -143,20 +144,19 @@ bestsolutions, nodevisited, timeneeded = CPRL.benchmark_solving(
     #valueSelectionArray=learnedHeuristic,
     problem_type=:coloring,
     problem_params=coloring_params,
-    nb_episodes=100,
+    nb_episodes=10,
     strategy=CPRL.DFSearch,
     variableHeuristic=selectNonObjVariable
 )
-
 
 # plot 
 a, b = size(nodevisited)
 x = 1:a
 
-p2 = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 180])
-p3 = plot(x, timeneeded, xlabel="Episode", ylabel="Time needed")
+p2 = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 700])
+p3 = plot(x, timeneeded, xlabel="Episode", ylabel="Time needed", ylims = [0, 0.25])
 
 
-p = plot(p1, p2, p3, layout = 3)
+p = plot(p1, p2, p3, legend = false, layout = (3, 1))
 
 display(p)

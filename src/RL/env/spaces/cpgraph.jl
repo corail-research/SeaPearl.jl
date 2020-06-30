@@ -6,11 +6,10 @@ mutable struct CPGraph
 end
 
 """
-    featurize(g::CPLayerGraph)
+    featurize(cpmodel::CPModel)
 
-Create features that will be associated to every node of the graph. This is highly 
-simplistic at the moment but will/must be improved later. Will be probably use the cpmodel 
-as argument in futur versions.
+Create features that will be associated to every node of the graph. This is a default value
+but a user might overwrite it if he wants.
 """
 function featurize(g::CPLayerGraph)
     features = zeros(Float32, nv(g), nv(g))
@@ -23,26 +22,25 @@ end
 """
     CPGraph(cplayergraph::CPLayerGraph, var_id::Int64)
 
-Construct a CPGraph from the CPLayerGraph and the variable we want to branch on. 
-Here we will define how the node feature will look like. Thus, it might be transformed later.
+Construct a CPGraph from the CPModel and the id (in the graph) of the variable we want to branch on. 
 """
-function CPGraph(g::CPLayerGraph, variable_id::Int64)
+function CPGraph(cpmodel::CPModel, variable_id::Int64)
+    # graph
+    g = CPLayerGraph(cpmodel)
     sparse_adj = LightGraphs.LinAlg.adjacency_matrix(g)
-    # temporary use of a one hot encoder for each node. 
+    # feature
     feature = featurize(g)
-    
-    CPGraph(GeometricFlux.FeaturedGraph(sparse_adj, feature), variable_id)
+
+    # all together
+    CPGraph(GeometricFlux.FeaturedGraph(sparse_adj, transpose(feature)), variable_id)
 end
 
 """
-    CPGraph(cplayergraph::CPLayerGraph, x::AbstractIntVar)
-
-Construct a CPGraph from the CPLayerGraph and the variable we want to branch on. 
-Here we will define how the node feature will look like. Thus, it might be transformed later.
+For convenience during tests but might be deleted later.
 """
-function CPGraph(g::CPLayerGraph, x::AbstractIntVar)
-    variable_id = indexFromCpVertex(g, VariableVertex(x))
-    CPGraph(g, variable_id)
+function CPGraph(cpmodel::CPModel, x::AbstractIntVar)
+    variable_id = indexFromCpVertex(CPLayerGraph(cpmodel), VariableVertex(x))
+    CPGraph(cpmodel, variable_id)
 end
 
 """
@@ -58,7 +56,7 @@ function CPGraph(array::Array{Float32, 2})::CPGraph
     var_code = array[:, end]
     var_code = findall(x -> x == 1, var_code)
 
-    fg = GeometricFlux.FeaturedGraph(dense_adj, features)
+    fg = GeometricFlux.FeaturedGraph(dense_adj, transpose(features))
     return CPGraph(fg, convert(Int64, var_code[1]))
 end
 
@@ -102,5 +100,5 @@ function to_array(cpg::CPGraph)::Array{Float32, 2}
     var_code = zeros(Float32, size(adj, 1))
     var_code[var_id] = 1f0
 
-    return hcat(adj, features, var_code)
+    return hcat(adj, transpose(features), var_code)
 end
