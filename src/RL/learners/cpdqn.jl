@@ -103,7 +103,7 @@ end
             Flux.squeezebatch
 
 function RLBase.update!(learner::CPDQNLearner, t::AbstractTrajectory)
-    length(t) <= learner.min_replay_history && return
+    length(t) - learner.update_horizon <= learner.min_replay_history && return
 
     learner.update_step += 1
 
@@ -149,7 +149,7 @@ function extract_experience(t::AbstractTrajectory, learner::CPDQNLearner)
     γ = learner.γ
 
     valid_ind_range = isnothing(s) ? (1:(length(t)-h)) : (s:(length(t)-h))
-    if length(t) <= learner.min_replay_history
+    if length(t) - h <= learner.min_replay_history
         return nothing
     end
     inds = rand(learner.rng, valid_ind_range, n)
