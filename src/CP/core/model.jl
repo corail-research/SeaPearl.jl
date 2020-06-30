@@ -170,4 +170,5 @@ function Base.empty!(model::CPModel)
     model.limit.numberOfNodes = nothing
     model.limit.numberOfSolutions = nothing
     model.RLRep = nothing
+    model
 end
