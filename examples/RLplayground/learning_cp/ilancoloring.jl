@@ -18,18 +18,18 @@ coloring_file_params = Dict(
 )
 
 coloring_params = Dict(
-    "nb_nodes" => 15,
-    "density" => 2.5
+    "nb_nodes" => 20,
+    "density" => 3.5
 )
 
-fixedGCNargs = CPRL.ArgsFixedOutputGCN( 
-    maxDomainSize= 15, 
-    numInFeatures = 83, 
+fixedGCNargs = CPRL.ArgsFixedOutputGCNLSTM( 
+    maxDomainSize= 20, 
+    numInFeatures = 131, 
     firstHiddenGCN = 20, 
     secondHiddenGCN = 20, 
     hiddenDense = 20 
 ) 
-numberOfCPNodes = 83 
+numberOfCPNodes = 131
  
 state_size = (numberOfCPNodes,fixedGCNargs.numInFeatures + numberOfCPNodes + 1, 1) 
 
@@ -37,21 +37,21 @@ agent = RL.Agent(
         policy = RL.QBasedPolicy(
             learner = CPRL.CPDQNLearner(
                 approximator = RL.NeuralNetworkApproximator(
-                    model = CPRL.build_model(CPRL.FixedOutputGCN, fixedGCNargs),
+                    model = CPRL.build_model(CPRL.FixedOutputGCNLSTM, fixedGCNargs),
                     optimizer = ADAM(0.0005f0)
                 ),
                 target_approximator = RL.NeuralNetworkApproximator(
-                    model = CPRL.build_model(CPRL.FixedOutputGCN, fixedGCNargs),
+                    model = CPRL.build_model(CPRL.FixedOutputGCNLSTM, fixedGCNargs),
                     optimizer = ADAM(0.0005f0)
                 ),
                 loss_func = huber_loss,
                 stack_size = nothing,
                 γ = 0.999f0,
                 batch_size = 1,
-                update_horizon = 1,
+                update_horizon = 15,
                 min_replay_history = 1,
-                update_freq = 50,
-                target_update_freq = 200,
+                update_freq = 5,
+                target_update_freq = 50,
                 seed = 22,
             ), 
             # explorer = CPRL.DirectedExplorer(;
@@ -70,7 +70,7 @@ agent = RL.Agent(
             # )
         ),
         trajectory = RL.CircularCompactSARTSATrajectory(
-            capacity = 3000, 
+            capacity = 1000, 
             state_type = Float32, 
             state_size = state_size,
             action_type = Int,
@@ -170,6 +170,15 @@ function trytrain(nepisodes::Int)
             ylims = (-50,300)
             )
     display(p)
+    
+
+    p = plot(x, 
+            [(meanNodeVisited-meanNodeVisitedBasic)[1:2000]], 
+            xlabel="Episode", 
+            ylabel="Number of nodes visited", 
+            label = "Mean Delta",
+            ylims = (-50,300)
+            )
     return nodeVisitedLearned, meanNodeVisited, nodeVisitedBasic
 end
 
