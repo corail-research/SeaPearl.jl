@@ -10,11 +10,12 @@ function fill_with_coloring!(cpmodels::Array{CPModel}, nb_nodes::Int64, density:
     nb_edges = floor(Int64, density * nb_nodes)
 
     # create variables
-    x = CPRL.IntVar[]
-    for i in 1:nb_nodes
-        for cpmodel in cpmodels
-            push!(x, CPRL.IntVar(1, nb_nodes, string(i), cpmodels.trailer))
-            addVariable!(cpmodel, last(x))
+    variables = WeakKeyDict{CPRL.CPModel, Array{CPRL.IntVar}}()
+    for cpmodel in cpmodels
+        variables[cpmodel] = CPRL.IntVar[]
+        for i in 1:nb_nodes
+            push!(variables[cpmodel], CPRL.IntVar(1, nb_nodes, string(i), cpmodel.trailer))
+            addVariable!(cpmodel, last(variables[cpmodel]))
         end
     end
     @assert nb_edges >= nb_nodes - 1
@@ -34,7 +35,7 @@ function fill_with_coloring!(cpmodels::Array{CPModel}, nb_nodes::Int64, density:
         neighbors = sample([j for j in 1:length(connexions) if j != i && connexions[i] > 0], connexions[i], replace=false)
         for j in neighbors
             for cpmodel in cpmodels
-                push!(cpmodel.constraints, CPRL.NotEqual(x[i], x[j], cpmodel.trailer))
+                push!(cpmodel.constraints, CPRL.NotEqual(variables[cpmodel][i], variables[cpmodel][j], cpmodel.trailer))
             end
         end
     end
@@ -43,7 +44,7 @@ function fill_with_coloring!(cpmodels::Array{CPModel}, nb_nodes::Int64, density:
     for cpmodel in cpmodels
         numberOfColors = CPRL.IntVar(1, nb_nodes, "numberOfColors", cpmodel.trailer)
         CPRL.addVariable!(cpmodel, numberOfColors)
-        for var in x
+        for var in variables[cpmodel]
             push!(cpmodel.constraints, CPRL.LessOrEqual(var, numberOfColors, cpmodel.trailer))
         end
         cpmodel.objective = numberOfColors
@@ -51,7 +52,7 @@ function fill_with_coloring!(cpmodels::Array{CPModel}, nb_nodes::Int64, density:
 
     nothing
 end
-fill_with_coloring!(cpmodel::CPModel, nb_nodes::Int64, density::Number) = fill_with_coloring!(CPModel[cpmodel], nb_nodes, density)[1]
+fill_with_coloring!(cpmodel::CPModel, nb_nodes::Int64, density::Number) = fill_with_coloring!(CPModel[cpmodel], nb_nodes, density)
 
 
 struct Edge
