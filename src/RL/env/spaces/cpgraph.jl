@@ -11,8 +11,7 @@ end
 Create features that will be associated to every node of the graph. This is a default value
 but a user might overwrite it if he wants.
 """
-function featurize(cpmodel::CPModel)
-    g = CPLayerGraph(cpmodel)
+function featurize(g::CPLayerGraph)
     features = zeros(Float32, nv(g), nv(g))
     for i in 1:size(features)[1]
         features[i, i] = 1.0f0
@@ -30,7 +29,7 @@ function CPGraph(cpmodel::CPModel, variable_id::Int64)
     g = CPLayerGraph(cpmodel)
     sparse_adj = LightGraphs.LinAlg.adjacency_matrix(g)
     # feature
-    feature = featurize(cpmodel)
+    feature = featurize(g)
 
     # all together
     CPGraph(GeometricFlux.FeaturedGraph(sparse_adj, transpose(feature)), variable_id)
