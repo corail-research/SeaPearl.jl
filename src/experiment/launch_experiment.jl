@@ -51,7 +51,7 @@ function launch_experiment!(
         # model = CPModel(trailer)
         map(empty!, models)
 
-        fill_with_generator!(models, problem_params["nb_nodes"], problem_params["density"])
+        fill_with_generator!(models, problem_params)
 
         for j in 1:nb_heuristics
             dt = @elapsed search!(models[j], strategy, variableHeuristic, valueSelectionArray[j])

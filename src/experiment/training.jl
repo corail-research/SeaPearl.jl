@@ -1,6 +1,7 @@
 problem_generator = Dict(
-    :coloring => fill_with_coloring!,
-    :filecoloring => CPRL.fill_with_coloring_file!
+    :coloring => (models, params) -> fill_with_coloring!(models, params["nb_nodes"], params["density"]),
+    :filecoloring => (models, params) -> fill_with_coloring_file!(models, params["nb_nodes"], params["density"]),
+    :knapsack => (models, params) -> fill_with_knapsack!(models, params["nb_items"], params["noise"])
 )
 
 coloring_params = Dict(
