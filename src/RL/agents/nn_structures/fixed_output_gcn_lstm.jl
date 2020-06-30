@@ -1,4 +1,5 @@
 using GeometricFlux
+using Flux
 
 """
     ArgsFixedOutputGCNLSTM
@@ -65,6 +66,11 @@ function (nn::FixedOutputGCNLSTM)(x::AbstractArray{Float32,3})
     probs
 end
 
+# Resetting the reccurent part
+function Flux.reset!(nn::FixedOutputGCNLSTM)
+    Flux.reset!(nn.LSTMLayer)
+end
+
 function (nn::FixedOutputGCNLSTM)(x::AbstractArray{Float32,2})
     # Create the CPGraph
     cpg = CPGraph(x)
@@ -85,11 +91,12 @@ function (nn::FixedOutputGCNLSTM)(x::AbstractArray{Float32,2})
     variableFeatures = nn.denseLayer(variableFeatures)
     variableFeatures = nn.LSTMLayer(variableFeatures)
 
+
     # println("After first dense layer :  ", variableFeatures)
     valueProbabilities = nn.outputLayer(variableFeatures)
     # println("After output layer :  ", valueProbabilities)
 
     # output a vector (of values of the possibles values)
     # println("size(Flux.softmax(valueProbabilities))", size(Flux.softmax(valueProbabilities)))
-    return Flux.softmax(valueProbabilities)
+    return valueProbabilities
 end
