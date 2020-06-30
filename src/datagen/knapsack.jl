@@ -1,20 +1,29 @@
 using Distributions
 
 """
-    fill_with_knapsack!(cpmodels::Array{CPModel}, nb_items, noise)::CPModel    
+    fill_with_knapsack!(cpmodels::Array{CPModel}, nb_items, max_weight, correlation=1)::CPModel    
 
-Fill the cpmodels with the same variables and constraints generated. We fill them directly instead of 
-creating temporary files for efficiency purpose! Density should be more than 1.
+Fill the cpmodels with the same variables and constraints for knapsack problem.
+The weights are uniformly distributed between 1 and `max_weight`, the values are uniformly distributed
+between (for each `weight`) `weight - max_weight/(10*correlation)` and `weight + max_weight/(10*correlation)`.
+It is possible to give `Inf` as the `correlation` to have a strict equality between the weights and their values.
+`correlation` must be strictly positive.
+
+This method is from the following paper:
+https://www.researchgate.net/publication/2548374_Core_Problems_in_Knapsack_Algorithms
 """
-function fill_with_knapsack!(cpmodels::Array{CPModel}, nb_items::Int64, noise::Number=1)
+function fill_with_knapsack!(cpmodels::Array{CPModel}, nb_items::Int64, max_weight::Int, correlation::Real=1)
+    @assert correlation > 0
     
     # create values, weights and capacity
-    distr = Truncated(Normal(5 * nb_items, nb_items), 1, 10 * nb_items)
-    perturbation = Truncated(Normal(0, noise), -10, 10)
+    weights_distr = DiscreteUniform(1, max_weight)
+    weights = rand(weights_distr, nb_items)
 
-    values = rand(distr, nb_items)
-    weights = (1 + perturbation) .* values
-    capacity = (0.5 + 0.25 * rand()) * sum(weights)
+    value_distr = Truncated.(DiscreteUniform.(weights .- max_weight/(10*correlation), weights .+ max_weight/(10*correlation)), 1, Inf)
+    values = rand.(value_distr)
+
+    c = floor(nb_items * max_weight/2 / 4)
+    capacity = rand(DiscreteUniform(c, c*4))
     
     for cpmodel in cpmodels
         ### Variables
@@ -68,4 +77,4 @@ function fill_with_knapsack!(cpmodels::Array{CPModel}, nb_items::Int64, noise::N
 
     nothing
 end
-fill_with_knapsack!(cpmodel::CPModel, nb_items::Int64, noise::Number=1) = fill_with_knapsack!(CPModel[cpmodel], nb_items, noise)
+fill_with_knapsack!(cpmodel::CPModel, nb_items::Int64, max_weight::Int, correlation::Real) = fill_with_knapsack!(CPModel[cpmodel], nb_items, max_weight, correlation)
