@@ -34,7 +34,8 @@ function launch_experiment!(
     nodevisited = zeros(Int64, (nb_episodes, nb_heuristics))
     timeneeded = zeros(Float64, (nb_episodes, nb_heuristics))
 
-    for i in ProgressBar(1:nb_episodes)
+    iter = ProgressBar(1:nb_episodes)
+    for i in iter
     # for i in 1:nb_episodes
         verbose && print(" --- EPISODE: ", i)
 
@@ -53,7 +54,9 @@ function launch_experiment!(
                 verbose && print(" vs ", models[j].statistics.numberOfNodes)
             end
 
-
+            if j == 2
+                set_postfix(iter, Delta=string(models[1].statistics.numberOfNodes - models[2].statistics.numberOfNodes))
+            end
             bestsolutions[i, j] = models[j].objectiveBound + 1
             nodevisited[i, j] = models[j].statistics.numberOfNodes
             timeneeded[i, j] = dt
