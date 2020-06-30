@@ -5,7 +5,7 @@
 
         nb_items = 10
         max_weight = 40
-        correlation = 2
+        correlation = 2.3
 
         for _ in 1:20
             CPRL.fill_with_knapsack!(model, nb_items, max_weight, correlation)
@@ -25,7 +25,7 @@
 
         nb_items = 10
         max_weight = 45
-        correlation = 2
+        correlation = 2.3
 
         for _ in 1:3
             CPRL.fill_with_knapsack!(models, nb_items, max_weight, correlation)

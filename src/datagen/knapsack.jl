@@ -19,7 +19,8 @@ function fill_with_knapsack!(cpmodels::Array{CPModel}, nb_items::Int64, max_weig
     weights_distr = DiscreteUniform(1, max_weight)
     weights = rand(weights_distr, nb_items)
 
-    value_distr = Truncated.(DiscreteUniform.(weights .- max_weight/(10*correlation), weights .+ max_weight/(10*correlation)), 1, Inf)
+    deviation = floor(max_weight/(10*correlation))
+    value_distr = Truncated.(DiscreteUniform.(weights .- deviation, weights .+ deviation), 1, Inf)
     values = rand.(value_distr)
 
     c = floor(nb_items * max_weight/2 / 4)
