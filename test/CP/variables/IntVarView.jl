@@ -210,6 +210,18 @@
             ay = CPRL.IntVarViewMul(y, 3, "ay")
             @test_throws AssertionError CPRL.assignedValue(y)
         end
+
+        @testset "rootVariable()" begin
+            trailer = CPRL.Trailer()
+            x = CPRL.IntVar(5, 5, "x", trailer)
+            ax = CPRL.IntVarViewMul(x, 3, "ax")
+
+            # This will work when #4 gets merged
+            @test_broken CPRL.rootVariable(CPRL.IntVarViewOpposite(ax, "-ax")) == x
+
+            @test CPRL.rootVariable(x) == x
+            @test CPRL.rootVariable(ax) == x
+        end
     end
     @testset "IntVarViewOpposite" begin
     
@@ -401,6 +413,15 @@
             y = CPRL.IntVar(5, 8, "y", trailer)
             ay = CPRL.IntVarViewOpposite(y, "-y")
             @test_throws AssertionError CPRL.assignedValue(y)
+        end
+
+        @testset "rootVariable()" begin
+            trailer = CPRL.Trailer()
+            x = CPRL.IntVar(5, 5, "x", trailer)
+            ax = CPRL.IntVarViewOpposite(x, "-x")
+
+            @test CPRL.rootVariable(x) == x
+            @test CPRL.rootVariable(ax) == x
         end
     end
 end
