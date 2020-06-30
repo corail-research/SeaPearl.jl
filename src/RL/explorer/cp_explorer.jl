@@ -201,7 +201,7 @@ function RLBase.get_prob(s::CPEpsilonGreedyExplorer{<:Any,false}, values, mask)
     ϵ, n = get_ϵ(s), length(values)
     probs = zeros(n)
     probs[mask] .= ϵ / sum(mask)
-    probs[findmax(values, mask)[2]] += 1 - ϵ
+    probs[findmax(i -> values[i], view(keys(values), mask))[2]] += 1 - ϵ
     Categorical(probs)
 end
 
