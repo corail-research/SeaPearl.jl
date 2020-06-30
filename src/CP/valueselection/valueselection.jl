@@ -75,6 +75,7 @@ with the call of agent(PRE_ACT_STAGE).
 """
 function (valueSelection::LearnedHeuristic)(::DecisionPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
     obs = observe!(valueSelection.current_env, model, x)
+    #println("Decision  ", obs.reward, " ", obs.terminal, " ", obs.legal_actions, " ", obs.legal_actions_mask)
     if model.statistics.numberOfNodes > 1
         valueSelection.agent(RL.POST_ACT_STAGE, obs) # get terminal and reward
         # eventually: hook(POST_ACT_STAGE, agent, env, obs, action)
@@ -83,6 +84,7 @@ function (valueSelection::LearnedHeuristic)(::DecisionPhase, model::CPModel, x::
     # eventually hook(PRE_ACT_STAGE, agent, env, obs, action)
 
     #println("Assign value : ", v, " to variable : ", x)
+    return v
 end
 
 """
@@ -96,6 +98,7 @@ function (valueSelection::LearnedHeuristic)(::EndingPhase, model::CPModel, x::Un
     set_final_reward!(valueSelection.current_env, model)
     false_x = first(values(model.variables))
     obs = observe!(valueSelection.current_env, model, false_x)
+    #println("EndingPhase  ", obs.reward, " ", obs.terminal, " ", obs.legal_actions, " ", obs.legal_actions_mask)
 
     valueSelection.agent(RL.POST_ACT_STAGE, obs) # get terminal and reward
     # eventually: hook(POST_ACT_STAGE, agent, env, obs, action)

@@ -65,7 +65,7 @@ function train!(;
             if verbose 
                 print("Has been trained on : ", problem_type)
                 print(" ... with strategy : ", strategy)
-                println("During ", nb_episodes, " episodes.")
+                println(" ... during ", nb_episodes, " episodes.")
                 println("Training mode now desactivated !")
             end
         end

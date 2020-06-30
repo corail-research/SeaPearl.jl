@@ -1,5 +1,7 @@
 using Flux
 
+include("flexGNN.jl")
+
 abstract type NNStructure end
 abstract type NNArgs end
 
