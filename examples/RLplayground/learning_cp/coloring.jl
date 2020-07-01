@@ -68,7 +68,7 @@ agent = RL.Agent(
                 seed = 22,
             ), 
             explorer = CPRL.CPEpsilonGreedyExplorer(
-                ϵ_stable = 0.01,
+                ϵ_stable = 0.001,
                 kind = :exp,
                 ϵ_init = 1.0,
                 warmup_steps = 0,
@@ -123,7 +123,7 @@ bestsolutions, nodevisited, timeneeded = CPRL.train!(
     #valueSelectionArray=learnedHeuristic,
     problem_type=:coloring,
     problem_params=coloring_params,
-    nb_episodes=200,
+    nb_episodes=300,
     strategy=CPRL.DFSearch,
     variableHeuristic=selectNonObjVariable,
     verbose = false
