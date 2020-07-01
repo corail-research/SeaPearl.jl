@@ -66,7 +66,7 @@ Set reward in case if needed.
 function (valueSelection::LearnedHeuristic)(::RewardingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
     # the RL EPISODE continue
     # change reward in case of :Unfeasible status (I would like it for :FoundSolution if possible)
-    set_reward!(valueSelection.current_env, current_status)
+    set_reward!(valueSelection.current_env, model, current_status)
     # when we go back to expandDfs, env will be able to add the reward to the observation
 end
 
