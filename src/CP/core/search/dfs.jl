@@ -22,7 +22,7 @@ function search!(model::CPModel, ::Type{DFSearch}, variableHeuristic, valueSelec
         end
 
         # set reward if necessary
-        valueSelection(BackTrackingPhase(), model, nothing, currentStatus)
+        valueSelection(RewardingPhase(), model, nothing, currentStatus)
 
         currentProcedure = pop!(toCall)
         currentStatus = currentProcedure(model)
@@ -66,8 +66,8 @@ function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
     end
     if solutionFound(model)
         triggerFoundSolution!(model)
-        #return :FoundSolution
-        return :Feasible
+        return :FoundSolution
+        #return :Feasible
     end
 
     # Variable selection

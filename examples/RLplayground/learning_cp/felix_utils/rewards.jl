@@ -1,5 +1,9 @@
 function CPRL.set_reward!(env::CPRL.RLEnv, symbol::Symbol)
-    #env.reward = 0
+    end
+        env.reward += +5
+    elseif symbol == :FoundSolution
+        env.reward += -5
+    if symbol == :Infeasible
     nothing
 end
 
