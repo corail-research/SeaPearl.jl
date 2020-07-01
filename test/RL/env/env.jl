@@ -2,7 +2,7 @@
 
     @testset "RLEnv constructor" begin
         rng = MersenneTwister(1)
-        env = CPRL.RLEnv(
+        env = CPRL.RLEnv{CPRL.DefaultReward}(
             RL.DiscreteSpace([1, 2, 3]),
             CPRL.CPGraph(CPRL.CPModel(CPRL.Trailer()), 0),
             1,
@@ -38,6 +38,7 @@
         @test env.action == 1
         @test env.reward == 0
         @test env.done == false 
+        @test isa(env, CPRL.RLEnv{CPRL.DefaultReward})
     end
 
     @testset "set_done!()" begin
@@ -58,24 +59,6 @@
 
         CPRL.set_done!(env, false)
         @test env.done == false 
-    end
-
-    @testset "set_reward!()" begin
-        trailer = CPRL.Trailer()
-        model = CPRL.CPModel(trailer)
-
-        env = CPRL.RLEnv(model)
-
-        CPRL.set_reward!(env, :Infeasible)
-        @test env.reward == 0
-
-        CPRL.set_reward!(env, :FoundSolution)
-        @test env.reward == 0
-
-    end
-
-    @testset "set_final_reward!()" begin
-        nothing
     end
 
     @testset "sync_state!()" begin
