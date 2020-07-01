@@ -17,11 +17,11 @@ problem_generator = Dict(
 
 coloring_params = Dict(
     "nb_nodes" => 20,
-    "density" => 3
+    "density" => 4
 )
 
-numInFeatures = 121
-numberOfCPNodes = 121
+numInFeatures = 26
+numberOfCPNodes = 141
 
 state_size = (numberOfCPNodes, numInFeatures + numberOfCPNodes + 1, 1)
 
@@ -31,9 +31,9 @@ agent = RL.Agent(
                 approximator = RL.NeuralNetworkApproximator(
                     model = CPRL.FlexGNN(
                         graphChain = Flux.Chain(
-                            GeometricFlux.GCNConv(121 => 60),
-                            GeometricFlux.GCNConv(60 => 30),
-                            GeometricFlux.GCNConv(30 => 20),
+                            GeometricFlux.GCNConv(26 => 26),
+                            GeometricFlux.GCNConv(20 => 20),
+                            GeometricFlux.GCNConv(20 => 20),
                         ),
                         nodeChain = Flux.Chain(
                             Flux.Dense(20, 20),
@@ -46,11 +46,12 @@ agent = RL.Agent(
                 target_approximator = RL.NeuralNetworkApproximator(
                     model = CPRL.FlexGNN(
                         graphChain = Flux.Chain(
-                            GeometricFlux.GCNConv(121 => 60),
-                            GeometricFlux.GCNConv(60 => 30),
-                            GeometricFlux.GCNConv(30 => 20),
+                            GeometricFlux.GCNConv(26 => 26),
+                            GeometricFlux.GCNConv(20 => 20),
+                            GeometricFlux.GCNConv(20 => 20),
                         ),
                         nodeChain = Flux.Chain(
+                            Flux.Dense(20, 20),
                             Flux.Dense(20, 20),
                         ),
                         outputLayer = Flux.Dense(20, 20)
@@ -59,12 +60,12 @@ agent = RL.Agent(
                 ),
                 loss_func = huber_loss,
                 stack_size = nothing,
-                γ = 0.999f0,
+                γ = 0.9999f0,
                 batch_size = 1, #32,
-                update_horizon = 15,
+                update_horizon = 35,
                 min_replay_history = 1,
                 update_freq = 10,
-                target_update_freq = 100,
+                target_update_freq = 200,
                 seed = 22,
             ), 
             explorer = CPRL.CPEpsilonGreedyExplorer(
@@ -80,7 +81,7 @@ agent = RL.Agent(
             )
         ),
         trajectory = RL.CircularCompactSARTSATrajectory(
-            capacity = 4000, 
+            capacity = 5000, 
             state_type = Float32, 
             state_size = state_size,#(46, 93, 1),
             action_type = Int,
@@ -123,7 +124,7 @@ bestsolutions, nodevisited, timeneeded = CPRL.train!(
     #valueSelectionArray=learnedHeuristic,
     problem_type=:coloring,
     problem_params=coloring_params,
-    nb_episodes=300,
+    nb_episodes=350,
     strategy=CPRL.DFSearch,
     variableHeuristic=selectNonObjVariable,
     verbose = false
