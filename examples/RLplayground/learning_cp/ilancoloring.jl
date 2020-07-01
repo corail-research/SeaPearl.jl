@@ -18,18 +18,78 @@ coloring_file_params = Dict(
 )
 
 coloring_params = Dict(
-    "nb_nodes" => 20,
-    "density" => 3.5
+    "nb_nodes" => 15,
+    "density" => 2.5
 )
 
 fixedGCNargs = CPRL.ArgsFixedOutputGCNLSTM( 
-    maxDomainSize= 20, 
-    numInFeatures = 131, 
+    maxDomainSize= 15, 
+    numInFeatures = 21, 
     firstHiddenGCN = 20, 
     secondHiddenGCN = 20, 
     hiddenDense = 20 
 ) 
-numberOfCPNodes = 131
+numberOfCPNodes = 83
+
+function CPRL.featurize(g::CPRL.CPLayerGraph)
+    features = zeros(Float32, nv(g), 21)
+    for i in 1:nv(g)
+        cp_vertex = CPRL.cpVertexFromIndex(g, i)
+        if isa(cp_vertex, CPRL.VariableVertex)
+            features[i, 1] = 1.
+            if g.cpmodel.objective == cp_vertex.variable
+                features[i, 6] = 1.
+            end
+        end
+        if isa(cp_vertex, CPRL.ConstraintVertex)
+            features[i, 2] = 1.
+            constraint = cp_vertex.constraint
+            if isa(constraint, CPRL.NotEqual)
+                features[i, 4] = 1.
+            end
+            if isa(constraint, CPRL.LessOrEqual)
+                features[i, 5] = 1.
+            end
+        end
+        if isa(cp_vertex, CPRL.ValueVertex)
+            features[i, 3] = 1.
+            value = cp_vertex.value
+            features[i, 6+value] = 1.
+        end
+    end
+    features
+    # features = zeros(Float32, nv(g), nv(g))
+    # for i in 1:size(features)[1]
+    #     features[i, i] = 1.0f0
+    # end
+    # features
+end
+
+struct IlanReward <: CPRL.AbstractReward end
+
+function CPRL.set_backtracking_reward!(env::CPRL.RLEnv{IlanReward}, model::CPRL.CPModel, current_status::Union{Nothing, Symbol})
+    # env.reward += 5
+    println("testfinal")
+    nothing
+end
+
+function CPRL.set_before_next_decision_reward!(env::CPRL.RLEnv{IlanReward}, model::CPRL.CPModel)
+    env.reward -= 0
+    println("testfinal")
+    nothing
+end
+
+function CPRL.set_after_decision_reward!(env::CPRL.RLEnv{IlanReward}, model::CPRL.CPModel)
+    env.reward = 0
+    println("testfinal")
+    nothing
+end
+
+function CPRL.set_final_reward!(env::CPRL.RLEnv{IlanReward}, model::CPRL.CPModel)
+    env.reward += 30/model.statistics.numberOfNodes + 50
+    println("testfinal")
+    nothing
+end
  
 state_size = (numberOfCPNodes,fixedGCNargs.numInFeatures + numberOfCPNodes + 1, 1) 
 
@@ -50,9 +110,8 @@ agent = RL.Agent(
                 batch_size = 1,
                 update_horizon = 15,
                 min_replay_history = 1,
-                update_freq = 5,
+                update_freq = 10,
                 target_update_freq = 50,
-                seed = 22,
             ), 
             # explorer = CPRL.DirectedExplorer(;
                 explorer = CPRL.CPEpsilonGreedyExplorer(
@@ -83,7 +142,7 @@ agent = RL.Agent(
         role = :DEFAULT_PLAYER
     )
 
-learnedHeuristic = CPRL.LearnedHeuristic(agent)
+learnedHeuristic = CPRL.LearnedHeuristic{IlanReward}(agent)
 
 basicHeuristic = CPRL.BasicHeuristic((x) -> CPRL.minimum(x.domain))
 
