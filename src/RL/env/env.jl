@@ -17,7 +17,8 @@ mutable struct RLEnv <: RL.AbstractEnv
     reward::Float64
     done::Bool
     rng::Random.MersenneTwister # random number generator
-    
+    nslbt::Int64
+    nslfs::Int64
 end
 
 """
@@ -43,7 +44,9 @@ function RLEnv(cpmodel::CPModel, seed = nothing)
         1,
         0,
         false,  
-        rng)
+        rng,
+        1,
+        1)
     
     #RL.reset!(env)
     env
@@ -66,7 +69,7 @@ end
 Change the "reward" attribute of the env. This is compulsory as used in the buffer
 for the training.
 """
-function set_reward!(env::RLEnv, symbol::Symbol)
+function set_reward!(env::RLEnv, model::CPModel, symbol::Symbol)
     nothing
 end
 
