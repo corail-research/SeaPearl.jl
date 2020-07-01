@@ -27,13 +27,13 @@ Flux.testmode!(lh::LearnedHeuristic, mode = true) = Flux.testmode!(lh.agent, mod
 abstract type LearningPhase end
 
 struct InitializingPhase <: LearningPhase end
-struct BackTrackingPhase <: LearningPhase end 
+struct RewardingPhase <: LearningPhase end 
 struct DecisionPhase <: LearningPhase end 
 struct EndingPhase <: LearningPhase end 
 
 # Implementations for a basic heuristic 
 (valueSelection::BasicHeuristic)(::InitializingPhase, model::Union{Nothing, CPModel}=nothing, x::Union{Nothing, AbstractIntVar}=nothing, current_status::Union{Nothing, Symbol}=nothing) = nothing
-(valueSelection::BasicHeuristic)(::BackTrackingPhase, model::Union{Nothing, CPModel}=nothing, x::Union{Nothing, AbstractIntVar}=nothing, current_status::Union{Nothing, Symbol}=nothing) = nothing
+(valueSelection::BasicHeuristic)(::RewardingPhase, model::Union{Nothing, CPModel}=nothing, x::Union{Nothing, AbstractIntVar}=nothing, current_status::Union{Nothing, Symbol}=nothing) = nothing
 (valueSelection::BasicHeuristic)(::DecisionPhase, model::Union{Nothing, CPModel}=nothing, x::Union{Nothing, AbstractIntVar}=nothing, current_status::Union{Nothing, Symbol}=nothing) = valueSelection.selectValue(x)
 (valueSelection::BasicHeuristic)(::EndingPhase, model::Union{Nothing, CPModel}=nothing, x::Union{Nothing, AbstractIntVar}=nothing, current_status::Union{Nothing, Symbol}=nothing) = nothing
 
@@ -63,10 +63,9 @@ end
 
 Set reward in case if needed.
 """
-function (valueSelection::LearnedHeuristic)(::BackTrackingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
+function (valueSelection::LearnedHeuristic)(::RewardingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
     # the RL EPISODE continue
     # change reward in case of :Unfeasible status (I would like it for :FoundSolution if possible)
-    # if is unnecessary but i keep it for visual issue atm 
     set_reward!(valueSelection.current_env, current_status)
     # when we go back to expandDfs, env will be able to add the reward to the observation
 end
