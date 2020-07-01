@@ -13,14 +13,16 @@ Create the default `BasicHeuristic` that selects the maximum value of the domain
 """
 BasicHeuristic() = BasicHeuristic(x -> maximum(x.domain))
 
-mutable struct LearnedHeuristic <: ValueSelection
+mutable struct LearnedHeuristic{R<:AbstractReward} <: ValueSelection
     agent::RL.Agent
     fitted_problem::Union{Nothing, Symbol}
     fitted_strategy::Union{Nothing, Type{S}} where S <: SearchStrategy
     current_env::Union{Nothing, RLEnv}
 
-    LearnedHeuristic(agent::RL.Agent) = new(agent, nothing, nothing, nothing)
+    LearnedHeuristic{R}(agent::RL.Agent) where R = new{R}(agent, nothing, nothing, nothing)
 end
+
+LearnedHeuristic(agent::RL.Agent) = LearnedHeuristic{DefaultReward}(agent)
 
 Flux.testmode!(lh::LearnedHeuristic, mode = true) = Flux.testmode!(lh.agent, mode)
 
@@ -67,7 +69,7 @@ function (valueSelection::LearnedHeuristic)(::BackTrackingPhase, model::CPModel,
     # the RL EPISODE continue
     # change reward in case of :Unfeasible status (I would like it for :FoundSolution if possible)
     # if is unnecessary but i keep it for visual issue atm 
-    set_reward!(valueSelection.current_env, current_status)
+    set_backtracking_reward!(valueSelection.current_env, model, current_status)
     # when we go back to expandDfs, env will be able to add the reward to the observation
 end
 
@@ -78,6 +80,8 @@ Observe, store useful informations in the buffer with agent(POST_ACT_STAGE, ...)
 with the call of agent(PRE_ACT_STAGE).
 """
 function (valueSelection::LearnedHeuristic)(::DecisionPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
+    set_before_next_decision_reward!(valueSelection.current_env, model)
+
     obs = observe!(valueSelection.current_env, model, x)
     #println("Decision  ", obs.reward, " ", obs.terminal, " ", obs.legal_actions, " ", obs.legal_actions_mask)
     if model.statistics.numberOfNodes > 1
@@ -85,9 +89,8 @@ function (valueSelection::LearnedHeuristic)(::DecisionPhase, model::CPModel, x::
         # eventually: hook(POST_ACT_STAGE, agent, env, obs, action)
     end
     v = valueSelection.agent(RL.PRE_ACT_STAGE, obs) # choose action, store it with the state
-    # eventually hook(PRE_ACT_STAGE, agent, env, obs, action)
-
-    #println("Assign value : ", v, " to variable : ", x)
+    
+    set_after_decision_reward!(valueSelection.current_env, model)
     return v
 end
 
