@@ -47,9 +47,9 @@ struct EndingPhase <: LearningPhase end
 Create an RL environment and a first observation. Finally make the agent call the process of 
 the pre episode stage (basically making sure that the buffer is empty).
 """
-function (valueSelection::LearnedHeuristic)(::InitializingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
+function (valueSelection::LearnedHeuristic{R})(::InitializingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol}) where R<:AbstractReward
     # create the environment
-    valueSelection.current_env = RLEnv(model::CPModel)
+    valueSelection.current_env = RLEnv{R}(model::CPModel)
     false_x = first(values(model.variables))
     obs = observe!(valueSelection.current_env, model, false_x)
 
