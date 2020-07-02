@@ -24,14 +24,14 @@ coloring_params = Dict(
 
 fixedGCNargs = CPRL.ArgsFixedOutputGCNLSTM( 
     maxDomainSize= 20, 
-    numInFeatures = 131, 
+    numInFeatures = 3, 
     firstHiddenGCN = 20, 
     secondHiddenGCN = 20, 
     hiddenDense = 20 
 ) 
-numberOfCPNodes = 131
+maxnumberOfCPNodes = 140
  
-state_size = (numberOfCPNodes,fixedGCNargs.numInFeatures + numberOfCPNodes + 1, 1) 
+state_size = (maxnumberOfCPNodes,fixedGCNargs.numInFeatures + maxnumberOfCPNodes + 2, 1) 
 
 agent = RL.Agent(
         policy = RL.QBasedPolicy(
@@ -83,7 +83,7 @@ agent = RL.Agent(
         role = :DEFAULT_PLAYER
     )
 
-learnedHeuristic = CPRL.LearnedHeuristic(agent)
+learnedHeuristic = CPRL.LearnedHeuristic(agent, maxnumberOfCPNodes)
 
 basicHeuristic = CPRL.BasicHeuristic((x) -> CPRL.minimum(x.domain))
 
