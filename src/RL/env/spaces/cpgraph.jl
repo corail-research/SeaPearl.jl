@@ -3,6 +3,7 @@ using SparseArrays
 mutable struct CPGraph
     featuredgraph::GeometricFlux.FeaturedGraph
     variable_id::Int64
+    possible_value_ids::Array{Int64}
 end
 
 """
@@ -48,8 +49,13 @@ function CPGraph(cpmodel::CPModel, variable_id::Int64)
     # feature
     feature = featurize(g)
 
+    values = Int64[]
+    if !isempty(cpmodel) && variable_id > 0
+        values = possible_values(variable_id, g)
+    end
+
     # all together
-    CPGraph(GeometricFlux.FeaturedGraph(sparse_adj, transpose(feature)), variable_id)
+    CPGraph(GeometricFlux.FeaturedGraph(sparse_adj, transpose(feature)), variable_id, values)
 end
 
 """
@@ -80,7 +86,19 @@ function CPGraph(array::Array{Float32, 2})::CPGraph
     var_code = findall(x -> x == 1, var_code)
 
     fg = GeometricFlux.FeaturedGraph(dense_adj, transpose(features))
-    return CPGraph(fg, convert(Int64, var_code[1]))
+    return CPGraph(fg, convert(Int64, var_code[1]), Int64[])
+end
+
+"""
+    function possible_values(cpgraph::CPGraph, g::CPLayerGraph)
+
+Return the ids of the values that the variable denoted by `variable_id` can take.
+It actually returns the id of every ValueVertex neighbors of the VariableVertex.
+"""
+function possible_values(variable_id::Int64, g::CPLayerGraph)
+    possible_values = LightGraphs.neighbors(g, variable_id)
+    filter!((id) -> isa(cpVertexFromIndex(g, convert(Int64, id)), ValueVertex), possible_values)
+    return possible_values
 end
 
 #Base.ndims(g::CPGraph) = ndims(feature(g.featuredgraph))
@@ -102,6 +120,7 @@ CPGraph.
 """
 function update_graph!(cpgraph::CPGraph, g::CPLayerGraph, x::AbstractIntVar)
     cpgraph.variable_id = indexFromCpVertex(g, VariableVertex(x))
+    cpgraph.possible_value_ids = possible_values(cpgraph.variable_id, g)
 
     feature = cpgraph.featuredgraph.feature[]
     sparse_adj = LightGraphs.LinAlg.adjacency_matrix(g)
