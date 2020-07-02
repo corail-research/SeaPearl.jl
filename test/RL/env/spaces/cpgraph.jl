@@ -99,12 +99,14 @@ adj = [0 1 0 1;
 
     @testset "CPGraph() from array" begin
 
-        array = [0 0 1 1 0 0 1f0 0 0 0 0 0 0
-                 0 0 1 1 0 0 0 1f0 0 0 0 0 0
-                 1 1 0 0 1 1 0 0 1f0 0 0 0 1.0f0
-                 1 1 0 0 1 1 0 0 0 1f0 0 0 0
-                 0 0 1 1 0 0 0 0 0 0 1f0 0 0
-                 0 0 1 1 0 0 0 0 0 0 0 1f0 0]
+        array = [   1 0 0 1 1 0 0 1 0 0 0
+                    1 0 0 1 1 0 0 1 0 0 0
+                    1 1 1 0 0 1 1 0 1 0 1
+                    1 1 1 0 0 1 1 0 1 0 0
+                    1 0 0 1 1 0 0 0 0 1 0
+                    1 0 0 1 1 0 0 0 0 1 0
+                    0 0 0 0 0 0 0 0 0 0 0
+                    0 0 0 0 0 0 0 0 0 0 0]
 
         cpg = CPRL.CPGraph(array)
 
@@ -115,17 +117,17 @@ adj = [0 1 0 1;
                                                     0 0 1 1 0 0
                                                     0 0 1 1 0 0]
 
-        @test cpg.featuredgraph.feature[] == [1.0 0 0 0 0 0
-                                              0 1.0 0 0 0 0
-                                              0 0 1.0 0 0 0
-                                              0 0 0 1.0 0 0
-                                              0 0 0 0 1.0 0
-                                              0 0 0 0 0 1.0f0]
+        @test cpg.featuredgraph.feature[] == [1 0 0
+                                              1 0 0
+                                              0 1 0
+                                              0 1 0
+                                              0 0 1
+                                              0 0 1]
         @test cpg.variable_id == 3
 
     end
 
-    @testset "to_cpgraph()" begin
+    @testset "to_array()" begin
 
         trailer = CPRL.Trailer()
         model = CPRL.CPModel(trailer)
@@ -139,12 +141,16 @@ adj = [0 1 0 1;
 
         cpg = CPRL.CPGraph(model, x)
 
-        @test CPRL.to_array(cpg) == [0 0 1 1 0 0 1.0 0 0 0 0 0 0
-                                     0 0 1 1 0 0 0 1.0 0 0 0 0 0
-                                     1 1 0 0 1 1 0 0 1.0 0 0 0 1.0f0
-                                     1 1 0 0 1 1 0 0 0 1.0 0 0 0
-                                     0 0 1 1 0 0 0 0 0 0 1.0 0 0
-                                     0 0 1 1 0 0 0 0 0 0 0 1.0 0]
+        max_cpnodes = 8
+
+        @test CPRL.to_array(cpg, max_cpnodes) == [  1 0 0 1 1 0 0 1 0 0 0
+                                                    1 0 0 1 1 0 0 1 0 0 0
+                                                    1 1 1 0 0 1 1 0 1 0 1
+                                                    1 1 1 0 0 1 1 0 1 0 0
+                                                    1 0 0 1 1 0 0 0 0 1 0
+                                                    1 0 0 1 1 0 0 0 0 1 0
+                                                    0 0 0 0 0 0 0 0 0 0 0
+                                                    0 0 0 0 0 0 0 0 0 0 0]
 
     end
     
