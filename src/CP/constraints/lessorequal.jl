@@ -31,6 +31,8 @@ function propagate!(constraint::LessOrEqualConstant, toPropagate::Set{Constraint
     end
     return !isempty(constraint.x.domain)
 end
+variablesArray(constraint::LessOrEqualConstant) = [constraint.x]
+
 
 struct LessOrEqual <: Constraint
     x       ::AbstractIntVar
