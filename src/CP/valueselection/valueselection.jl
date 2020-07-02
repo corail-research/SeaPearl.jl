@@ -18,8 +18,9 @@ mutable struct LearnedHeuristic <: ValueSelection
     fitted_problem::Union{Nothing, Symbol}
     fitted_strategy::Union{Nothing, Type{S}} where S <: SearchStrategy
     current_env::Union{Nothing, RLEnv}
+    cpnodes_max::Union{Nothing, Int64}
 
-    LearnedHeuristic(agent::RL.Agent) = new(agent, nothing, nothing, nothing)
+    LearnedHeuristic(agent::RL.Agent, cpnodes_max=nothing) = new(agent, nothing, nothing, nothing, cpnodes_max)
 end
 
 Flux.testmode!(lh::LearnedHeuristic, mode = true) = Flux.testmode!(lh.agent, mode)
@@ -47,7 +48,7 @@ the pre episode stage (basically making sure that the buffer is empty).
 """
 function (valueSelection::LearnedHeuristic)(::InitializingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
     # create the environment
-    valueSelection.current_env = RLEnv(model::CPModel)
+    valueSelection.current_env = RLEnv(model::CPModel; cpnodes_max=valueSelection.cpnodes_max)
     false_x = first(values(model.variables))
     obs = observe!(valueSelection.current_env, model, false_x)
 
@@ -84,6 +85,7 @@ function (valueSelection::LearnedHeuristic)(::DecisionPhase, model::CPModel, x::
         valueSelection.agent(RL.POST_ACT_STAGE, obs) # get terminal and reward
         # eventually: hook(POST_ACT_STAGE, agent, env, obs, action)
     end
+    println("size(obs.state)", size(obs.state))
     v = valueSelection.agent(RL.PRE_ACT_STAGE, obs) # choose action, store it with the state
     # eventually hook(PRE_ACT_STAGE, agent, env, obs, action)
 
