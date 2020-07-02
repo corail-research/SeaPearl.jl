@@ -1,11 +1,9 @@
-abstract type IntervalConstraint <: Constraint end
-
 """
     IntervalConstant(x::CPRL.IntVar, lower::Int, upper::Int)
 
 Inequality constraint, `lower <= x <= upper`
 """
-struct IntervalConstant <: IntervalConstraint
+struct IntervalConstant <: OnePropagationConstraint
     x::AbstractIntVar
     lower::Int
     upper::Int
