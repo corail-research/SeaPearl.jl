@@ -35,8 +35,6 @@ adj = [0 1 0 1;
                                                     0 0 1 1 0 0
                                                     0 0 1 1 0 0]
 
-        println("cpg.featuredgraph.feature[]: ", cpg.featuredgraph.feature[])
-
         @test cpg.featuredgraph.feature[] == Float32[   1 1 0 0 0 0
                                                         0 0 1 1 0 0
                                                         0 0 0 0 1 1]
@@ -111,8 +109,6 @@ adj = [0 1 0 1;
                                                             0 0 1 1 0 0
                                                             0 0 1 1 0 0]
 
-                                                            println("cpg.featuredgraph.feature[]: ", cpg.featuredgraph.feature[])
-                                                    
         @test cpg.featuredgraph.feature[] == Float32[   1 1 0 0 0 0
                                                         0 0 1 1 0 0
                                                         0 0 0 0 1 1]

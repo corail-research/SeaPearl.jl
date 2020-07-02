@@ -100,12 +100,9 @@
                                                           0 0 1 1 0 0
                                                           0 0 1 1 0 0]
 
-        @test env.state.featuredgraph.feature[] == [1.0 0 0 0 0 0
-                                              0 1.0 0 0 0 0
-                                              0 0 1.0 0 0 0
-                                              0 0 0 1.0 0 0
-                                              0 0 0 0 1.0 0
-                                              0 0 0 0 0 1.0]
+        @test env.state.featuredgraph.feature[] == Float32[ 1 1 0 0 0 0
+                                                            0 0 1 1 0 0
+                                                            0 0 0 0 1 1]
         
         @test env.state.variable_id == 3
 
@@ -119,12 +116,9 @@
                                                           0 0 1 1 0 0
                                                           0 0 0 1 0 0]
 
-        @test env.state.featuredgraph.feature[] == [1.0 0 0 0 0 0
-                                                    0 1.0 0 0 0 0
-                                                    0 0 1.0 0 0 0
-                                                    0 0 0 1.0 0 0
-                                                    0 0 0 0 1.0 0
-                                                    0 0 0 0 0 1.0]
+        @test env.state.featuredgraph.feature[] == Float32[ 1 1 0 0 0 0
+                                                            0 0 1 1 0 0
+                                                            0 0 0 0 1 1]
         
         @test env.state.variable_id == 4
 

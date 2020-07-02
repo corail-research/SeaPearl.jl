@@ -107,12 +107,12 @@ function update_graph!(cpgraph::CPGraph, g::CPLayerGraph, x::AbstractIntVar)
 end
 
 """
-    to_array(cpg::CPGraph, rows::Int)
+    to_array(cpg::CPGraph, rows=nothing::Union{Nothing, Int})
 
 Takes a CPGraph and transform it to an array having `rows` rows, filling the remaining rows
-with zeros if needed.
+with zeros if needed. If `rows` is not given, will return the minimum number of rows.
 """
-function to_array(cpg::CPGraph, rows::Int)::Array{Float32, 2}
+function to_array(cpg::CPGraph, rows=nothing::Union{Nothing, Int})::Array{Float32, 2}
     adj = Matrix(cpg.featuredgraph.graph[])
     features = cpg.featuredgraph.feature[]
     var_id = cpg.variable_id
@@ -121,6 +121,10 @@ function to_array(cpg::CPGraph, rows::Int)::Array{Float32, 2}
     var_code[var_id] = 1f0
 
     cp_graph_array = hcat(ones(Float32, size(adj, 1), 1), adj, transpose(features), var_code)
+    if isnothing(rows)
+        return cp_graph_array
+    end
+
     filler = zeros(Float32, rows - size(cp_graph_array, 1), size(cp_graph_array, 2))
 
     return vcat(cp_graph_array, filler)
