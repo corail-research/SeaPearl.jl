@@ -66,6 +66,8 @@ end
 Takes an array an go back to a CPGraph 
 """
 function CPGraph(array::Array{Float32, 2})::CPGraph
+    node_indexes = findall(x -> x == 1, array[:, 1])
+    array = view(array, node_indexes, 2:size(array, 2))
     n = size(array, 1)
     dense_adj = array[:, 1:n]
     features = array[:, n+1:end-1]
@@ -105,11 +107,12 @@ function update_graph!(cpgraph::CPGraph, g::CPLayerGraph, x::AbstractIntVar)
 end
 
 """
-    to_array(cpg::CPGraph)
+    to_array(cpg::CPGraph, rows::Int)
 
-Takes a CPGraph and transform it to an array.
+Takes a CPGraph and transform it to an array having `rows` rows, filling the remaining rows
+with zeros if needed.
 """
-function to_array(cpg::CPGraph)::Array{Float32, 2}
+function to_array(cpg::CPGraph, rows::Int)::Array{Float32, 2}
     adj = Matrix(cpg.featuredgraph.graph[])
     features = cpg.featuredgraph.feature[]
     var_id = cpg.variable_id
@@ -117,5 +120,8 @@ function to_array(cpg::CPGraph)::Array{Float32, 2}
     var_code = zeros(Float32, size(adj, 1))
     var_code[var_id] = 1f0
 
-    return hcat(adj, transpose(features), var_code)
+    cp_graph_array = hcat(ones(Float32, size(adj, 1), 1), adj, transpose(features), var_code)
+    filler = zeros(Float32, rows - size(cp_graph_array, 1), size(cp_graph_array, 2))
+
+    return vcat(cp_graph_array, filler)
 end
