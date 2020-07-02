@@ -6,15 +6,32 @@ mutable struct CPGraph
 end
 
 """
-    featurize(cpmodel::CPModel)
+    function featurize(cpmodel::CPModel)
 
-Create features that will be associated to every node of the graph. This is a default value
-but a user might overwrite it if he wants.
+Create features for every node of the graph. Supposed to be overwritten. 
+Default behavior is to call `default_featurize`.
 """
-function featurize(g::CPLayerGraph)
-    features = zeros(Float32, nv(g), nv(g))
-    for i in 1:size(features)[1]
-        features[i, i] = 1.0f0
+featurize(g::CPLayerGraph) = default_featurize(g::CPLayerGraph)
+
+"""
+    function default_featurize(g::CPLayerGraph)
+
+Create a feature consisting of a one-hot encoder for the type of vertex (variable, constraint or value).
+Hence it is a feature of size 3.
+"""
+function default_featurize(g::CPLayerGraph)
+    features = zeros(Float32, nv(g), 3)
+    for i in 1:nv(g)
+        cp_vertex = CPRL.cpVertexFromIndex(g, i)
+        if isa(cp_vertex, ConstraintVertex)
+            features[i, 1] = 1.0f0
+        end
+        if isa(cp_vertex, VariableVertex)
+            features[i, 2] = 1.0f0
+        end
+        if isa(cp_vertex, ValueVertex)
+            features[i, 3] = 1.0f0
+        end
     end
     features
 end

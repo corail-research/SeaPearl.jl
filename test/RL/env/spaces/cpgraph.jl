@@ -35,12 +35,12 @@ adj = [0 1 0 1;
                                                     0 0 1 1 0 0
                                                     0 0 1 1 0 0]
 
-        @test cpg.featuredgraph.feature[] == [1.0 0 0 0 0 0
-                                              0 1.0 0 0 0 0
-                                              0 0 1.0 0 0 0
-                                              0 0 0 1.0 0 0
-                                              0 0 0 0 1.0 0
-                                              0 0 0 0 0 1.0]
+        @test cpg.featuredgraph.feature[] == [1 0 0
+                                              1 0 0
+                                              0 1 0
+                                              0 1 0
+                                              0 0 1
+                                              0 0 1]
         @test cpg.variable_id == 3
         @test CPRL.cpVertexFromIndex(CPRL.CPLayerGraph(model), cpg.variable_id).variable == model.variables["x"]
     end
@@ -65,12 +65,12 @@ adj = [0 1 0 1;
                                                     0 0 1 1 0 0
                                                     0 0 1 1 0 0]
 
-        @test cpg.featuredgraph.feature[] == [1.0 0 0 0 0 0
-                                              0 1.0 0 0 0 0
-                                              0 0 1.0 0 0 0
-                                              0 0 0 1.0 0 0
-                                              0 0 0 0 1.0 0
-                                              0 0 0 0 0 1.0]
+        @test cpg.featuredgraph.feature[] == [1 0 0
+                                              1 0 0
+                                              0 1 0
+                                              0 1 0
+                                              0 0 1
+                                              0 0 1]
         @test cpg.variable_id == 3
         @test CPRL.cpVertexFromIndex(CPRL.CPLayerGraph(model), cpg.variable_id).variable == model.variables["x"]
 
@@ -86,12 +86,12 @@ adj = [0 1 0 1;
                                                     0 0 1 1 0 0
                                                     0 0 0 1 0 0]
 
-        @test cpg.featuredgraph.feature[] == [1.0 0 0 0 0 0
-                                              0 1.0 0 0 0 0
-                                              0 0 1.0 0 0 0
-                                              0 0 0 1.0 0 0
-                                              0 0 0 0 1.0 0
-                                              0 0 0 0 0 1.0f0]
+        @test cpg.featuredgraph.feature[] == [1 0 0
+                                              1 0 0
+                                              0 1 0
+                                              0 1 0
+                                              0 0 1
+                                              0 0 1]
         @test cpg.variable_id == 4
         @test CPRL.cpVertexFromIndex(g, cpg.variable_id).variable == model.variables["y"]
 
