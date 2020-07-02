@@ -39,7 +39,7 @@
 
         agent = CPRL.DQNAgent(
             nn_model = foGCN,
-            state_size = (6, 11)
+            state_size = (6, 12)
         )
 
         # constructing a CPGraph
@@ -84,7 +84,7 @@
                     approximator = RL.NeuralNetworkApproximator(
                         model = Chain(
                             Flux.flatten,
-                            Dense(11*16, 20, Flux.relu),
+                            Dense(11*17, 20, Flux.relu),
                             Dense(20, 20, Flux.relu),
                             Dense(20, 4, Flux.relu)
                         ),
@@ -93,7 +93,7 @@
                     target_approximator = RL.NeuralNetworkApproximator(
                         model = Chain(
                             Flux.flatten,
-                            Dense(11*16, 20, Flux.relu),
+                            Dense(11*17, 20, Flux.relu),
                             Dense(20, 20, Flux.relu),
                             Dense(20, 4, Flux.relu)
                         ),
@@ -124,7 +124,7 @@
             trajectory = RL.CircularCompactSARTSATrajectory(
                 capacity = 1000, 
                 state_type = Float32, 
-                state_size = (11, 16, 1),
+                state_size = (11, 17, 1),
                 action_type = Int,
                 action_size = (),
                 reward_type = Float32,

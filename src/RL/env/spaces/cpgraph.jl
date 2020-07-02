@@ -80,13 +80,15 @@ function CPGraph(array::Array{Float32, 2})::CPGraph
     
     n = size(array, 1)
     dense_adj = array[:, 1:n]
-    features = array[:, n+1:end-1]
+    features = array[:, n+1:end-2]
 
-    var_code = array[:, end]
+    var_code = array[:, end-1]
     var_code = findall(x -> x == 1, var_code)
+    values_vector = array[:, end]
+    possible_value_ids = findall(x -> x == 1, values_vector)
 
     fg = GeometricFlux.FeaturedGraph(dense_adj, transpose(features))
-    return CPGraph(fg, convert(Int64, var_code[1]), Int64[])
+    return CPGraph(fg, convert(Int64, var_code[1]), possible_value_ids)
 end
 
 """
@@ -143,12 +145,17 @@ function to_array(cpg::CPGraph, rows=nothing::Union{Nothing, Int})::Array{Float3
     var_code = zeros(Float32, size(adj, 1))
     var_code[var_id] = 1f0
 
-    
-    if isnothing(rows)
-        return hcat(ones(Float32, size(adj, 1), 1), adj, transpose(features), var_code)
+    vector_values = zeros(Float32, size(adj, 1))
+    for i in cpg.possible_value_ids
+        vector_values[i] = 1.
     end
 
-    cp_graph_array = hcat(ones(Float32, size(adj, 1), 1), adj, zeros(Float32, size(adj, 1), rows - size(adj, 1)), transpose(features), var_code)
+    
+    if isnothing(rows)
+        return hcat(ones(Float32, size(adj, 1), 1), adj, transpose(features), var_code, vector_values)
+    end
+
+    cp_graph_array = hcat(ones(Float32, size(adj, 1), 1), adj, zeros(Float32, size(adj, 1), rows - size(adj, 1)), transpose(features), var_code, vector_values)
     filler = zeros(Float32, rows - size(cp_graph_array, 1), size(cp_graph_array, 2))
 
     return vcat(cp_graph_array, filler)
