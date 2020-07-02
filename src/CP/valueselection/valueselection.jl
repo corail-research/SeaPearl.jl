@@ -85,7 +85,6 @@ function (valueSelection::LearnedHeuristic)(::DecisionPhase, model::CPModel, x::
         valueSelection.agent(RL.POST_ACT_STAGE, obs) # get terminal and reward
         # eventually: hook(POST_ACT_STAGE, agent, env, obs, action)
     end
-    println("size(obs.state)", size(obs.state))
     v = valueSelection.agent(RL.PRE_ACT_STAGE, obs) # choose action, store it with the state
     # eventually hook(PRE_ACT_STAGE, agent, env, obs, action)
 

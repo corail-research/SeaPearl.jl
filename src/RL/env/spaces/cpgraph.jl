@@ -66,8 +66,12 @@ end
 Takes an array an go back to a CPGraph 
 """
 function CPGraph(array::Array{Float32, 2})::CPGraph
-    node_indexes = findall(x -> x == 1, array[:, 1])
-    array = view(array, node_indexes, 2:size(array, 2))
+
+    # Here we only take what's interesting, removing all null values that are there only to accept bigger graphs
+    row_indexes = findall(x -> x == 1, array[:, 1])
+    col_indexes = vcat(1 .+ row_indexes, (size(array, 1)+2):size(array, 2))
+    array = view(array, row_indexes, col_indexes)
+    
     n = size(array, 1)
     dense_adj = array[:, 1:n]
     features = array[:, n+1:end-1]
@@ -120,11 +124,12 @@ function to_array(cpg::CPGraph, rows=nothing::Union{Nothing, Int})::Array{Float3
     var_code = zeros(Float32, size(adj, 1))
     var_code[var_id] = 1f0
 
-    cp_graph_array = hcat(ones(Float32, size(adj, 1), 1), adj, transpose(features), var_code)
+    
     if isnothing(rows)
-        return cp_graph_array
+        return hcat(ones(Float32, size(adj, 1), 1), adj, transpose(features), var_code)
     end
 
+    cp_graph_array = hcat(ones(Float32, size(adj, 1), 1), adj, zeros(Float32, size(adj, 1), rows - size(adj, 1)), transpose(features), var_code)
     filler = zeros(Float32, rows - size(cp_graph_array, 1), size(cp_graph_array, 2))
 
     return vcat(cp_graph_array, filler)
