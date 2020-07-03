@@ -31,12 +31,10 @@ agent = RL.Agent(
                 approximator = RL.NeuralNetworkApproximator(
                     model = CPRL.FlexGNN(
                         graphChain = Flux.Chain(
-                            GeometricFlux.GCNConv(26 => 26),
-                            GeometricFlux.GCNConv(20 => 20),
+                            GeometricFlux.GCNConv(26 => 20),
                             GeometricFlux.GCNConv(20 => 20),
                         ),
                         nodeChain = Flux.Chain(
-                            Flux.Dense(20, 20),
                             Flux.Dense(20, 20),
                         ),
                         outputLayer = Flux.Dense(20, 20)
@@ -46,12 +44,10 @@ agent = RL.Agent(
                 target_approximator = RL.NeuralNetworkApproximator(
                     model = CPRL.FlexGNN(
                         graphChain = Flux.Chain(
-                            GeometricFlux.GCNConv(26 => 26),
-                            GeometricFlux.GCNConv(20 => 20),
+                            GeometricFlux.GCNConv(26 => 20),
                             GeometricFlux.GCNConv(20 => 20),
                         ),
                         nodeChain = Flux.Chain(
-                            Flux.Dense(20, 20),
                             Flux.Dense(20, 20),
                         ),
                         outputLayer = Flux.Dense(20, 20)
@@ -73,7 +69,7 @@ agent = RL.Agent(
                 kind = :exp,
                 ϵ_init = 1.0,
                 warmup_steps = 0,
-                decay_steps = 500,
+                decay_steps = 1000,
                 step = 1,
                 is_break_tie = false, 
                 #is_training = true,
@@ -81,7 +77,7 @@ agent = RL.Agent(
             )
         ),
         trajectory = RL.CircularCompactSARTSATrajectory(
-            capacity = 5000, 
+            capacity = 3000, 
             state_type = Float32, 
             state_size = state_size,#(46, 93, 1),
             action_type = Int,
@@ -124,7 +120,7 @@ bestsolutions, nodevisited, timeneeded = CPRL.train!(
     #valueSelectionArray=learnedHeuristic,
     problem_type=:coloring,
     problem_params=coloring_params,
-    nb_episodes=350,
+    nb_episodes=200,
     strategy=CPRL.DFSearch,
     variableHeuristic=selectNonObjVariable,
     verbose = false

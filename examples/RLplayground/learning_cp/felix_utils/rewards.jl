@@ -13,7 +13,7 @@ function CPRL.set_reward!(env::CPRL.RLEnv, model::CPRL.CPModel, symbol::Symbol)
     end
 
     if symbol == :FoundSolution
-        env.reward += + 50 * (7 - model.objectiveBound - 1)/ env.nslfs
+        env.reward += + 50 * (6 - model.objectiveBound - 1)/ env.nslfs
         env.nslfs = 1
         env.nslbt = 1
     else
