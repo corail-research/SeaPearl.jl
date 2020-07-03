@@ -148,7 +148,6 @@ function Base.isempty(model::CPModel)::Bool
         && model.statistics.numberOfSolutions == 0
         && isnothing(model.limit.numberOfNodes)
         && isnothing(model.limit.numberOfSolutions)
-        && isnothing(model.RLRep)
     )
 end
 
@@ -169,6 +168,5 @@ function Base.empty!(model::CPModel)
     model.statistics.numberOfSolutions = 0
     model.limit.numberOfNodes = nothing
     model.limit.numberOfSolutions = nothing
-    model.RLRep = nothing
     model
 end
