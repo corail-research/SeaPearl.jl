@@ -17,16 +17,17 @@ mutable struct RLEnv <: RL.AbstractEnv
     reward::Float64
     done::Bool
     rng::Random.MersenneTwister # random number generator
+    cpnodes_max::Union{Nothing, Int64}
     nslbt::Int64
     nslfs::Int64
 end
 
 """
-    RLEnv(model::CPModel)
+    RLEnv(model::CPModel, seed = nothing, cpnodes_max=nothing)
 
 Construct the RLEnv thanks to the informations which are in the CPModel.
 """
-function RLEnv(cpmodel::CPModel, seed = nothing)
+function RLEnv(cpmodel::CPModel, seed = nothing; cpnodes_max=nothing)
     if isnothing(cpmodel.RLRep)
         cpmodel.RLRep = CPLayerGraph(cpmodel)
     end
@@ -45,6 +46,7 @@ function RLEnv(cpmodel::CPModel, seed = nothing)
         0,
         false,  
         rng,
+        cpnodes_max)
         1,
         1)
     
@@ -123,7 +125,7 @@ function observe!(env::RLEnv, model::CPModel, x::AbstractIntVar)
     # synchronize state: we could delete env.state, we do not need it 
     sync_state!(env, model, x)
 
-    state = to_array(env.state)
+    state = to_array(env.state, env.cpnodes_max)
     state = reshape(state, size(state)..., 1)
     # println("reward", reward)
     
