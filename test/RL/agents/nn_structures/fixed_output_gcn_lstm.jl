@@ -72,7 +72,7 @@
 
         args_foGCNLSTM = CPRL.ArgsFixedOutputGCNLSTM(
             maxDomainSize = 2,
-            numInFeatures = 6,
+            numInFeatures = 3,
             firstHiddenGCN = 20,
             secondHiddenGCN = 20,
             hiddenDense = 20,
