@@ -23,7 +23,7 @@ coloring_params = Dict(
 numInFeatures = 121
 numberOfCPNodes = 121
 
-state_size = (numberOfCPNodes, numInFeatures + numberOfCPNodes + 1, 1)
+state_size = (numberOfCPNodes, numInFeatures + numberOfCPNodes + 2, 1)
 
 agent = RL.Agent(
         policy = RL.QBasedPolicy(
