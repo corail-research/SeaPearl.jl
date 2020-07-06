@@ -25,6 +25,8 @@ mutable struct CPModel
     CPModel(trailer) = new(Dict{String, AbstractIntVar}(), Constraint[], trailer, nothing, nothing, Solution[], Statistics(0, 0), Limit(nothing, nothing), nothing)
 end
 
+CPModel() = CPModel(Trailer())
+
 const CPModification = Dict{String, Array{Int}}
 
 """
