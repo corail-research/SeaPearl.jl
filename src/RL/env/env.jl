@@ -46,7 +46,7 @@ function RLEnv(cpmodel::CPModel, seed = nothing; cpnodes_max=nothing)
         0,
         false,  
         rng,
-        cpnodes_max)
+        cpnodes_max,
         1,
         1)
     
