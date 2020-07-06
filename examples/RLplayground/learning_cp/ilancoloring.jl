@@ -30,8 +30,16 @@ fixedGCNargs = CPRL.ArgsFixedOutputGCN(
     hiddenDense = 20 
 ) 
 numberOfCPNodes = 83 
+
+function CPRL.featurize(g::CPRL.CPLayerGraph)
+    features = zeros(Float32, nv(g), nv(g))
+    for i in 1:size(features)[1]
+        features[i, i] = 1.0f0
+    end
+    features
+end
  
-state_size = (maxnumberOfCPNodes,fixedGCNargs.numInFeatures + maxnumberOfCPNodes + 2, 1) 
+state_size = (numberOfCPNodes,fixedGCNargs.numInFeatures + numberOfCPNodes + 2, 1) 
 
 agent = RL.Agent(
         policy = RL.QBasedPolicy(
@@ -50,8 +58,8 @@ agent = RL.Agent(
                 batch_size = 1,
                 update_horizon = 1,
                 min_replay_history = 1,
-                update_freq = 50,
-                target_update_freq = 200,
+                update_freq = 20,
+                target_update_freq = 100,
                 seed = 22,
             ), 
             # explorer = CPRL.DirectedExplorer(;
@@ -83,7 +91,7 @@ agent = RL.Agent(
         role = :DEFAULT_PLAYER
     )
 
-learnedHeuristic = CPRL.LearnedHeuristic(agent, maxnumberOfCPNodes)
+learnedHeuristic = CPRL.LearnedHeuristic(agent)
 
 basicHeuristic = CPRL.BasicHeuristic((x) -> CPRL.minimum(x.domain))
 
