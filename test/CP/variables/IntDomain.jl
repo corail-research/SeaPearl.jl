@@ -180,4 +180,18 @@
 
         @test CPRL.maximum(x.domain) == 10
     end
+
+    @testset "reset_domain!()" begin
+        trailer = CPRL.Trailer()
+        x = CPRL.IntVar(5, 10, "x", trailer)
+        CPRL.assign!(x, 10)
+        
+        @test x.domain.values == [6, 2, 3, 4, 5, 1]
+        @test x.domain.indexes == [6, 2, 3, 4, 5, 1]
+        @test CPRL.length(x.domain) == 1
+        CPRL.reset_domain!(x.domain)
+        @test x.domain.values == [1, 2, 3, 4, 5, 6]
+        @test x.domain.indexes == [1, 2, 3, 4, 5, 6]
+        @test CPRL.length(x.domain) == 6
+    end
 end
