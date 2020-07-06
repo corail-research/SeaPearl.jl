@@ -99,7 +99,7 @@ Set the final reward, do last observation.
 function (valueSelection::LearnedHeuristic)(::EndingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
     # the RL EPISODE stops
     set_done!(valueSelection.current_env, true)
-    set_final_reward!(valueSelection.current_env, model)
+    set_final_reward!(valueSelection.current_env, model, current_status)
     false_x = first(values(model.variables))
     obs = observe!(valueSelection.current_env, model, false_x)
     #println("EndingPhase  ", obs.reward, " ", obs.terminal, " ", obs.legal_actions, " ", obs.legal_actions_mask)

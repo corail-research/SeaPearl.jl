@@ -9,7 +9,8 @@
             0,
             false,
             rng,
-            8
+            8,
+            CPRL.SearchMetrics()
         )
 
         @test typeof(env.action_space) == RL.DiscreteSpace{Array{Int64,1}}
@@ -68,10 +69,10 @@
 
         env = CPRL.RLEnv(model)
 
-        CPRL.set_reward!(env, :Infeasible)
+        CPRL.set_reward!(env, model, :Infeasible)
         @test env.reward == 0
 
-        CPRL.set_reward!(env, :FoundSolution)
+        CPRL.set_reward!(env, model, :FoundSolution)
         @test env.reward == 0
 
     end

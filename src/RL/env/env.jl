@@ -1,4 +1,20 @@
+"""
+    SearchMetrics
 
+One of the roles of the env is to manage the reward which is going to be given. In the simplest schema, it is
+just a simple reward which is given as a field of RLEnv. To make things more complete and flexible to the user, 
+we add a SearchMetrics which will help design interesting rewards. 
+"""
+mutable struct SearchMetrics
+    last_backtrack::Union{Nothing, Int64}
+    last_unfeasible::Union{Nothing, Int64}
+    last_foundsolution::Union{Nothing, Int64}
+    current_best::Union{Nothing, Int64}
+    true_best::Union{Nothing, Int64}
+
+end
+
+SearchMetrics() = SearchMetrics(0, 0, 0, nothing, nothing)
 
 """
     RLEnv
@@ -18,8 +34,7 @@ mutable struct RLEnv <: RL.AbstractEnv
     done::Bool
     rng::Random.MersenneTwister # random number generator
     cpnodes_max::Union{Nothing, Int64}
-    nslbt::Int64
-    nslfs::Int64
+    search_metrics::SearchMetrics
 end
 
 """
@@ -47,10 +62,8 @@ function RLEnv(cpmodel::CPModel, seed = nothing; cpnodes_max=nothing)
         false,  
         rng,
         cpnodes_max,
-        1,
-        1)
+        SearchMetrics())
     
-    #RL.reset!(env)
     env
 end
 
@@ -71,7 +84,7 @@ end
 Change the "reward" attribute of the env. This is compulsory as used in the buffer
 for the training.
 """
-function set_reward!(env::RLEnv, model::CPModel, symbol::Symbol)
+function set_reward!(env::RLEnv, model::CPModel, symbol::Union{Nothing, Symbol})
     nothing
 end
 
@@ -81,7 +94,7 @@ end
 Change the "reward" attribute of the env. This is compulsory as used in the buffer
 for the training.
 """
-function set_final_reward!(env::RLEnv, model::CPModel)
+function set_final_reward!(env::RLEnv, model::CPModel, symbol::Union{Nothing, Symbol})
     env.reward += 30/(model.statistics.numberOfNodes)
     nothing
 end
@@ -140,4 +153,3 @@ We want our experiences to be reproducible, thus we provide this function to res
 number generator. rng will give a reproducible sequence of numbers if and only if a seed is provided.
 """
 Random.seed!(env::RLEnv, seed) = Random.seed!(env.rng, seed)
-
