@@ -173,4 +173,17 @@ function Base.empty!(model::CPModel)
     model.limit.numberOfSolutions = nothing
     model.RLRep = nothing
     model
-end
+end
+
+function reset_model!(model::CPModel)
+    restoreInitialState!(model.trailer)
+    for (id, x) in model.variables
+        reset_domain!(x.domain)
+    end
+    model.objectiveBound = nothing
+    empty!(model.solutions)
+    model.statistics.numberOfNodes = 0
+    model.statistics.numberOfSolutions = 0
+    model.RLRep = nothing
+    model
+end
