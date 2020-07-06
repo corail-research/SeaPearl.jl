@@ -34,24 +34,19 @@ function launch_experiment!(
     nodevisited = zeros(Int64, (nb_episodes, nb_heuristics))
     timeneeded = zeros(Float64, (nb_episodes, nb_heuristics))
 
-    models = CPModel[]
-    for i in 1:nb_episodes
-        trailer = Trailer()
-        model = CPModel(trailer)
-        push!(models, model)
-    end
-    
+    trailer = Trailer()
+    model = CPModel(trailer)
 
     iter = ProgressBar(1:nb_episodes)
     for i in iter
     # for i in 1:nb_episodes
         verbose && print(" --- EPISODE: ", i)
 
-        # trailer = Trailer()
-        # model = CPModel(trailer)
-        map(empty!, models)
+        empty!(model)
 
-        fill_with_generator!(models, problem_params)
+        fill_with_generator!(model, problem_params["nb_nodes"], problem_params["density"])
+
+        models = [deepcopy(model) for _ in 1:nb_heuristics]
 
         for j in 1:nb_heuristics
             dt = @elapsed search!(models[j], strategy, variableHeuristic, valueSelectionArray[j])
