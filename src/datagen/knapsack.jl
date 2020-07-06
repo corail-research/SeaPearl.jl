@@ -12,9 +12,12 @@ function fill_with_knapsack!(cpmodel::CPModel, nb_items::Int64, noise::Number=1)
     distr = Truncated(Normal(5 * nb_items, nb_items), 1, 10 * nb_items)
     perturbation = Truncated(Normal(0, noise), -10, 10)
 
-    values = rand(distr, nb_items)
-    weights = (1 + perturbation) .* values
-    capacity = (0.5 + 0.25 * rand()) * sum(weights)
+    deviation = floor(max_weight/(10*correlation))
+    value_distr = truncated.(DiscreteUniform.(weights .- deviation, weights .+ deviation), 1, Inf)
+    values = rand.(value_distr)
+
+    c = floor(nb_items * max_weight/2 / 4)
+    capacity = rand(DiscreteUniform(c, c*4))
     
     ### Variables
     x = CPRL.IntVar[]

@@ -65,7 +65,7 @@
 
         args_foGCN = CPRL.ArgsFixedOutputGCN(
             maxDomainSize = 2,
-            numInFeatures = 6,
+            numInFeatures = 3,
             firstHiddenGCN = 20,
             secondHiddenGCN = 6,
             hiddenDense = 6

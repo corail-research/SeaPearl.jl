@@ -23,7 +23,7 @@ coloring_params = Dict(
 numInFeatures = 121
 numberOfCPNodes = 121
 
-state_size = (numberOfCPNodes, numInFeatures + numberOfCPNodes + 1, 1)
+state_size = (numberOfCPNodes, numInFeatures + numberOfCPNodes + 2, 1)
 
 agent = RL.Agent(
         policy = RL.QBasedPolicy(
@@ -31,30 +31,29 @@ agent = RL.Agent(
                 approximator = RL.NeuralNetworkApproximator(
                     model = CPRL.FlexGNN(
                         graphChain = Flux.Chain(
-                            GeometricFlux.GCNConv(121 => 121),
-                            GeometricFlux.GCNConv(121 => 121),
-                            GeometricFlux.GCNConv(121 => 121),
+                            GeometricFlux.GCNConv(121 => 60),
+                            GeometricFlux.GCNConv(60 => 30),
+                            GeometricFlux.GCNConv(30 => 20),
                         ),
                         nodeChain = Flux.Chain(
-                            Flux.Dense(121, 121),
-                            Flux.Dense(121, 121),
+                            Flux.Dense(20, 20),
+                            Flux.Dense(20, 20),
                         ),
-                        outputLayer = Flux.Dense(121, 20)
+                        outputLayer = Flux.Dense(20, 20)
                     ),
                     optimizer = ADAM(0.0005f0)
                 ),
                 target_approximator = RL.NeuralNetworkApproximator(
                     model = CPRL.FlexGNN(
                         graphChain = Flux.Chain(
-                            GeometricFlux.GCNConv(121 => 121),
-                            GeometricFlux.GCNConv(121 => 121),
-                            GeometricFlux.GCNConv(121 => 121),
+                            GeometricFlux.GCNConv(121 => 60),
+                            GeometricFlux.GCNConv(60 => 30),
+                            GeometricFlux.GCNConv(30 => 20),
                         ),
                         nodeChain = Flux.Chain(
-                            Flux.Dense(121, 121),
-                            Flux.Dense(121, 121),
+                            Flux.Dense(20, 20),
                         ),
-                        outputLayer = Flux.Dense(121, 20)
+                        outputLayer = Flux.Dense(20, 20)
                     ),
                     optimizer = ADAM(0.0005f0)
                 ),
@@ -62,7 +61,7 @@ agent = RL.Agent(
                 stack_size = nothing,
                 γ = 0.999f0,
                 batch_size = 1, #32,
-                update_horizon = 1,
+                update_horizon = 15,
                 min_replay_history = 1,
                 update_freq = 10,
                 target_update_freq = 100,
@@ -124,9 +123,10 @@ bestsolutions, nodevisited, timeneeded = CPRL.train!(
     #valueSelectionArray=learnedHeuristic,
     problem_type=:coloring,
     problem_params=coloring_params,
-    nb_episodes=50,
+    nb_episodes=200,
     strategy=CPRL.DFSearch,
-    variableHeuristic=selectNonObjVariable
+    variableHeuristic=selectNonObjVariable,
+    verbose = false
 )
 
 # plot 
@@ -144,9 +144,10 @@ bestsolutions, nodevisited, timeneeded = CPRL.benchmark_solving(
     #valueSelectionArray=learnedHeuristic,
     problem_type=:coloring,
     problem_params=coloring_params,
-    nb_episodes=10,
+    nb_episodes=50,
     strategy=CPRL.DFSearch,
-    variableHeuristic=selectNonObjVariable
+    variableHeuristic=selectNonObjVariable,
+    verbose = false
 )
 
 # plot 
