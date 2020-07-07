@@ -49,9 +49,12 @@ function launch_experiment!(
 
         for j in 1:nb_heuristics
             reset_model!(model)
+            
             dt = @elapsed search!(model, strategy, variableHeuristic, valueSelectionArray[j])
+
             if isa(valueSelectionArray[j], LearnedHeuristic)
                 verbose && print(", Visited nodes: ", model.statistics.numberOfNodes)
+                verbose && print(", Decisions: ", valueSelectionArray[j].current_env.search_metrics.total)
             else
                 verbose && print(" vs ", model.statistics.numberOfNodes)
             end
