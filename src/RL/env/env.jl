@@ -6,6 +6,7 @@ just a simple reward which is given as a field of RLEnv. To make things more com
 we add a SearchMetrics which will help design interesting rewards. 
 """
 mutable struct SearchMetrics
+    total::Int64
     last_backtrack::Union{Nothing, Int64}
     last_unfeasible::Union{Nothing, Int64}
     last_foundsolution::Union{Nothing, Int64}
@@ -14,7 +15,7 @@ mutable struct SearchMetrics
 
 end
 
-SearchMetrics() = SearchMetrics(0, 0, 0, nothing, nothing)
+SearchMetrics() = SearchMetrics(1, 0, 0, 0, nothing, nothing)  
 
 """
     RLEnv
@@ -78,8 +79,33 @@ function set_done!(env::RLEnv, done::Bool)
     nothing
 end
 
+set_metrics!(env::RLEnv, model::CPModel, symbol::Union{Nothing, Symbol}) = set_metrics!(env.search_metrics, model, symbol)
+
+function set_metrics!(search_metrics::SearchMetrics, model::CPModel, symbol::Union{Nothing, Symbol})
+    search_metrics.total += 1
+
+    if symbol == :Infeasible
+        search_metrics.last_unfeasible = 1
+        search_metrics.last_foundsolution += 1
+    elseif symbol == :FoundSolution
+        search_metrics.last_foundsolution = 1
+        search_metrics.last_unfeasible += 1
+    else
+        search_metrics.last_unfeasible += 1
+        search_metrics.last_foundsolution += 1
+    end
+
+    search_metrics.last_backtrack = min(search_metrics.last_foundsolution, search_metrics.last_unfeasible)
+    
+    if !isempty(model.solutions)
+        search_metrics.current_best = model.objectiveBound + 1
+    end
+
+    nothing
+end
+
 """
-    set_reward!(env::RLEnv, symbol::Symbol)
+    set_reward!(env::RLEnv, model::CPModel, symbol::Union{Nothing, Symbol})
 
 Change the "reward" attribute of the env. This is compulsory as used in the buffer
 for the training.
