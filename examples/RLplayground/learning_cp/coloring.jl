@@ -17,12 +17,11 @@ problem_generator = Dict(
 
 coloring_params = Dict(
     "nb_nodes" => 15,
-    "density" => 3
+    "density" => 1.6
 )
 
 numInFeatures = 21
-# should be floor()
-numberOfCPNodes = 1 + coloring_params["nb_nodes"] * ( 3 + coloring_params["density"] )
+numberOfCPNodes = 1 + floor(Int64, coloring_params["nb_nodes"] * ( 3 + coloring_params["density"] ))
 #numberOfCPNodes = 141
 
 state_size = (numberOfCPNodes, numInFeatures + numberOfCPNodes + 2, 1)
@@ -115,37 +114,43 @@ function selectNonObjVariable(model::CPRL.CPModel)
     return selectedVar
 end
 
+function selectRandVariable(model::CPRL.CPModel)
+    vars = collect(values(model.variables))
+    filter!(x -> length(x.domain) > 1, vars)
+    return rand(vars)
+end
+
 ############# TRAIN
 
 bestsolutions, nodevisited, timeneeded = CPRL.train!(
-    valueSelectionArray=[learnedHeuristic, heuristic_min, heuristic_max, heuristic_rand], 
+    valueSelectionArray=[learnedHeuristic, heuristic_min], 
     #valueSelectionArray=learnedHeuristic,
     problem_type=:coloring,
     problem_params=coloring_params,
-    nb_episodes=250,
+    nb_episodes=300,
     strategy=CPRL.DFSearch,
-    variableHeuristic=selectNonObjVariable,
-    verbose = false
+    variableHeuristic=selectRandVariable,
+    verbose = true
 )
 
 # plot 
 a, b = size(nodevisited)
 x = 1:a
 
-p1 = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 600])
+p1 = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 500])
 
 #display(p1)
 
 ############# BENCHMARK
 
 bestsolutions, nodevisited, timeneeded = CPRL.benchmark_solving(
-    valueSelectionArray=[learnedHeuristic, heuristic_min, heuristic_max, heuristic_rand], 
+    valueSelectionArray=[learnedHeuristic, heuristic_min], 
     #valueSelectionArray=learnedHeuristic,
     problem_type=:coloring,
     problem_params=coloring_params,
     nb_episodes=50,
     strategy=CPRL.DFSearch,
-    variableHeuristic=selectNonObjVariable,
+    variableHeuristic=selectRandVariable,
     verbose = false
 )
 
@@ -153,8 +158,8 @@ bestsolutions, nodevisited, timeneeded = CPRL.benchmark_solving(
 a, b = size(nodevisited)
 x = 1:a
 
-p2 = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 600])
-p3 = plot(x, timeneeded, xlabel="Episode", ylabel="Time needed", ylims = [0, 0.06])
+p2 = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 400])
+p3 = plot(x, timeneeded, xlabel="Episode", ylabel="Time needed", ylims = [0, 0.05])
 
 
 p = plot(p1, p2, p3, legend = false, layout = (3, 1))
