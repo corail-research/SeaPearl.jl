@@ -21,7 +21,7 @@ function search!(model::CPModel, ::Type{DFSearch}, variableHeuristic, valueSelec
             break
         end
 
-        # set reward if necessary
+        # set reward and metrics
         valueSelection(RewardingPhase(), model, nothing, currentStatus)
 
         currentProcedure = pop!(toCall)
