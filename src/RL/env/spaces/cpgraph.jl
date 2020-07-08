@@ -6,15 +6,32 @@ mutable struct CPGraph
 end
 
 """
-    featurize(cpmodel::CPModel)
+    function featurize(cpmodel::CPModel)
 
-Create features that will be associated to every node of the graph. This is a default value
-but a user might overwrite it if he wants.
+Create features for every node of the graph. Supposed to be overwritten. 
+Default behavior is to call `default_featurize`.
 """
-function featurize(g::CPLayerGraph)
-    features = zeros(Float32, nv(g), nv(g))
-    for i in 1:size(features)[1]
-        features[i, i] = 1.0f0
+featurize(g::CPLayerGraph) = default_featurize(g::CPLayerGraph)
+
+"""
+    function default_featurize(g::CPLayerGraph)
+
+Create a feature consisting of a one-hot encoder for the type of vertex (variable, constraint or value).
+Hence it is a feature of size 3.
+"""
+function default_featurize(g::CPLayerGraph)
+    features = zeros(Float32, nv(g), 3)
+    for i in 1:nv(g)
+        cp_vertex = CPRL.cpVertexFromIndex(g, i)
+        if isa(cp_vertex, ConstraintVertex)
+            features[i, 1] = 1.0f0
+        end
+        if isa(cp_vertex, VariableVertex)
+            features[i, 2] = 1.0f0
+        end
+        if isa(cp_vertex, ValueVertex)
+            features[i, 3] = 1.0f0
+        end
     end
     features
 end
@@ -49,6 +66,12 @@ end
 Takes an array an go back to a CPGraph 
 """
 function CPGraph(array::Array{Float32, 2})::CPGraph
+
+    # Here we only take what's interesting, removing all null values that are there only to accept bigger graphs
+    row_indexes = findall(x -> x == 1, array[:, 1])
+    col_indexes = vcat(1 .+ row_indexes, (size(array, 1)+2):size(array, 2))
+    array = view(array, row_indexes, col_indexes)
+    
     n = size(array, 1)
     dense_adj = array[:, 1:n]
     features = array[:, n+1:end-1]
@@ -88,11 +111,12 @@ function update_graph!(cpgraph::CPGraph, g::CPLayerGraph, x::AbstractIntVar)
 end
 
 """
-    to_array(cpg::CPGraph)
+    to_array(cpg::CPGraph, rows=nothing::Union{Nothing, Int})
 
-Takes a CPGraph and transform it to an array.
+Takes a CPGraph and transform it to an array having `rows` rows, filling the remaining rows
+with zeros if needed. If `rows` is not given, will return the minimum number of rows.
 """
-function to_array(cpg::CPGraph)::Array{Float32, 2}
+function to_array(cpg::CPGraph, rows=nothing::Union{Nothing, Int})::Array{Float32, 2}
     adj = Matrix(cpg.featuredgraph.graph[])
     features = cpg.featuredgraph.feature[]
     var_id = cpg.variable_id
@@ -100,5 +124,13 @@ function to_array(cpg::CPGraph)::Array{Float32, 2}
     var_code = zeros(Float32, size(adj, 1))
     var_code[var_id] = 1f0
 
-    return hcat(adj, transpose(features), var_code)
+    
+    if isnothing(rows)
+        return hcat(ones(Float32, size(adj, 1), 1), adj, transpose(features), var_code)
+    end
+
+    cp_graph_array = hcat(ones(Float32, size(adj, 1), 1), adj, zeros(Float32, size(adj, 1), rows - size(adj, 1)), transpose(features), var_code)
+    filler = zeros(Float32, rows - size(cp_graph_array, 1), size(cp_graph_array, 2))
+
+    return vcat(cp_graph_array, filler)
 end

@@ -174,4 +174,17 @@
 
         @test isempty(model)
     end
+
+    @testset "reset_model!()" begin
+        trailer = CPRL.Trailer()
+        model = CPRL.CPModel(trailer)
+
+        x = CPRL.IntVar(2, 5, "x", trailer)
+        CPRL.addVariable!(model, x)
+        CPRL.assign!(x, 3)
+
+        @test CPRL.length(x.domain) == 1
+        CPRL.reset_model!(model)
+        @test CPRL.length(x.domain) == 4
+    end
 end

@@ -15,7 +15,7 @@
                     approximator = RL.NeuralNetworkApproximator(
                         model = Chain(
                             Flux.flatten,
-                            Dense(46*93, 100, Flux.relu),
+                            Dense(46*51, 100, Flux.relu),
                             Dense(100, 50, Flux.relu),
                             Dense(50, 10, Flux.relu)
                         ),
@@ -24,7 +24,7 @@
                     target_approximator = RL.NeuralNetworkApproximator(
                         model = Chain(
                             Flux.flatten,
-                            Dense(46*93, 100, Flux.relu),
+                            Dense(46*51, 100, Flux.relu),
                             Dense(100, 50, Flux.relu),
                             Dense(50, 10, Flux.relu)
                         ),
@@ -55,7 +55,7 @@
             trajectory = RL.CircularCompactSARTSATrajectory(
                 capacity = 500, 
                 state_type = Float32, 
-                state_size = (46, 93, 1),
+                state_size = (46, 51, 1),
                 action_type = Int,
                 action_size = (),
                 reward_type = Float32,

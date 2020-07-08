@@ -8,7 +8,8 @@
             1,
             0,
             false,
-            rng
+            rng,
+            8
         )
 
         @test typeof(env.action_space) == RL.DiscreteSpace{Array{Int64,1}}
@@ -17,6 +18,7 @@
         @test env.action == 1
         @test env.reward == 0
         @test env.done == false 
+        @test env.cpnodes_max == 8
     end
 
     @testset "RLEnv from CPModel" begin
@@ -83,12 +85,9 @@
                                                           0 0 1 1 0 0
                                                           0 0 1 1 0 0]
 
-        @test env.state.featuredgraph.feature[] == [1.0 0 0 0 0 0
-                                              0 1.0 0 0 0 0
-                                              0 0 1.0 0 0 0
-                                              0 0 0 1.0 0 0
-                                              0 0 0 0 1.0 0
-                                              0 0 0 0 0 1.0]
+        @test env.state.featuredgraph.feature[] == Float32[ 1 1 0 0 0 0
+                                                            0 0 1 1 0 0
+                                                            0 0 0 0 1 1]
         
         @test env.state.variable_id == 3
 
@@ -102,12 +101,9 @@
                                                           0 0 1 1 0 0
                                                           0 0 0 1 0 0]
 
-        @test env.state.featuredgraph.feature[] == [1.0 0 0 0 0 0
-                                                    0 1.0 0 0 0 0
-                                                    0 0 1.0 0 0 0
-                                                    0 0 0 1.0 0 0
-                                                    0 0 0 0 1.0 0
-                                                    0 0 0 0 0 1.0]
+        @test env.state.featuredgraph.feature[] == Float32[ 1 1 0 0 0 0
+                                                            0 0 1 1 0 0
+                                                            0 0 0 0 1 1]
         
         @test env.state.variable_id == 4
 

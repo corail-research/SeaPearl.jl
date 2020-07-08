@@ -29,7 +29,7 @@
         # constructing an agent 
         args_foGCN = CPRL.ArgsFixedOutputGCN(
             maxDomainSize = 2,
-            numInFeatures = 6,
+            numInFeatures = 3,
             firstHiddenGCN = 20,
             secondHiddenGCN = 6,
             hiddenDense = 6
@@ -39,7 +39,7 @@
 
         agent = CPRL.DQNAgent(
             nn_model = foGCN,
-            state_size = (6, 13)
+            state_size = (6, 11)
         )
 
         # constructing a CPGraph
@@ -70,7 +70,7 @@
         # constructing an agent 
         args_foGCN = CPRL.ArgsFixedOutputGCN(
             maxDomainSize = 4,
-            numInFeatures = 11,
+            numInFeatures = 3,
             firstHiddenGCN = 20,
             secondHiddenGCN = 11, # need to be equal to numInFeatures atm 
             hiddenDense = 11
@@ -84,7 +84,7 @@
                     approximator = RL.NeuralNetworkApproximator(
                         model = Chain(
                             Flux.flatten,
-                            Dense(11*23, 20, Flux.relu),
+                            Dense(11*16, 20, Flux.relu),
                             Dense(20, 20, Flux.relu),
                             Dense(20, 4, Flux.relu)
                         ),
@@ -93,7 +93,7 @@
                     target_approximator = RL.NeuralNetworkApproximator(
                         model = Chain(
                             Flux.flatten,
-                            Dense(11*23, 20, Flux.relu),
+                            Dense(11*16, 20, Flux.relu),
                             Dense(20, 20, Flux.relu),
                             Dense(20, 4, Flux.relu)
                         ),
@@ -124,7 +124,7 @@
             trajectory = RL.CircularCompactSARTSATrajectory(
                 capacity = 1000, 
                 state_type = Float32, 
-                state_size = (11, 23, 1),
+                state_size = (11, 16, 1),
                 action_type = Int,
                 action_size = (),
                 reward_type = Float32,

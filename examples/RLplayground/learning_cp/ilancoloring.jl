@@ -22,92 +22,45 @@ coloring_params = Dict(
     "density" => 2.5
 )
 
-fixedGCNargs = CPRL.ArgsFixedOutputGCNLSTM( 
+fixedGCNargs = CPRL.ArgsFixedOutputGCN( 
     maxDomainSize= 15, 
-    numInFeatures = 21, 
+    numInFeatures = 83, 
     firstHiddenGCN = 20, 
     secondHiddenGCN = 20, 
     hiddenDense = 20 
 ) 
-numberOfCPNodes = 83
+numberOfCPNodes = 83 
 
 function CPRL.featurize(g::CPRL.CPLayerGraph)
-    features = zeros(Float32, nv(g), 21)
-    for i in 1:nv(g)
-        cp_vertex = CPRL.cpVertexFromIndex(g, i)
-        if isa(cp_vertex, CPRL.VariableVertex)
-            features[i, 1] = 1.
-            if g.cpmodel.objective == cp_vertex.variable
-                features[i, 6] = 1.
-            end
-        end
-        if isa(cp_vertex, CPRL.ConstraintVertex)
-            features[i, 2] = 1.
-            constraint = cp_vertex.constraint
-            if isa(constraint, CPRL.NotEqual)
-                features[i, 4] = 1.
-            end
-            if isa(constraint, CPRL.LessOrEqual)
-                features[i, 5] = 1.
-            end
-        end
-        if isa(cp_vertex, CPRL.ValueVertex)
-            features[i, 3] = 1.
-            value = cp_vertex.value
-            features[i, 6+value] = 1.
-        end
+    features = zeros(Float32, nv(g), nv(g))
+    for i in 1:size(features)[1]
+        features[i, i] = 1.0f0
     end
     features
-    # features = zeros(Float32, nv(g), nv(g))
-    # for i in 1:size(features)[1]
-    #     features[i, i] = 1.0f0
-    # end
-    # features
-end
-
-struct IlanReward <: CPRL.AbstractReward end
-
-function CPRL.set_backtracking_reward!(env::CPRL.RLEnv{IlanReward}, model::CPRL.CPModel, current_status::Union{Nothing, Symbol})
-    # env.reward += 5
-    nothing
-end
-
-function CPRL.set_before_next_decision_reward!(env::CPRL.RLEnv{IlanReward}, model::CPRL.CPModel)
-    env.reward -= 0
-    nothing
-end
-
-function CPRL.set_after_decision_reward!(env::CPRL.RLEnv{IlanReward}, model::CPRL.CPModel)
-    env.reward = 0
-    nothing
-end
-
-function CPRL.set_final_reward!(env::CPRL.RLEnv{IlanReward}, model::CPRL.CPModel)
-    env.reward += 30/model.statistics.numberOfNodes + 50
-    nothing
 end
  
-state_size = (numberOfCPNodes,fixedGCNargs.numInFeatures + numberOfCPNodes + 1, 1) 
+state_size = (numberOfCPNodes,fixedGCNargs.numInFeatures + numberOfCPNodes + 2, 1) 
 
 agent = RL.Agent(
         policy = RL.QBasedPolicy(
             learner = CPRL.CPDQNLearner(
                 approximator = RL.NeuralNetworkApproximator(
-                    model = CPRL.build_model(CPRL.FixedOutputGCNLSTM, fixedGCNargs),
+                    model = CPRL.build_model(CPRL.FixedOutputGCN, fixedGCNargs),
                     optimizer = ADAM(0.0005f0)
                 ),
                 target_approximator = RL.NeuralNetworkApproximator(
-                    model = CPRL.build_model(CPRL.FixedOutputGCNLSTM, fixedGCNargs),
+                    model = CPRL.build_model(CPRL.FixedOutputGCN, fixedGCNargs),
                     optimizer = ADAM(0.0005f0)
                 ),
                 loss_func = huber_loss,
                 stack_size = nothing,
                 γ = 0.999f0,
                 batch_size = 1,
-                update_horizon = 15,
+                update_horizon = 1,
                 min_replay_history = 1,
-                update_freq = 10,
-                target_update_freq = 50,
+                update_freq = 20,
+                target_update_freq = 100,
+                seed = 22,
             ), 
             # explorer = CPRL.DirectedExplorer(;
                 explorer = CPRL.CPEpsilonGreedyExplorer(
@@ -125,7 +78,7 @@ agent = RL.Agent(
             # )
         ),
         trajectory = RL.CircularCompactSARTSATrajectory(
-            capacity = 1000, 
+            capacity = 3000, 
             state_type = Float32, 
             state_size = state_size,
             action_type = Int,
@@ -225,15 +178,6 @@ function trytrain(nepisodes::Int)
             ylims = (-50,300)
             )
     display(p)
-    
-
-    p = plot(x, 
-            [(meanNodeVisited-meanNodeVisitedBasic)[1:2000]], 
-            xlabel="Episode", 
-            ylabel="Number of nodes visited", 
-            label = "Mean Delta",
-            ylims = (-50,300)
-            )
     return nodeVisitedLearned, meanNodeVisited, nodeVisitedBasic
 end
 

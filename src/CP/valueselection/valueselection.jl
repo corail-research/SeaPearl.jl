@@ -18,8 +18,9 @@ mutable struct LearnedHeuristic{R<:AbstractReward} <: ValueSelection
     fitted_problem::Union{Nothing, Symbol}
     fitted_strategy::Union{Nothing, Type{S}} where S <: SearchStrategy
     current_env::Union{Nothing, RLEnv}
+    cpnodes_max::Union{Nothing, Int64}
 
-    LearnedHeuristic{R}(agent::RL.Agent) where R = new{R}(agent, nothing, nothing, nothing)
+    LearnedHeuristic{R}(agent::RL.Agent, cpnodes_max=nothing) where R = new{R}(agent, nothing, nothing, nothing, cpnodes_max)
 end
 
 LearnedHeuristic(agent::RL.Agent) = LearnedHeuristic{DefaultReward}(agent)
@@ -49,7 +50,7 @@ the pre episode stage (basically making sure that the buffer is empty).
 """
 function (valueSelection::LearnedHeuristic{R})(::InitializingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol}) where R<:AbstractReward
     # create the environment
-    valueSelection.current_env = RLEnv{R}(model::CPModel)
+    valueSelection.current_env = RLEnv{R}(model::CPModel; cpnodes_max=valueSelection.cpnodes_max)
     false_x = first(values(model.variables))
     obs = observe!(valueSelection.current_env, model, false_x)
 
