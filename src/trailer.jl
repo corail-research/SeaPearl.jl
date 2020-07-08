@@ -26,6 +26,9 @@ mutable struct StateObject{T}
     trailer     ::Trailer
 end
 
+Base.show(io::IO, so::StateObject{T}) where {T} = write(io, "StateObject{", string(T), "}: ", string(so.value))
+
+
 """
     StateEntry{T}(value::T, object::StateObject{T})
 

@@ -25,6 +25,8 @@ mutable struct CPModel
     CPModel(trailer) = new(Dict{String, AbstractIntVar}(), Constraint[], trailer, nothing, nothing, Solution[], Statistics(0, 0), Limit(nothing, nothing), nothing)
 end
 
+CPModel() = CPModel(Trailer())
+
 const CPModification = Dict{String, Array{Int}}
 
 """
@@ -169,6 +171,19 @@ function Base.empty!(model::CPModel)
     model.statistics.numberOfSolutions = 0
     model.limit.numberOfNodes = nothing
     model.limit.numberOfSolutions = nothing
+    model.RLRep = nothing
+    model
+end
+
+function reset_model!(model::CPModel)
+    restoreInitialState!(model.trailer)
+    for (id, x) in model.variables
+        reset_domain!(x.domain)
+    end
+    model.objectiveBound = nothing
+    empty!(model.solutions)
+    model.statistics.numberOfNodes = 0
+    model.statistics.numberOfSolutions = 0
     model.RLRep = nothing
     model
 end

@@ -34,40 +34,37 @@ function launch_experiment!(
     nodevisited = zeros(Int64, (nb_episodes, nb_heuristics))
     timeneeded = zeros(Float64, (nb_episodes, nb_heuristics))
 
-    models = CPModel[]
-    for i in 1:nb_episodes
-        trailer = Trailer()
-        model = CPModel(trailer)
-        push!(models, model)
-    end
-    
+    trailer = Trailer()
+    model = CPModel(trailer)
 
     iter = ProgressBar(1:nb_episodes)
     for i in iter
     # for i in 1:nb_episodes
         verbose && print(" --- EPISODE: ", i)
 
-        # trailer = Trailer()
-        # model = CPModel(trailer)
-        map(empty!, models)
+        empty!(model)
 
-        fill_with_generator!(models, problem_params)
+        fill_with_generator!(model, problem_params["nb_nodes"], problem_params["density"])
+
 
         for j in 1:nb_heuristics
-            dt = @elapsed search!(models[j], strategy, variableHeuristic, valueSelectionArray[j])
+            reset_model!(model)
+            dt = @elapsed search!(model, strategy, variableHeuristic, valueSelectionArray[j])
             if isa(valueSelectionArray[j], LearnedHeuristic)
-                verbose && print(", Visited nodes: ", models[j].statistics.numberOfNodes)
+                verbose && print(", Visited nodes: ", model.statistics.numberOfNodes)
             else
-                verbose && print(" vs ", models[j].statistics.numberOfNodes)
+                verbose && print(" vs ", model.statistics.numberOfNodes)
             end
 
+            bestsolutions[i, j] = model.objectiveBound + 1
+            nodevisited[i, j] = model.statistics.numberOfNodes
+
             if j == 2
-                set_postfix(iter, Delta=string(models[1].statistics.numberOfNodes - models[2].statistics.numberOfNodes))
+                set_postfix(iter, Delta=string(nodevisited[i, 1] - nodevisited[i, 2]))
             end
-            bestsolutions[i, j] = models[j].objectiveBound + 1
-            nodevisited[i, j] = models[j].statistics.numberOfNodes
+
             timeneeded[i, j] = dt
-            metricsFun(;episode=i, heuristic=valueSelectionArray[j], nodeVisited=models[j].statistics.numberOfNodes, bestSolution=(models[j].objectiveBound + 1))
+            metricsFun(;episode=i, heuristic=valueSelectionArray[j], nodeVisited=model.statistics.numberOfNodes, bestSolution=(model.objectiveBound + 1))
         end
         verbose && println()
 
