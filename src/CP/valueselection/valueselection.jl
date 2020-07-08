@@ -70,7 +70,7 @@ function (valueSelection::LearnedHeuristic)(::BackTrackingPhase, model::CPModel,
     # the RL EPISODE continue
     # change reward in case of :Unfeasible status (I would like it for :FoundSolution if possible)
     # if is unnecessary but i keep it for visual issue atm 
-    set_backtracking_reward!(valueSelection.current_env, model, current_status)
+    # set_backtracking_reward!(valueSelection.current_env, model, current_status)
     # when we go back to expandDfs, env will be able to add the reward to the observation
 end
 
@@ -91,7 +91,7 @@ function (valueSelection::LearnedHeuristic)(::DecisionPhase, model::CPModel, x::
     end
     v = valueSelection.agent(RL.PRE_ACT_STAGE, obs) # choose action, store it with the state
     
-    set_after_decision_reward!(valueSelection.current_env, model)
+    # set_after_decision_reward!(valueSelection.current_env, model)
     return v
 end
 
