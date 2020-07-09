@@ -16,6 +16,7 @@ function search!(model::CPModel, ::Type{DFSearch}, variableHeuristic, valueSelec
     currentStatus = expandDfs!(toCall, model, variableHeuristic, valueSelection)
     
     while !isempty(toCall)
+        println("inside while loop")
         # Stop right away if reached a limit
         if currentStatus == :NodeLimitStop || currentStatus == :SolutionLimitStop
             break
@@ -50,6 +51,7 @@ Add procedures to `toCall`, that, called in the stack order (LIFO) with the `mod
 Some procedures will contain a call to `expandDfs!` itself.
 """
 function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::Function, valueSelection::ValueSelection, newConstraints=nothing)
+    println("inside expandDfs")
     # Dealing with limits
     model.statistics.numberOfNodes += 1
     if !belowNodeLimit(model)

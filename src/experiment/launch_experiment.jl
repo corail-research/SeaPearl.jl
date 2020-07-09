@@ -67,6 +67,8 @@ function launch_experiment!(
                 nothing
             end
 
+            println(model.constraints)
+
             timeneeded[i, j] = dt
             metricsFun(;episode=i, heuristic=valueSelectionArray[j], nodeVisited=model.statistics.numberOfNodes, bestSolution=(model.objectiveBound + 1))
         end

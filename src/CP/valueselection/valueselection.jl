@@ -71,9 +71,12 @@ function (valueSelection::LearnedHeuristic)(::RewardingPhase, model::CPModel, x:
     # change reward in case of :Unfeasible status (I would like it for :FoundSolution if possible)
     # if is unnecessary but i keep it for visual issue atm 
     # set_backtracking_reward!(valueSelection.current_env, model, current_status)
+    print(" --- ")
     set_reward!(valueSelection.current_env, model, current_status)
     set_metrics!(valueSelection.current_env, model, current_status)
+    
     # when we go back to expandDfs, env will be able to add the reward to the observation
+    nothing
 end
 
 """
