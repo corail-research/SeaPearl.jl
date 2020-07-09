@@ -100,11 +100,11 @@ function (valueSelection::LearnedHeuristic)(::DecisionPhase, model::CPModel, x::
     @assert isa(cp_vertex, ValueVertex)
 
 
-    #println("Assign value : ", v, " to variable : ", x)
+    # println("Assign value : ", cp_vertex.value, " to variable : ", x)
     return cp_vertex.value
 end
 
-function from_order_to_id(obs::AbstractArray, value_order::Int64)
+function from_order_to_id(state::AbstractArray, value_order::Int64)
     value_vector = state[:, end]
     valid_indexes = findall((x) -> x == 1, value_vector)
     return valid_indexes[value_order]
@@ -121,6 +121,9 @@ function (valueSelection::LearnedHeuristic)(::EndingPhase, model::CPModel, x::Un
     set_final_reward!(valueSelection.current_env, model)
     false_x = first(values(model.variables))
     obs = observe!(valueSelection.current_env, model, false_x)
+    if !wears_mask(valueSelection)
+        obs = (reward = obs.reward, terminal = obs.terminal, state = obs.state)
+    end
     #println("EndingPhase  ", obs.reward, " ", obs.terminal, " ", obs.legal_actions, " ", obs.legal_actions_mask)
 
     valueSelection.agent(RL.POST_ACT_STAGE, obs) # get terminal and reward
