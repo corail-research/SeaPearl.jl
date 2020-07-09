@@ -130,4 +130,4 @@ function (valueSelection::LearnedHeuristic)(::EndingPhase, model::CPModel, x::Un
     # eventually hook(POST_EPISODE_STAGE, agent, env, obs)
 end
 
-wears_mask(valueSelection::LearnedHeuristic) = wears_mask(valueSelection.agent.policy.learner.approximator)
+wears_mask(valueSelection::LearnedHeuristic) = wears_mask(valueSelection.agent.policy.learner.approximator.model)
