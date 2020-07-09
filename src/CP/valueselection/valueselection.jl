@@ -38,6 +38,8 @@ struct EndingPhase <: LearningPhase end
 (valueSelection::BasicHeuristic)(::DecisionPhase, model::Union{Nothing, CPModel}=nothing, x::Union{Nothing, AbstractIntVar}=nothing, current_status::Union{Nothing, Symbol}=nothing) = valueSelection.selectValue(x)
 (valueSelection::BasicHeuristic)(::EndingPhase, model::Union{Nothing, CPModel}=nothing, x::Union{Nothing, AbstractIntVar}=nothing, current_status::Union{Nothing, Symbol}=nothing) = nothing
 
+wears_mask(valueSelection::BasicHeuristic) = true
+
 # Implementations for a learned heuristic
 
 """
@@ -80,6 +82,11 @@ with the call of agent(PRE_ACT_STAGE).
 """
 function (valueSelection::LearnedHeuristic)(::DecisionPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
     obs = observe!(valueSelection.current_env, model, x)
+
+    if !wears_mask(valueSelection)
+        obs = (reward = obs.reward, terminal = obs.terminal, state = obs.state)
+    end
+
     #println("Decision  ", obs.reward, " ", obs.terminal, " ", obs.legal_actions, " ", obs.legal_actions_mask)
     if model.statistics.numberOfNodes > 1
         valueSelection.agent(RL.POST_ACT_STAGE, obs) # get terminal and reward
@@ -111,3 +118,5 @@ function (valueSelection::LearnedHeuristic)(::EndingPhase, model::CPModel, x::Un
     valueSelection.agent(RL.POST_EPISODE_STAGE, obs)  # let the agent see the last observation
     # eventually hook(POST_EPISODE_STAGE, agent, env, obs)
 end
+
+wears_mask(valueSelection::LearnedHeuristic) = wears_mask(valueSelection.agent.policy.learner.approximator)
