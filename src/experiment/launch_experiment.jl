@@ -37,9 +37,9 @@ function launch_experiment!(
     trailer = Trailer()
     model = CPModel(trailer)
 
-    iter = ProgressBar(1:nb_episodes)
-    for i in iter
-    # for i in 1:nb_episodes
+    #iter = ProgressBar(1:nb_episodes)
+    #for i in iter
+    for i in 1:nb_episodes
         verbose && print(" --- EPISODE: ", i)
 
         empty!(model)
@@ -63,7 +63,8 @@ function launch_experiment!(
             nodevisited[i, j] = model.statistics.numberOfNodes
 
             if j == 2
-                set_postfix(iter, Delta=string(nodevisited[i, 1] - nodevisited[i, 2]))
+                #set_postfix(iter, Delta=string(nodevisited[i, 1] - nodevisited[i, 2]))
+                nothing
             end
 
             timeneeded[i, j] = dt
