@@ -38,6 +38,18 @@ function CPRL.featurize(g::CPRL.CPLayerGraph)
     end
     features
 end
+
+struct IlanReward <: CPRL.AbstractReward end 
+ 
+function CPRL.set_before_next_decision_reward!(env::CPRL.RLEnv{IlanReward}, model::CPRL.CPModel) 
+    env.reward -= 0 
+    nothing 
+end 
+ 
+function CPRL.set_final_reward!(env::CPRL.RLEnv{IlanReward}, model::CPRL.CPModel) 
+    env.reward += 30/model.statistics.numberOfNodes + 50 
+    nothing 
+end 
  
 state_size = (numberOfCPNodes,fixedGCNargs.numInFeatures + numberOfCPNodes + 2, 1) 
 
@@ -91,7 +103,7 @@ agent = RL.Agent(
         role = :DEFAULT_PLAYER
     )
 
-learnedHeuristic = CPRL.LearnedHeuristic(agent)
+learnedHeuristic = CPRL.LearnedHeuristic{IlanReward}(agent)
 
 basicHeuristic = CPRL.BasicHeuristic((x) -> CPRL.minimum(x.domain))
 
