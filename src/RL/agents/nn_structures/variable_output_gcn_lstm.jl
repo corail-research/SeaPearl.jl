@@ -44,7 +44,7 @@ function build_model(::Type{VariableOutputGCNLSTM}, args::ArgsVariableOutputGCNL
         denseLayer = Flux.Dense(args.secondHiddenGCN, args.hiddenDense, Flux.relu),
         LSTMLayer = Flux.LSTM(args.hiddenDense, args.lstmSize),
         lastLayer = Flux.Dense(args.lstmSize, args.lastLayer),
-        outputLayer = Flux.Dense(args.secondHiddenGCN+args.lastLayer, 1)
+        outputLayer = Flux.Dense(args.secondHiddenGCN+args.lastLayer, 1),
         numInFeatures = args.numInFeatures
     )
 end
