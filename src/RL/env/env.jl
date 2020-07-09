@@ -1,12 +1,11 @@
 """
     SearchMetrics
-"""
-    abstract type AbstractReward end
 
 One of the roles of the env is to manage the reward which is going to be given. In the simplest schema, it is
 just a simple reward which is given as a field of RLEnv. To make things more complete and flexible to the user, 
-we add a SearchMetrics which will help design interesting rewards. 
+we add a SearchMetrics which will help design interesting rewards.
 """
+
 mutable struct SearchMetrics
     total::Int64
     last_backtrack::Union{Nothing, Int64}
@@ -14,6 +13,13 @@ mutable struct SearchMetrics
     last_foundsolution::Union{Nothing, Int64}
     current_best::Union{Nothing, Int64}
     true_best::Union{Nothing, Int64}
+end
+
+SearchMetrics() = SearchMetrics(1, 0, 0, 0, nothing, nothing)
+
+"""
+    abstract type AbstractReward end
+
 Used to customize the reward function. If you want to use your own reward, you have to create a struct
 (called `CustomReward` for example) and define the following methods:
 - set_backtracking_reward!(env::RLEnv{CustomReward}, model::CPModel, current_status::Union{Nothing, Symbol})
@@ -21,13 +27,10 @@ Used to customize the reward function. If you want to use your own reward, you h
 - set_after_decision_reward!(env::RLEnv{CustomReward}, model::CPModel)
 - set_final_reward!(env::RLEnv{CustomReward}, symbol::Symbol)
 
-end
-
-SearchMetrics() = SearchMetrics(1, 0, 0, 0, nothing, nothing)  
-
 Then, when creating the `LearnedHeuristic`, you define it using `LearnedHeuristic{CustomReward}(agent::RL.Agent)`
 and your functions will be called instead of the default ones.
-"""
+"""  
+
 abstract type AbstractReward end
 
 """
@@ -119,27 +122,6 @@ function set_metrics!(search_metrics::SearchMetrics, model::CPModel, symbol::Uni
         search_metrics.current_best = model.objectiveBound + 1
     end
 
-    nothing
-end
-
-"""
-    set_reward!(env::RLEnv, model::CPModel, symbol::Union{Nothing, Symbol})
-
-Change the "reward" attribute of the env. This is compulsory as used in the buffer
-for the training.
-"""
-function set_reward!(env::RLEnv, model::CPModel, symbol::Union{Nothing, Symbol})
-    nothing
-end
-
-"""
-    set_final_reward!(env::RLEnv, symbol::Symbol)
-
-Change the "reward" attribute of the env. This is compulsory as used in the buffer
-for the training.
-"""
-function set_final_reward!(env::RLEnv, model::CPModel, symbol::Union{Nothing, Symbol})
-    env.reward += 30/(model.statistics.numberOfNodes)
     nothing
 end
 
