@@ -62,7 +62,7 @@ function (valueSelection::LearnedHeuristic{R})(::InitializingPhase, model::CPMod
 end
 
 """
-    (valueSelection::LearnedHeuristic)(::BackTrackingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
+    (valueSelection::LearnedHeuristic)(::RewardingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
 
 Set reward in case if needed.
 """
