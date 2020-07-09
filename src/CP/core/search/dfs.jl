@@ -80,13 +80,13 @@ function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
 
     println("Value : ", v, " assigned to : ", x.id)
 
-    push!(toCall, (model) -> (restoreState!(model.trailer); :Feasible))
+    push!(toCall, (model) -> (restoreState!(model.trailer); :BackTracking))
     push!(toCall, (model) -> (remove!(x.domain, v); expandDfs!(toCall, model, variableHeuristic, valueSelection, getOnDomainChange(x))))
-    push!(toCall, (model) -> (saveState!(model.trailer); :Feasible))
+    push!(toCall, (model) -> (saveState!(model.trailer); :SavingState))
 
-    push!(toCall, (model) -> (restoreState!(model.trailer); :Feasible))
+    push!(toCall, (model) -> (restoreState!(model.trailer); :BackTracking))
     push!(toCall, (model) -> (assign!(x, v); expandDfs!(toCall, model, variableHeuristic, valueSelection, getOnDomainChange(x))))
-    push!(toCall, (model) -> (saveState!(model.trailer); :Feasible))
+    push!(toCall, (model) -> (saveState!(model.trailer); :SavingState))
 
     return :Feasible
 end
