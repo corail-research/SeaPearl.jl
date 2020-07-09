@@ -26,6 +26,7 @@ Base.@kwdef struct VariableOutputGCNLSTM <: NNStructure
     secondGCNHiddenLayer    ::GeometricFlux.GCNConv
     denseLayer              ::Flux.Dense
     LSTMLayer               ::Flux.Recur{Flux.LSTMCell{Array{Float32,2},Array{Float32,1}}}
+    lastLayer::Flux.Dense
     outputLayer             ::Flux.Dense
     numInFeatures::Int
 end
