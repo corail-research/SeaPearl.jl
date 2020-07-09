@@ -9,7 +9,7 @@ end
 """
 
 function CPRL.featurize(g::CPRL.CPLayerGraph)
-    features = zeros(Float32, nv(g), 21)
+    features = zeros(Float32, nv(g), 16)
     for i in 1:nv(g)
         cp_vertex = CPRL.cpVertexFromIndex(g, i)
         if isa(cp_vertex, CPRL.VariableVertex)

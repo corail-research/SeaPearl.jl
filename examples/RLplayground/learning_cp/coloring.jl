@@ -16,11 +16,11 @@ problem_generator = Dict(
 )
 
 coloring_params = Dict(
-    "nb_nodes" => 15,
-    "density" => 1.6
+    "nb_nodes" => 10,
+    "density" => 1.4
 )
 
-numInFeatures = 21
+numInFeatures = 16
 numberOfCPNodes = 1 + floor(Int64, coloring_params["nb_nodes"] * ( 3 + coloring_params["density"] ))
 #numberOfCPNodes = 141
 
@@ -38,7 +38,7 @@ agent = RL.Agent(
                         nodeChain = Flux.Chain(
                             Flux.Dense(20, 20),
                         ),
-                        outputLayer = Flux.Dense(20, 15)
+                        outputLayer = Flux.Dense(20, 10)
                     ),
                     optimizer = ADAM(0.0005f0)
                 ),
@@ -51,7 +51,7 @@ agent = RL.Agent(
                         nodeChain = Flux.Chain(
                             Flux.Dense(20, 20),
                         ),
-                        outputLayer = Flux.Dense(20, 15)
+                        outputLayer = Flux.Dense(20, 10)
                     ),
                     optimizer = ADAM(0.0005f0)
                 ),
@@ -91,7 +91,7 @@ agent = RL.Agent(
         role = :DEFAULT_PLAYER
     )
 
-learnedHeuristic = CPRL.LearnedHeuristic(agent)
+learnedHeuristic = CPRL.LearnedHeuristic{InspectReward}(agent)
 
 selectMin(x::CPRL.IntVar) = CPRL.minimum(x.domain)
 selectMax(x::CPRL.IntVar) = CPRL.maximum(x.domain)
