@@ -1,6 +1,8 @@
 
-function CPRL.set_reward!(env::CPRL.RLEnv, model::CPRL.CPModel, symbol::Union{Nothing, Symbol})
-    if !isnothing(env.search_metrics.current_best) && env.search_metrics.current_best == 3
+struct InspectReward <: CPRL.AbstractReward end 
+
+function CPRL.set_reward!(env::CPRL.RLEnv{InspectReward}, model::CPRL.CPModel, symbol::Union{Nothing, Symbol})
+    #= if !isnothing(env.search_metrics.current_best) && env.search_metrics.current_best == 3
         env.reward = 0
     else
         env.reward += -1
@@ -19,12 +21,18 @@ function CPRL.set_reward!(env::CPRL.RLEnv, model::CPRL.CPModel, symbol::Union{No
                 env.reward += + 50 * (20)/ (1 + env.search_metrics.last_foundsolution)
             end
         end
-    end
+    end =#
+    println("Rewarding phase : ", symbol, env.search_metrics)
     nothing
 end
 
+function CPRL.set_before_next_decision_reward!(env::CPRL.RLEnv{InspectReward}, model::CPRL.CPModel) 
+    #env.reward -= 0
+    println("Decision phase : ", env.search_metrics)
+    nothing 
+end
 
-function CPRL.set_final_reward!(env::CPRL.RLEnv, model::CPRL.CPModel, symbol::Union{Nothing, Symbol})
+function CPRL.set_final_reward!(env::CPRL.RLEnv{InspectReward}, model::CPRL.CPModel, symbol::Union{Nothing, Symbol})
     #env.reward = - 10 * model.statistics.numberOfNodes
     #env.reward += - 30/(model.statistics.numberOfNodes)
     #env.reward = + env.search_metrics.total
