@@ -54,7 +54,6 @@ function launch_experiment!(
 
             if isa(valueSelectionArray[j], LearnedHeuristic)
                 verbose && print(", Visited nodes: ", model.statistics.numberOfNodes)
-                verbose && print(", Decisions: ", valueSelectionArray[j].current_env.search_metrics.total)
             else
                 verbose && print(" vs ", model.statistics.numberOfNodes)
             end
