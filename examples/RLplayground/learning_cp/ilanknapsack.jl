@@ -19,7 +19,8 @@ knapsack_params = Dict(
     "correlation" => 1
 )
 
-numberOfFeatures = 20
+
+numberOfFeatures = 10
 
 function CPRL.featurize(g::CPRL.CPLayerGraph) 
     features = zeros(Float32, nv(g), numberOfFeatures) 
@@ -73,8 +74,8 @@ fixedGCNargs = CPRL.ArgsFixedOutputGCN(
     hiddenDense = 20 
 ) 
 
-numberOfCPNodes = 100# We don't know that value
-state_size = (numberOfCPNodes,fixedGCNargs.numInFeatures + numberOfCPNodes + 1, 1) 
+maxNumberOfCPnodes = 200
+state_size = (maxNumberOfCPnodes,fixedGCNargs.numInFeatures + maxNumberOfCPnodes + 2, 1) 
 
 agent = RL.Agent(
         policy = RL.QBasedPolicy(
@@ -126,7 +127,7 @@ agent = RL.Agent(
         role = :DEFAULT_PLAYER
     )
 
-learnedHeuristic = CPRL.LearnedHeuristic(agent)
+learnedHeuristic = CPRL.LearnedHeuristic(agent, maxNumberOfCPnodes)
 
 basicHeuristic = CPRL.BasicHeuristic((x) -> CPRL.maximum(x.domain))
 
