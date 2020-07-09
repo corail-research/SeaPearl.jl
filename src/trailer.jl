@@ -40,10 +40,6 @@ struct StateEntry{T} <: AbstractStateEntry
     object      ::StateObject{T}
 end
 
-function Base.show(io::IO, so::StateObject{T}) where T
-    write(io, "StateEntry{", string(T), "}: ", so.value)
-end
-
 
 """
     trail!(var::StateObject{T})
