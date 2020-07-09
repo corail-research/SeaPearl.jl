@@ -118,7 +118,7 @@ function set_metrics!(search_metrics::SearchMetrics, model::CPModel, symbol::Uni
 
     search_metrics.last_backtrack = min(search_metrics.last_foundsolution, search_metrics.last_unfeasible)
     
-    if !isempty(model.solutions)
+    if !isnothing(model.objectiveBound)
         search_metrics.current_best = model.objectiveBound + 1
     end
 
