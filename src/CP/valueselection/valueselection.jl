@@ -92,11 +92,22 @@ function (valueSelection::LearnedHeuristic)(::DecisionPhase, model::CPModel, x::
         valueSelection.agent(RL.POST_ACT_STAGE, obs) # get terminal and reward
         # eventually: hook(POST_ACT_STAGE, agent, env, obs, action)
     end
-    v = valueSelection.agent(RL.PRE_ACT_STAGE, obs) # choose action, store it with the state
-    # eventually hook(PRE_ACT_STAGE, agent, env, obs, action)
+    value_order = valueSelection.agent(RL.PRE_ACT_STAGE, obs) # choose action, store it with the state
+    
+    value_id = from_order_to_id(obs.state, value_order)
+    cp_vertex = cpVertexFromIndex(model.RLRep, value_id)
+
+    @assert isa(cp_vertex, ValueVertex)
+
 
     #println("Assign value : ", v, " to variable : ", x)
-    return v
+    return cp_vertex.value
+end
+
+function from_order_to_id(obs::AbstractArray, value_order::Int64)
+    value_vector = state[:, end]
+    valid_indexes = findall((x) -> x == 1, value_vector)
+    return valid_indexes[value_order]
 end
 
 """
