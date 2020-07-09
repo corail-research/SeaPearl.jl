@@ -14,9 +14,9 @@ problem_generator = Dict(
 )
 
 knapsack_params = Dict(
-    "nb_items" => 5,
+    "nb_items" => 10,
     "max_weight" => 10,
-    "correlation" => 1
+    "correlation" => 0.2
 )
 
 
@@ -66,26 +66,28 @@ function CPRL.featurize(g::CPRL.CPLayerGraph)
 end 
 
 
-fixedGCNargs = CPRL.ArgsFixedOutputGCN( 
-    maxDomainSize= 15, 
-    numInFeatures = numberOfFeatures, 
-    firstHiddenGCN = 20, 
-    secondHiddenGCN = 20, 
-    hiddenDense = 20 
+fixedGCNargs = CPRL.ArgsVariableOutputGCNLSTM( 
+    lastLayer = 20,
+    numInFeatures = numberOfFeatures,
+    firstHiddenGCN = 20,
+    secondHiddenGCN = 20,
+    hiddenDense = 20,
+    lstmSize = 20
 ) 
 
-maxNumberOfCPnodes = 200
-state_size = (maxNumberOfCPnodes,fixedGCNargs.numInFeatures + maxNumberOfCPnodes + 2, 1) 
+maxNumberOfCPnodes = 300
+state_size = (maxNumberOfCPnodes,fixedGCNargs.numInFeatures + maxNumberOfCPnodes + 3, 1) 
+println("state_size", state_size)
 
 agent = RL.Agent(
         policy = RL.QBasedPolicy(
             learner = CPRL.CPDQNLearner(
                 approximator = RL.NeuralNetworkApproximator(
-                    model = CPRL.build_model(CPRL.FixedOutputGCN, fixedGCNargs),
+                    model = CPRL.build_model(CPRL.VariableOutputGCNLSTM, fixedGCNargs),
                     optimizer = ADAM(0.0005f0)
                 ),
                 target_approximator = RL.NeuralNetworkApproximator(
-                    model = CPRL.build_model(CPRL.FixedOutputGCN, fixedGCNargs),
+                    model = CPRL.build_model(CPRL.VariableOutputGCNLSTM, fixedGCNargs),
                     optimizer = ADAM(0.0005f0)
                 ),
                 loss_func = huber_loss,
