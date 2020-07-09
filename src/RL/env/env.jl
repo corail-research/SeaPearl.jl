@@ -1,21 +1,4 @@
-"""
-    SearchMetrics
-
-One of the roles of the env is to manage the reward which is going to be given. In the simplest schema, it is
-just a simple reward which is given as a field of RLEnv. To make things more complete and flexible to the user, 
-we add a SearchMetrics which will help design interesting rewards.
-"""
-
-mutable struct SearchMetrics
-    total::Int64
-    last_backtrack::Union{Nothing, Int64}
-    last_unfeasible::Union{Nothing, Int64}
-    last_foundsolution::Union{Nothing, Int64}
-    current_best::Union{Nothing, Int64}
-    true_best::Union{Nothing, Int64}
-end
-
-SearchMetrics() = SearchMetrics(1, 0, 0, 0, nothing, nothing)
+include("searchmetrics.jl")
 
 """
     abstract type AbstractReward end
@@ -100,30 +83,12 @@ function set_done!(env::RLEnv, done::Bool)
     nothing
 end
 
+"""
+    set_metrics!(env::RLEnv, model::CPModel, symbol::Union{Nothing, Symbol}) 
+
+Call set_metrics!(::SearchMetrics, ...) on env.search_metrics to simplify synthax.
+"""
 set_metrics!(env::RLEnv, model::CPModel, symbol::Union{Nothing, Symbol}) = set_metrics!(env.search_metrics, model, symbol)
-
-function set_metrics!(search_metrics::SearchMetrics, model::CPModel, symbol::Union{Nothing, Symbol})
-    search_metrics.total += 1
-
-    if symbol == :Infeasible
-        search_metrics.last_unfeasible = 1
-        search_metrics.last_foundsolution += 1
-    elseif symbol == :FoundSolution
-        search_metrics.last_foundsolution = 1
-        search_metrics.last_unfeasible += 1
-    else
-        search_metrics.last_unfeasible += 1
-        search_metrics.last_foundsolution += 1
-    end
-
-    search_metrics.last_backtrack = min(search_metrics.last_foundsolution, search_metrics.last_unfeasible)
-    
-    if !isnothing(model.objectiveBound)
-        search_metrics.current_best = model.objectiveBound + 1
-    end
-
-    nothing
-end
 
 """
     sync!(env::RLEnv, cpmodel::CPModel, x::AbstractIntVar)
