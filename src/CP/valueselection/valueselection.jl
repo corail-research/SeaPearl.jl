@@ -6,6 +6,10 @@ mutable struct BasicHeuristic <: ValueSelection
     selectValue::Function
 end
 
+abstract type ActionOutput end
+struct VariableOutput <: ActionOutput end
+struct FixedOutput <: ActionOutput end
+
 """
     BasicHeuristic()
     
@@ -13,17 +17,17 @@ Create the default `BasicHeuristic` that selects the maximum value of the domain
 """
 BasicHeuristic() = BasicHeuristic(x -> maximum(x.domain))
 
-mutable struct LearnedHeuristic{R<:AbstractReward} <: ValueSelection
+mutable struct LearnedHeuristic{R<:AbstractReward, A<:ActionOutput} <: ValueSelection
     agent::RL.Agent
     fitted_problem::Union{Nothing, Symbol}
     fitted_strategy::Union{Nothing, Type{S}} where S <: SearchStrategy
     current_env::Union{Nothing, RLEnv}
     cpnodes_max::Union{Nothing, Int64}
 
-    LearnedHeuristic{R}(agent::RL.Agent, cpnodes_max=nothing) where R = new{R}(agent, nothing, nothing, nothing, cpnodes_max)
+    LearnedHeuristic{R, A}(agent::RL.Agent, cpnodes_max=nothing) where {R, A}= new{R, A}(agent, nothing, nothing, nothing, cpnodes_max)
 end
 
-LearnedHeuristic(agent::RL.Agent) = LearnedHeuristic{DefaultReward}(agent)
+LearnedHeuristic(agent::RL.Agent) = LearnedHeuristic{DefaultReward, FixedOutput}(agent)
 
 Flux.testmode!(lh::LearnedHeuristic, mode = true) = Flux.testmode!(lh.agent, mode)
 
@@ -96,16 +100,11 @@ function (valueSelection::LearnedHeuristic)(::DecisionPhase, model::CPModel, x::
         valueSelection.agent(RL.POST_ACT_STAGE, obs) # get terminal and reward
         # eventually: hook(POST_ACT_STAGE, agent, env, obs, action)
     end
-    value_order = valueSelection.agent(RL.PRE_ACT_STAGE, obs) # choose action, store it with the state
+    action = valueSelection.agent(RL.PRE_ACT_STAGE, obs) # choose action, store it with the state
     
-    value_id = from_order_to_id(obs.state, value_order)
-    cp_vertex = cpVertexFromIndex(model.RLRep, value_id)
-
-    @assert isa(cp_vertex, ValueVertex)
-
-
+    return action_to_value(valueSelection, action, obs.state, model)
     # println("Assign value : ", cp_vertex.value, " to variable : ", x)
-    return cp_vertex.value
+    
     # set_after_decision_reward!(valueSelection.current_env, model)
 end
 
@@ -113,6 +112,18 @@ function from_order_to_id(state::AbstractArray, value_order::Int64)
     value_vector = state[:, end]
     valid_indexes = findall((x) -> x == 1, value_vector)
     return valid_indexes[value_order]
+end
+
+function action_to_value(vs::LearnedHeuristic{R, VariableOutput}, action::Int64, state::AbstractArray, model::CPModel) where R <: AbstractReward
+    value_id = from_order_to_id(state, action)
+    cp_vertex = cpVertexFromIndex(model.RLRep, value_id)
+    @assert isa(cp_vertex, ValueVertex)
+    return cp_vertex.value
+end
+
+function action_to_value(vs::LearnedHeuristic{R, FixedOutput}, action::Int64, state::AbstractArray, model::CPModel) where R <: AbstractReward
+    #TODO: Do a proper mapping here, using an offset for example
+    return action
 end
 
 """

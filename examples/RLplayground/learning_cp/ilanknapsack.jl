@@ -142,7 +142,7 @@ function CPRL.set_final_reward!(env::CPRL.RLEnv{IlanReward}, model::CPRL.CPModel
     nothing  
 end  
 
-learnedHeuristic = CPRL.LearnedHeuristic{IlanReward}(agent, maxNumberOfCPnodes)
+learnedHeuristic = CPRL.LearnedHeuristic{IlanReward, CPRL.VariableOutput}(agent, maxNumberOfCPnodes)
 
 basicHeuristic = CPRL.BasicHeuristic((x) -> CPRL.maximum(x.domain))
 
