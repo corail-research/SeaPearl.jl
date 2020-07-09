@@ -14,7 +14,7 @@ problem_generator = Dict(
 )
 
 knapsack_params = Dict(
-    "nb_items" => 10,
+    "nb_items" => 12,
     "max_weight" => 10,
     "correlation" => 0.2
 )
@@ -94,7 +94,7 @@ agent = RL.Agent(
                 stack_size = nothing,
                 γ = 0.999f0,
                 batch_size = 1,
-                update_horizon = 1,
+                update_horizon = 15,
                 min_replay_history = 1,
                 update_freq = 50,
                 target_update_freq = 200,
@@ -102,8 +102,8 @@ agent = RL.Agent(
             ), 
             # explorer = CPRL.DirectedExplorer(;
                 explorer = CPRL.CPEpsilonGreedyExplorer(
-                    ϵ_stable = 0.001,
-                    kind = :exp,
+                    ϵ_stable = 0.01,
+                    kind = :linear,
                     ϵ_init = 1.0,
                     warmup_steps = 0,
                     decay_steps = 1000,
@@ -129,7 +129,20 @@ agent = RL.Agent(
         role = :DEFAULT_PLAYER
     )
 
-learnedHeuristic = CPRL.LearnedHeuristic(agent, maxNumberOfCPnodes)
+
+struct IlanReward <: CPRL.AbstractReward end  
+
+function CPRL.set_before_next_decision_reward!(env::CPRL.RLEnv{IlanReward}, model::CPRL.CPModel)  
+    env.reward -= 1/40
+    nothing  
+end  
+    
+function CPRL.set_final_reward!(env::CPRL.RLEnv{IlanReward}, model::CPRL.CPModel)  
+    env.reward += 100/model.statistics.numberOfNodes + 10 
+    nothing  
+end  
+
+learnedHeuristic = CPRL.LearnedHeuristic{IlanReward}(agent, maxNumberOfCPnodes)
 
 basicHeuristic = CPRL.BasicHeuristic((x) -> CPRL.maximum(x.domain))
 
