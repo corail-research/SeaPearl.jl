@@ -22,13 +22,13 @@ function CPRL.set_reward!(env::CPRL.RLEnv{InspectReward}, model::CPRL.CPModel, s
             end
         end
     end =#
-    println("Rewarding phase : ", symbol, env.search_metrics)
+    println("Rewarding phase : ", symbol, "  ", env.search_metrics, "  ", model.statistics.numberOfNodes)
     nothing
 end
 
 function CPRL.set_before_next_decision_reward!(env::CPRL.RLEnv{InspectReward}, model::CPRL.CPModel) 
     #env.reward -= 0
-    println("Decision phase : ", env.search_metrics)
+    println("Decision phase : ", "  ", env.search_metrics, "  ", model.statistics.numberOfNodes)
     nothing 
 end
 
