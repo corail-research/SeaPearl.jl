@@ -45,7 +45,7 @@ using DataStructures
         push!(model.constraints, CPRL.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
-        @test CPRL.expandDfs!(toCall, model, (model) -> nothing, CPRL.BasicHeuristic()) == :Feasible
+        @test CPRL.expandDfs!(toCall, model, (model) -> nothing, CPRL.BasicHeuristic()) == :FoundSolution
         @test isempty(toCall)
 
 
@@ -66,7 +66,7 @@ using DataStructures
         @test pop!(toCall)(model) == :Feasible
         @test length(model.trailer.prior) == 1 # saveState!()
 
-        @test pop!(toCall)(model) == :Feasible
+        @test pop!(toCall)(model) == :FoundSolution
         @test length(model.solutions) == 1 # Found a solution
 
         @test pop!(toCall)(model) == :Feasible
@@ -75,7 +75,7 @@ using DataStructures
         @test pop!(toCall)(model) == :Feasible
         @test length(model.trailer.prior) == 1 # saveState!()
 
-        @test pop!(toCall)(model) == :Feasible
+        @test pop!(toCall)(model) == :FoundSolution
         @test length(model.solutions) == 2 # Found another solution
 
         @test pop!(toCall)(model) == :Feasible
