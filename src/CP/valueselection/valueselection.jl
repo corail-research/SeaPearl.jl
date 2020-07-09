@@ -13,15 +13,17 @@ Create the default `BasicHeuristic` that selects the maximum value of the domain
 """
 BasicHeuristic() = BasicHeuristic(x -> maximum(x.domain))
 
-mutable struct LearnedHeuristic <: ValueSelection
+mutable struct LearnedHeuristic{R<:AbstractReward} <: ValueSelection
     agent::RL.Agent
     fitted_problem::Union{Nothing, Symbol}
     fitted_strategy::Union{Nothing, Type{S}} where S <: SearchStrategy
     current_env::Union{Nothing, RLEnv}
     cpnodes_max::Union{Nothing, Int64}
 
-    LearnedHeuristic(agent::RL.Agent, cpnodes_max=nothing) = new(agent, nothing, nothing, nothing, cpnodes_max)
+    LearnedHeuristic{R}(agent::RL.Agent, cpnodes_max=nothing) where R = new{R}(agent, nothing, nothing, nothing, cpnodes_max)
 end
+
+LearnedHeuristic(agent::RL.Agent) = LearnedHeuristic{DefaultReward}(agent)
 
 Flux.testmode!(lh::LearnedHeuristic, mode = true) = Flux.testmode!(lh.agent, mode)
 
@@ -46,9 +48,9 @@ struct EndingPhase <: LearningPhase end
 Create an RL environment and a first observation. Finally make the agent call the process of 
 the pre episode stage (basically making sure that the buffer is empty).
 """
-function (valueSelection::LearnedHeuristic)(::InitializingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
+function (valueSelection::LearnedHeuristic{R})(::InitializingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol}) where R<:AbstractReward
     # create the environment
-    valueSelection.current_env = RLEnv(model::CPModel; cpnodes_max=valueSelection.cpnodes_max)
+    valueSelection.current_env = RLEnv{R}(model::CPModel; cpnodes_max=valueSelection.cpnodes_max)
     false_x = first(values(model.variables))
     obs = observe!(valueSelection.current_env, model, false_x)
 
@@ -67,6 +69,8 @@ Set reward in case if needed.
 function (valueSelection::LearnedHeuristic)(::RewardingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
     # the RL EPISODE continue
     # change reward in case of :Unfeasible status (I would like it for :FoundSolution if possible)
+    # if is unnecessary but i keep it for visual issue atm 
+    # set_backtracking_reward!(valueSelection.current_env, model, current_status)
     set_reward!(valueSelection.current_env, model, current_status)
     set_metrics!(valueSelection.current_env, model, current_status)
     # when we go back to expandDfs, env will be able to add the reward to the observation
@@ -79,6 +83,8 @@ Observe, store useful informations in the buffer with agent(POST_ACT_STAGE, ...)
 with the call of agent(PRE_ACT_STAGE).
 """
 function (valueSelection::LearnedHeuristic)(::DecisionPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
+    set_before_next_decision_reward!(valueSelection.current_env, model)
+
     obs = observe!(valueSelection.current_env, model, x)
     #println("Decision  ", obs.reward, " ", obs.terminal, " ", obs.legal_actions, " ", obs.legal_actions_mask)
     if model.statistics.numberOfNodes > 1
@@ -86,9 +92,8 @@ function (valueSelection::LearnedHeuristic)(::DecisionPhase, model::CPModel, x::
         # eventually: hook(POST_ACT_STAGE, agent, env, obs, action)
     end
     v = valueSelection.agent(RL.PRE_ACT_STAGE, obs) # choose action, store it with the state
-    # eventually hook(PRE_ACT_STAGE, agent, env, obs, action)
-
-    #println("Assign value : ", v, " to variable : ", x)
+    
+    # set_after_decision_reward!(valueSelection.current_env, model)
     return v
 end
 
