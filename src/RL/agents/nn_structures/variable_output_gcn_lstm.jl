@@ -104,9 +104,12 @@ function (nn::VariableOutputGCNLSTM)(x::AbstractArray{Float32,2})
 
     # println("After first dense layer :  ", variableFeatures)
     variableFeatures = nn.lastLayer(variableFeatures)
+    # println("size(variableFeatures)", size(variableFeatures))
     # println("After output layer :  ", valueProbabilities)
 
     # output a vector (of values of the possibles values)
     # println("size(Flux.softmax(valueProbabilities))", size(Flux.softmax(valueProbabilities)))
-    return [nn.outputLayer(vcat(valf, variableFeatures)) for valf in [variableFeatures[:, i] for i in 1:size(variableFeatures, 2)]]
+    toReturn = [nn.outputLayer(vcat(valf, variableFeatures))[1] for valf in [valueFeatures[:, i] for i in 1:size(valueFeatures, 2)]]
+    # println("toReturn", toReturn)
+    return toReturn
 end
