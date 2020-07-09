@@ -56,11 +56,12 @@ function set_metrics!(search_metrics::SearchMetrics, model::CPModel, symbol::Uni
     elseif symbol == :FoundSolution
         search_metrics.last_foundsolution = 1
         search_metrics.last_feasible = 1
+        search_metrics.tree_depth -= 1
         search_metrics.nb_solutions += 1
     elseif symbol == :Feasible
         search_metrics.total_decisions += 1
         search_metrics.last_feasible = 1
-    elseif symbol == :BackTrack
+    elseif symbol == :BackTracking
         search_metrics.total_states -= 1
         search_metrics.last_backtrack = 1
         search_metrics.backtrack_length += 1
