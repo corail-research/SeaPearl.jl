@@ -197,7 +197,7 @@ Helps providing insights about what is happening during a search.
 function domains_cartesian_product(model::CPModel)
     cart_pdt = 1
     for (id, x) in model.variables
-        cart_pdt *= x.domain.size
+        cart_pdt *= length(x.domain)
     end
     return cart_pdt
 end
