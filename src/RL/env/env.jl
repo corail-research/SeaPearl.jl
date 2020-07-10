@@ -62,7 +62,8 @@ function RLEnv{R}(cpmodel::CPModel, seed = nothing; cpnodes_max=nothing) where (
         false,  
         rng,
         cpnodes_max,
-        SearchMetrics())
+        SearchMetrics(cpmodel)
+        )
     
     env
 end

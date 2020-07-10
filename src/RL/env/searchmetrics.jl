@@ -30,12 +30,25 @@ mutable struct SearchMetrics
     last_feasible::Int64
     backtrack_length::Int64
     tree_depth::Int64
+    total_boundvariables::Int64
+    domains_product::Int64
     nb_solutions::Int64
     current_best::Union{Nothing, Int64}
     true_best::Union{Nothing, Int64}
 end
 
-SearchMetrics() = SearchMetrics(0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, nothing, nothing)
+SearchMetrics() = SearchMetrics(0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, nothing, nothing)
+
+"""
+    SearchMetrics(model::CPModel)
+
+Create a SearchMetrics instance initialized thanks to a CPModel.
+"""
+function SearchMetrics(model::CPModel)
+    total_boundvariables = nb_boundvariables(model)
+    domains_product = domains_cartesian_product(model)
+    SearchMetrics(0, 1, 0, 0, 0, 0, 0, 0, 0, 0, total_boundvariables, domains_product, 0, nothing, nothing)
+end
 
 """
     set_metrics!(search_metrics::SearchMetrics, model::CPModel, symbol::Union{Nothing, Symbol})
@@ -80,6 +93,10 @@ function set_metrics!(search_metrics::SearchMetrics, model::CPModel, symbol::Uni
     if !isnothing(model.objectiveBound)
         search_metrics.current_best = model.objectiveBound + 1
     end
+
+    search_metrics.total_boundvariables = nb_boundvariables(model)
+    # couldn't it be improved with CPModification ? 
+    search_metrics.domains_product = domains_cartesian_product(model)
 
     nothing
 end
