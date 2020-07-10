@@ -69,7 +69,6 @@ function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
     if solutionFound(model)
         triggerFoundSolution!(model)
         return :FoundSolution
-        #return :Feasible
     end
 
     # Variable selection
