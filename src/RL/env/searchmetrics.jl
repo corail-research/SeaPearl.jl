@@ -23,6 +23,7 @@ mutable struct SearchMetrics
     total_steps::Int64
     total_states::Int64
     total_decisions::Int64
+    total_backtrack::Int64
     last_backtrack::Int64
     last_unfeasible::Int64
     last_foundsolution::Int64
@@ -34,7 +35,7 @@ mutable struct SearchMetrics
     true_best::Union{Nothing, Int64}
 end
 
-SearchMetrics() = SearchMetrics(0, 1, 0, 0, 0, 0, 0, 0, 0, 0, nothing, nothing)
+SearchMetrics() = SearchMetrics(0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, nothing, nothing)
 
 """
     set_metrics!(search_metrics::SearchMetrics, model::CPModel, symbol::Union{Nothing, Symbol})
@@ -49,25 +50,31 @@ function set_metrics!(search_metrics::SearchMetrics, model::CPModel, symbol::Uni
     search_metrics.last_unfeasible += 1
     search_metrics.last_foundsolution += 1
     search_metrics.last_feasible += 1
-    search_metrics.tree_depth += 1
 
     if symbol == :Infeasible
         search_metrics.last_unfeasible = 1
+        search_metrics.backtrack_length = 0
+        search_metrics.tree_depth += 1
     elseif symbol == :FoundSolution
+        search_metrics.total_steps -= 1
+        search_metrics.total_states -= 1
+        search_metrics.last_backtrack -= 1
+        search_metrics.last_unfeasible -= 1
         search_metrics.last_foundsolution = 1
         search_metrics.last_feasible = 1
-        search_metrics.tree_depth -= 1
+        search_metrics.backtrack_length = 0
         search_metrics.nb_solutions += 1
     elseif symbol == :Feasible
-        search_metrics.total_decisions += 1
+        search_metrics.total_decisions += 1 # that's cheating - change it 
         search_metrics.last_feasible = 1
+        search_metrics.backtrack_length = 0
+        search_metrics.tree_depth += 1
     elseif symbol == :BackTracking
         search_metrics.total_states -= 1
+        search_metrics.total_backtrack += 1
         search_metrics.last_backtrack = 1
         search_metrics.backtrack_length += 1
-        search_metrics.tree_depth -= 2
-    else
-        search_metrics.backtrack_length = 0
+        search_metrics.tree_depth -= 1
     end
     
     if !isnothing(model.objectiveBound)
