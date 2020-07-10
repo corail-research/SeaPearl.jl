@@ -31,14 +31,17 @@ mutable struct SearchMetrics
     backtrack_length::Int64
     #tree_depth::Int64
     variable_domain_size::Union{Nothing, Int64}
+    new_variable_domain_size::Union{Nothing, Int64}
     total_boundvariables::Int64
+    new_total_boundvariables::Union{Nothing, Int64}
     domains_product::Int64
+    new_domains_product::Union{Nothing, Int64}
     nb_solutions::Int64
     current_best::Union{Nothing, Int64}
     true_best::Union{Nothing, Int64}
 end
 
-SearchMetrics() = SearchMetrics(0, 1, 0, 0, 0, 0, 0, 0, 0, nothing, 0, 0, 0, nothing, nothing)
+SearchMetrics() = SearchMetrics(0, 1, 0, 0, 0, 0, 0, 0, 0, nothing, nothing, 0, nothing, 0, nothing, 0, nothing, nothing)
 
 """
     SearchMetrics(model::CPModel)
@@ -48,16 +51,16 @@ Create a SearchMetrics instance initialized thanks to a CPModel.
 function SearchMetrics(model::CPModel)
     total_boundvariables = nb_boundvariables(model)
     domains_product = domains_cartesian_product(model)
-    SearchMetrics(0, 1, 0, 0, 0, 0, 0, 0, 0, nothing, total_boundvariables, domains_product, 0, nothing, nothing)
+    SearchMetrics(0, 1, 0, 0, 0, 0, 0, 0, 0, nothing, nothing, total_boundvariables, nothing, domains_product, nothing, 0, nothing, nothing)
 end
 
 """
-    set_metrics!(search_metrics::SearchMetrics, model::CPModel, symbol::Union{Nothing, Symbol})
+    set_metrics!(::StepPhase, search_metrics::SearchMetrics, model::CPModel, symbol::Union{Nothing, Symbol})
 
 Set the search metrics thanks to informations from the CPModel and the current status. 
 Can be useful for insights or for reward engineering.
 """
-function set_metrics!(search_metrics::SearchMetrics, model::CPModel, symbol::Union{Nothing, Symbol})
+function set_metrics!(::StepPhase, search_metrics::SearchMetrics, model::CPModel, symbol::Union{Nothing, Symbol})
     search_metrics.total_steps += 1
     search_metrics.total_states += 1
     search_metrics.last_backtrack += 1
@@ -78,8 +81,7 @@ function set_metrics!(search_metrics::SearchMetrics, model::CPModel, symbol::Uni
         search_metrics.last_feasible = 1
         search_metrics.backtrack_length = 0
         search_metrics.nb_solutions += 1
-    elseif symbol == :Feasible
-        search_metrics.total_decisions += 1 # that's cheating - change it 
+    elseif symbol == :Feasible 
         search_metrics.last_feasible = 1
         search_metrics.backtrack_length = 0
         #search_metrics.tree_depth += 1
@@ -100,4 +102,21 @@ function set_metrics!(search_metrics::SearchMetrics, model::CPModel, symbol::Uni
     search_metrics.domains_product = domains_cartesian_product(model)
 
     nothing
+end
+
+
+"""
+    set_metrics!(search_metrics::SearchMetrics, model::CPModel, symbol::Union{Nothing, Symbol})
+
+Set the search metrics thanks to informations from the CPModel and the current status. 
+Can be useful for insights or for reward engineering.
+"""
+function set_metrics!(::DecisionPhase, search_metrics::SearchMetrics, model::CPModel, x::Union{Nothing, AbstractIntVar})
+    search_metrics.total_decisions += 1
+    search_metrics.domains_product = search_metrics.new_domains_product
+    search_metrics.new_domains_product = domains_cartesian_product(model)
+    search_metrics.total_boundvariables = search_metrics.new_total_boundvariables
+    search_metrics.new_total_boundvariables = nb_boundvariables(model)
+    search_metrics.variable_domain_size = search_metrics.new_variable_domain_size
+    search_metrics.new_variable_domain_size = length(x.domain)
 end
