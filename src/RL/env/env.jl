@@ -89,9 +89,9 @@ end
 
 Call set_metrics!(::SearchMetrics, ...) on env.search_metrics to simplify synthax.
 """
-set_metrics!(::StepPhase, env::RLEnv, model::CPModel, symbol::Union{Nothing, Symbol}) = set_metrics!(::StepPhase, env.search_metrics, model, symbol)
-
-set_metrics!(::DecisionPhase, env::RLEnv, model::CPModel, symbol::Union{Nothing, Symbol}) = set_metrics!(::DecisionPhase, env.search_metrics, model, symbol)
+function set_metrics!(PHASE::T, env::RLEnv, model::CPModel, symbol::Union{Nothing, Symbol}, x::Union{Nothing, AbstractIntVar}) where T <: LearningPhase
+    set_metrics!(PHASE, env.search_metrics, model, symbol, x::Union{Nothing, AbstractIntVar})
+end
 
 """
     sync!(env::RLEnv, cpmodel::CPModel, x::AbstractIntVar)
