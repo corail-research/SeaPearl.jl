@@ -23,7 +23,7 @@ function search!(model::CPModel, ::Type{DFSearch}, variableHeuristic, valueSelec
 
         if currentStatus != :SavingState
             # set reward and metrics
-            valueSelection(RewardingPhase(), model, nothing, currentStatus)
+            valueSelection(StepPhase(), model, nothing, currentStatus)
         end
 
         currentProcedure = pop!(toCall)
