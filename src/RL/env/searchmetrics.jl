@@ -30,6 +30,7 @@ mutable struct SearchMetrics
     last_feasible::Int64
     backtrack_length::Int64
     tree_depth::Int64
+    variable_domain_size::Union{Nothing, Int64}
     total_boundvariables::Int64
     domains_product::Int64
     nb_solutions::Int64
@@ -37,7 +38,7 @@ mutable struct SearchMetrics
     true_best::Union{Nothing, Int64}
 end
 
-SearchMetrics() = SearchMetrics(0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, nothing, nothing)
+SearchMetrics() = SearchMetrics(0, 1, 0, 0, 0, 0, 0, 0, 0, 0, nothing, 0, 0, 0, nothing, nothing)
 
 """
     SearchMetrics(model::CPModel)
@@ -47,7 +48,7 @@ Create a SearchMetrics instance initialized thanks to a CPModel.
 function SearchMetrics(model::CPModel)
     total_boundvariables = nb_boundvariables(model)
     domains_product = domains_cartesian_product(model)
-    SearchMetrics(0, 1, 0, 0, 0, 0, 0, 0, 0, 0, total_boundvariables, domains_product, 0, nothing, nothing)
+    SearchMetrics(0, 1, 0, 0, 0, 0, 0, 0, 0, 0, nothing, total_boundvariables, domains_product, 0, nothing, nothing)
 end
 
 """
