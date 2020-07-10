@@ -29,7 +29,7 @@ mutable struct SearchMetrics
     last_foundsolution::Int64
     last_feasible::Int64
     backtrack_length::Int64
-    tree_depth::Int64
+    #tree_depth::Int64
     variable_domain_size::Union{Nothing, Int64}
     total_boundvariables::Int64
     domains_product::Int64
@@ -38,7 +38,7 @@ mutable struct SearchMetrics
     true_best::Union{Nothing, Int64}
 end
 
-SearchMetrics() = SearchMetrics(0, 1, 0, 0, 0, 0, 0, 0, 0, 0, nothing, 0, 0, 0, nothing, nothing)
+SearchMetrics() = SearchMetrics(0, 1, 0, 0, 0, 0, 0, 0, 0, nothing, 0, 0, 0, nothing, nothing)
 
 """
     SearchMetrics(model::CPModel)
@@ -48,7 +48,7 @@ Create a SearchMetrics instance initialized thanks to a CPModel.
 function SearchMetrics(model::CPModel)
     total_boundvariables = nb_boundvariables(model)
     domains_product = domains_cartesian_product(model)
-    SearchMetrics(0, 1, 0, 0, 0, 0, 0, 0, 0, 0, nothing, total_boundvariables, domains_product, 0, nothing, nothing)
+    SearchMetrics(0, 1, 0, 0, 0, 0, 0, 0, 0, nothing, total_boundvariables, domains_product, 0, nothing, nothing)
 end
 
 """
@@ -68,7 +68,7 @@ function set_metrics!(search_metrics::SearchMetrics, model::CPModel, symbol::Uni
     if symbol == :Infeasible
         search_metrics.last_unfeasible = 1
         search_metrics.backtrack_length = 0
-        search_metrics.tree_depth += 1
+        #search_metrics.tree_depth += 1
     elseif symbol == :FoundSolution
         search_metrics.total_steps -= 1
         search_metrics.total_states -= 1
@@ -82,13 +82,13 @@ function set_metrics!(search_metrics::SearchMetrics, model::CPModel, symbol::Uni
         search_metrics.total_decisions += 1 # that's cheating - change it 
         search_metrics.last_feasible = 1
         search_metrics.backtrack_length = 0
-        search_metrics.tree_depth += 1
+        #search_metrics.tree_depth += 1
     elseif symbol == :BackTracking
         search_metrics.total_states -= 1
         search_metrics.total_backtrack += 1
         search_metrics.last_backtrack = 1
         search_metrics.backtrack_length += 1
-        search_metrics.tree_depth -= 1
+        #search_metrics.tree_depth -= 1
     end
     
     if !isnothing(model.objectiveBound)
