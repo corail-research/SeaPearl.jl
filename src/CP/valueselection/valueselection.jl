@@ -1,3 +1,11 @@
+
+abstract type LearningPhase end
+
+struct InitializingPhase <: LearningPhase end
+struct StepPhase <: LearningPhase end 
+struct DecisionPhase <: LearningPhase end 
+struct EndingPhase <: LearningPhase end
+
 include("../../RL/RL.jl")
 
 abstract type ValueSelection end
@@ -25,14 +33,7 @@ end
 
 LearnedHeuristic(agent::RL.Agent) = LearnedHeuristic{DefaultReward}(agent)
 
-Flux.testmode!(lh::LearnedHeuristic, mode = true) = Flux.testmode!(lh.agent, mode)
-
-abstract type LearningPhase end
-
-struct InitializingPhase <: LearningPhase end
-struct StepPhase <: LearningPhase end 
-struct DecisionPhase <: LearningPhase end 
-struct EndingPhase <: LearningPhase end 
+Flux.testmode!(lh::LearnedHeuristic, mode = true) = Flux.testmode!(lh.agent, mode) 
 
 # Implementations for a basic heuristic 
 (valueSelection::BasicHeuristic)(::InitializingPhase, model::Union{Nothing, CPModel}=nothing, x::Union{Nothing, AbstractIntVar}=nothing, current_status::Union{Nothing, Symbol}=nothing) = nothing
@@ -66,12 +67,12 @@ end
 
 Set reward in case if needed.
 """
-function (valueSelection::LearnedHeuristic)(::StepPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
+function (valueSelection::LearnedHeuristic)(PHASE::StepPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
     # the RL EPISODE continue
     # set_backtracking_reward!(valueSelection.current_env, model, current_status)
     set_reward!(valueSelection.current_env, model, current_status)
     # incremental metrics, set after reward is updated
-    set_metrics!(StepPhase(), valueSelection.current_env, model, current_status)
+    set_metrics!(PHASE, valueSelection.current_env, model, current_status, nothing)
     
     # when we go back to expandDfs, env will be able to add the reward to the observation
     nothing
@@ -83,9 +84,9 @@ end
 Observe, store useful informations in the buffer with agent(POST_ACT_STAGE, ...) and take a decision
 with the call of agent(PRE_ACT_STAGE).
 """
-function (valueSelection::LearnedHeuristic)(::DecisionPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
+function (valueSelection::LearnedHeuristic)(PHASE::DecisionPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
     # domain change metrics, set before reward is updated
-    set_metrics!(DecisionPhase(), valueSelection.current_env, model, x)
+    set_metrics!(PHASE, valueSelection.current_env, model, nothing, x)
     set_before_next_decision_reward!(valueSelection.current_env, model)
 
     obs = observe!(valueSelection.current_env, model, x)
