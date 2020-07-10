@@ -32,9 +32,9 @@ mutable struct SearchMetrics
     #tree_depth::Int64
     variable_domain_size::Union{Nothing, Int64}
     new_variable_domain_size::Union{Nothing, Int64}
-    total_boundvariables::Int64
+    total_boundvariables::Union{Nothing, Int64}
     new_total_boundvariables::Union{Nothing, Int64}
-    domains_product::Int64
+    domains_product::Union{Nothing, Int64}
     new_domains_product::Union{Nothing, Int64}
     nb_solutions::Int64
     current_best::Union{Nothing, Int64}
@@ -60,7 +60,7 @@ end
 Set the search metrics thanks to informations from the CPModel and the current status. 
 Can be useful for insights or for reward engineering.
 """
-function set_metrics!(::StepPhase, search_metrics::SearchMetrics, model::CPModel, symbol::Union{Nothing, Symbol})
+function set_metrics!(::StepPhase, search_metrics::SearchMetrics, model::CPModel, symbol::Union{Nothing, Symbol}, x::Union{Nothing, AbstractIntVar})
     search_metrics.total_steps += 1
     search_metrics.total_states += 1
     search_metrics.last_backtrack += 1
@@ -111,7 +111,7 @@ end
 Set the search metrics thanks to informations from the CPModel and the current status. 
 Can be useful for insights or for reward engineering.
 """
-function set_metrics!(::DecisionPhase, search_metrics::SearchMetrics, model::CPModel, x::Union{Nothing, AbstractIntVar})
+function set_metrics!(::DecisionPhase, search_metrics::SearchMetrics, model::CPModel, symbol::Union{Nothing, Symbol}, x::Union{Nothing, AbstractIntVar})
     search_metrics.total_decisions += 1
     search_metrics.domains_product = search_metrics.new_domains_product
     search_metrics.new_domains_product = domains_cartesian_product(model)
