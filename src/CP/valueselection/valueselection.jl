@@ -65,10 +65,12 @@ end
 """
     (valueSelection::LearnedHeuristic)(::StepPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
 
-Set reward in case if needed.
+The step phase is the phase between every procedure call. It is the best place to get stats about the search tree, that's why 
+we put a set_metrics! function here. As those metrics could be used to design a reward, we also put a set_reward! function. 
+ATM, the metrics are updated after the reward assignment as the current_status given totally decribes the changes that are to be made. 
+Another possibility would be to have old and new metrics in memory. 
 """
 function (valueSelection::LearnedHeuristic)(PHASE::StepPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
-    # the RL EPISODE continue
     # set_backtracking_reward!(valueSelection.current_env, model, current_status)
     set_reward!(valueSelection.current_env, model, current_status)
     # incremental metrics, set after reward is updated
@@ -83,6 +85,8 @@ end
 
 Observe, store useful informations in the buffer with agent(POST_ACT_STAGE, ...) and take a decision
 with the call of agent(PRE_ACT_STAGE).
+The metrics that aren't updated in the StepPhase, which are more related to variables domains, are updated here. Once updated, they can 
+be used in the other set_reward! function as the reward of the last action will only be collected in the RL.POST_ACT_STAGE.
 """
 function (valueSelection::LearnedHeuristic)(PHASE::DecisionPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
     # domain change metrics, set before reward is updated
