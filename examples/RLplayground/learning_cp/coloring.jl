@@ -130,7 +130,7 @@ bestsolutions, nodevisited, timeneeded = CPRL.train!(
     nb_episodes=400,
     strategy=CPRL.DFSearch,
     variableHeuristic=selectRandVariable,
-    verbose = true
+    verbose = false
 )
 
 # plot 
@@ -151,7 +151,7 @@ bestsolutions, nodevisited, timeneeded = CPRL.benchmark_solving(
     nb_episodes=5,
     strategy=CPRL.DFSearch,
     variableHeuristic=selectRandVariable,
-    verbose = true
+    verbose = false
 )
 
 # plot 
