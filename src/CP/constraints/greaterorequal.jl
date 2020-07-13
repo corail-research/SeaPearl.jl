@@ -1,11 +1,9 @@
-abstract type GreaterOrEqualConstraint <: Constraint end
-
 """
     GreaterOrEqualConstant(x::CPRL.AbstractIntVar, v::Int)
 
 Inequality constraint, `x >= v`
 """
-struct GreaterOrEqualConstant <: GreaterOrEqualConstraint
+struct GreaterOrEqualConstant <: OnePropagationConstraint
     x       ::AbstractIntVar
     v       ::Int
     active  ::StateObject{Bool}
