@@ -77,7 +77,7 @@ function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
     # Value selection
     v = valueSelection(DecisionPhase(), model, x, nothing)
 
-    println("Value : ", v, " assigned to : ", x.id)
+    #println("Value : ", v, " assigned to : ", x.id)
 
     push!(toCall, (model) -> (restoreState!(model.trailer); :BackTracking))
     push!(toCall, (model) -> (remove!(x.domain, v); expandDfs!(toCall, model, variableHeuristic, valueSelection, getOnDomainChange(x))))

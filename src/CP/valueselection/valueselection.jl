@@ -71,12 +71,9 @@ ATM, the metrics are updated after the reward assignment as the current_status g
 Another possibility would be to have old and new metrics in memory. 
 """
 function (valueSelection::LearnedHeuristic)(PHASE::StepPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
-    # set_backtracking_reward!(valueSelection.current_env, model, current_status)
-    set_reward!(valueSelection.current_env, model, current_status)
+    set_reward!(PHASE, valueSelection.current_env, model, current_status)
     # incremental metrics, set after reward is updated
     set_metrics!(PHASE, valueSelection.current_env, model, current_status, nothing)
-    
-    # when we go back to expandDfs, env will be able to add the reward to the observation
     nothing
 end
 
@@ -91,7 +88,7 @@ be used in the other set_reward! function as the reward of the last action will 
 function (valueSelection::LearnedHeuristic)(PHASE::DecisionPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
     # domain change metrics, set before reward is updated
     set_metrics!(PHASE, valueSelection.current_env, model, nothing, x)
-    set_before_next_decision_reward!(valueSelection.current_env, model)
+    set_reward!(PHASE, valueSelection.current_env, model)
 
     obs = observe!(valueSelection.current_env, model, x)
     #println("Decision  ", obs.reward, " ", obs.terminal, " ", obs.legal_actions, " ", obs.legal_actions_mask)
@@ -110,10 +107,10 @@ end
 
 Set the final reward, do last observation.
 """
-function (valueSelection::LearnedHeuristic)(::EndingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
+function (valueSelection::LearnedHeuristic)(PHASE::EndingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
     # the RL EPISODE stops
     set_done!(valueSelection.current_env, true)
-    set_final_reward!(valueSelection.current_env, model, current_status)
+    set_reward!(PHASE, valueSelection.current_env, model, current_status)
     false_x = first(values(model.variables))
     obs = observe!(valueSelection.current_env, model, false_x)
     #println("EndingPhase  ", obs.reward, " ", obs.terminal, " ", obs.legal_actions, " ", obs.legal_actions_mask)

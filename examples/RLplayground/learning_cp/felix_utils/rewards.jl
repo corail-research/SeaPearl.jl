@@ -1,7 +1,7 @@
 
 struct InspectReward <: CPRL.AbstractReward end 
 
-function CPRL.set_reward!(env::CPRL.RLEnv{InspectReward}, model::CPRL.CPModel, symbol::Union{Nothing, Symbol})
+function CPRL.set_reward!(::CPRL.StepPhase, env::CPRL.RLEnv{InspectReward}, model::CPRL.CPModel, symbol::Union{Nothing, Symbol})
     #= if !isnothing(env.search_metrics.current_best) && env.search_metrics.current_best == 3
         env.reward = 0
     else
@@ -26,13 +26,13 @@ function CPRL.set_reward!(env::CPRL.RLEnv{InspectReward}, model::CPRL.CPModel, s
     nothing
 end
 
-function CPRL.set_before_next_decision_reward!(env::CPRL.RLEnv{InspectReward}, model::CPRL.CPModel) 
+function CPRL.set_reward!(::CPRL.DecisionPhase, env::CPRL.RLEnv{InspectReward}, model::CPRL.CPModel) 
     #env.reward -= 0
     println("Decision phase : ", "  ", env.search_metrics, "  ", model.statistics.numberOfNodes)
     nothing 
 end
 
-function CPRL.set_final_reward!(env::CPRL.RLEnv{InspectReward}, model::CPRL.CPModel, symbol::Union{Nothing, Symbol})
+function CPRL.set_reward!(::CPRL.EndingPhase, env::CPRL.RLEnv{InspectReward}, model::CPRL.CPModel, symbol::Union{Nothing, Symbol})
     #env.reward = - 10 * model.statistics.numberOfNodes
     #env.reward += - 30/(model.statistics.numberOfNodes)
     #env.reward = + env.search_metrics.total
