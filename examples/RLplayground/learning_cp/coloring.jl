@@ -24,7 +24,7 @@ numInFeatures = 16
 numberOfCPNodes = 1 + floor(Int64, coloring_params["nb_nodes"] * ( 3 + coloring_params["density"] ))
 #numberOfCPNodes = 141
 
-state_size = (numberOfCPNodes, numInFeatures + numberOfCPNodes + 2, 1)
+state_size = (numberOfCPNodes, numInFeatures + numberOfCPNodes + 2 + 1, 1)
 
 agent = RL.Agent(
         policy = RL.QBasedPolicy(
@@ -91,7 +91,7 @@ agent = RL.Agent(
         role = :DEFAULT_PLAYER
     )
 
-learnedHeuristic = CPRL.LearnedHeuristic{InspectReward}(agent)
+learnedHeuristic = CPRL.LearnedHeuristic{InspectReward, CPRL.FixedOutput}(agent)
 
 selectMin(x::CPRL.IntVar) = CPRL.minimum(x.domain)
 selectMax(x::CPRL.IntVar) = CPRL.maximum(x.domain)
