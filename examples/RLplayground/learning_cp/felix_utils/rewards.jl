@@ -2,10 +2,11 @@
 struct InspectReward <: CPRL.AbstractReward end 
 
 function CPRL.set_reward!(::CPRL.StepPhase, env::CPRL.RLEnv{InspectReward}, model::CPRL.CPModel, symbol::Union{Nothing, Symbol})
-    #= if !isnothing(env.search_metrics.current_best) && env.search_metrics.current_best == 3
+    if !isnothing(env.search_metrics.current_best) && env.search_metrics.current_best == 3
         env.reward = 0
     else
-        env.reward += -1
+        env.reward += 0
+        #= 
         if symbol == :Infeasible
             if isempty(model.solutions)
                 env.reward += - 5 * (15) * env.search_metrics.last_unfeasible
@@ -20,16 +21,21 @@ function CPRL.set_reward!(::CPRL.StepPhase, env::CPRL.RLEnv{InspectReward}, mode
             else
                 env.reward += + 50 * (20)/ (1 + env.search_metrics.last_foundsolution)
             end
-        end
-    end =#
-    println("Rewarding phase : ", symbol, "  ", env.search_metrics, "  ", model.statistics.numberOfNodes)
+        end =#
+    end
+    #println("Rewarding phase : ", symbol, "  ", env.search_metrics, "  ", model.statistics.numberOfNodes)
     nothing
 end
 
 function CPRL.set_reward!(::CPRL.DecisionPhase, env::CPRL.RLEnv{InspectReward}, model::CPRL.CPModel) 
-    #env.reward -= 0
-    println("Decision phase : ", "  ", env.search_metrics, "  ", model.statistics.numberOfNodes)
-    nothing 
+    if !isnothing(env.search_metrics.current_best) && env.search_metrics.current_best == 3
+        env.reward = 0
+    else
+        env.reward += -1
+    end
+    #env.reward += -1
+    #println("Decision phase : ", "  ", env.search_metrics, "  ", model.statistics.numberOfNodes)
+    nothing
 end
 
 function CPRL.set_reward!(::CPRL.EndingPhase, env::CPRL.RLEnv{InspectReward}, model::CPRL.CPModel, symbol::Union{Nothing, Symbol})
