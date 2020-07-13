@@ -1,11 +1,9 @@
-abstract type LessOrEqualConstraint <: Constraint end
-
 """
     LessOrEqualConstant(x::CPRL.AbstractIntVar, v::Int)
 
 Inequality constraint, `x <= v`
 """
-struct LessOrEqualConstant <: LessOrEqualConstraint
+struct LessOrEqualConstant <: OnePropagationConstraint
     x       ::AbstractIntVar
     v       ::Int
     active  ::StateObject{Bool}
@@ -33,8 +31,10 @@ function propagate!(constraint::LessOrEqualConstant, toPropagate::Set{Constraint
     end
     return !isempty(constraint.x.domain)
 end
+variablesArray(constraint::LessOrEqualConstant) = [constraint.x]
 
-struct LessOrEqual <: LessOrEqualConstraint
+
+struct LessOrEqual <: Constraint
     x       ::AbstractIntVar
     y       ::AbstractIntVar
     active  ::StateObject{Bool}

@@ -14,6 +14,10 @@ mutable struct BasicHeuristic <: ValueSelection
     selectValue::Function
 end
 
+abstract type ActionOutput end
+struct VariableOutput <: ActionOutput end
+struct FixedOutput <: ActionOutput end
+
 """
     BasicHeuristic()
     
@@ -21,17 +25,17 @@ Create the default `BasicHeuristic` that selects the maximum value of the domain
 """
 BasicHeuristic() = BasicHeuristic(x -> maximum(x.domain))
 
-mutable struct LearnedHeuristic{R<:AbstractReward} <: ValueSelection
+mutable struct LearnedHeuristic{R<:AbstractReward, A<:ActionOutput} <: ValueSelection
     agent::RL.Agent
     fitted_problem::Union{Nothing, Symbol}
     fitted_strategy::Union{Nothing, Type{S}} where S <: SearchStrategy
     current_env::Union{Nothing, RLEnv}
     cpnodes_max::Union{Nothing, Int64}
 
-    LearnedHeuristic{R}(agent::RL.Agent, cpnodes_max=nothing) where R = new{R}(agent, nothing, nothing, nothing, cpnodes_max)
+    LearnedHeuristic{R, A}(agent::RL.Agent, cpnodes_max=nothing) where {R, A}= new{R, A}(agent, nothing, nothing, nothing, cpnodes_max)
 end
 
-LearnedHeuristic(agent::RL.Agent) = LearnedHeuristic{DefaultReward}(agent)
+LearnedHeuristic(agent::RL.Agent) = LearnedHeuristic{DefaultReward, FixedOutput}(agent)
 
 Flux.testmode!(lh::LearnedHeuristic, mode = true) = Flux.testmode!(lh.agent, mode) 
 
@@ -40,6 +44,8 @@ Flux.testmode!(lh::LearnedHeuristic, mode = true) = Flux.testmode!(lh.agent, mod
 (valueSelection::BasicHeuristic)(::StepPhase, model::Union{Nothing, CPModel}=nothing, x::Union{Nothing, AbstractIntVar}=nothing, current_status::Union{Nothing, Symbol}=nothing) = nothing
 (valueSelection::BasicHeuristic)(::DecisionPhase, model::Union{Nothing, CPModel}=nothing, x::Union{Nothing, AbstractIntVar}=nothing, current_status::Union{Nothing, Symbol}=nothing) = valueSelection.selectValue(x)
 (valueSelection::BasicHeuristic)(::EndingPhase, model::Union{Nothing, CPModel}=nothing, x::Union{Nothing, AbstractIntVar}=nothing, current_status::Union{Nothing, Symbol}=nothing) = nothing
+
+wears_mask(valueSelection::BasicHeuristic) = true
 
 # Implementations for a learned heuristic
 
@@ -91,15 +97,40 @@ function (valueSelection::LearnedHeuristic)(PHASE::DecisionPhase, model::CPModel
     set_reward!(PHASE, valueSelection.current_env, model)
 
     obs = observe!(valueSelection.current_env, model, x)
+
+    if !wears_mask(valueSelection)
+        obs = (reward = obs.reward, terminal = obs.terminal, state = obs.state)
+    end
+
     #println("Decision  ", obs.reward, " ", obs.terminal, " ", obs.legal_actions, " ", obs.legal_actions_mask)
     if model.statistics.numberOfNodes > 1
         valueSelection.agent(RL.POST_ACT_STAGE, obs) # get terminal and reward
         # eventually: hook(POST_ACT_STAGE, agent, env, obs, action)
     end
-    v = valueSelection.agent(RL.PRE_ACT_STAGE, obs) # choose action, store it with the state
+    action = valueSelection.agent(RL.PRE_ACT_STAGE, obs) # choose action, store it with the state
+    
+    return action_to_value(valueSelection, action, obs.state, model)
+    # println("Assign value : ", cp_vertex.value, " to variable : ", x)
     
     # set_after_decision_reward!(valueSelection.current_env, model)
-    return v
+end
+
+function from_order_to_id(state::AbstractArray, value_order::Int64)
+    value_vector = state[:, end]
+    valid_indexes = findall((x) -> x == 1, value_vector)
+    return valid_indexes[value_order]
+end
+
+function action_to_value(vs::LearnedHeuristic{R, VariableOutput}, action::Int64, state::AbstractArray, model::CPModel) where R <: AbstractReward
+    value_id = from_order_to_id(state, action)
+    cp_vertex = cpVertexFromIndex(model.RLRep, value_id)
+    @assert isa(cp_vertex, ValueVertex)
+    return cp_vertex.value
+end
+
+function action_to_value(vs::LearnedHeuristic{R, FixedOutput}, action::Int64, state::AbstractArray, model::CPModel) where R <: AbstractReward
+    #TODO: Do a proper mapping here, using an offset for example
+    return action
 end
 
 """
@@ -113,6 +144,9 @@ function (valueSelection::LearnedHeuristic)(PHASE::EndingPhase, model::CPModel, 
     set_reward!(PHASE, valueSelection.current_env, model, current_status)
     false_x = first(values(model.variables))
     obs = observe!(valueSelection.current_env, model, false_x)
+    if !wears_mask(valueSelection)
+        obs = (reward = obs.reward, terminal = obs.terminal, state = obs.state)
+    end
     #println("EndingPhase  ", obs.reward, " ", obs.terminal, " ", obs.legal_actions, " ", obs.legal_actions_mask)
 
     valueSelection.agent(RL.POST_ACT_STAGE, obs) # get terminal and reward
@@ -121,3 +155,5 @@ function (valueSelection::LearnedHeuristic)(PHASE::EndingPhase, model::CPModel, 
     valueSelection.agent(RL.POST_EPISODE_STAGE, obs)  # let the agent see the last observation
     # eventually hook(POST_EPISODE_STAGE, agent, env, obs)
 end
+
+wears_mask(valueSelection::LearnedHeuristic) = wears_mask(valueSelection.agent.policy.learner.approximator.model)

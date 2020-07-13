@@ -44,7 +44,7 @@ function launch_experiment!(
 
         empty!(model)
 
-        fill_with_generator!(model, problem_params["nb_nodes"], problem_params["density"])
+        fill_with_generator!(model, problem_params)
 
 
         for j in 1:nb_heuristics

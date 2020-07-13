@@ -55,3 +55,10 @@ function assignedValue(x::AbstractIntVar)
 
     return minimum(x.domain)
 end
+
+"""
+    rootVariable(x::IntVar)
+
+Return the "true" variable behind `x`. For a `IntVar`, it simply returns `x`.
+"""
+rootVariable(x::IntVar) = x
