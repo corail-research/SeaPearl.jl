@@ -33,7 +33,7 @@ Launch the solving process of the solver.
 function MOI.optimize!(model::Optimizer)
     fill_cpmodel!(model)
 
-    println(model.cpmodel)
+    # println(model.cpmodel.objective)
 
 
     status = CPRL.solve!(model.cpmodel; variableHeuristic=model.variableselection.heuristic)

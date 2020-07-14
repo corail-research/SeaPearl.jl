@@ -7,9 +7,16 @@ function fill_cpmodel!(optimizer::Optimizer)
 
     # Adding constraints
     bridge_constraints!(optimizer)
+
+    # Adding objective
+    bridge_objective!(optimizer)
     
 
     optimizer
+end
+
+function bridge_objective!(optimizer::Optimizer)
+    optimizer.cpmodel.objective = get_cp_variable(optimizer, optimizer.moimodel.objective_identifier)
 end
 
 function get_cp_variable(optimizer::Optimizer, index::MOI.VariableIndex)

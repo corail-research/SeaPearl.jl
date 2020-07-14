@@ -24,7 +24,7 @@ mutable struct MOIModel
     variables::Array{MOIVariable}
     constraints::Array{MOIConstraint}
     affines::Array{MOIAffineFunction}
-    objective_identifier::Union{Nothing, String}
+    objective_identifier::Union{Nothing, AffineIndex, MOI.VariableIndex}
     MOIModel() = new(MOIVariable[], MOIConstraint[], MOIAffineFunction[], nothing)
 end
 
