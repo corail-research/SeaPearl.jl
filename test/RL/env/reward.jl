@@ -12,7 +12,7 @@ end
 
 @testset "reward.jl" begin
     @testset "Default reward" begin
-        @testset "set_before_next_decision_reward!()" begin
+        @testset "set_reward!(DecisionPhase)" begin
             trailer = CPRL.Trailer()
             model = CPRL.CPModel(trailer)
 
