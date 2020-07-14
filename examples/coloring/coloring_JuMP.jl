@@ -99,7 +99,6 @@ function solve_coloring_JuMP(input_file; benchmark=false)
 
     @variable(model, 1 <= x[1:input.numberOfVertices] <= input.numberOfVertices)
 
-    @constraint(model, 2*x[1] + x[2] == 4)
 
     degrees = zeros(Int, input.numberOfVertices)
     for e in input.edges
@@ -108,6 +107,12 @@ function solve_coloring_JuMP(input_file; benchmark=false)
         degrees[e.vertex1] += 1
         degrees[e.vertex2] += 1
     end
+
+    @variable(model, 1 <= y <= input.numberOfVertices)
+    for i in 1:input.numberOfVertices
+        @constraint(model, x[i] <= y)
+    end
+    @objective(model, Min, y)
 
     sortedPermutation = sortperm(degrees; rev=true)
 
@@ -125,5 +130,6 @@ function solve_coloring_JuMP(input_file; benchmark=false)
     println(status)
     println(has_values(model))
     println(value.(x))
+    println(value(y))
 
 end

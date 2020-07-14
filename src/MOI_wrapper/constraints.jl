@@ -36,6 +36,35 @@ function MOI.add_constraint(model::Optimizer, sgvar::MOI.SingleVariable, set::MO
     return MOI.ConstraintIndex{MOI.SingleVariable, MOI.LessThan{Float64}}(1)
 end
 
+function MOI.add_constraint(model::Optimizer, saf::MOI.ScalarAffineFunction{Float64}, set::MOI.LessThan{Float64})
+    @assert length(saf.terms) == 2 "Inequalities between variables must be of the form `x <= y`"
+    @assert saf.terms[1].coefficient == 1. "Inequalities between variables must be of the form `x <= y`"
+    @assert saf.terms[2].coefficient == -1. "Inequalities between variables must be of the form `x <= y`"
+    @assert saf.constant == 0. "Inequalities between variables must be of the form `x <= y`"
+    
+    saf.constant -= set.upper
+    moiaff = MOIAffineFunction(nothing, saf)
+    push!(model.moimodel.affines, moiaff)
+
+    newId = length(model.moimodel.constraints) + 1
+    ci = MOI.ConstraintIndex{MOI.ScalarAffineFunction{Float64}, MOI.LessThan{Float64}}(newId)
+    constraint = MOIConstraint(MOI.LessThan, (saf.terms[1].variable_index, saf.terms[2].variable_index), ci)
+    push!(model.moimodel.constraints, constraint)
+
+    return ci
+end
+
+function create_CPConstraint(moiconstraint::MOIConstraint{MOI.LessThan}, optimizer::Optimizer)
+    if !isa(moiconstraint.ci, MOI.ConstraintIndex{MOI.ScalarAffineFunction{Float64}, MOI.LessThan{Float64}})
+        return nothing
+    end
+    x = get_cp_variable(optimizer, moiconstraint.args[1])
+    y = get_cp_variable(optimizer, moiconstraint.args[2])
+    
+    
+    LessOrEqual(x, y, optimizer.cpmodel.trailer)
+end
+
 """
     MOI.add_constraint(model::Optimizer, sgvar::MOI.SingleVariable, set::MOI.GreaterThan)
 

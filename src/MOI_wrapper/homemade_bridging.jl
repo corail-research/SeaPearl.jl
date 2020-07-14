@@ -16,7 +16,9 @@ function fill_cpmodel!(optimizer::Optimizer)
 end
 
 function bridge_objective!(optimizer::Optimizer)
-    optimizer.cpmodel.objective = get_cp_variable(optimizer, optimizer.moimodel.objective_identifier)
+    if !isnothing(optimizer.moimodel.objective_identifier)
+        optimizer.cpmodel.objective = get_cp_variable(optimizer, optimizer.moimodel.objective_identifier)
+    end
 end
 
 function get_cp_variable(optimizer::Optimizer, index::MOI.VariableIndex)

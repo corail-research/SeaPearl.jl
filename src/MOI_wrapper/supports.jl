@@ -24,7 +24,7 @@ end
 function MOI.supports_constraint(
     ::Optimizer, ::Type{MOI.ScalarAffineFunction{Float64}}, ::Type{F}
 ) where {F <: Union{
-    MOI.EqualTo{Float64}
+    MOI.EqualTo{Float64}, MOI.LessThan{Float64}
 }}
     return true
 end
@@ -41,5 +41,5 @@ end
     This a list of all the supported objective functions of the CPRL Solver
 """
 MOI.supports(::Optimizer, ::MOI.ObjectiveSense) = true
-# MOI.supports(::Optimizer, ::MOI.ObjectiveFunction{MOI.SingleVariable}) = true
+MOI.supports(::Optimizer, ::MOI.ObjectiveFunction{MOI.SingleVariable}) = true
 MOI.supports(::Optimizer, ::MOI.ObjectiveFunction{MOI.ScalarAffineFunction{T}}) where {T<:Real} = true
