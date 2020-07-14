@@ -22,7 +22,7 @@ end
             CPRL.set_reward!(CPRL.DecisionPhase(), env, model)
             @test env.reward == -1/40
         end
-        @testset "set_final_reward!()" begin
+        @testset "set_reward!(EndingPhase)" begin
             trailer = CPRL.Trailer()
             model = CPRL.CPModel(trailer)
 
