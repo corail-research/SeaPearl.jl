@@ -44,6 +44,15 @@ function IntDomain(trailer::Trailer, n::Int, offset::Int)
     return IntDomain(values, indexes, offset, n, size, min, max, trailer)
 end
 
+function reset_domain!(dom::IntDomain)
+    setValue!(dom.size, dom.initSize)
+    setValue!(dom.min, dom.offset + 1)
+    setValue!(dom.max, dom.offset + dom.initSize)
+    sort!(dom.values)
+    sort!(dom.indexes)
+    dom
+end
+
 function Base.show(io::IO, dom::IntDomain)
     toPrint = "["
     for i in dom

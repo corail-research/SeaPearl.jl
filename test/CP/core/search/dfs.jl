@@ -45,7 +45,7 @@ using DataStructures
         push!(model.constraints, CPRL.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
-        @test CPRL.expandDfs!(toCall, model, (model) -> nothing, CPRL.BasicHeuristic()) == :Feasible
+        @test CPRL.expandDfs!(toCall, model, (model) -> nothing, CPRL.BasicHeuristic()) == :FoundSolution
         @test isempty(toCall)
 
 
@@ -63,22 +63,22 @@ using DataStructures
         @test CPRL.expandDfs!(toCall, model, (model) -> x, CPRL.BasicHeuristic()) == :Feasible
         @test length(toCall) == 6
 
-        @test pop!(toCall)(model) == :Feasible
+        @test pop!(toCall)(model) == :SavingState
         @test length(model.trailer.prior) == 1 # saveState!()
 
-        @test pop!(toCall)(model) == :Feasible
+        @test pop!(toCall)(model) == :FoundSolution
         @test length(model.solutions) == 1 # Found a solution
 
-        @test pop!(toCall)(model) == :Feasible
+        @test pop!(toCall)(model) == :BackTracking
         @test length(model.trailer.prior) == 0 # restoreState!()
 
-        @test pop!(toCall)(model) == :Feasible
+        @test pop!(toCall)(model) == :SavingState
         @test length(model.trailer.prior) == 1 # saveState!()
 
-        @test pop!(toCall)(model) == :Feasible
+        @test pop!(toCall)(model) == :FoundSolution
         @test length(model.solutions) == 2 # Found another solution
 
-        @test pop!(toCall)(model) == :Feasible
+        @test pop!(toCall)(model) == :BackTracking
         @test length(model.trailer.prior) == 0 # restoreState!()
     end
 
@@ -182,7 +182,7 @@ using DataStructures
                     approximator = RL.NeuralNetworkApproximator(
                         model = Chain(
                             Flux.flatten,
-                            Dense(11*16, 20, Flux.relu),
+                            Dense(11*17, 20, Flux.relu),
                             Dense(20, 20, Flux.relu),
                             Dense(20, 4, Flux.relu)
                         ),
@@ -191,7 +191,7 @@ using DataStructures
                     target_approximator = RL.NeuralNetworkApproximator(
                         model = Chain(
                             Flux.flatten,
-                            Dense(11*16, 20, Flux.relu),
+                            Dense(11*17, 20, Flux.relu),
                             Dense(20, 20, Flux.relu),
                             Dense(20, 4, Flux.relu)
                         ),
@@ -222,7 +222,7 @@ using DataStructures
             trajectory = RL.CircularCompactSARTSATrajectory(
                 capacity = 1000, 
                 state_type = Float32, 
-                state_size = (11, 16, 1),
+                state_size = (11, 17, 1),
                 action_type = Int,
                 action_size = (),
                 reward_type = Float32,

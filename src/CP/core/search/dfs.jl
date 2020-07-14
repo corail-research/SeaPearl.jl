@@ -21,8 +21,10 @@ function search!(model::CPModel, ::Type{DFSearch}, variableHeuristic, valueSelec
             break
         end
 
-        # set reward if necessary
-        valueSelection(BackTrackingPhase(), model, nothing, currentStatus)
+        if currentStatus != :SavingState
+            # set reward and metrics
+            valueSelection(StepPhase(), model, nothing, currentStatus)
+        end
 
         currentProcedure = pop!(toCall)
         currentStatus = currentProcedure(model)
@@ -66,8 +68,7 @@ function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
     end
     if solutionFound(model)
         triggerFoundSolution!(model)
-        #return :FoundSolution
-        return :Feasible
+        return :FoundSolution
     end
 
     # Variable selection
@@ -76,13 +77,15 @@ function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
     # Value selection
     v = valueSelection(DecisionPhase(), model, x, nothing)
 
-    push!(toCall, (model) -> (restoreState!(model.trailer); :Feasible))
-    push!(toCall, (model) -> (remove!(x.domain, v); expandDfs!(toCall, model, variableHeuristic, valueSelection, getOnDomainChange(x))))
-    push!(toCall, (model) -> (saveState!(model.trailer); :Feasible))
+    #println("Value : ", v, " assigned to : ", x.id)
 
-    push!(toCall, (model) -> (restoreState!(model.trailer); :Feasible))
+    push!(toCall, (model) -> (restoreState!(model.trailer); :BackTracking))
+    push!(toCall, (model) -> (remove!(x.domain, v); expandDfs!(toCall, model, variableHeuristic, valueSelection, getOnDomainChange(x))))
+    push!(toCall, (model) -> (saveState!(model.trailer); :SavingState))
+
+    push!(toCall, (model) -> (restoreState!(model.trailer); :BackTracking))
     push!(toCall, (model) -> (assign!(x, v); expandDfs!(toCall, model, variableHeuristic, valueSelection, getOnDomainChange(x))))
-    push!(toCall, (model) -> (saveState!(model.trailer); :Feasible))
+    push!(toCall, (model) -> (saveState!(model.trailer); :SavingState))
 
     return :Feasible
 end

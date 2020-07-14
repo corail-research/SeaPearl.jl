@@ -25,6 +25,8 @@ mutable struct CPModel
     CPModel(trailer) = new(Dict{String, AbstractIntVar}(), Constraint[], trailer, nothing, nothing, Solution[], Statistics(0, 0), Limit(nothing, nothing), nothing)
 end
 
+CPModel() = CPModel(Trailer())
+
 const CPModification = Dict{String, Array{Int}}
 
 """
@@ -148,6 +150,7 @@ function Base.isempty(model::CPModel)::Bool
         && model.statistics.numberOfSolutions == 0
         && isnothing(model.limit.numberOfNodes)
         && isnothing(model.limit.numberOfSolutions)
+        && isnothing(model.RLRep)
     )
 end
 
@@ -168,5 +171,47 @@ function Base.empty!(model::CPModel)
     model.statistics.numberOfSolutions = 0
     model.limit.numberOfNodes = nothing
     model.limit.numberOfSolutions = nothing
+    model.RLRep = nothing
     model
+end
+
+function reset_model!(model::CPModel)
+    restoreInitialState!(model.trailer)
+    for (id, x) in model.variables
+        reset_domain!(x.domain)
+    end
+    model.objectiveBound = nothing
+    empty!(model.solutions)
+    model.statistics.numberOfNodes = 0
+    model.statistics.numberOfSolutions = 0
+    model.RLRep = nothing
+    model
+end
+
+"""
+    domains_cartesian_product(model::CPModel)
+
+Return the cartesian product of the model variables: |D1|x|D2|x ... x|Dn|
+Helps providing insights about what is happening during a search.
+"""
+function domains_cartesian_product(model::CPModel)
+    cart_pdt = 1
+    for (id, x) in model.variables
+        cart_pdt *= length(x.domain)
+    end
+    return cart_pdt
+end
+
+"""
+    nb_boundvariables(model::CPModel)
+
+Return the number of variables that have already been assigned to a value.
+Helps providing insights about what is happening during a search.
+"""
+function nb_boundvariables(model::CPModel)
+    nb = 0
+    for (id, x) in model.variables
+        nb += isbound(x) * 1
+    end
+    return nb
 end

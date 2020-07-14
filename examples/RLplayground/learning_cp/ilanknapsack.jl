@@ -13,71 +13,97 @@ problem_generator = Dict(
     :filecoloring => CPRL.fill_with_coloring_file!
 )
 
-coloring_file_params = Dict(
-    "input_file" => "examples/coloring/data/gc_4_1"
+knapsack_params = Dict(
+    "nb_items" => 12,
+    "max_weight" => 10,
+    "correlation" => 0.2
 )
 
-coloring_params = Dict(
-    "nb_nodes" => 15,
-    "density" => 2.5
-)
 
-fixedGCNargs = CPRL.ArgsFixedOutputGCN( 
-    maxDomainSize= 15, 
-    numInFeatures = 83, 
-    firstHiddenGCN = 20, 
-    secondHiddenGCN = 20, 
-    hiddenDense = 20 
+numberOfFeatures = 10
+
+function CPRL.featurize(g::CPRL.CPLayerGraph) 
+    features = zeros(Float32, nv(g), numberOfFeatures) 
+    for i in 1:nv(g) 
+        cp_vertex = CPRL.cpVertexFromIndex(g, i) 
+        if isa(cp_vertex, CPRL.VariableVertex) 
+            variable = cp_vertex.variable 
+            features[i, 1] = 1. 
+            if g.cpmodel.objective == variable
+                features[i, 2] = 1. 
+            end 
+            
+            if isa(variable, CPRL.IntVarViewOpposite)
+                features[i, 3] = 1. 
+            end
+            if isa(variable, CPRL.IntVarViewMul)
+                features[i, 4] = 1. 
+                features[i, 5] = variable.a 
+            end
+        end 
+        if isa(cp_vertex, CPRL.ConstraintVertex) 
+            features[i, 6] = 1. 
+            constraint = cp_vertex.constraint 
+            if isa(constraint, CPRL.SumToZero) 
+                features[i, 7] = 1. 
+            end 
+            if isa(constraint, CPRL.LessOrEqualConstant) 
+                features[i, 8] = 1. 
+            end 
+        end 
+        if isa(cp_vertex, CPRL.ValueVertex) 
+            features[i, 9] = 1. 
+            value = cp_vertex.value 
+            features[i, 10] = value/knapsack_params["max_weight"]
+        end 
+    end 
+    features 
+    # features = zeros(Float32, nv(g), nv(g)) 
+    # for i in 1:size(features)[1] 
+    #     features[i, i] = 1.0f0 
+    # end 
+    # features 
+end 
+
+
+fixedGCNargs = CPRL.ArgsVariableOutputGCNLSTM( 
+    lastLayer = 20,
+    numInFeatures = numberOfFeatures,
+    firstHiddenGCN = 20,
+    secondHiddenGCN = 20,
+    hiddenDense = 20,
+    lstmSize = 20
 ) 
-numberOfCPNodes = 83 
 
-function CPRL.featurize(g::CPRL.CPLayerGraph)
-    features = zeros(Float32, nv(g), nv(g))
-    for i in 1:size(features)[1]
-        features[i, i] = 1.0f0
-    end
-    features
-end
-
-struct IlanReward <: CPRL.AbstractReward end 
- 
-function CPRL.set_before_next_decision_reward!(env::CPRL.RLEnv{IlanReward}, model::CPRL.CPModel) 
-    env.reward -= 0 
-    nothing 
-end 
- 
-function CPRL.set_final_reward!(env::CPRL.RLEnv{IlanReward}, model::CPRL.CPModel) 
-    env.reward += 30/model.statistics.numberOfNodes + 50 
-    nothing 
-end 
- 
-state_size = (numberOfCPNodes,fixedGCNargs.numInFeatures + numberOfCPNodes + 2, 1) 
+maxNumberOfCPnodes = 300
+state_size = (maxNumberOfCPnodes,fixedGCNargs.numInFeatures + maxNumberOfCPnodes + 3, 1) 
+println("state_size", state_size)
 
 agent = RL.Agent(
         policy = RL.QBasedPolicy(
             learner = CPRL.CPDQNLearner(
                 approximator = RL.NeuralNetworkApproximator(
-                    model = CPRL.build_model(CPRL.FixedOutputGCN, fixedGCNargs),
+                    model = CPRL.build_model(CPRL.VariableOutputGCNLSTM, fixedGCNargs),
                     optimizer = ADAM(0.0005f0)
                 ),
                 target_approximator = RL.NeuralNetworkApproximator(
-                    model = CPRL.build_model(CPRL.FixedOutputGCN, fixedGCNargs),
+                    model = CPRL.build_model(CPRL.VariableOutputGCNLSTM, fixedGCNargs),
                     optimizer = ADAM(0.0005f0)
                 ),
                 loss_func = huber_loss,
                 stack_size = nothing,
                 γ = 0.999f0,
                 batch_size = 1,
-                update_horizon = 1,
+                update_horizon = 15,
                 min_replay_history = 1,
-                update_freq = 20,
-                target_update_freq = 100,
+                update_freq = 50,
+                target_update_freq = 200,
                 seed = 22,
             ), 
             # explorer = CPRL.DirectedExplorer(;
                 explorer = CPRL.CPEpsilonGreedyExplorer(
-                    ϵ_stable = 0.001,
-                    kind = :exp,
+                    ϵ_stable = 0.01,
+                    kind = :linear,
                     ϵ_init = 1.0,
                     warmup_steps = 0,
                     decay_steps = 1000,
@@ -103,9 +129,22 @@ agent = RL.Agent(
         role = :DEFAULT_PLAYER
     )
 
-learnedHeuristic = CPRL.LearnedHeuristic{IlanReward}(agent)
 
-basicHeuristic = CPRL.BasicHeuristic((x) -> CPRL.minimum(x.domain))
+struct IlanReward <: CPRL.AbstractReward end  
+
+function CPRL.set_before_next_decision_reward!(env::CPRL.RLEnv{IlanReward}, model::CPRL.CPModel)  
+    env.reward -= 1/40
+    nothing  
+end  
+    
+function CPRL.set_final_reward!(env::CPRL.RLEnv{IlanReward}, model::CPRL.CPModel)  
+    env.reward += 100/model.statistics.numberOfNodes + 10 
+    nothing  
+end  
+
+learnedHeuristic = CPRL.LearnedHeuristic{IlanReward, CPRL.VariableOutput}(agent, maxNumberOfCPnodes)
+
+basicHeuristic = CPRL.BasicHeuristic((x) -> CPRL.maximum(x.domain))
 
 function selectNonObjVariable(model::CPRL.CPModel)
     selectedVar = nothing
@@ -165,8 +204,8 @@ function trytrain(nepisodes::Int)
     
     bestsolutions, nodevisited = CPRL.train!(
         valueSelectionArray=[learnedHeuristic, basicHeuristic], 
-        problem_type=:coloring,
-        problem_params=coloring_params,
+        problem_type=:knapsack,
+        problem_params=knapsack_params,
         nb_episodes=nepisodes,
         strategy=CPRL.DFSearch,
         variableHeuristic=selectNonObjVariable,

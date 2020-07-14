@@ -1,16 +1,24 @@
 using Distributions
 
-"""
-    fill_with_knapsack!(cpmodel::CPModel, nb_items, noise)::CPModel    
+using Distributions
 
-Create a filled CPModel with the variables and constraints generated. We fill it directly instead of 
-creating temporary files for efficiency purpose ! Density should be more than 1.
 """
-function fill_with_knapsack!(cpmodel::CPModel, nb_items::Int64, noise::Number=1)
+    fill_with_knapsack!(cpmodel::CPModel, nb_items, max_weight, correlation=1)::CPModel
+ 
+Fill the cpmodel with variables and constraints for the knapsack problem.
+The weights are uniformly distributed between 1 and `max_weight`, the values are uniformly distributed
+between (for each `weight`) `weight - max_weight/(10*correlation)` and `weight + max_weight/(10*correlation)`.
+It is possible to give `Inf` as the `correlation` to have a strict equality between the weights and their values.
+`correlation` must be strictly positive.
+This method is from the following paper:
+https://www.researchgate.net/publication/2548374_Core_Problems_in_Knapsack_Algorithms
+"""
+function fill_with_knapsack!(cpmodel::CPModel, nb_items::Int64, max_weight::Int, correlation::Real=1)
+    @assert correlation > 0
     
     # create values, weights and capacity
-    distr = Truncated(Normal(5 * nb_items, nb_items), 1, 10 * nb_items)
-    perturbation = Truncated(Normal(0, noise), -10, 10)
+    weights_distr = DiscreteUniform(1, max_weight)
+    weights = rand(weights_distr, nb_items)
 
     deviation = floor(max_weight/(10*correlation))
     value_distr = truncated.(DiscreteUniform.(weights .- deviation, weights .+ deviation), 1, Inf)
@@ -18,6 +26,7 @@ function fill_with_knapsack!(cpmodel::CPModel, nb_items::Int64, noise::Number=1)
 
     c = floor(nb_items * max_weight/2 / 4)
     capacity = rand(DiscreteUniform(c, c*4))
+    
     
     ### Variables
     x = CPRL.IntVar[]
@@ -66,6 +75,7 @@ function fill_with_knapsack!(cpmodel::CPModel, nb_items::Int64, noise::Number=1)
 
     # Setting it as the objective
     cpmodel.objective = totalValue
+    
 
     nothing
 end

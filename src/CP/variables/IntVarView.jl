@@ -75,6 +75,15 @@ Return `true` iff `dom` is an empty set.
 """
 Base.isempty(dom::IntDomainView) = isempty(dom.orig)
 
+reset_domain!(dom::IntDomainView) = reset_domain!(dom.orig)
+
+"""
+    rootVariable(x::IntVarView)
+
+Return the "true" variable behind `x`.
+"""
+rootVariable(x::IntVarView) = rootVariable(x.x)
+
 """
     length(dom::IntDomainView)
 
