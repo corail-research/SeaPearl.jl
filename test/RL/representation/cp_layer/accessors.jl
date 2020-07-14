@@ -37,7 +37,7 @@ end
     end
 end
 
-@testset "index()" begin
+@testset "indexFromCpVertex()" begin
     trailer = CPRL.Trailer()
     model = CPRL.CPModel(trailer)
 
@@ -60,7 +60,7 @@ end
     ]
 
     for i in 1:6
-        @test CPRL.index(g, true_idToNode[i]) == i
+        @test CPRL.indexFromCpVertex(g, true_idToNode[i]) == i
     end
 end
 
@@ -137,15 +137,15 @@ end
 
     CPRL.assign!(x, 2)
 
-    @test LightGraphs.edges(g) == [
-        LightGraphs.SimpleEdge{Int64}(2, 4),
-        LightGraphs.SimpleEdge{Int64}(1, 3),
-        LightGraphs.SimpleEdge{Int64}(4, 5),
-        LightGraphs.SimpleEdge{Int64}(4, 6),
+    @test sort(LightGraphs.edges(g); by=(e -> (e.src, e.dst))) == sort([
         LightGraphs.SimpleEdge{Int64}(1, 4),
+        LightGraphs.SimpleEdge{Int64}(2, 4),
+        LightGraphs.SimpleEdge{Int64}(4, 5),
         LightGraphs.SimpleEdge{Int64}(3, 5),
+        LightGraphs.SimpleEdge{Int64}(4, 6),
+        LightGraphs.SimpleEdge{Int64}(1, 3),
         LightGraphs.SimpleEdge{Int64}(2, 3)
-    ]
+    ]; by=(e -> (e.src, e.dst))) 
 
     @test LightGraphs.ne(g) == 7
 end
@@ -175,4 +175,3 @@ end
     @test LightGraphs.outneighbors(g, 6) == [4]
     @test LightGraphs.outneighbors(g, 5) == [3, 4]
 end
-

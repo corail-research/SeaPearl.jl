@@ -39,11 +39,11 @@ end
 Inequality constraint between two variables, stating that `x != y`.
 """
 struct NotEqual <: NotEqualConstraint
-    x       ::CPRL.IntVar
-    y       ::CPRL.IntVar
+    x       ::CPRL.AbstractIntVar
+    y       ::CPRL.AbstractIntVar
     active  ::StateObject{Bool}
 
-    function NotEqual(x::CPRL.IntVar, y::CPRL.IntVar, trailer::Trailer)
+    function NotEqual(x::CPRL.AbstractIntVar, y::CPRL.AbstractIntVar, trailer::Trailer)
         constraint = new(x, y, StateObject(true, trailer))
         addOnDomainChange!(x, constraint)
         addOnDomainChange!(y, constraint)

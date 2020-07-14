@@ -149,4 +149,29 @@
         model.statistics.numberOfSolutions = 16
         @test !CPRL.belowSolutionLimit(model)
     end
+
+    @testset "Base.isempty()" begin
+        trailer = CPRL.Trailer()
+        model = CPRL.CPModel(trailer)
+
+        @test isempty(model)
+
+        x = CPRL.IntVar(2, 2, "x", trailer)
+        CPRL.addVariable!(model, x)
+
+        @test !isempty(model)
+    end
+
+    @testset "Base.empty!()" begin
+
+        trailer = CPRL.Trailer()
+        model = CPRL.CPModel(trailer)
+
+        x = CPRL.IntVar(2, 2, "x", trailer)
+        CPRL.addVariable!(model, x)
+
+        empty!(model)
+
+        @test isempty(model)
+    end
 end

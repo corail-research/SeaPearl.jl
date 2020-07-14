@@ -1,3 +1,5 @@
+using LightGraphs
+
 const Solution = Dict{String, Int}
 
 mutable struct Statistics
@@ -19,7 +21,8 @@ mutable struct CPModel
     solutions               ::Array{Solution}
     statistics              ::Statistics
     limit                   ::Limit
-    CPModel(trailer) = new(Dict{String, AbstractIntVar}(), Constraint[], trailer, nothing, nothing, Solution[], Statistics(0, 0), Limit(nothing, nothing))
+    RLRep                   ::Union{Nothing, LightGraphs.AbstractGraph{Int}}
+    CPModel(trailer) = new(Dict{String, AbstractIntVar}(), Constraint[], trailer, nothing, nothing, Solution[], Statistics(0, 0), Limit(nothing, nothing), nothing)
 end
 
 const CPModification = Dict{String, Array{Int}}
@@ -104,7 +107,7 @@ function triggerFoundSolution!(model::CPModel)
     push!(model.solutions, solution)
 
     if !isnothing(model.objective)
-        println("Solution found! Current objective: ", assignedValue(model.objective))
+        # println("Solution found! Current objective: ", assignedValue(model.objective))
         tightenObjective!(model)
     end
 end
@@ -126,3 +129,44 @@ Check if `model`' statistics are still under the limits.
 belowLimits(model::CPModel) = belowNodeLimit(model) && belowSolutionLimit(model)
 belowNodeLimit(model::CPModel) = isnothing(model.limit.numberOfNodes) || model.statistics.numberOfNodes < model.limit.numberOfNodes
 belowSolutionLimit(model::CPModel) = isnothing(model.limit.numberOfSolutions) || model.statistics.numberOfSolutions < model.limit.numberOfSolutions
+
+"""
+    Base.isempty(model::CPModel)::Bool
+
+Return a boolean describing if the model is empty or not.
+"""
+function Base.isempty(model::CPModel)::Bool
+    (
+        isempty(model.variables) 
+        && isempty(model.constraints) 
+        && isempty(model.trailer.prior) 
+        && isempty(model.trailer.current) 
+        && isnothing(model.objective)
+        && isnothing(model.objectiveBound)
+        && isempty(model.solutions)
+        && model.statistics.numberOfNodes == 0
+        && model.statistics.numberOfSolutions == 0
+        && isnothing(model.limit.numberOfNodes)
+        && isnothing(model.limit.numberOfSolutions)
+    )
+end
+
+"""
+    Base.empty!(model::CPModel)
+
+Empty the CPModel.
+"""
+function Base.empty!(model::CPModel)
+    empty!(model.variables) 
+    empty!(model.constraints) 
+    empty!(model.trailer.prior) 
+    empty!(model.trailer.current) 
+    model.objective = nothing
+    model.objectiveBound = nothing
+    empty!(model.solutions)
+    model.statistics.numberOfNodes = 0
+    model.statistics.numberOfSolutions = 0
+    model.limit.numberOfNodes = nothing
+    model.limit.numberOfSolutions = nothing
+    model
+end

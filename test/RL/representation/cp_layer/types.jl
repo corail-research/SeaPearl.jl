@@ -30,7 +30,7 @@ using CPRL
         @test g.nodeToId[true_idToNode[i]] == i
     end
 
-    @test g.fixedEdgesGraph == [
+    @test Matrix(LightGraphs.LinAlg.adjacency_matrix(g.fixedEdgesGraph)) == [
         0 0 1 1
         0 0 1 1
         1 1 0 0

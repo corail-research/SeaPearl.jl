@@ -82,5 +82,45 @@ using CPRL
         t = CPRL.IntVar(5, 5, "t", trailer)
         constraint3 = CPRL.NotEqual(z, t, trailer)
         @test !CPRL.propagate!(constraint3, toPropagate, prunedDomains)
+
+
+        # Same with IntVarViewOpposite
+        trailer = CPRL.Trailer()
+        x = CPRL.IntVar(2, 6, "x", trailer)
+        y = CPRL.IntVar(-8, -5, "y", trailer)
+        minusY = CPRL.IntVarViewOpposite(y, "-y")
+
+        constraint = CPRL.NotEqual(x, minusY, trailer)
+        toPropagate = Set{CPRL.Constraint}()
+        prunedDomains = CPRL.CPModification()
+
+        @test CPRL.propagate!(constraint, toPropagate, prunedDomains)
+
+
+        @test length(x.domain) == 5
+        @test length(y.domain) == 4
+        @test prunedDomains == CPRL.CPModification()
+
+        # Propagation test
+        z = CPRL.IntVar(5, 6, "z", trailer)
+        constraint2 = CPRL.NotEqual(minusY, z, trailer)
+        @test CPRL.propagate!(constraint2, toPropagate, prunedDomains)
+
+        # Domain not reduced => not propagation
+        @test !(constraint in toPropagate)
+        @test !(constraint2 in toPropagate)
+
+        # Domain reduced => propagation
+        CPRL.remove!(z.domain, 6)
+        @test CPRL.propagate!(constraint2, toPropagate, prunedDomains)
+        @test constraint in toPropagate
+        @test !(constraint2 in toPropagate)
+        @test prunedDomains == CPRL.CPModification("-y" => [5])
+        @test length(y.domain) == 3
+
+        #Unfeasible test
+        t = CPRL.IntVar(5, 5, "t", trailer)
+        constraint3 = CPRL.NotEqual(z, t, trailer)
+        @test !CPRL.propagate!(constraint3, toPropagate, prunedDomains)
     end
 end

@@ -7,6 +7,9 @@ to the interface of JuliaReinforcementLearning/ReinforcementLearning.jl
 
 using Flux
 
+include("nn_structures/nn_structures.jl")
+
 include("randomagent.jl")
 include("basicdqnagent.jl")
 include("dqnagent.jl")
+include("old_dqnagent.jl")
