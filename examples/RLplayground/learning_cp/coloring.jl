@@ -16,14 +16,15 @@ problem_generator = Dict(
 )
 
 coloring_params = Dict(
-    "nb_nodes" => 20,
-    "density" => 3
+    "nb_nodes" => 10,
+    "density" => 1.4
 )
 
-numInFeatures = 121
-numberOfCPNodes = 121
+numInFeatures = 16
+numberOfCPNodes = 1 + floor(Int64, coloring_params["nb_nodes"] * ( 3 + coloring_params["density"] ))
+#numberOfCPNodes = 141
 
-state_size = (numberOfCPNodes, numInFeatures + numberOfCPNodes + 2, 1)
+state_size = (numberOfCPNodes, numInFeatures + numberOfCPNodes + 2 + 1, 1)
 
 agent = RL.Agent(
         policy = RL.QBasedPolicy(
@@ -31,48 +32,45 @@ agent = RL.Agent(
                 approximator = RL.NeuralNetworkApproximator(
                     model = CPRL.FlexGNN(
                         graphChain = Flux.Chain(
-                            GeometricFlux.GCNConv(121 => 60),
-                            GeometricFlux.GCNConv(60 => 30),
-                            GeometricFlux.GCNConv(30 => 20),
+                            GeometricFlux.GCNConv(numInFeatures => 20),
+                            GeometricFlux.GCNConv(20 => 20),
                         ),
                         nodeChain = Flux.Chain(
                             Flux.Dense(20, 20),
-                            Flux.Dense(20, 20),
                         ),
-                        outputLayer = Flux.Dense(20, 20)
+                        outputLayer = Flux.Dense(20, 10)
                     ),
                     optimizer = ADAM(0.0005f0)
                 ),
                 target_approximator = RL.NeuralNetworkApproximator(
                     model = CPRL.FlexGNN(
                         graphChain = Flux.Chain(
-                            GeometricFlux.GCNConv(121 => 60),
-                            GeometricFlux.GCNConv(60 => 30),
-                            GeometricFlux.GCNConv(30 => 20),
+                            GeometricFlux.GCNConv(numInFeatures => 20),
+                            GeometricFlux.GCNConv(20 => 20),
                         ),
                         nodeChain = Flux.Chain(
                             Flux.Dense(20, 20),
                         ),
-                        outputLayer = Flux.Dense(20, 20)
+                        outputLayer = Flux.Dense(20, 10)
                     ),
                     optimizer = ADAM(0.0005f0)
                 ),
                 loss_func = huber_loss,
                 stack_size = nothing,
-                γ = 0.999f0,
+                γ = 0.9999f0,
                 batch_size = 1, #32,
-                update_horizon = 15,
+                update_horizon = 25,
                 min_replay_history = 1,
                 update_freq = 10,
-                target_update_freq = 100,
+                target_update_freq = 200,
                 seed = 22,
             ), 
             explorer = CPRL.CPEpsilonGreedyExplorer(
-                ϵ_stable = 0.01,
+                ϵ_stable = 0.001,
                 kind = :exp,
                 ϵ_init = 1.0,
                 warmup_steps = 0,
-                decay_steps = 500,
+                decay_steps = 1000,
                 step = 1,
                 is_break_tie = false, 
                 #is_training = true,
@@ -80,7 +78,7 @@ agent = RL.Agent(
             )
         ),
         trajectory = RL.CircularCompactSARTSATrajectory(
-            capacity = 4000, 
+            capacity = 3000, 
             state_type = Float32, 
             state_size = state_size,#(46, 93, 1),
             action_type = Int,
@@ -93,7 +91,7 @@ agent = RL.Agent(
         role = :DEFAULT_PLAYER
     )
 
-learnedHeuristic = CPRL.LearnedHeuristic(agent)
+learnedHeuristic = CPRL.LearnedHeuristic{InspectReward, CPRL.FixedOutput}(agent)
 
 selectMin(x::CPRL.IntVar) = CPRL.minimum(x.domain)
 selectMax(x::CPRL.IntVar) = CPRL.maximum(x.domain)
@@ -116,16 +114,22 @@ function selectNonObjVariable(model::CPRL.CPModel)
     return selectedVar
 end
 
+function selectRandVariable(model::CPRL.CPModel)
+    vars = collect(values(model.variables))
+    filter!(x -> length(x.domain) > 1, vars)
+    return rand(vars)
+end
+
 ############# TRAIN
 
 bestsolutions, nodevisited, timeneeded = CPRL.train!(
-    valueSelectionArray=[learnedHeuristic, heuristic_min, heuristic_max, heuristic_rand], 
+    valueSelectionArray=[learnedHeuristic, heuristic_min], 
     #valueSelectionArray=learnedHeuristic,
     problem_type=:coloring,
     problem_params=coloring_params,
-    nb_episodes=200,
+    nb_episodes=400,
     strategy=CPRL.DFSearch,
-    variableHeuristic=selectNonObjVariable,
+    variableHeuristic=selectRandVariable,
     verbose = false
 )
 
@@ -133,20 +137,20 @@ bestsolutions, nodevisited, timeneeded = CPRL.train!(
 a, b = size(nodevisited)
 x = 1:a
 
-p1 = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 700])
+p1 = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 200])
 
 #display(p1)
 
 ############# BENCHMARK
 
 bestsolutions, nodevisited, timeneeded = CPRL.benchmark_solving(
-    valueSelectionArray=[learnedHeuristic, heuristic_min, heuristic_max, heuristic_rand], 
+    valueSelectionArray=[learnedHeuristic, heuristic_min], 
     #valueSelectionArray=learnedHeuristic,
     problem_type=:coloring,
     problem_params=coloring_params,
-    nb_episodes=50,
+    nb_episodes=5,
     strategy=CPRL.DFSearch,
-    variableHeuristic=selectNonObjVariable,
+    variableHeuristic=selectRandVariable,
     verbose = false
 )
 
@@ -154,8 +158,8 @@ bestsolutions, nodevisited, timeneeded = CPRL.benchmark_solving(
 a, b = size(nodevisited)
 x = 1:a
 
-p2 = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 700])
-p3 = plot(x, timeneeded, xlabel="Episode", ylabel="Time needed", ylims = [0, 0.25])
+p2 = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 200])
+p3 = plot(x, timeneeded, xlabel="Episode", ylabel="Time needed", ylims = [0, 0.02])
 
 
 p = plot(p1, p2, p3, legend = false, layout = (3, 1))

@@ -39,7 +39,7 @@ function launch_experiment!(
 
     iter = ProgressBar(1:nb_episodes)
     for i in iter
-    # for i in 1:nb_episodes
+    #for i in 1:nb_episodes
         verbose && print(" --- EPISODE: ", i)
 
         empty!(model)
@@ -49,7 +49,9 @@ function launch_experiment!(
 
         for j in 1:nb_heuristics
             reset_model!(model)
+            
             dt = @elapsed search!(model, strategy, variableHeuristic, valueSelectionArray[j])
+
             if isa(valueSelectionArray[j], LearnedHeuristic)
                 verbose && print(", Visited nodes: ", model.statistics.numberOfNodes)
             else

@@ -9,7 +9,8 @@
             0,
             false,
             rng,
-            8
+            8,
+            CPRL.SearchMetrics()
         )
 
         @test typeof(env.action_space) == RL.DiscreteSpace{Array{Int64,1}}

@@ -1,3 +1,11 @@
+
+abstract type LearningPhase end
+
+struct InitializingPhase <: LearningPhase end
+struct StepPhase <: LearningPhase end 
+struct DecisionPhase <: LearningPhase end 
+struct EndingPhase <: LearningPhase end
+
 include("../../RL/RL.jl")
 
 abstract type ValueSelection end
@@ -29,18 +37,11 @@ end
 
 LearnedHeuristic(agent::RL.Agent) = LearnedHeuristic{DefaultReward, FixedOutput}(agent)
 
-Flux.testmode!(lh::LearnedHeuristic, mode = true) = Flux.testmode!(lh.agent, mode)
-
-abstract type LearningPhase end
-
-struct InitializingPhase <: LearningPhase end
-struct BackTrackingPhase <: LearningPhase end 
-struct DecisionPhase <: LearningPhase end 
-struct EndingPhase <: LearningPhase end 
+Flux.testmode!(lh::LearnedHeuristic, mode = true) = Flux.testmode!(lh.agent, mode) 
 
 # Implementations for a basic heuristic 
 (valueSelection::BasicHeuristic)(::InitializingPhase, model::Union{Nothing, CPModel}=nothing, x::Union{Nothing, AbstractIntVar}=nothing, current_status::Union{Nothing, Symbol}=nothing) = nothing
-(valueSelection::BasicHeuristic)(::BackTrackingPhase, model::Union{Nothing, CPModel}=nothing, x::Union{Nothing, AbstractIntVar}=nothing, current_status::Union{Nothing, Symbol}=nothing) = nothing
+(valueSelection::BasicHeuristic)(::StepPhase, model::Union{Nothing, CPModel}=nothing, x::Union{Nothing, AbstractIntVar}=nothing, current_status::Union{Nothing, Symbol}=nothing) = nothing
 (valueSelection::BasicHeuristic)(::DecisionPhase, model::Union{Nothing, CPModel}=nothing, x::Union{Nothing, AbstractIntVar}=nothing, current_status::Union{Nothing, Symbol}=nothing) = valueSelection.selectValue(x)
 (valueSelection::BasicHeuristic)(::EndingPhase, model::Union{Nothing, CPModel}=nothing, x::Union{Nothing, AbstractIntVar}=nothing, current_status::Union{Nothing, Symbol}=nothing) = nothing
 
@@ -68,16 +69,18 @@ function (valueSelection::LearnedHeuristic{R})(::InitializingPhase, model::CPMod
 end
 
 """
-    (valueSelection::LearnedHeuristic)(::BackTrackingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
+    (valueSelection::LearnedHeuristic)(::StepPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
 
-Set reward in case if needed.
+The step phase is the phase between every procedure call. It is the best place to get stats about the search tree, that's why 
+we put a set_metrics! function here. As those metrics could be used to design a reward, we also put a set_reward! function. 
+ATM, the metrics are updated after the reward assignment as the current_status given totally decribes the changes that are to be made. 
+Another possibility would be to have old and new metrics in memory. 
 """
-function (valueSelection::LearnedHeuristic)(::BackTrackingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
-    # the RL EPISODE continue
-    # change reward in case of :Unfeasible status (I would like it for :FoundSolution if possible)
-    # if is unnecessary but i keep it for visual issue atm 
-    # set_backtracking_reward!(valueSelection.current_env, model, current_status)
-    # when we go back to expandDfs, env will be able to add the reward to the observation
+function (valueSelection::LearnedHeuristic)(PHASE::StepPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
+    set_reward!(PHASE, valueSelection.current_env, model, current_status)
+    # incremental metrics, set after reward is updated
+    set_metrics!(PHASE, valueSelection.current_env, model, current_status, nothing)
+    nothing
 end
 
 """
@@ -85,9 +88,13 @@ end
 
 Observe, store useful informations in the buffer with agent(POST_ACT_STAGE, ...) and take a decision
 with the call of agent(PRE_ACT_STAGE).
+The metrics that aren't updated in the StepPhase, which are more related to variables domains, are updated here. Once updated, they can 
+be used in the other set_reward! function as the reward of the last action will only be collected in the RL.POST_ACT_STAGE.
 """
-function (valueSelection::LearnedHeuristic)(::DecisionPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
-    set_before_next_decision_reward!(valueSelection.current_env, model)
+function (valueSelection::LearnedHeuristic)(PHASE::DecisionPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
+    # domain change metrics, set before reward is updated
+    set_metrics!(PHASE, valueSelection.current_env, model, nothing, x)
+    set_reward!(PHASE, valueSelection.current_env, model)
 
     obs = observe!(valueSelection.current_env, model, x)
 
@@ -131,10 +138,10 @@ end
 
 Set the final reward, do last observation.
 """
-function (valueSelection::LearnedHeuristic)(::EndingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
+function (valueSelection::LearnedHeuristic)(PHASE::EndingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
     # the RL EPISODE stops
     set_done!(valueSelection.current_env, true)
-    set_final_reward!(valueSelection.current_env, model)
+    set_reward!(PHASE, valueSelection.current_env, model, current_status)
     false_x = first(values(model.variables))
     obs = observe!(valueSelection.current_env, model, false_x)
     if !wears_mask(valueSelection)
