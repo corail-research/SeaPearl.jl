@@ -216,8 +216,7 @@
             x = CPRL.IntVar(5, 5, "x", trailer)
             ax = CPRL.IntVarViewMul(x, 3, "ax")
 
-            # This will work when #4 gets merged
-            @test_broken CPRL.rootVariable(CPRL.IntVarViewOpposite(ax, "-ax")) == x
+            @test CPRL.rootVariable(CPRL.IntVarViewOpposite(ax, "-ax")) == x
 
             @test CPRL.rootVariable(x) == x
             @test CPRL.rootVariable(ax) == x
