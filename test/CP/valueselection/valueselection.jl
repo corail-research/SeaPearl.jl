@@ -98,10 +98,10 @@ using Flux
         @test isnothing(learnedheuristic.fitted_strategy)
         @test isnothing(learnedheuristic.current_env)
 
-        learnedheuristic.fitted_problem = :coloring
+        learnedheuristic.fitted_problem = CPRL.GraphColoringGenerator
         learnedheuristic.fitted_strategy = CPRL.DFSearch
 
-        @test learnedheuristic.fitted_problem == :coloring
+        @test learnedheuristic.fitted_problem == CPRL.GraphColoringGenerator
         @test learnedheuristic.fitted_strategy == CPRL.DFSearch
 
     end

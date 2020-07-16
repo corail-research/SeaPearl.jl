@@ -1,12 +1,20 @@
 using Distributions
 
-"""
-    fill_with_coloring!(cpmodel::CPModel, nb_node, density, centrality)::CPModel    
+struct GraphColoringGenerator <: AbstractModelGenerator
+    nb_nodes::Int
+    density::Real
+end
 
-Create a filled CPModel with the variables and constraints generated. We fill it directly instead of 
+"""
+    fill_with_generator!(cpmodel::CPModel, gen::GraphColoringGenerator)::CPModel    
+
+Fill a CPModel with the variables and constraints generated. We fill it directly instead of 
 creating temporary files for efficiency purpose ! Density should be more than 1.
 """
-function fill_with_coloring!(cpmodel::CPModel, nb_nodes::Int64, density::Number)
+function fill_with_generator!(cpmodel::CPModel, gen::GraphColoringGenerator)
+    density = gen.density
+    nb_nodes = gen.nb_nodes
+
     nb_edges = floor(Int64, density * nb_nodes)
 
     # create variables
@@ -46,6 +54,9 @@ function fill_with_coloring!(cpmodel::CPModel, nb_nodes::Int64, density::Number)
     nothing
 end
 
+struct GraphColoringWithFileGenerator <: AbstractModelGenerator
+    input_file::String
+end
 
 struct Edge
     vertex1     :: Int
@@ -66,8 +77,8 @@ end
 
 include("../../examples/coloring/IOmanager.jl")
 
-function fill_with_coloring_file!(model::CPModel, number_of_nodes::Int, density)
-    input_file = "examples/coloring/data/gc_"*string(number_of_nodes)*"_1"
+function fill_with_generator!(model::CPModel, gen::GraphColoringWithFileGenerator)
+    input_file = gen.input_file
     input = getInputData(input_file)
 
     trailer = model.trailer

@@ -1,13 +1,5 @@
 @testset "training.jl" begin
-    
-    problem_generator = Dict(
-        :coloring => CPRL.fill_with_coloring!
-    )
-
-    coloring_params = Dict(
-        "nb_nodes" => 10,
-        "density" => 1.5
-    )
+    generator = CPRL.GraphColoringGenerator(10, 1.5)
 
     agent = RL.Agent(
             policy = RL.QBasedPolicy(
@@ -85,8 +77,7 @@
 
     bestsolutions, nodevisited, timeneeded = CPRL.train!(
         valueSelectionArray=learnedHeuristic, 
-        problem_type=:coloring,
-        problem_params=coloring_params,
+        generator=generator,
         nb_episodes=3,
         strategy=CPRL.DFSearch,
         variableHeuristic=selectNonObjVariable

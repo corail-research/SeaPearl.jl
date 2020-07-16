@@ -27,7 +27,7 @@ BasicHeuristic() = BasicHeuristic(x -> maximum(x.domain))
 
 mutable struct LearnedHeuristic{R<:AbstractReward, A<:ActionOutput} <: ValueSelection
     agent::RL.Agent
-    fitted_problem::Union{Nothing, Symbol}
+    fitted_problem::Union{Nothing, Type{G}} where G
     fitted_strategy::Union{Nothing, Type{S}} where S <: SearchStrategy
     current_env::Union{Nothing, RLEnv}
     cpnodes_max::Union{Nothing, Int64}

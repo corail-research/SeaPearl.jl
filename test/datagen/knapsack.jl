@@ -7,8 +7,10 @@
         max_weight = 40
         correlation = 2.3
 
+        generator = CPRL.KnapsackGenerator(nb_items, max_weight, correlation)
+
         for _ in 1:3
-            CPRL.fill_with_knapsack!(model, nb_items, max_weight, correlation)
+            CPRL.fill_with_generator!(model, generator)
 
             @test length(keys(model.variables)) == nb_items + 3
             @test length(model.constraints) == 3
