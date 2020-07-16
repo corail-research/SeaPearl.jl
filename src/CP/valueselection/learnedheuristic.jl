@@ -1,10 +1,13 @@
 
+include("searchmetrics.jl")
+
 mutable struct LearnedHeuristic{R<:AbstractReward, A<:ActionOutput} <: ValueSelection
     agent::RL.Agent
     fitted_problem::Union{Nothing, Type{G}} where G
     fitted_strategy::Union{Nothing, Type{S}} where S <: SearchStrategy
     current_env::Union{Nothing, RLEnv}
     cpnodes_max::Union{Nothing, Int64}
+    search_metrics::SearchMetrics
 
     LearnedHeuristic{R, A}(agent::RL.Agent, cpnodes_max=nothing) where {R, A}= new{R, A}(agent, nothing, nothing, nothing, cpnodes_max)
 end
@@ -13,7 +16,31 @@ LearnedHeuristic(agent::RL.Agent) = LearnedHeuristic{DefaultReward, FixedOutput}
 
 Flux.testmode!(lh::LearnedHeuristic, mode = true) = Flux.testmode!(lh.agent, mode) 
 
-# Implementations for a learned heuristic
+
+######### UTILS
+
+"""
+    set_metrics!(PHASE::T, lh::LearnedHeuristic, model::CPModel, symbol::Union{Nothing, Symbol}, x::Union{Nothing, AbstractIntVar}) where T <: LearningPhase 
+
+Call set_metrics!(::SearchMetrics, ...) on env.search_metrics to simplify synthax.
+Could also add it to basicheuristic !
+"""
+function set_metrics!(PHASE::T, lh::LearnedHeuristic, model::CPModel, symbol::Union{Nothing, Symbol}, x::Union{Nothing, AbstractIntVar}) where T <: LearningPhase
+    set_metrics!(PHASE, lh.search_metrics, model, symbol, x::Union{Nothing, AbstractIntVar})
+end
+
+
+
+
+
+
+
+
+
+
+
+
+###### LEARNINGPHASEs BEHAVIOUR
 
 """
     (valueSelection::LearnedHeuristic)(::InitializingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})

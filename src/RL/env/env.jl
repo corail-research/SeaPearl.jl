@@ -1,4 +1,3 @@
-include("searchmetrics.jl")
 
 """
     abstract type AbstractReward end
@@ -31,9 +30,7 @@ mutable struct RLEnv{R<:AbstractReward} <: RL.AbstractEnv
     action::Int64
     reward::Float64
     done::Bool
-    rng::Random.MersenneTwister # random number generator
     cpnodes_max::Union{Nothing, Int64}
-    search_metrics::SearchMetrics
 end
 
 """
@@ -50,18 +47,13 @@ function RLEnv{R}(cpmodel::CPModel, seed = nothing; cpnodes_max=nothing) where (
     valuesOfVariables = sort(arrayOfEveryValue(variables))
     action_space = RL.DiscreteSpace(valuesOfVariables)
 
-    # get the random number generator
-    rng = MersenneTwister(seed)
-
     env = RLEnv{R}(
         action_space,
         CPGraph(cpmodel, 0), # use a fake variable index
         1,
         0,
         false,  
-        rng,
-        cpnodes_max,
-        SearchMetrics(cpmodel)
+        cpnodes_max
         )
     
     env
@@ -81,15 +73,6 @@ for the training.
 function set_done!(env::RLEnv, done::Bool)
     env.done = done
     nothing
-end
-
-"""
-    set_metrics!(env::RLEnv, model::CPModel, symbol::Union{Nothing, Symbol}) 
-
-Call set_metrics!(::SearchMetrics, ...) on env.search_metrics to simplify synthax.
-"""
-function set_metrics!(PHASE::T, env::RLEnv, model::CPModel, symbol::Union{Nothing, Symbol}, x::Union{Nothing, AbstractIntVar}) where T <: LearningPhase
-    set_metrics!(PHASE, env.search_metrics, model, symbol, x::Union{Nothing, AbstractIntVar})
 end
 
 """
@@ -137,10 +120,3 @@ function observe!(env::RLEnv, model::CPModel, x::AbstractIntVar)
     return (reward = reward, terminal = env.done, state = state, legal_actions = legal_actions, legal_actions_mask = legal_actions_mask)
 end
 
-"""
-    Random.seed!(env::RLEnv, seed)
-
-We want our experiences to be reproducible, thus we provide this function to reseed the random
-number generator. rng will give a reproducible sequence of numbers if and only if a seed is provided.
-"""
-Random.seed!(env::RLEnv, seed) = Random.seed!(env.rng, seed)
