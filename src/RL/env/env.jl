@@ -5,10 +5,9 @@ include("searchmetrics.jl")
 
 Used to customize the reward function. If you want to use your own reward, you have to create a struct
 (called `CustomReward` for example) and define the following methods:
-- set_backtracking_reward!(env::RLEnv{CustomReward}, model::CPModel, current_status::Union{Nothing, Symbol})
-- set_before_next_decision_reward!(env::RLEnv{CustomReward}, model::CPModel)
-- set_after_decision_reward!(env::RLEnv{CustomReward}, model::CPModel)
-- set_final_reward!(env::RLEnv{CustomReward}, symbol::Symbol)
+- set_reward!(::StepPhase, env::RLEnv{CustomReward}, model::CPModel, current_status::Union{Nothing, Symbol})
+- set_reward!(::DecisionPhase, env::RLEnv{CustomReward}, model::CPModel)
+- set_reward!(::EndingPhase, env::RLEnv{CustomReward}, symbol::Symbol)
 
 Then, when creating the `LearnedHeuristic`, you define it using `LearnedHeuristic{CustomReward}(agent::RL.Agent)`
 and your functions will be called instead of the default ones.
