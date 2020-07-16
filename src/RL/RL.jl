@@ -2,10 +2,9 @@ using Random
 using GeometricFlux
 
 
-include("representation/cp_layer/cp_layer.jl")
-include("env/spaces/spaces.jl")
+include("representation/representation.jl")
 include("env/env.jl")
-include("agents/agents.jl")
+include("nn_structures/nn_structures.jl")
 include("learners/cpdqn.jl")
 include("explorer/cp_explorer.jl")
 include("explorer/directed_explorer.jl")
