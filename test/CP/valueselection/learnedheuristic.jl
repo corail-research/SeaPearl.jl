@@ -69,7 +69,10 @@ agent = RL.Agent(
         @test learnedheuristic.agent == agent
         @test isnothing(learnedheuristic.fitted_problem)
         @test isnothing(learnedheuristic.fitted_strategy)
-        @test isnothing(learnedheuristic.current_env)
+        @test isnothing(learnedheuristic.action_space)
+        @test isnothing(learnedheuristic.current_state)
+        @test isnothing(learnedheuristic.current_reward)
+        @test isnothing(learnedheuristic.search_metrics)
 
         learnedheuristic.fitted_problem = CPRL.GraphColoringGenerator
         learnedheuristic.fitted_strategy = CPRL.DFSearch
@@ -94,7 +97,7 @@ agent = RL.Agent(
 
             lh = CPRL.LearnedHeuristic(agent)
 
-            CPRL.update_with_cpmodel(lh, model)
+            CPRL.update_with_cpmodel!(lh, model)
 
             @test typeof(lh.action_space) == RL.DiscreteSpace{Array{Int64,1}}
             @test lh.action_space.span == [2, 3]
@@ -115,7 +118,7 @@ agent = RL.Agent(
             push!(model.constraints, CPRL.NotEqual(x, y, trailer))
 
             lh = CPRL.LearnedHeuristic(agent)
-            CPRL.update_with_cpmodel(lh, model)
+            CPRL.update_with_cpmodel!(lh, model)
 
             CPRL.sync_state!(lh, model, x)
 
@@ -161,7 +164,7 @@ agent = RL.Agent(
             push!(model.constraints, CPRL.NotEqual(x, y, trailer))
 
             lh = CPRL.LearnedHeuristic(agent)
-            CPRL.update_with_cpmodel(lh, model)
+            CPRL.update_with_cpmodel!(lh, model)
 
             obs = CPRL.get_observation!(lh, model, x)
 
@@ -203,25 +206,22 @@ agent = RL.Agent(
         push!(model.constraints, CPRL.NotEqual(x2, x3, trailer))
         push!(model.constraints, CPRL.NotEqual(x3, x4, trailer))
 
-        env = CPRL.RLEnv(model)
-
-        valueSelection.current_env = env
-
-        @test valueSelection.current_env == env
+        lh = CPRL.LearnedHeuristic(agent)
+        CPRL.update_with_cpmodel!(lh, model)
 
         false_x = first(values(model.variables))
-        obs = CPRL.observe!(valueSelection.current_env, model, false_x)
+        obs = CPRL.get_observation!(valueSelection, model, false_x)
         valueSelection.agent(RL.PRE_EPISODE_STAGE, obs)
 
 
-        obs = CPRL.observe!(valueSelection.current_env, model, x1)
+        obs = CPRL.get_observation!(valueSelection, model, x1)
         v1 = valueSelection.agent(RL.PRE_ACT_STAGE, obs)
 
         CPRL.assign!(x1, v1)
         _, _ = CPRL.fixPoint!(model, CPRL.getOnDomainChange(x1))
 
 
-        obs = CPRL.observe!(valueSelection.current_env, model, x2)
+        obs = CPRL.get_observation!(valueSelection, model, x2)
         valueSelection.agent(RL.POST_ACT_STAGE, obs)
 
         v2 = valueSelection.agent(RL.PRE_ACT_STAGE, obs)
@@ -230,7 +230,7 @@ agent = RL.Agent(
         _, _ = CPRL.fixPoint!(model, CPRL.getOnDomainChange(x2))
 
 
-        obs = CPRL.observe!(valueSelection.current_env, model, x3)
+        obs = CPRL.get_observation!(valueSelection, model, x3)
         valueSelection.agent(RL.POST_ACT_STAGE, obs)
 
         v3 = valueSelection.agent(RL.PRE_ACT_STAGE, obs)
@@ -239,7 +239,7 @@ agent = RL.Agent(
         _, _ = CPRL.fixPoint!(model, CPRL.getOnDomainChange(x2))
 
 
-        obs = CPRL.observe!(valueSelection.current_env, model, x4)
+        obs = CPRL.get_observation!(valueSelection, model, x4)
         valueSelection.agent(RL.POST_ACT_STAGE, obs)
 
         v4 = valueSelection.agent(RL.PRE_ACT_STAGE, obs)
