@@ -1,19 +1,30 @@
 using Distributions
 
-using Distributions
+struct KnapsackGenerator <: AbstractModelGenerator
+    nb_items::Int
+    max_weight::Int
+    correlation::Real
+end
+
+KnapsackGenerator(nb_items::Int, max_weight::Int) = KnapsackGenerator(nb_items, max_weight, 1)
 
 """
-    fill_with_knapsack!(cpmodel::CPModel, nb_items, max_weight, correlation=1)::CPModel
+    fill_with_generator!(cpmodel::CPModel, gen::KnapsackGenerator)::CPModel
  
 Fill the cpmodel with variables and constraints for the knapsack problem.
-The weights are uniformly distributed between 1 and `max_weight`, the values are uniformly distributed
+The weights are uniformly distributed between 1 and `gen.max_weight`, the values are uniformly distributed
 between (for each `weight`) `weight - max_weight/(10*correlation)` and `weight + max_weight/(10*correlation)`.
-It is possible to give `Inf` as the `correlation` to have a strict equality between the weights and their values.
-`correlation` must be strictly positive.
+It is possible to give `Inf` as the `gen.correlation` to have a strict equality between the weights and their values.
+`gen.correlation` must be strictly positive.
 This method is from the following paper:
 https://www.researchgate.net/publication/2548374_Core_Problems_in_Knapsack_Algorithms
 """
-function fill_with_knapsack!(cpmodel::CPModel, nb_items::Int64, max_weight::Int, correlation::Real=1)
+function fill_with_generator!(cpmodel::CPModel, gen::KnapsackGenerator)
+    correlation = gen.correlation
+    max_weight = gen.max_weight
+    nb_items = gen.nb_items
+
+
     @assert correlation > 0
     
     # create values, weights and capacity

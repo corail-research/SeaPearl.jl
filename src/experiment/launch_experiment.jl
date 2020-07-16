@@ -17,8 +17,7 @@ and I would like to keep both atm.
 """
 function launch_experiment!(
         valueSelectionArray::Array{T, 1}, 
-        problem_type::Symbol,
-        problem_params::Dict,
+        generator::AbstractModelGenerator,
         nb_episodes::Int64,
         strategy::Type{DFSearch},
         variableHeuristic,
@@ -27,8 +26,6 @@ function launch_experiment!(
     ) where T <: ValueSelection
 
     nb_heuristics = length(valueSelectionArray)
-
-    fill_with_generator! = problem_generator[problem_type]
 
     bestsolutions = zeros(Int64, (nb_episodes, nb_heuristics))
     nodevisited = zeros(Int64, (nb_episodes, nb_heuristics))
@@ -44,7 +41,7 @@ function launch_experiment!(
 
         empty!(model)
 
-        fill_with_generator!(model, problem_params)
+        fill_with_generator!(model, generator)
 
 
         for j in 1:nb_heuristics

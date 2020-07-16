@@ -1,30 +1,17 @@
-problem_generator = Dict(
-    :coloring => (models, params) -> fill_with_coloring!(models, params["nb_nodes"], params["density"]),
-    :filecoloring => (models, params) -> fill_with_coloring_file!(models, params["nb_nodes"], params["density"]),
-    :knapsack => (models, params) -> fill_with_knapsack!(models, params["nb_items"], params["max_weight"], params["correlation"])
-)
-
-coloring_params = Dict(
-    "nb_nodes" => 10,
-    "density" => 1.5
-)
-
 """
     train!(;
         ValueSelectionArray::Array{ValueSelection, 1}, 
-        problem_type::Symbol=:coloring,
-        problem_params::Dict=coloring_params,
+        generator::AbstractModelGenerator,
         nb_episodes::Int64=10,
         strategy::Type{DFSearch}=DFSearch,
-        variableHeuristic=selectVariable
+        variableHeuristic=selectVariable)
 )
 
 Launch a training on several ValueSelection instances to get the different results on the same probem instances.
 """
 function train!(;
         valueSelectionArray::Union{T, Array{T, 1}}, 
-        problem_type::Symbol=:coloring,
-        problem_params::Dict=coloring_params,
+        generator::AbstractModelGenerator,
         nb_episodes::Int64=10,
         strategy::Type{DFSearch}=DFSearch,
         variableHeuristic=selectVariable,
@@ -38,7 +25,7 @@ function train!(;
 
     for valueSelection in valueSelectionArray
         if isa(valueSelection, LearnedHeuristic)
-            valueSelection.fitted_problem = problem_type
+            valueSelection.fitted_problem = typeof(generator)
             valueSelection.fitted_strategy = strategy
             # we could add more information later ...
 
@@ -49,8 +36,7 @@ function train!(;
 
     bestsolutions, nodevisited, timeneeded = launch_experiment!(
         valueSelectionArray,
-        problem_type,
-        problem_params,
+        generator,
         nb_episodes,
         strategy,
         variableHeuristic,
@@ -64,7 +50,7 @@ function train!(;
             testmode!(valueSelection)
 
             if verbose 
-                print("Has been trained on : ", problem_type)
+                print("Has been trained on : ", typeof(generator))
                 print(" ... with strategy : ", strategy)
                 println(" ... during ", nb_episodes, " episodes.")
                 println("Training mode now desactivated !")
