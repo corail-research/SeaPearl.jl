@@ -16,22 +16,25 @@ end
             trailer = CPRL.Trailer()
             model = CPRL.CPModel(trailer)
 
-            env = CPRL.RLEnv(model)
+            lh = CPRL.LearnedHeuristic(agent)
+            CPRL.update_with_cpmodel(lh, model)
 
-            env.reward = 0
-            CPRL.set_reward!(CPRL.DecisionPhase(), env, model)
-            @test env.reward == -1/40
+            lh.current_reward = 0
+            CPRL.set_reward!(CPRL.DecisionPhase(), lh, model)
+            @test lh.current_reward == -1/40
         end
+
         @testset "set_reward!(EndingPhase)" begin
             trailer = CPRL.Trailer()
             model = CPRL.CPModel(trailer)
 
-            env = CPRL.RLEnv(model)
+            lh = CPRL.LearnedHeuristic(agent)
+            CPRL.update_with_cpmodel(lh, model)
 
-            env.reward = 5
+            lh.current_reward = 5
             model.statistics.numberOfNodes = 30
-            CPRL.set_reward!(CPRL.EndingPhase(), env, model, nothing)
-            @test env.reward == 6
+            CPRL.set_reward!(CPRL.EndingPhase(), lh, model, nothing)
+            @test lh.current_reward == 6
         end
     end
     @testset "Custom reward" begin
@@ -39,21 +42,23 @@ end
             trailer = CPRL.Trailer()
             model = CPRL.CPModel(trailer)
 
-            env = CPRL.RLEnv{TestReward}(model)
+            lh = CPRL.LearnedHeuristic{TestReward}(agent)
+            CPRL.update_with_cpmodel(lh, model)
 
-            env.reward = 0
-            CPRL.set_reward!(CPRL.DecisionPhase(), env, model)
-            @test env.reward == 3
+            lh.current_reward = 0
+            CPRL.set_reward!(CPRL.DecisionPhase(), lh, model)
+            @test lh.current_reward == 3
         end
         @testset "set_reward!(EndingPhase)" begin
             trailer = CPRL.Trailer()
             model = CPRL.CPModel(trailer)
 
-            env = CPRL.RLEnv{TestReward}(model)
+            lh = CPRL.LearnedHeuristic{TestReward}(agent)
+            CPRL.update_with_cpmodel(lh, model)
 
-            env.reward = 6
-            CPRL.set_reward!(CPRL.EndingPhase(), env, model, nothing)
-            @test env.reward == 1
+            lh.current_reward = 6
+            CPRL.set_reward!(CPRL.EndingPhase(), lh, model, nothing)
+            @test lh.current_reward == 1
         end
     end
 end
