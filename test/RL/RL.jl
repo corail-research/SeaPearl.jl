@@ -8,10 +8,7 @@ using GeometricFlux
     include("env/spaces/spaces.jl")
     include("env/env.jl")
     include("env/reward.jl")
-    include("preprocessor/preprocessor.jl")
     include("agents/agents.jl")
-    include("hooks.jl")
-    include("stop_conditions.jl")
     include("explorers/directed_explorer.jl")
 
 end
