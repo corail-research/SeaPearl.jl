@@ -188,8 +188,6 @@ agent = RL.Agent(
 
     @testset "LearnedHeuristic in action" begin 
 
-        valueSelection = CPRL.LearnedHeuristic(agent)
-
         trailer = CPRL.Trailer()
         model = CPRL.CPModel(trailer)
 
@@ -210,39 +208,39 @@ agent = RL.Agent(
         CPRL.update_with_cpmodel!(lh, model)
 
         false_x = first(values(model.variables))
-        obs = CPRL.get_observation!(valueSelection, model, false_x)
-        valueSelection.agent(RL.PRE_EPISODE_STAGE, obs)
+        obs = CPRL.get_observation!(lh, model, false_x)
+        lh.agent(RL.PRE_EPISODE_STAGE, obs)
 
 
-        obs = CPRL.get_observation!(valueSelection, model, x1)
-        v1 = valueSelection.agent(RL.PRE_ACT_STAGE, obs)
+        obs = CPRL.get_observation!(lh, model, x1)
+        v1 = lh.agent(RL.PRE_ACT_STAGE, obs)
 
         CPRL.assign!(x1, v1)
         _, _ = CPRL.fixPoint!(model, CPRL.getOnDomainChange(x1))
 
 
-        obs = CPRL.get_observation!(valueSelection, model, x2)
-        valueSelection.agent(RL.POST_ACT_STAGE, obs)
+        obs = CPRL.get_observation!(lh, model, x2)
+        lh.agent(RL.POST_ACT_STAGE, obs)
 
-        v2 = valueSelection.agent(RL.PRE_ACT_STAGE, obs)
+        v2 = lh.agent(RL.PRE_ACT_STAGE, obs)
 
         CPRL.assign!(x2, v2)
         _, _ = CPRL.fixPoint!(model, CPRL.getOnDomainChange(x2))
 
 
-        obs = CPRL.get_observation!(valueSelection, model, x3)
-        valueSelection.agent(RL.POST_ACT_STAGE, obs)
+        obs = CPRL.get_observation!(lh, model, x3)
+        lh.agent(RL.POST_ACT_STAGE, obs)
 
-        v3 = valueSelection.agent(RL.PRE_ACT_STAGE, obs)
+        v3 = lh.agent(RL.PRE_ACT_STAGE, obs)
 
         CPRL.assign!(x3, v3)
         _, _ = CPRL.fixPoint!(model, CPRL.getOnDomainChange(x2))
 
 
-        obs = CPRL.get_observation!(valueSelection, model, x4)
-        valueSelection.agent(RL.POST_ACT_STAGE, obs)
+        obs = CPRL.get_observation!(lh, model, x4)
+        lh.agent(RL.POST_ACT_STAGE, obs)
 
-        v4 = valueSelection.agent(RL.PRE_ACT_STAGE, obs)
+        v4 = lh.agent(RL.PRE_ACT_STAGE, obs)
 
     end
 

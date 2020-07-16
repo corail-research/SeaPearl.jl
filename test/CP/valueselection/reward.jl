@@ -1,12 +1,12 @@
 struct TestReward <: CPRL.AbstractReward end
 
 function CPRL.set_reward!(::CPRL.DecisionPhase, lh::CPRL.LearnedHeuristic{TestReward, O}, model::CPRL.CPModel) where O <: CPRL.ActionOutput
-    env.reward += 3
+    lh.current_reward += 3
     nothing
 end
 
-function CPRL.set_reward!(::CPRL.EndingPhase, env::CPRL.LearnedHeuristic{TestReward, O}, model::CPRL.CPModel, symbol::Union{Nothing, Symbol}) where O <: CPRL.ActionOutput
-    env.reward += -5
+function CPRL.set_reward!(::CPRL.EndingPhase, lh::CPRL.LearnedHeuristic{TestReward, O}, model::CPRL.CPModel, symbol::Union{Nothing, Symbol}) where O <: CPRL.ActionOutput
+    lh.current_reward += -5
     nothing
 end
 
