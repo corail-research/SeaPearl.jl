@@ -119,7 +119,7 @@ bestsolutions, nodevisited, timeneeded = CPRL.train!(
     valueSelectionArray=[learnedHeuristic, heuristic_min], 
     #valueSelectionArray=learnedHeuristic,
     generator=coloring_generator,
-    nb_episodes=200,
+    nb_episodes=400,
     strategy=CPRL.DFSearch,
     variableHeuristic=selectRandVariable,
     verbose = false
@@ -150,7 +150,7 @@ a, b = size(nodevisited)
 x = 1:a
 
 p2 = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 200])
-p3 = plot(x, timeneeded, xlabel="Episode", ylabel="Time needed", ylims = [0, 0.02])
+p3 = plot(x, timeneeded, xlabel="Episode", ylabel="Time needed", ylims = [0, 0.01])
 
 
 p = plot(p1, p2, p3, legend = false, layout = (3, 1))
