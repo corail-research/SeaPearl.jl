@@ -84,7 +84,7 @@ agent = RL.Agent(
         role = :DEFAULT_PLAYER
     )
 
-learnedHeuristic = CPRL.LearnedHeuristic{InspectReward, CPRL.FixedOutput}(agent)
+learnedHeuristic = CPRL.LearnedHeuristic{CPRL.DefaultStateRepresentation, InspectReward, CPRL.FixedOutput}(agent)
 
 selectMin(x::CPRL.IntVar) = CPRL.minimum(x.domain)
 selectMax(x::CPRL.IntVar) = CPRL.maximum(x.domain)

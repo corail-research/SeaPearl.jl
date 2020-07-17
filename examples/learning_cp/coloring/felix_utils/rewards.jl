@@ -1,7 +1,10 @@
 
 struct InspectReward <: CPRL.AbstractReward end 
 
-function CPRL.set_reward!(::CPRL.StepPhase, lh::CPRL.LearnedHeuristic{InspectReward, O}, model::CPRL.CPModel, symbol::Union{Nothing, Symbol}) where O <: CPRL.ActionOutput
+function CPRL.set_reward!(::CPRL.StepPhase, lh::CPRL.LearnedHeuristic{SR, InspectReward, O}, model::CPRL.CPModel, symbol::Union{Nothing, Symbol}) where {
+    SR <: CPRL.AbstractStateRepresentation,
+    O <: CPRL.ActionOutput
+}
     if !isnothing(lh.search_metrics.current_best) && lh.search_metrics.current_best == 3
         lh.current_reward = 0
     else
@@ -27,7 +30,10 @@ function CPRL.set_reward!(::CPRL.StepPhase, lh::CPRL.LearnedHeuristic{InspectRew
     nothing
 end
 
-function CPRL.set_reward!(::CPRL.DecisionPhase, lh::CPRL.LearnedHeuristic{InspectReward, O}, model::CPRL.CPModel) where O <: CPRL.ActionOutput
+function CPRL.set_reward!(::CPRL.DecisionPhase, lh::CPRL.LearnedHeuristic{SR, InspectReward, O}, model::CPRL.CPModel) where {
+    SR <: CPRL.AbstractStateRepresentation,
+    O <: CPRL.ActionOutput
+}
     if !isnothing(lh.search_metrics.current_best) && lh.search_metrics.current_best == 3
         lh.current_reward = 0
     else
@@ -38,7 +44,10 @@ function CPRL.set_reward!(::CPRL.DecisionPhase, lh::CPRL.LearnedHeuristic{Inspec
     nothing
 end
 
-function CPRL.set_reward!(::CPRL.EndingPhase, env::CPRL.LearnedHeuristic{InspectReward, O}, model::CPRL.CPModel, symbol::Union{Nothing, Symbol}) where O <: CPRL.ActionOutput
+function CPRL.set_reward!(::CPRL.EndingPhase, env::CPRL.LearnedHeuristic{SR, InspectReward, O}, model::CPRL.CPModel, symbol::Union{Nothing, Symbol}) where { 
+    SR <: CPRL.AbstractStateRepresentation,
+    O <: CPRL.ActionOutput
+}
     #lh.current_reward = - 10 * model.statistics.numberOfNodes
     #lh.current_reward += - 30/(model.statistics.numberOfNodes)
     #lh.current_reward = + lh.search_metrics.total
