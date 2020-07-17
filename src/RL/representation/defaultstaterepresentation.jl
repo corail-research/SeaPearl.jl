@@ -23,7 +23,7 @@ function update_representation!(sr::DefaultStateRepresentation, model::CPModel, 
     sr
 end
 
-function to_arraybuffer(sr::DefaultStateRepresentation, rows=nothing::Union{Nothing, Int})::Array{Float32, 2})
+function to_arraybuffer(sr::DefaultStateRepresentation, rows=nothing::Union{Nothing, Int})::Array{Float32, 2}
     adj = Matrix(LightGraphs.LinAlg.adjacency_matrix(sr.cplayergraph))
     var_id = sr.variable_id
 
