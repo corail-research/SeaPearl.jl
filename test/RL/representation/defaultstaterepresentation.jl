@@ -35,9 +35,9 @@ adj = [0 1 0 1;
 
         @test Matrix(LightGraphs.LinAlg.adjacency_matrix(dsr.cplayergraph)) == [0 0 1 1 0 0
                                                                                 0 0 1 1 0 0
+                                                                                1 1 0 0 0 1
                                                                                 1 1 0 0 1 1
-                                                                                1 1 0 0 1 1
-                                                                                0 0 1 1 0 0
+                                                                                0 0 0 1 0 0
                                                                                 0 0 1 1 0 0]
 
         @test dsr.features == Float32[  1 1 0 0 0 0
