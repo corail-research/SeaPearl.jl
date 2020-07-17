@@ -14,6 +14,7 @@ using CPRL
     include("homemade_bridging.jl")
     include("variables.jl")
     include("constraints.jl")
+    include("jump.jl")
 
     # @testset "Creating an optimizer" begin
     #     model = CPRL.Optimizer()
