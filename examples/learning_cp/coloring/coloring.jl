@@ -11,17 +11,10 @@ gr()
 include("felix_utils/utils.jl")
 ####
 
-problem_generator = Dict(
-    :coloring => CPRL.fill_with_coloring!
-)
-
-coloring_params = Dict(
-    "nb_nodes" => 10,
-    "density" => 1.4
-)
+coloring_generator = CPRL.GraphColoringGenerator(10, 1.4)
 
 numInFeatures = 16
-numberOfCPNodes = 1 + floor(Int64, coloring_params["nb_nodes"] * ( 3 + coloring_params["density"] ))
+numberOfCPNodes = 1 + floor(Int64, coloring_generator.nb_nodes * ( 3 + coloring_generator.density ))
 #numberOfCPNodes = 141
 
 state_size = (numberOfCPNodes, numInFeatures + numberOfCPNodes + 2 + 1, 1)
@@ -125,9 +118,8 @@ end
 bestsolutions, nodevisited, timeneeded = CPRL.train!(
     valueSelectionArray=[learnedHeuristic, heuristic_min], 
     #valueSelectionArray=learnedHeuristic,
-    problem_type=:coloring,
-    problem_params=coloring_params,
-    nb_episodes=400,
+    generator=coloring_generator,
+    nb_episodes=200,
     strategy=CPRL.DFSearch,
     variableHeuristic=selectRandVariable,
     verbose = false
@@ -146,8 +138,7 @@ p1 = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", yl
 bestsolutions, nodevisited, timeneeded = CPRL.benchmark_solving(
     valueSelectionArray=[learnedHeuristic, heuristic_min], 
     #valueSelectionArray=learnedHeuristic,
-    problem_type=:coloring,
-    problem_params=coloring_params,
+    generator=coloring_generator,
     nb_episodes=5,
     strategy=CPRL.DFSearch,
     variableHeuristic=selectRandVariable,
