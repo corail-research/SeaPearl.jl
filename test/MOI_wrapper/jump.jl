@@ -99,7 +99,7 @@ end
         model = Model(CPRL.Optimizer)
 
         @variable(model, 0 <= x[1:n] <= 1)
-        @constraint(model, 0 <= 4 * x[1] + 5 * x[2] + 8 * x[3] + 3 * x[4] <= capacity)
+        @constraint(model, 4 * x[1] + 5 * x[2] + 8 * x[3] + 3 * x[4] <= capacity)
 
         @expression(model, val_sum, 8 * x[1] + 10 * x[2] + 15 * x[3] + 4 * x[4])
         @objective(model, Min, -val_sum)
