@@ -57,10 +57,8 @@ agent = RL.Agent(
 
 @testset "learnedheuristic.jl" begin
 
-    @testset "include" begin
-        include("searchmetrics.jl")
-        include("reward.jl")
-    end
+    include("searchmetrics.jl")
+    include("reward.jl")
 
     @testset "LearnedHeuristic" begin 
 
