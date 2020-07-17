@@ -30,15 +30,22 @@ adj = [0 1 0 1;
         push!(model.constraints, CPRL.NotEqual(x, y, trailer))
 
         dsr = CPRL.DefaultStateRepresentation(model)
+        CPRL.update_representation!(dsr, model, x)
 
-        @test dsr.cplayergraph == CPRL.CPLayerGraph(model)
+
+        @test Matrix(LightGraphs.LinAlg.adjacency_matrix(dsr.cplayergraph)) == [0 0 1 1 0 0
+                                                                                0 0 1 1 0 0
+                                                                                1 1 0 0 1 1
+                                                                                1 1 0 0 1 1
+                                                                                0 0 1 1 0 0
+                                                                                0 0 1 1 0 0]
 
         @test dsr.features == Float32[  1 1 0 0 0 0
                                         0 0 1 1 0 0
                                         0 0 0 0 1 1]
-        @test cpg.variable_id == 3
-        @test cpg.possible_value_ids == [6]
-        @test CPRL.cpVertexFromIndex(CPRL.CPLayerGraph(model), cpg.variable_id).variable == model.variables["x"]
+        @test dsr.variable_id == 3
+        @test dsr.possible_value_ids == [6]
+        @test CPRL.cpVertexFromIndex(CPRL.CPLayerGraph(model), dsr.variable_id).variable == model.variables["x"]
     end
 
     @testset "update_representation!()" begin
@@ -53,6 +60,7 @@ adj = [0 1 0 1;
         push!(model.constraints, CPRL.NotEqual(x, y, trailer))
 
         dsr = CPRL.DefaultStateRepresentation(model)
+        CPRL.update_representation!(dsr, model, x)
 
         @test Matrix(LightGraphs.LinAlg.adjacency_matrix(dsr.cplayergraph)) == [0 0 1 1 0 0
                                                     0 0 1 1 0 0
@@ -65,9 +73,9 @@ adj = [0 1 0 1;
                                                         0 0 1 1 0 0
                                                         0 0 0 0 1 1]
 
-        @test cpg.variable_id == 3
-        @test cpg.possible_value_ids == [5, 6]
-        @test CPRL.cpVertexFromIndex(CPRL.CPLayerGraph(model), cpg.variable_id).variable == model.variables["x"]
+        @test dsr.variable_id == 3
+        @test dsr.possible_value_ids == [5, 6]
+        @test CPRL.cpVertexFromIndex(CPRL.CPLayerGraph(model), dsr.variable_id).variable == model.variables["x"]
 
         CPRL.assign!(y, 2)
         g = CPRL.CPLayerGraph(model)
@@ -84,9 +92,9 @@ adj = [0 1 0 1;
         @test dsr.features == Float32[   1 1 0 0 0 0
                                                         0 0 1 1 0 0
                                                         0 0 0 0 1 1]
-        @test cpg.variable_id == 4
-        @test cpg.possible_value_ids == [5]
-        @test CPRL.cpVertexFromIndex(g, cpg.variable_id).variable == model.variables["y"]
+        @test dsr.variable_id == 4
+        @test dsr.possible_value_ids == [5]
+        @test CPRL.cpVertexFromIndex(g, dsr.variable_id).variable == model.variables["y"]
 
     end
 
@@ -152,7 +160,7 @@ adj = [0 1 0 1;
         push!(model.constraints, CPRL.NotEqual(x, y, trailer))
 
         dsr = CPRL.DefaultStateRepresentation(model)
-        CPRL.update_representation!(dsr, model, y)
+        CPRL.update_representation!(dsr, model, x)
 
         max_cpnodes = 8
 
