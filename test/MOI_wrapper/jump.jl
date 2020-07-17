@@ -1,4 +1,8 @@
 using JuMP
+using CPRL
+using MathOptInterface
+
+const MOI = MathOptInterface
 
 function selectVariableColoring(model::CPRL.CPModel, sortedPermutation, degrees)
     maxDegree = 0
@@ -19,6 +23,14 @@ function selectVariableColoring(model::CPRL.CPModel, sortedPermutation, degrees)
         end
     end
     return toReturn
+end
+
+function selectVariableKnapsack(model::CPRL.CPModel)
+    i = 1
+    while CPRL.isbound(model.variables[string(i)])
+        i += 1
+    end
+    return model.variables[string(i)]
 end
 
 @testset "Using CPRL with JuMP" begin
@@ -66,8 +78,8 @@ end
 
         # cpmodel = MOI.get(model, CPRL.CPModel())
 
-        @test length(collect(cpmodel.variables)) == 5
-        @test length(cpmodel.constraints) == 7
+        # @test length(collect(cpmodel.variables)) == 5
+        # @test length(cpmodel.constraints) == 7
 
         # println(MOI.get(model, CPRL.CPModel()))
 
@@ -78,5 +90,36 @@ end
         println()
         println(value.(x))
         println(value(y))
+    end
+
+    @testset "Knapsack with JuMP" begin
+        n = 4
+        capacity = 11
+
+        model = Model(CPRL.Optimizer)
+
+        @variable(model, 0 <= x[1:n] <= 1)
+        @constraint(model, 0 <= 4 * x[1] + 5 * x[2] + 8 * x[3] + 3 * x[4] <= capacity)
+
+        @expression(model, val_sum, 8 * x[1] + 10 * x[2] + 15 * x[3] + 4 * x[4])
+        @objective(model, Min, -val_sum)
+
+        variableheuristic(m) = selectVariableKnapsack(m)
+
+        MOI.set(model, CPRL.VariableSelection(), variableheuristic)
+
+        optimize!(model)
+        status = MOI.get(model, MOI.TerminationStatus())
+
+        @test status == MOI.OPTIMAL
+        @test has_values(model)
+        @test value.(x) == [0, 0, 1, 1]
+        @test value(val_sum) == 19
+        @test value(4 * x[1] + 5 * x[2] + 8 * x[3] + 3 * x[4]) == 11
+
+        println(model)
+        println(status)
+        println(has_values(model))
+        println(value.(x))
     end
 end
