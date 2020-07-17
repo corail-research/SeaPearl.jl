@@ -39,7 +39,7 @@ include("lh_utils.jl")
 Create an RL environment and a first observation. Finally make the agent call the process of 
 the pre episode stage (basically making sure that the buffer is empty).
 """
-function (valueSelection::LearnedHeuristic{R})(::InitializingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol}) where R<:AbstractReward
+function (valueSelection::LearnedHeuristic)(::InitializingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
     # create the environment
     update_with_cpmodel!(valueSelection, model)
     false_x = first(values(model.variables))
