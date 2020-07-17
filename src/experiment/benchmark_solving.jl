@@ -2,8 +2,7 @@
 """
     benchmark_solving!(;
         learnedHeuristic::Union{T, Array{T, 1}}, 
-        problem_type::Symbol=:coloring,
-        problem_params::Dict=coloring_params,
+        generator::AbstractModelGenerator,
         nb_episodes::Int64=10,
         strategy::Type{DFSearch}=DFSearch,
         variableHeuristic=selectVariable,
@@ -17,8 +16,7 @@ We could rename it experiment and add a train::Bool argument.
 """
 function benchmark_solving(;
         valueSelectionArray::Union{T, Array{T, 1}}, 
-        problem_type::Symbol=:coloring,
-        problem_params::Dict=coloring_params,
+        generator::AbstractModelGenerator,
         nb_episodes::Int64=10,
         strategy::Type{DFSearch}=DFSearch,
         variableHeuristic=selectVariable,
@@ -33,7 +31,7 @@ function benchmark_solving(;
     for valueSelection in valueSelectionArray
         # give information to the learned heuristic
         if isa(valueSelection, LearnedHeuristic)
-            if valueSelection.fitted_problem != problem_type
+            if valueSelection.fitted_problem != typeof(generator)
                 @warn "This learned heuristic was trained on a different problem type."
             end
 
@@ -49,8 +47,7 @@ function benchmark_solving(;
     # launch the experiment
     bestsolutions, nodevisited, timeneeded = launch_experiment!(
         valueSelectionArray, 
-        problem_type, 
-        problem_params, 
+        generator, 
         nb_episodes, 
         strategy, 
         variableHeuristic, 
