@@ -1,16 +1,20 @@
 
 Flux.testmode!(lh::LearnedHeuristic, mode = true) = Flux.testmode!(lh.agent, mode) 
 
-function update_with_cpmodel!(lh::LearnedHeuristic, model::CPModel)
-    if isnothing(model.RLRep)
-        model.RLRep = CPLayerGraph(model)
-    end
+function update_with_cpmodel!(lh::LearnedHeuristic{SR, R, O}, model::CPModel) where {
+    SR <: AbstractStateRepresentation, 
+    R <: AbstractReward, 
+    O <: ActionOutput
+}
+
     # construct the action_space
     variables = collect(values(model.variables))
     valuesOfVariables = sort(arrayOfEveryValue(variables))
 
     lh.action_space = RL.DiscreteSpace(valuesOfVariables)
-    lh.current_state = CPGraph(model, 0)
+    # state rep construction
+    lh.current_state = SR(model)
+
     lh.current_reward = 0
     lh.search_metrics = SearchMetrics(model)
 
@@ -25,10 +29,7 @@ include("reward.jl")
 Synchronize the env with the CPModel.
 """
 function sync_state!(lh::LearnedHeuristic, model::CPModel, x::AbstractIntVar)
-    if isnothing(model.RLRep)
-        model.RLRep = CPLayerGraph(model)
-    end
-    update_graph!(lh.current_state, model.RLRep, x)
+    update_representation!(lh.current_state, model, x)
     nothing 
 end
 
@@ -46,7 +47,7 @@ function get_observation!(lh::LearnedHeuristic, model::CPModel, x::AbstractIntVa
     # synchronize state: we could delete env.state, we do not need it 
     sync_state!(lh, model, x)
 
-    state = to_array(lh.current_state, lh.cpnodes_max)
+    state = to_arraybuffer(lh.current_state, lh.cpnodes_max)
     state = reshape(state, size(state)..., 1)
     # println("reward", reward)
     
