@@ -65,8 +65,14 @@ end
 
         # define the heuristic used for variable selection
         variableheuristic(m) = selectVariableColoring(m, sortedPermutation, degrees)
-
         MOI.set(model, CPRL.VariableSelection(), variableheuristic)
+
+        # Define the heuristic used for value selection
+        # numberOfSteps = 0
+        # valueheuristic = CPRL.BasicHeuristic()
+        # MOI.set(model, CPRL.MOIValueSelection(), valueheuristic)
+        # @test numberOfSteps == 5
+
 
         optimize!(model)
         status = MOI.get(model, MOI.TerminationStatus())
@@ -75,16 +81,6 @@ end
         @test has_values(model)
         @test value.(x) == [1, 2, 1, 1]
         @test value(y) == 2
-
-        # cpmodel = MOI.get(model, CPRL.CPModel())
-
-        # @test length(collect(cpmodel.variables)) == 5
-        # @test length(cpmodel.constraints) == 7
-
-        # println(MOI.get(model, CPRL.CPModel()))
-
-        # output = outputFromCPRL(solution)
-        # printSolution(output)
         println(model)
         println(status)
         println()

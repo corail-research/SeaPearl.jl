@@ -34,6 +34,7 @@ end
 
 MOI.supports(::Optimizer, ::MOI.RawParameter) = true
 MOI.supports(::Optimizer, ::CPRL.VariableSelection) = true
+MOI.supports(::Optimizer, ::CPRL.MOIValueSelection) = true
 MOI.supports(::Optimizer, ::MOI.VariablePrimal) = true
 
 function MOI.set(model::Optimizer, p::MOI.RawParameter, value)
@@ -42,6 +43,10 @@ end
 
 function MOI.set(model::Optimizer, ::CPRL.VariableSelection, heuristic::Function)
     model.variableselection.heuristic = heuristic
+end
+
+function MOI.set(model::Optimizer, ::MOIValueSelection, valueselection::ValueSelection)
+    model.valueselection.inner = valueselection
 end
 
 
