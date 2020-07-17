@@ -9,7 +9,7 @@ mutable struct MOIVariable
     vi::MOI.VariableIndex
 end
 
-struct MOIConstraint{T <: MOI.AbstractSet}
+struct MOIConstraint{T <: Union{MOI.AbstractSet, CPRL.Constraint}}
     type::Type{T}
     args::Tuple
     ci::MOI.ConstraintIndex

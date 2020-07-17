@@ -24,7 +24,7 @@ end
 function MOI.supports_constraint(
     ::Optimizer, ::Type{MOI.ScalarAffineFunction{Float64}}, ::Type{F}
 ) where {F <: Union{
-    MOI.EqualTo{Float64}
+    MOI.EqualTo{Float64}, MOI.LessThan{Float64}
 }}
     return true
 end
