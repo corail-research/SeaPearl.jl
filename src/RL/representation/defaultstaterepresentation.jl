@@ -65,3 +65,47 @@ function branchingvariable_id(array::Array{Float32, 2})::Int64
 
     return var_code[1]
 end
+
+
+"""
+    function featurize(cpmodel::CPModel)
+
+Create features for every node of the graph. Supposed to be overwritten. 
+Default behavior is to call `default_featurize`.
+"""
+featurize(g::CPLayerGraph) = default_featurize(g::CPLayerGraph)
+
+"""
+    function default_featurize(g::CPLayerGraph)
+
+Create a feature consisting of a one-hot encoder for the type of vertex (variable, constraint or value).
+Hence it is a feature of size 3.
+"""
+function default_featurize(g::CPLayerGraph)
+    features = zeros(Float32, nv(g), 3)
+    for i in 1:nv(g)
+        cp_vertex = CPRL.cpVertexFromIndex(g, i)
+        if isa(cp_vertex, ConstraintVertex)
+            features[i, 1] = 1.0f0
+        end
+        if isa(cp_vertex, VariableVertex)
+            features[i, 2] = 1.0f0
+        end
+        if isa(cp_vertex, ValueVertex)
+            features[i, 3] = 1.0f0
+        end
+    end
+    features
+end
+
+"""
+    function possible_values(cpgraph::CPGraph, g::CPLayerGraph)
+
+Return the ids of the values that the variable denoted by `variable_id` can take.
+It actually returns the id of every ValueVertex neighbors of the VariableVertex.
+"""
+function possible_values(variable_id::Int64, g::CPLayerGraph)
+    possible_values = LightGraphs.neighbors(g, variable_id)
+    filter!((id) -> isa(cpVertexFromIndex(g, convert(Int64, id)), ValueVertex), possible_values)
+    return possible_values
+end
