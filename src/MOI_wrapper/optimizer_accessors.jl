@@ -24,7 +24,7 @@ Empty a given Optimizer.
 function MOI.empty!(model::Optimizer)
     # empty the cpmodel
     Base.empty!(model.cpmodel)
-    model.variableselection = VariableSelection()
+    model.variableselection = MOIVariableSelection()
     model.terminationStatus = MOI.OPTIMIZE_NOT_CALLED
     Base.empty!(model.moimodel.variables)
     Base.empty!(model.moimodel.constraints)
@@ -35,7 +35,7 @@ function MOI.empty!(model::Optimizer)
 end
 
 MOI.supports(::Optimizer, ::MOI.RawParameter) = true
-MOI.supports(::Optimizer, ::CPRL.VariableSelection) = true
+MOI.supports(::Optimizer, ::CPRL.MOIVariableSelection) = true
 MOI.supports(::Optimizer, ::CPRL.MOIValueSelection) = true
 MOI.supports(::Optimizer, ::MOI.VariablePrimal) = true
 
@@ -43,7 +43,7 @@ function MOI.set(model::Optimizer, p::MOI.RawParameter, value)
     model.options[p.name] = value
 end
 
-function MOI.set(model::Optimizer, ::CPRL.VariableSelection, heuristic::Function)
+function MOI.set(model::Optimizer, ::CPRL.MOIVariableSelection, heuristic::Function)
     model.variableselection.heuristic = heuristic
 end
 

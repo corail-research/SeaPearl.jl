@@ -56,7 +56,7 @@ function solve_knapsack_JuMP(filename::String; benchmark=false)
 
     variableheuristic(m) = selectVariableWithoutDP(m)
 
-    MOI.set(model, CPRL.VariableSelection(), variableheuristic)
+    MOI.set(model, CPRL.MOIVariableSelection(), variableheuristic)
 
     optimize!(model)
     status = MOI.get(model, MOI.TerminationStatus())

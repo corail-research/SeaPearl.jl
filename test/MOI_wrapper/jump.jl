@@ -65,7 +65,7 @@ end
 
         # define the heuristic used for variable selection
         variableheuristic(m) = selectVariableColoring(m, sortedPermutation, degrees)
-        MOI.set(model, CPRL.VariableSelection(), variableheuristic)
+        MOI.set(model, CPRL.MOIVariableSelection(), variableheuristic)
 
         # Define the heuristic used for value selection
         # numberOfSteps = 0
@@ -102,7 +102,7 @@ end
 
         variableheuristic(m) = selectVariableKnapsack(m)
 
-        MOI.set(model, CPRL.VariableSelection(), variableheuristic)
+        MOI.set(model, CPRL.MOIVariableSelection(), variableheuristic)
 
         optimize!(model)
         status = MOI.get(model, MOI.TerminationStatus())

@@ -81,7 +81,7 @@ function solve_coloring_MOI(input_file; benchmark=false)
     # define the heuristic used for variable selection
     variableheuristic(m) = selectVariable(m, sortedPermutation, degrees)
 
-    MOI.set(model, CPRL.VariableSelection(), variableheuristic)
+    MOI.set(model, CPRL.MOIVariableSelection(), variableheuristic)
 
     solution = MOI.optimize!(model)
 
@@ -119,7 +119,7 @@ function solve_coloring_JuMP(input_file; benchmark=false)
     # define the heuristic used for variable selection
     variableheuristic(m) = selectVariable(m, sortedPermutation, degrees)
 
-    MOI.set(model, CPRL.VariableSelection(), variableheuristic)
+    MOI.set(model, CPRL.MOIVariableSelection(), variableheuristic)
 
     optimize!(model)
     status = MOI.get(model, MOI.TerminationStatus())
