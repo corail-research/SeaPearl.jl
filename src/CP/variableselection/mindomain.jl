@@ -1,5 +1,7 @@
 struct MinDomainVariableSelection{TakeObjective} end
 
+MinDomainVariableSelection(;take_objective=true) = MinDomainVariableSelection{take_objective}()
+
 function (::MinDomainVariableSelection{false})(cpmodel::CPModel)
     selectedVar = nothing
     minSize = typemax(Int)

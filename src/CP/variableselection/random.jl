@@ -1,5 +1,7 @@
 struct RandomVariableSelection{TakeObjective} end
 
+RandomVariableSelection(;take_objective=true) = RandomVariableSelection{take_objective}()
+
 function (::RandomVariableSelection{false})(cpmodel::CPModel; rng=Base.Random.RANDOM_SEED)
     var_ids = keys(cpmodel.variables)
     acceptable_ids = String[]
