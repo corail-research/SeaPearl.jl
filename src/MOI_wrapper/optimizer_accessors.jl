@@ -23,11 +23,13 @@ Empty a given Optimizer.
 """
 function MOI.empty!(model::Optimizer)
     # empty the cpmodel
-    empty!(model.cpmodel.variables)
-    empty!(model.cpmodel.constraints)
-    empty!(model.cpmodel.trailer.current)
-    empty!(model.cpmodel.trailer.prior)
-    empty!(model.cpmodel.solutions)
+    Base.empty!(model.cpmodel)
+    model.variableselection = VariableSelection()
+    model.terminationStatus = MOI.OPTIMIZE_NOT_CALLED
+    Base.empty!(model.moimodel.variables)
+    Base.empty!(model.moimodel.constraints)
+    Base.empty!(model.moimodel.affines)
+    model.moimodel.objective_identifier = nothing
 
     # do not empty the options atm
 end
