@@ -79,7 +79,7 @@ end
 
         @test status == MOI.OPTIMAL
         @test has_values(model)
-        @test value.(x) == [1, 2, 1, 1]
+        @test value.(x) == [1, 2, 1, 1] || value.(x) == [2, 1, 2, 2] #TODO: See Issue #43
         @test value(y) == 2
         println(model)
         println(status)
