@@ -1,21 +1,23 @@
 
-mutable struct DefaultStateRepresentation <: AbstractStateRepresentation
+struct DefaultFeaturization <: AbstractFeaturization end
+
+mutable struct DefaultStateRepresentation{F} <: FeaturizedStateRepresentation{F}
     cplayergraph::CPLayerGraph
-    features::Array{Float32, 2}
+    features::Union{Nothing, Array{Float32, 2}}
     variable_id::Union{Nothing, Int64}
     possible_value_ids::Union{Nothing, Array{Int64}}
 end
 
-"""
-
-Please add Feature type later.
-"""
-function DefaultStateRepresentation(model::CPModel)
+function DefaultStateRepresentation{F}(model::CPModel) where F
     g = CPLayerGraph(model)
-    features = featurize(g)
+    sr = DefaultStateRepresentation{F}(g, nothing, nothing, nothing)
 
-    DefaultStateRepresentation(g, transpose(features), nothing, nothing)
+    features = featurize(sr)
+    sr.features = transpose(features)
+    sr
 end
+
+DefaultStateRepresentation(m::CPModel) = DefaultStateRepresentation{DefaultFeaturization}(m::CPModel)
 
 function update_representation!(sr::DefaultStateRepresentation, model::CPModel, x::AbstractIntVar)
     sr.variable_id = indexFromCpVertex(sr.cplayergraph, VariableVertex(x))
@@ -68,20 +70,13 @@ end
 
 
 """
-    function featurize(cpmodel::CPModel)
+    function featurize(sr::DefaultStateRepresentation{DefaultFeaturization})
 
 Create features for every node of the graph. Supposed to be overwritten. 
 Default behavior is to call `default_featurize`.
 """
-featurize(g::CPLayerGraph) = default_featurize(g::CPLayerGraph)
-
-"""
-    function default_featurize(g::CPLayerGraph)
-
-Create a feature consisting of a one-hot encoder for the type of vertex (variable, constraint or value).
-Hence it is a feature of size 3.
-"""
-function default_featurize(g::CPLayerGraph)
+function featurize(sr::DefaultStateRepresentation{DefaultFeaturization})
+    g = sr.cplayergraph
     features = zeros(Float32, nv(g), 3)
     for i in 1:nv(g)
         cp_vertex = CPRL.cpVertexFromIndex(g, i)
