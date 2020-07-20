@@ -8,7 +8,7 @@ using DataStructures
         model = CPRL.CPModel(trailer)
         model.limit.numberOfNodes = 1
         toCall = Stack{Function}()
-        @test CPRL.expandDfs!(toCall, model, (model) -> nothing, CPRL.BasicHeuristic()) == :NodeLimitStop
+        @test CPRL.expandDfs!(toCall, model, CPRL.MinDomainVariableSelection(), CPRL.BasicHeuristic()) == :NodeLimitStop
         @test isempty(toCall)
 
         # :SolutionLimitStop
@@ -17,7 +17,7 @@ using DataStructures
         model.limit.numberOfSolutions = 0
         
         toCall = Stack{Function}()
-        @test CPRL.expandDfs!(toCall, model, (model) -> nothing, CPRL.BasicHeuristic()) == :SolutionLimitStop
+        @test CPRL.expandDfs!(toCall, model, CPRL.MinDomainVariableSelection(), CPRL.BasicHeuristic()) == :SolutionLimitStop
         @test isempty(toCall)
 
         # :Infeasible
@@ -31,7 +31,7 @@ using DataStructures
         push!(model.constraints, CPRL.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
-        @test CPRL.expandDfs!(toCall, model, (model) -> nothing, CPRL.BasicHeuristic()) == :Infeasible
+        @test CPRL.expandDfs!(toCall, model, CPRL.MinDomainVariableSelection(), CPRL.BasicHeuristic()) == :Infeasible
         @test isempty(toCall)
 
         # :Feasible
@@ -45,7 +45,7 @@ using DataStructures
         push!(model.constraints, CPRL.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
-        @test CPRL.expandDfs!(toCall, model, (model) -> nothing, CPRL.BasicHeuristic()) == :FoundSolution
+        @test CPRL.expandDfs!(toCall, model, CPRL.MinDomainVariableSelection(), CPRL.BasicHeuristic()) == :FoundSolution
         @test isempty(toCall)
 
 
@@ -60,7 +60,7 @@ using DataStructures
         push!(model.constraints, CPRL.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
-        @test CPRL.expandDfs!(toCall, model, (model) -> x, CPRL.BasicHeuristic()) == :Feasible
+        @test CPRL.expandDfs!(toCall, model, CPRL.MinDomainVariableSelection(), CPRL.BasicHeuristic()) == :Feasible
         @test length(toCall) == 6
 
         @test pop!(toCall)(model) == :SavingState
@@ -88,7 +88,7 @@ using DataStructures
         trailer = CPRL.Trailer()
         model = CPRL.CPModel(trailer)
         model.limit.numberOfNodes = 1
-        @test CPRL.search!(model, CPRL.DFSearch, () -> nothing) == :NodeLimitStop
+        @test CPRL.search!(model, CPRL.DFSearch, CPRL.MinDomainVariableSelection()) == :NodeLimitStop
 
         # :SolutionLimitStop
         trailer = CPRL.Trailer()
@@ -99,7 +99,7 @@ using DataStructures
         y = CPRL.IntVar(2, 3, "y", trailer)
         CPRL.addVariable!(model, x)
         CPRL.addVariable!(model, y)
-        @test CPRL.search!(model, CPRL.DFSearch, () -> nothing) == :SolutionLimitStop
+        @test CPRL.search!(model, CPRL.DFSearch, CPRL.MinDomainVariableSelection()) == :SolutionLimitStop
 
         # :Infeasible
         trailer = CPRL.Trailer()
@@ -111,7 +111,7 @@ using DataStructures
         CPRL.addVariable!(model, y)
         push!(model.constraints, CPRL.Equal(x, y, trailer))
 
-        @test CPRL.search!(model, CPRL.DFSearch, () -> nothing) == :Infeasible
+        @test CPRL.search!(model, CPRL.DFSearch, CPRL.MinDomainVariableSelection()) == :Infeasible
 
         # :Optimal
         trailer = CPRL.Trailer()
@@ -123,7 +123,7 @@ using DataStructures
         CPRL.addVariable!(model, y)
         push!(model.constraints, CPRL.Equal(x, y, trailer))
 
-        @test CPRL.search!(model, CPRL.DFSearch, () -> nothing) == :Optimal
+        @test CPRL.search!(model, CPRL.DFSearch, CPRL.MinDomainVariableSelection()) == :Optimal
         @test length(model.solutions) == 1
 
 
@@ -137,7 +137,7 @@ using DataStructures
         CPRL.addVariable!(model, y)
         push!(model.constraints, CPRL.Equal(x, y, trailer))
 
-        @test CPRL.search!(model, CPRL.DFSearch, (model) -> x) == :Optimal
+        @test CPRL.search!(model, CPRL.DFSearch, CPRL.MinDomainVariableSelection()) == :Optimal
         @test length(model.solutions) == 2
         @test model.solutions[1] == Dict("x" => 3,"y" => 3)
         @test model.solutions[2] == Dict("x" => 2,"y" => 2)
@@ -155,7 +155,7 @@ using DataStructures
         CPRL.addVariable!(model, y)
         push!(model.constraints, CPRL.Equal(x, y, trailer))
 
-        @test CPRL.search!(model, CPRL.DFSearch, (model) -> x, CPRL.BasicHeuristic()) == :Optimal
+        @test CPRL.search!(model, CPRL.DFSearch, CPRL.MinDomainVariableSelection(), CPRL.BasicHeuristic()) == :Optimal
         @test model.solutions[1] == Dict("x" => 3,"y" => 3)
         @test model.solutions[2] == Dict("x" => 2,"y" => 2)
 
@@ -168,7 +168,7 @@ using DataStructures
         push!(model.constraints, CPRL.Equal(x, y, model.trailer))
 
         my_heuristic(x::CPRL.IntVar) = minimum(x.domain)
-        @test CPRL.search!(model, CPRL.DFSearch, (model) -> x, CPRL.BasicHeuristic(my_heuristic)) == :Optimal
+        @test CPRL.search!(model, CPRL.DFSearch, CPRL.MinDomainVariableSelection(), CPRL.BasicHeuristic(my_heuristic)) == :Optimal
         @test model.solutions[1] == Dict("x" => 2,"y" => 2)
         @test model.solutions[2] == Dict("x" => 3,"y" => 3)
 
@@ -253,7 +253,7 @@ using DataStructures
         push!(model.constraints, CPRL.NotEqual(x3, x4, trailer))
 
         # define the variable selection
-        variableSelection(model::CPRL.CPModel) = first(filter(x -> !CPRL.isbound(x), collect(values(model.variables))))
+        variableSelection = CPRL.MinDomainVariableSelection()
 
         # launch the search 
         CPRL.search!(model, CPRL.DFSearch, variableSelection, valueSelection)

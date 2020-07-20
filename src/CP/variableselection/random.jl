@@ -1,4 +1,4 @@
-struct RandomVariableSelection{TakeObjective} end
+struct RandomVariableSelection{TakeObjective} <: AbstractVariableSelection{TakeObjective} end
 
 RandomVariableSelection(;take_objective=true) = RandomVariableSelection{take_objective}()
 

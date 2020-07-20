@@ -60,19 +60,6 @@
     
     learnedHeuristic = CPRL.LearnedHeuristic(agent)
 
-    function selectNonObjVariable(model::CPRL.CPModel)
-        selectedVar = nothing
-        minSize = typemax(Int)
-        for (k, x) in model.variables
-            if length(x.domain) > 1 && length(x.domain) < minSize #&& k != "numberOfColors"
-                selectedVar = x
-                minSize = length(x.domain)
-            end
-        end
-        # @assert !isnothing(selectedVar)
-        return selectedVar
-    end
-
     initial_params = deepcopy(params(learnedHeuristic.agent.policy.learner.approximator.model))
 
     bestsolutions, nodevisited, timeneeded = CPRL.train!(
@@ -80,7 +67,7 @@
         generator=generator,
         nb_episodes=3,
         strategy=CPRL.DFSearch,
-        variableHeuristic=selectNonObjVariable
+        variableHeuristic=CPRL.MinDomainVariableSelection{false}()
     )
 
     final_params = params(learnedHeuristic.agent.policy.learner.approximator.model)

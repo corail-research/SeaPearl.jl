@@ -1,4 +1,4 @@
-struct MinDomainVariableSelection{TakeObjective} end
+struct MinDomainVariableSelection{TakeObjective} <: AbstractVariableSelection{TakeObjective} end
 
 MinDomainVariableSelection(;take_objective=true) = MinDomainVariableSelection{take_objective}()
 

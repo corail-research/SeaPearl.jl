@@ -14,7 +14,7 @@ function train!(;
         generator::AbstractModelGenerator,
         nb_episodes::Int64=10,
         strategy::Type{DFSearch}=DFSearch,
-        variableHeuristic=selectVariable,
+        variableHeuristic::AbstractVariableSelection=MinDomainVariableSelection(),
         metricsFun=((;kwargs...) -> nothing),
         verbose::Bool=true
     ) where T <: ValueSelection

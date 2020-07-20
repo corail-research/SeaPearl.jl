@@ -20,7 +20,7 @@ function launch_experiment!(
         generator::AbstractModelGenerator,
         nb_episodes::Int64,
         strategy::Type{DFSearch},
-        variableHeuristic,
+        variableHeuristic::AbstractVariableSelection,
         metricsFun,
         verbose::Bool
     ) where T <: ValueSelection
