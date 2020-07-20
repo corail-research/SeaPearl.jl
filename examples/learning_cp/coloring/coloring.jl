@@ -11,17 +11,10 @@ gr()
 include("felix_utils/utils.jl")
 ####
 
-problem_generator = Dict(
-    :coloring => CPRL.fill_with_coloring!
-)
-
-coloring_params = Dict(
-    "nb_nodes" => 10,
-    "density" => 1.4
-)
+coloring_generator = CPRL.GraphColoringGenerator(10, 1.4)
 
 numInFeatures = 16
-numberOfCPNodes = 1 + floor(Int64, coloring_params["nb_nodes"] * ( 3 + coloring_params["density"] ))
+numberOfCPNodes = 1 + floor(Int64, coloring_generator.nb_nodes * ( 3 + coloring_generator.density ))
 #numberOfCPNodes = 141
 
 state_size = (numberOfCPNodes, numInFeatures + numberOfCPNodes + 2 + 1, 1)
@@ -91,7 +84,7 @@ agent = RL.Agent(
         role = :DEFAULT_PLAYER
     )
 
-learnedHeuristic = CPRL.LearnedHeuristic{InspectReward, CPRL.FixedOutput}(agent)
+learnedHeuristic = CPRL.LearnedHeuristic{CPRL.DefaultStateRepresentation, InspectReward, CPRL.FixedOutput}(agent)
 
 selectMin(x::CPRL.IntVar) = CPRL.minimum(x.domain)
 selectMax(x::CPRL.IntVar) = CPRL.maximum(x.domain)
@@ -125,8 +118,7 @@ end
 bestsolutions, nodevisited, timeneeded = CPRL.train!(
     valueSelectionArray=[learnedHeuristic, heuristic_min], 
     #valueSelectionArray=learnedHeuristic,
-    problem_type=:coloring,
-    problem_params=coloring_params,
+    generator=coloring_generator,
     nb_episodes=400,
     strategy=CPRL.DFSearch,
     variableHeuristic=selectRandVariable,
@@ -146,9 +138,8 @@ p1 = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", yl
 bestsolutions, nodevisited, timeneeded = CPRL.benchmark_solving(
     valueSelectionArray=[learnedHeuristic, heuristic_min], 
     #valueSelectionArray=learnedHeuristic,
-    problem_type=:coloring,
-    problem_params=coloring_params,
-    nb_episodes=5,
+    generator=coloring_generator,
+    nb_episodes=200,
     strategy=CPRL.DFSearch,
     variableHeuristic=selectRandVariable,
     verbose = false
@@ -159,7 +150,7 @@ a, b = size(nodevisited)
 x = 1:a
 
 p2 = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 200])
-p3 = plot(x, timeneeded, xlabel="Episode", ylabel="Time needed", ylims = [0, 0.02])
+p3 = plot(x, timeneeded, xlabel="Episode", ylabel="Time needed", ylims = [0, 0.01])
 
 
 p = plot(p1, p2, p3, legend = false, layout = (3, 1))

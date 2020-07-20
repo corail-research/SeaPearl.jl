@@ -16,20 +16,20 @@ and your functions will be called instead of the default ones.
 
 abstract type AbstractReward end
 
-mutable struct LearnedHeuristic{R<:AbstractReward, A<:ActionOutput} <: ValueSelection
+mutable struct LearnedHeuristic{SR<:AbstractStateRepresentation, R<:AbstractReward, A<:ActionOutput} <: ValueSelection
     agent::RL.Agent
     fitted_problem::Union{Nothing, Type{G}} where G
     fitted_strategy::Union{Nothing, Type{S}} where S <: SearchStrategy
     action_space::Union{Nothing, RL.DiscreteSpace{Array{Int64,1}}}
-    current_state::Union{Nothing, CPGraph}
+    current_state::Union{Nothing, SR}
     current_reward::Union{Nothing, Float64}
     cpnodes_max::Union{Nothing, Int64}
     search_metrics::Union{Nothing, SearchMetrics}
 
-    LearnedHeuristic{R, A}(agent::RL.Agent, cpnodes_max=nothing) where {R, A}= new{R, A}(agent, nothing, nothing, nothing, nothing, nothing, cpnodes_max, nothing)
+    LearnedHeuristic{SR, R, A}(agent::RL.Agent, cpnodes_max=nothing) where {SR, R, A}= new{SR, R, A}(agent, nothing, nothing, nothing, nothing, nothing, cpnodes_max, nothing)
 end
 
-LearnedHeuristic(agent::RL.Agent) = LearnedHeuristic{DefaultReward, FixedOutput}(agent)
+LearnedHeuristic(agent::RL.Agent) = LearnedHeuristic{DefaultStateRepresentation, DefaultReward, FixedOutput}(agent)
 
 include("lh_utils.jl")
 
@@ -39,7 +39,7 @@ include("lh_utils.jl")
 Create an RL environment and a first observation. Finally make the agent call the process of 
 the pre episode stage (basically making sure that the buffer is empty).
 """
-function (valueSelection::LearnedHeuristic{R})(::InitializingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol}) where R<:AbstractReward
+function (valueSelection::LearnedHeuristic)(::InitializingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
     # create the environment
     update_with_cpmodel!(valueSelection, model)
     false_x = first(values(model.variables))
@@ -102,14 +102,20 @@ function from_order_to_id(state::AbstractArray, value_order::Int64)
     return valid_indexes[value_order]
 end
 
-function action_to_value(vs::LearnedHeuristic{R, VariableOutput}, action::Int64, state::AbstractArray, model::CPModel) where R <: AbstractReward
+function action_to_value(vs::LearnedHeuristic{SR, R, VariableOutput}, action::Int64, state::AbstractArray, model::CPModel) where {
+    SR <: AbstractStateRepresentation,
+    R <: AbstractReward
+}
     value_id = from_order_to_id(state, action)
     cp_vertex = cpVertexFromIndex(model.RLRep, value_id)
     @assert isa(cp_vertex, ValueVertex)
     return cp_vertex.value
 end
 
-function action_to_value(vs::LearnedHeuristic{R, FixedOutput}, action::Int64, state::AbstractArray, model::CPModel) where R <: AbstractReward
+function action_to_value(vs::LearnedHeuristic{SR, R, FixedOutput}, action::Int64, state::AbstractArray, model::CPModel) where {
+    SR <: AbstractStateRepresentation,
+    R <: AbstractReward
+}
     #TODO: Do a proper mapping here, using an offset for example
     return action
 end

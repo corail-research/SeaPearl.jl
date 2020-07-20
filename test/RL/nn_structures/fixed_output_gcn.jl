@@ -84,9 +84,10 @@
         push!(model.constraints, CPRL.Equal(x, y, trailer))
         push!(model.constraints, CPRL.NotEqual(x, y, trailer))
 
-        cpg = CPRL.CPGraph(model, x)
+        dsr = CPRL.DefaultStateRepresentation(model)
+        CPRL.update_representation!(dsr, model, x)
 
-        X = CPRL.to_array(cpg)
+        X = CPRL.to_arraybuffer(dsr)
 
         X = reshape(X, size(X)..., 1)
 

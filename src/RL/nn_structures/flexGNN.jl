@@ -34,12 +34,10 @@ function (nn::FlexGNN)(x::AbstractArray{Float32,3})
 end
 
 function (nn::FlexGNN)(x::AbstractArray{Float32,2})
-    # Create the CPGraph
-    cpg = CPRL.CPGraph(x)
 
     # get informations from the CPGraph (input) 
-    variableId = cpg.variable_id
-    fg = cpg.featuredgraph
+    variableId = branchingvariable_id(x)
+    fg = featuredgraph(x)
 
     # chain working on the graph
     fg = nn.graphChain(fg)

@@ -57,10 +57,8 @@ agent = RL.Agent(
 
 @testset "learnedheuristic.jl" begin
 
-    @testset "include" begin
-        include("searchmetrics.jl")
-        include("reward.jl")
-    end
+    include("searchmetrics.jl")
+    include("reward.jl")
 
     @testset "LearnedHeuristic" begin 
 
@@ -101,7 +99,7 @@ agent = RL.Agent(
 
             @test typeof(lh.action_space) == RL.DiscreteSpace{Array{Int64,1}}
             @test lh.action_space.span == [2, 3]
-            @test typeof(lh.current_state) == CPRL.CPGraph
+            @test typeof(lh.current_state) == CPRL.DefaultStateRepresentation
             @test lh.current_reward == 0
             @test isa(lh.search_metrics, CPRL.SearchMetrics)
         end 
@@ -122,14 +120,14 @@ agent = RL.Agent(
 
             CPRL.sync_state!(lh, model, x)
 
-            @test Matrix(lh.current_state.featuredgraph.graph[]) == [0 0 1 1 0 0
+            @test Matrix(LightGraphs.LinAlg.adjacency_matrix(lh.current_state.cplayergraph)) == [0 0 1 1 0 0
                                                             0 0 1 1 0 0
                                                             1 1 0 0 1 1
                                                             1 1 0 0 1 1
                                                             0 0 1 1 0 0
                                                             0 0 1 1 0 0]
 
-            @test lh.current_state.featuredgraph.feature[] == Float32[ 1 1 0 0 0 0
+            @test lh.current_state.features == Float32[ 1 1 0 0 0 0
                                                                 0 0 1 1 0 0
                                                                 0 0 0 0 1 1]
             
@@ -138,14 +136,14 @@ agent = RL.Agent(
             CPRL.assign!(x, 2)
             CPRL.sync_state!(lh, model, y)
 
-            @test Matrix(lh.current_state.featuredgraph.graph[]) == [0 0 1 1 0 0
+            @test Matrix(LightGraphs.LinAlg.adjacency_matrix(lh.current_state.cplayergraph)) == [0 0 1 1 0 0
                                                             0 0 1 1 0 0
                                                             1 1 0 0 1 0
                                                             1 1 0 0 1 1
                                                             0 0 1 1 0 0
                                                             0 0 0 1 0 0]
 
-            @test lh.current_state.featuredgraph.feature[] == Float32[ 1 1 0 0 0 0
+            @test lh.current_state.features == Float32[ 1 1 0 0 0 0
                                                                 0 0 1 1 0 0
                                                                 0 0 0 0 1 1]
             

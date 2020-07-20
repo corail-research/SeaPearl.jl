@@ -1,11 +1,17 @@
 struct TestReward <: CPRL.AbstractReward end
 
-function CPRL.set_reward!(::CPRL.DecisionPhase, lh::CPRL.LearnedHeuristic{TestReward, O}, model::CPRL.CPModel) where O <: CPRL.ActionOutput
+function CPRL.set_reward!(::CPRL.DecisionPhase, lh::CPRL.LearnedHeuristic{SR, TestReward, A}, model::CPRL.CPModel) where {
+    SR <: CPRL.AbstractStateRepresentation, 
+    A <: CPRL.ActionOutput
+}
     lh.current_reward += 3
     nothing
 end
 
-function CPRL.set_reward!(::CPRL.EndingPhase, lh::CPRL.LearnedHeuristic{TestReward, O}, model::CPRL.CPModel, symbol::Union{Nothing, Symbol}) where O <: CPRL.ActionOutput
+function CPRL.set_reward!(::CPRL.EndingPhase, lh::CPRL.LearnedHeuristic{SR, TestReward, A}, model::CPRL.CPModel, symbol::Union{Nothing, Symbol}) where {
+    SR <: CPRL.AbstractStateRepresentation, 
+    A <: CPRL.ActionOutput
+}
     lh.current_reward += -5
     nothing
 end
@@ -42,7 +48,7 @@ end
             trailer = CPRL.Trailer()
             model = CPRL.CPModel(trailer)
 
-            lh = CPRL.LearnedHeuristic{TestReward, CPRL.FixedOutput}(agent)
+            lh = CPRL.LearnedHeuristic{CPRL.DefaultStateRepresentation, TestReward, CPRL.FixedOutput}(agent)
             CPRL.update_with_cpmodel!(lh, model)
 
             lh.current_reward = 0
@@ -53,7 +59,7 @@ end
             trailer = CPRL.Trailer()
             model = CPRL.CPModel(trailer)
 
-            lh = CPRL.LearnedHeuristic{TestReward, CPRL.FixedOutput}(agent)
+            lh = CPRL.LearnedHeuristic{CPRL.DefaultStateRepresentation, TestReward, CPRL.FixedOutput}(agent)
             CPRL.update_with_cpmodel!(lh, model)
 
             lh.current_reward = 6

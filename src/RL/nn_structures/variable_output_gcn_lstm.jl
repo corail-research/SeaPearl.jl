@@ -79,12 +79,9 @@ function Flux.reset!(nn::VariableOutputGCNLSTM)
 end
 
 function (nn::VariableOutputGCNLSTM)(x::AbstractArray{Float32,2})
-    # Create the CPGraph
-    cpg = CPGraph(x)
-
     # get informations from the CPGraph (input) 
-    variableId = cpg.variable_id
-    featuredGraph = cpg.featuredgraph
+    variableId = branchingvariable_id(x)
+    featuredGraph = featuredgraph(x)
 
     # go through the GCNConvs
     featuredGraph = nn.firstGCNHiddenLayer(featuredGraph)
