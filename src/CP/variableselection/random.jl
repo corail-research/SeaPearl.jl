@@ -1,6 +1,6 @@
 struct RandomVariableSelection{TakeObjective} end
 
-function (::MinDomainVariableSelection{false})(cpmodel::CPModel)
+function (::RandomVariableSelection{false})(cpmodel::CPModel; rng=Base.Random.RANDOM_SEED)
     var_ids = keys(cpmodel.variables)
     acceptable_ids = String[]
     for id in var_ids
@@ -14,10 +14,10 @@ function (::MinDomainVariableSelection{false})(cpmodel::CPModel)
         return cpmodel.objective
     end
 
-    cpmodel.variables[acceptable_ids[rand(1:length(acceptable_ids))]]
+    cpmodel.variables[acceptable_ids[rand(rng, 1:length(acceptable_ids))]]
 end
 
-function (::MinDomainVariableSelection{true})(cpmodel::CPModel)
+function (::RandomVariableSelection{true})(cpmodel::CPModel; rng=Base.Random.RANDOM_SEED)
     var_ids = keys(cpmodel.variables)
     acceptable_ids = String[]
     for id in var_ids
@@ -27,5 +27,5 @@ function (::MinDomainVariableSelection{true})(cpmodel::CPModel)
         end
     end
     
-    cpmodel.variables[acceptable_ids[rand(1:length(acceptable_ids))]]
+    cpmodel.variables[acceptable_ids[rand(rng, 1:length(acceptable_ids))]]
 end
