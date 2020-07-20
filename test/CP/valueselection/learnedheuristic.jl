@@ -99,7 +99,7 @@ agent = RL.Agent(
 
             @test typeof(lh.action_space) == RL.DiscreteSpace{Array{Int64,1}}
             @test lh.action_space.span == [2, 3]
-            @test typeof(lh.current_state) == CPRL.DefaultStateRepresentation
+            @test typeof(lh.current_state) == CPRL.DefaultStateRepresentation{CPRL.DefaultFeaturization}
             @test lh.current_reward == 0
             @test isa(lh.search_metrics, CPRL.SearchMetrics)
         end 

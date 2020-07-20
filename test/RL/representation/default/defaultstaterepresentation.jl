@@ -9,7 +9,7 @@ adj = [0 1 0 1;
         g = CPRL.CPLayerGraph()
         features = [1.0f0 1.0f0; 2.0f0 2.0f0]
         variable_id = 1
-        dsr = CPRL.DefaultStateRepresentation(g, features, variable_id, [1, 2, 3])
+        dsr = CPRL.DefaultStateRepresentation{CPRL.DefaultFeaturization}(g, features, variable_id, [1, 2, 3])
 
         @test dsr.cplayergraph == g
         @test dsr.features == features
