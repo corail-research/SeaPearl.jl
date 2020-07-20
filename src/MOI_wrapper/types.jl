@@ -29,9 +29,9 @@ mutable struct MOIModel
 end
 
 mutable struct MOIVariableSelection <: MOI.AbstractOptimizerAttribute 
-    heuristic::Function
+    heuristic::AbstractVariableSelection
 
-    MOIVariableSelection() = new(CPRL.selectVariable)
+    MOIVariableSelection() = new(MinDomainVariableSelection())
 end
 
 mutable struct MOIValueSelection <: MOI.AbstractOptimizerAttribute

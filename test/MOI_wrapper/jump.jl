@@ -4,7 +4,12 @@ using MathOptInterface
 
 const MOI = MathOptInterface
 
-function selectVariableColoring(model::CPRL.CPModel, sortedPermutation, degrees)
+struct GraphColoringVariableSelection  <: CPRL.AbstractVariableSelection{true}
+    sortedPermutation
+    degrees
+end
+function (vs::GraphColoringVariableSelection)(model::CPRL.CPModel)
+    sortedPermutation, degrees = vs.sortedPermutation, vs.degrees
     maxDegree = 0
     toReturn = nothing
     for i in sortedPermutation
@@ -25,7 +30,9 @@ function selectVariableColoring(model::CPRL.CPModel, sortedPermutation, degrees)
     return toReturn
 end
 
-function selectVariableKnapsack(model::CPRL.CPModel)
+
+struct KnapsackVariableSelection <: CPRL.AbstractVariableSelection{true} end
+function (::KnapsackVariableSelection)(model::CPRL.CPModel)
     i = 1
     while CPRL.isbound(model.variables[string(i)])
         i += 1
@@ -64,7 +71,7 @@ end
         sortedPermutation = sortperm(degrees; rev=true)
 
         # define the heuristic used for variable selection
-        variableheuristic(m) = selectVariableColoring(m, sortedPermutation, degrees)
+        variableheuristic = GraphColoringVariableSelection(sortedPermutation, degrees)
         MOI.set(model, CPRL.MOIVariableSelection(), variableheuristic)
 
         # Define the heuristic used for value selection
@@ -100,7 +107,7 @@ end
         @expression(model, val_sum, 8 * x[1] + 10 * x[2] + 15 * x[3] + 4 * x[4])
         @objective(model, Min, -val_sum)
 
-        variableheuristic(m) = selectVariableKnapsack(m)
+        variableheuristic = KnapsackVariableSelection()
 
         MOI.set(model, CPRL.MOIVariableSelection(), variableheuristic)
 

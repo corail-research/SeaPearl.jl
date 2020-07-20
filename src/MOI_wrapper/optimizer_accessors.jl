@@ -43,7 +43,7 @@ function MOI.set(model::Optimizer, p::MOI.RawParameter, value)
     model.options[p.name] = value
 end
 
-function MOI.set(model::Optimizer, ::CPRL.MOIVariableSelection, heuristic::Function)
+function MOI.set(model::Optimizer, ::CPRL.MOIVariableSelection, heuristic::AbstractVariableSelection)
     model.variableselection.heuristic = heuristic
 end
 
