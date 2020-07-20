@@ -3,66 +3,75 @@ using MathOptInterface
 const MOI = MathOptInterface
 const MOIU = MathOptInterface.Utilities
 
+using Test
+
 using JuMP
+using CPRL
 
 @testset "MOI_wrapper.jl" begin
 
-    @testset "Creating an optimizer" begin
-        model = CPRL.Optimizer()
-        @test MOI.get(model, MOI.SolverName()) == "CPRL Solver"
-    end
+    include("optimizer_accessors.jl")
+    include("homemade_bridging.jl")
+    include("variables.jl")
+    include("constraints.jl")
+    include("jump.jl")
 
-    @testset "Giving parameters to the optimizer" begin
-        model = CPRL.Optimizer()
-        MOI.set(model, MOI.RawParameter("Test"), "test")
-        @test model.options["Test"] == "test"
-        MOI.empty!(model)
-        @test MOI.is_empty(model)
-        @test model.options["Test"] == "test"
-    end
+    # @testset "Creating an optimizer" begin
+    #     model = CPRL.Optimizer()
+    #     @test MOI.get(model, MOI.SolverName()) == "CPRL Solver"
+    # end
 
-    @testset "Adding constrained variables" begin
-        model = CPRL.Optimizer()
-        MOI.add_constrained_variable(model, MOI.Interval(1, 4))
-        MOI.add_constrained_variable(model, MOI.Interval(1, 4))
-        MOI.add_constrained_variable(model, MOI.Interval(1, 4))
-        MOI.add_constrained_variable(model, MOI.Interval(1, 4))
-        @test Set(keys(model.cpmodel.variables)) == Set(["1", "2", "3", "4"])
-    end
+    # @testset "Giving parameters to the optimizer" begin
+    #     model = CPRL.Optimizer()
+    #     MOI.set(model, MOI.RawParameter("Test"), "test")
+    #     @test model.options["Test"] == "test"
+    #     MOI.empty!(model)
+    #     @test MOI.is_empty(model)
+    #     @test model.options["Test"] == "test"
+    # end
 
-    @testset "Adding constraints" begin
-        model = CPRL.Optimizer()
-        MOI.add_constrained_variable(model, MOI.Interval(1, 4))
-        MOI.add_constrained_variable(model, MOI.Interval(1, 4))
-        MOI.add_constrained_variable(model, MOI.Interval(1, 4))
-        MOI.add_constrained_variable(model, MOI.Interval(1, 4))
+    # @testset "Adding constrained variables" begin
+    #     model = CPRL.Optimizer()
+    #     MOI.add_constrained_variable(model, MOI.Interval(1, 4))
+    #     MOI.add_constrained_variable(model, MOI.Interval(1, 4))
+    #     MOI.add_constrained_variable(model, MOI.Interval(1, 4))
+    #     MOI.add_constrained_variable(model, MOI.Interval(1, 4))
+    #     @test Set(keys(model.cpmodel.variables)) == Set(["1", "2", "3", "4"])
+    # end
 
-        # add new constraints
-        MOI.add_constraint(model, MOI.SingleVariable(MOI.VariableIndex(1)), MOI.LessThan(2))
-        MOI.add_constraint(model, MOI.SingleVariable(MOI.VariableIndex(2)), MOI.GreaterThan(2))
-        MOI.add_constraint(model, MOI.SingleVariable(MOI.VariableIndex(4)), MOI.Interval(2, 3))
+    # @testset "Adding constraints" begin
+    #     model = CPRL.Optimizer()
+    #     MOI.add_constrained_variable(model, MOI.Interval(1, 4))
+    #     MOI.add_constrained_variable(model, MOI.Interval(1, 4))
+    #     MOI.add_constrained_variable(model, MOI.Interval(1, 4))
+    #     MOI.add_constrained_variable(model, MOI.Interval(1, 4))
 
-        # use fixPoint 
-        CPRL.fixPoint!(model.cpmodel, model.cpmodel.constraints)
+    #     # add new constraints
+    #     MOI.add_constraint(model, MOI.SingleVariable(MOI.VariableIndex(1)), MOI.LessThan(2))
+    #     MOI.add_constraint(model, MOI.SingleVariable(MOI.VariableIndex(2)), MOI.GreaterThan(2))
+    #     MOI.add_constraint(model, MOI.SingleVariable(MOI.VariableIndex(4)), MOI.Interval(2, 3))
 
-        # test if it had effect on the variables' domains
-        @test CPRL.maximum(model.cpmodel.variables[string(MOI.VariableIndex(1).value)].domain) == 2
-        @test CPRL.minimum(model.cpmodel.variables[string(MOI.VariableIndex(2).value)].domain) == 2
-        @test CPRL.minimum(model.cpmodel.variables[string(MOI.VariableIndex(4).value)].domain) == 2
-        @test CPRL.maximum(model.cpmodel.variables[string(MOI.VariableIndex(4).value)].domain) == 3
+    #     # use fixPoint 
+    #     CPRL.fixPoint!(model.cpmodel, model.cpmodel.constraints)
 
-        # add some new constraints again
-        MOI.add_constraint(model, MOI.SingleVariable(MOI.VariableIndex(3)), MOI.EqualTo(2))
-        MOI.add_constraint(model, MOI.VectorOfVariables([MOI.VariableIndex(1), MOI.VariableIndex(3)]), CPRL.VariablesEquality(false))
+    #     # test if it had effect on the variables' domains
+    #     @test CPRL.maximum(model.cpmodel.variables[string(MOI.VariableIndex(1).value)].domain) == 2
+    #     @test CPRL.minimum(model.cpmodel.variables[string(MOI.VariableIndex(2).value)].domain) == 2
+    #     @test CPRL.minimum(model.cpmodel.variables[string(MOI.VariableIndex(4).value)].domain) == 2
+    #     @test CPRL.maximum(model.cpmodel.variables[string(MOI.VariableIndex(4).value)].domain) == 3
 
-        # perform another fixPoint
-        CPRL.fixPoint!(model.cpmodel, model.cpmodel.constraints)
+    #     # add some new constraints again
+    #     MOI.add_constraint(model, MOI.SingleVariable(MOI.VariableIndex(3)), MOI.EqualTo(2))
+    #     MOI.add_constraint(model, MOI.VectorOfVariables([MOI.VariableIndex(1), MOI.VariableIndex(3)]), CPRL.VariablesEquality(false))
 
-        # new bunch of test
-        @test CPRL.isbound(model.cpmodel.variables[string(MOI.VariableIndex(1).value)])
-        @test CPRL.minimum(model.cpmodel.variables[string(MOI.VariableIndex(3).value)].domain) == 2
-        @test CPRL.maximum(model.cpmodel.variables[string(MOI.VariableIndex(3).value)].domain) == 2
-    end
+    #     # perform another fixPoint
+    #     CPRL.fixPoint!(model.cpmodel, model.cpmodel.constraints)
+
+    #     # new bunch of test
+    #     @test CPRL.isbound(model.cpmodel.variables[string(MOI.VariableIndex(1).value)])
+    #     @test CPRL.minimum(model.cpmodel.variables[string(MOI.VariableIndex(3).value)].domain) == 2
+    #     @test CPRL.maximum(model.cpmodel.variables[string(MOI.VariableIndex(3).value)].domain) == 2
+    # end
 
     ### Not working yet ###
     # @testset "JuMP interface" begin

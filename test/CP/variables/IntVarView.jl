@@ -69,7 +69,7 @@
             dom = CPRL.IntDomain(trailer, 3, 2)
             ax = CPRL.IntDomainViewMul(dom, 4)
 
-            CPRL.remove!(ax, 12)
+            @test CPRL.remove!(ax, 12) == [12]
 
 
             @test !(12 in ax)
@@ -216,8 +216,7 @@
             x = CPRL.IntVar(5, 5, "x", trailer)
             ax = CPRL.IntVarViewMul(x, 3, "ax")
 
-            # This will work when #4 gets merged
-            @test_broken CPRL.rootVariable(CPRL.IntVarViewOpposite(ax, "-ax")) == x
+            @test CPRL.rootVariable(CPRL.IntVarViewOpposite(ax, "-ax")) == x
 
             @test CPRL.rootVariable(x) == x
             @test CPRL.rootVariable(ax) == x
@@ -294,7 +293,7 @@
             dom = CPRL.IntDomain(trailer, 3, 2)
             ax = CPRL.IntDomainViewOpposite(dom)
 
-            CPRL.remove!(ax, -5)
+            @test CPRL.remove!(ax, -5) == [-5]
 
 
             @test !(-5 in ax)
@@ -422,6 +421,200 @@
 
             @test CPRL.rootVariable(x) == x
             @test CPRL.rootVariable(ax) == x
+        end
+    end
+
+    @testset "IntVarViewOffset" begin
+        @testset "isempty()" begin
+            trailer = CPRL.Trailer()
+            domNotEmpty = CPRL.IntDomain(trailer, 20, 10)
+            ax = CPRL.IntDomainViewOffset(domNotEmpty, 4)
+
+            @test !isempty(ax)
+
+            emptyDom = CPRL.IntDomain(trailer, 0, 1)
+            ay = CPRL.IntDomainViewOffset(emptyDom, 4)
+            @test isempty(ay)
+        end
+
+        @testset "length()" begin
+            trailer = CPRL.Trailer()
+            dom20 = CPRL.IntDomain(trailer, 20, 10)
+            ax = CPRL.IntDomainViewOffset(dom20, 4)
+            @test length(ax) == 20
+
+            dom2 = CPRL.IntDomain(trailer, 2, 0)
+            ax = CPRL.IntDomainViewOffset(dom2, 4)
+
+            @test length(ax) == 2
+        end
+
+        @testset "in()" begin
+            trailer = CPRL.Trailer()
+            dom20 = CPRL.IntDomain(trailer, 3, 2)
+            ax = CPRL.IntDomainViewOffset(dom20, 4)
+
+            @test !(2 in ax)
+            @test !(3 in ax)
+            @test 7 in ax
+            @test !(10 in ax)
+            @test 9 in ax
+        end
+
+        @testset "minimum()" begin
+            trailer = CPRL.Trailer()
+            x = CPRL.IntVar(5, 10, "x", trailer)
+            axDom = CPRL.IntDomainViewOffset(x.domain, 4)
+
+            @test CPRL.minimum(axDom) == 9
+        end
+
+        @testset "removeAll!()" begin
+            trailer = CPRL.Trailer()
+            dom = CPRL.IntDomain(trailer, 3, 10)
+            axDom = CPRL.IntDomainViewOffset(dom, 4)
+
+            removed = CPRL.removeAll!(axDom)
+
+            @test isempty(axDom)
+            @test removed == [15, 16, 17]
+        end
+
+        
+        @testset "maximum()" begin
+            trailer = CPRL.Trailer()
+            x = CPRL.IntVar(5, 10, "x", trailer)
+            axDom = CPRL.IntDomainViewOffset(x.domain, 4)
+
+            @test CPRL.maximum(axDom) == 14
+        end
+
+        @testset "remove!()" begin
+            trailer = CPRL.Trailer()
+            dom = CPRL.IntDomain(trailer, 3, 2)
+            ax = CPRL.IntDomainViewOffset(dom, 4)
+
+            CPRL.remove!(ax, 7)
+
+
+            @test !(7 in ax)
+            @test length(ax) == 2
+            @test CPRL.minimum(ax) == 8
+        end
+
+        @testset "removeAbove!()" begin
+            trailer = CPRL.Trailer()
+            x = CPRL.IntVar(1, 5, "x", trailer)
+            axDom = CPRL.IntDomainViewOffset(x.domain, 4)
+
+            @test sort(CPRL.removeAbove!(axDom, 7)) == [8, 9]
+
+            @test length(axDom) == 3
+            @test 7 in axDom
+            @test !(4 in axDom)
+            @test !(9 in axDom)
+            @test 5 in axDom
+
+            @test sort(CPRL.removeAbove!(axDom, 2)) == [5, 6, 7]
+
+            @test isempty(axDom)
+        end
+
+        @testset "removeBelow!()" begin
+            trailer = CPRL.Trailer()
+            x = CPRL.IntVar(1, 5, "x", trailer)
+            axDom = CPRL.IntDomainViewOffset(x.domain, 4)
+
+            @test sort(CPRL.removeBelow!(axDom, 8)) == [5, 6, 7]
+
+            @test length(axDom) == 2
+            @test 8 in axDom
+            @test 9 in axDom
+            @test !(5 in axDom)
+            @test !(4 in axDom)
+
+            @test sort(CPRL.removeBelow!(axDom, 21)) == [8, 9]
+
+            @test isempty(axDom)
+        end
+
+        @testset "iterate()" begin
+            trailer = CPRL.Trailer()
+            x = CPRL.IntVar(1, 5, "x", trailer)
+            axDom = CPRL.IntDomainViewOffset(x.domain, 4)
+
+            j = 5
+            for i in axDom
+                @test j == i
+                j += 1
+            end
+
+            @test j == 10
+
+        end
+
+        @testset "updateMinFromRemovedVal!()" begin
+            trailer = CPRL.Trailer()
+            x = CPRL.IntVar(1, 5, "x", trailer)
+            axDom = CPRL.IntDomainViewOffset(x.domain, 4)
+
+            @test CPRL.minimum(axDom) == 5
+
+            CPRL.remove!(axDom, 5)
+            CPRL.updateMinFromRemovedVal!(axDom, 5)
+
+            @test CPRL.minimum(axDom) == 6
+        end
+
+        @testset "updateMaxFromRemovedVal!()" begin
+            trailer = CPRL.Trailer()
+            x = CPRL.IntVar(1, 5, "x", trailer)
+            axDom = CPRL.IntDomainViewOffset(x.domain, 4)
+
+            @test CPRL.maximum(axDom) == 9
+
+            CPRL.remove!(axDom, 9)
+            CPRL.updateMaxFromRemovedVal!(axDom, 9)
+
+            @test CPRL.maximum(axDom) == 8
+        end
+
+        @testset "updateBoundsFromRemovedVal!()" begin
+            trailer = CPRL.Trailer()
+            x = CPRL.IntVar(1, 5, "x", trailer)
+            axDom = CPRL.IntDomainViewOffset(x.domain, 4)
+
+            CPRL.remove!(axDom, 9)
+            CPRL.remove!(axDom, 5)
+            CPRL.updateBoundsFromRemovedVal!(axDom, 9)
+            CPRL.updateBoundsFromRemovedVal!(axDom, 5)
+
+            @test CPRL.minimum(axDom) == 6
+            @test CPRL.maximum(axDom) == 8
+        end
+
+        @testset "isbound()" begin
+            trailer = CPRL.Trailer()
+            x = CPRL.IntVar(2, 6, "x", trailer)
+            ax = CPRL.IntVarViewOffset(x, 3, "ax")
+
+            @test !CPRL.isbound(ax)
+
+            CPRL.assign!(ax, 6)
+
+            @test CPRL.isbound(ax)
+        end
+
+        @testset "assignedValue()" begin
+            trailer = CPRL.Trailer()
+            x = CPRL.IntVar(5, 5, "x", trailer)
+            ax = CPRL.IntVarViewOffset(x, 3, "ax")
+
+            @test CPRL.assignedValue(ax) == 8
+
+            y = CPRL.IntVar(5, 8, "y", trailer)
+            ay = CPRL.IntVarViewOffset(y, 3, "ay")
+            @test_throws AssertionError CPRL.assignedValue(y)
         end
     end
 end
