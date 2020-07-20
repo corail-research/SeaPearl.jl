@@ -1,16 +1,16 @@
 struct TestReward <: CPRL.AbstractReward end
 
-function CPRL.set_reward!(::CPRL.DecisionPhase, lh::CPRL.LearnedHeuristic{SR, TestReward, O}, model::CPRL.CPModel) where {
+function CPRL.set_reward!(::CPRL.DecisionPhase, lh::CPRL.LearnedHeuristic{SR, TestReward, A}, model::CPRL.CPModel) where {
     SR <: CPRL.AbstractStateRepresentation, 
-    O <: CPRL.ActionOutput
+    A <: CPRL.ActionOutput
 }
     lh.current_reward += 3
     nothing
 end
 
-function CPRL.set_reward!(::CPRL.EndingPhase, lh::CPRL.LearnedHeuristic{SR, TestReward, O}, model::CPRL.CPModel, symbol::Union{Nothing, Symbol}) where {
+function CPRL.set_reward!(::CPRL.EndingPhase, lh::CPRL.LearnedHeuristic{SR, TestReward, A}, model::CPRL.CPModel, symbol::Union{Nothing, Symbol}) where {
     SR <: CPRL.AbstractStateRepresentation, 
-    O <: CPRL.ActionOutput
+    A <: CPRL.ActionOutput
 }
     lh.current_reward += -5
     nothing

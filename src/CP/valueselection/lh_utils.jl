@@ -1,10 +1,10 @@
 
 Flux.testmode!(lh::LearnedHeuristic, mode = true) = Flux.testmode!(lh.agent, mode) 
 
-function update_with_cpmodel!(lh::LearnedHeuristic{SR, R, O}, model::CPModel) where {
+function update_with_cpmodel!(lh::LearnedHeuristic{SR, R, A}, model::CPModel) where {
     SR <: AbstractStateRepresentation, 
     R <: AbstractReward, 
-    O <: ActionOutput
+    A <: ActionOutput
 }
 
     # construct the action_space
