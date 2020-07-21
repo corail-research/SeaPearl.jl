@@ -39,7 +39,7 @@ MOI.supports(::Optimizer, ::CPRL.MOIVariableSelectionAttribute) = true
 MOI.supports(::Optimizer, ::CPRL.MOIValueSelection) = true
 MOI.supports(::Optimizer, ::MOI.VariablePrimal) = true
 
-MOI.is_copyable(::CPRL.MOIVariableSelectionAttribute) = false
+MOI.Utilities.map_indices(::Function, x::AbstractVariableSelection) = x
 
 function MOI.set(model::Optimizer, p::MOI.RawParameter, value)
     model.options[p.name] = value
