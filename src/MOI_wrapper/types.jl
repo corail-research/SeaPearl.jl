@@ -28,11 +28,7 @@ mutable struct MOIModel
     MOIModel() = new(MOIVariable[], MOIConstraint[], MOIAffineFunction[], nothing)
 end
 
-mutable struct MOIVariableSelection <: MOI.AbstractOptimizerAttribute 
-    heuristic::AbstractVariableSelection
-
-    MOIVariableSelection() = new(MinDomainVariableSelection())
-end
+mutable struct MOIVariableSelectionAttribute <: MOI.AbstractOptimizerAttribute end
 
 mutable struct MOIValueSelection <: MOI.AbstractOptimizerAttribute
     inner::ValueSelection
@@ -43,7 +39,7 @@ end
 mutable struct Optimizer <: MOI.AbstractOptimizer
     cpmodel::CPModel
     moimodel::MOIModel
-    variableselection::MOIVariableSelection
+    variableselection::AbstractVariableSelection
     valueselection::MOIValueSelection
     options::Dict{String, Any}
     terminationStatus::MOI.TerminationStatusCode
@@ -51,6 +47,6 @@ mutable struct Optimizer <: MOI.AbstractOptimizer
 
     function Optimizer()
         cpmodel = CPRL.CPModel(CPRL.Trailer())
-        new(cpmodel, MOIModel(), MOIVariableSelection(), MOIValueSelection(), Dict{String, Any}(), MOI.OPTIMIZE_NOT_CALLED)
+        new(cpmodel, MOIModel(), MinDomainVariableSelection(), MOIValueSelection(), Dict{String, Any}(), MOI.OPTIMIZE_NOT_CALLED)
     end
 end

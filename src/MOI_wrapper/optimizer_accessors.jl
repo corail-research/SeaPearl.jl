@@ -24,7 +24,7 @@ Empty a given Optimizer.
 function MOI.empty!(model::Optimizer)
     # empty the cpmodel
     Base.empty!(model.cpmodel)
-    model.variableselection = MOIVariableSelection()
+    model.variableselection = MinDomainVariableSelection()
     model.terminationStatus = MOI.OPTIMIZE_NOT_CALLED
     Base.empty!(model.moimodel.variables)
     Base.empty!(model.moimodel.constraints)
@@ -35,16 +35,18 @@ function MOI.empty!(model::Optimizer)
 end
 
 MOI.supports(::Optimizer, ::MOI.RawParameter) = true
-MOI.supports(::Optimizer, ::CPRL.MOIVariableSelection) = true
+MOI.supports(::Optimizer, ::CPRL.MOIVariableSelectionAttribute) = true
 MOI.supports(::Optimizer, ::CPRL.MOIValueSelection) = true
 MOI.supports(::Optimizer, ::MOI.VariablePrimal) = true
+
+MOI.is_copyable(::CPRL.MOIVariableSelectionAttribute) = false
 
 function MOI.set(model::Optimizer, p::MOI.RawParameter, value)
     model.options[p.name] = value
 end
 
-function MOI.set(model::Optimizer, ::CPRL.MOIVariableSelection, heuristic::AbstractVariableSelection)
-    model.variableselection.heuristic = heuristic
+function MOI.set(model::Optimizer, ::CPRL.MOIVariableSelectionAttribute, heuristic::AbstractVariableSelection)
+    model.variableselection = heuristic
 end
 
 function MOI.set(model::Optimizer, ::MOIValueSelection, valueselection::ValueSelection)
