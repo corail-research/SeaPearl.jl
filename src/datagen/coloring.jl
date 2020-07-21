@@ -75,7 +75,7 @@ struct OutputData
     optimality          :: Bool
 end
 
-include("../../examples/coloring/IOmanager.jl")
+include("IOmanager.jl")
 
 function fill_with_generator!(model::CPModel, gen::GraphColoringWithFileGenerator)
     input_file = gen.input_file
