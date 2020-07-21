@@ -1,8 +1,10 @@
+using Random
+
 struct RandomVariableSelection{TakeObjective} <: AbstractVariableSelection{TakeObjective} end
 
 RandomVariableSelection(;take_objective=true) = RandomVariableSelection{take_objective}()
 
-function (::RandomVariableSelection{false})(cpmodel::CPModel; rng=Base.Random.RANDOM_SEED)
+function (::RandomVariableSelection{false})(cpmodel::CPModel; rng=nothing)
     var_ids = keys(cpmodel.variables)
     acceptable_ids = String[]
     for id in var_ids
@@ -16,10 +18,13 @@ function (::RandomVariableSelection{false})(cpmodel::CPModel; rng=Base.Random.RA
         return cpmodel.objective
     end
 
-    cpmodel.variables[acceptable_ids[rand(rng, 1:length(acceptable_ids))]]
+    if !isnothing(rng)
+        return cpmodel.variables[acceptable_ids[rand(rng, 1:length(acceptable_ids))]]
+    end
+    cpmodel.variables[acceptable_ids[rand(1:length(acceptable_ids))]]
 end
 
-function (::RandomVariableSelection{true})(cpmodel::CPModel; rng=Base.Random.RANDOM_SEED)
+function (::RandomVariableSelection{true})(cpmodel::CPModel; rng=nothing)
     var_ids = keys(cpmodel.variables)
     acceptable_ids = String[]
     for id in var_ids
@@ -29,5 +34,8 @@ function (::RandomVariableSelection{true})(cpmodel::CPModel; rng=Base.Random.RAN
         end
     end
     
-    cpmodel.variables[acceptable_ids[rand(rng, 1:length(acceptable_ids))]]
+    if !isnothing(rng)
+        return cpmodel.variables[acceptable_ids[rand(rng, 1:length(acceptable_ids))]]
+    end
+    cpmodel.variables[acceptable_ids[rand(1:length(acceptable_ids))]]
 end
