@@ -7,6 +7,7 @@ include("core/model.jl")
 include("constraints/constraints.jl")
 
 include("core/fixPoint.jl")
+include("variableselection/variableselection.jl")
 
 include("core/search/strategies.jl")
 

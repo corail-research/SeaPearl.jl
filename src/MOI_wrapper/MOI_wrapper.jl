@@ -36,7 +36,7 @@ function MOI.optimize!(model::Optimizer)
     # println(model.cpmodel.objective)
 
 
-    status = CPRL.solve!(model.cpmodel; variableHeuristic=model.variableselection.heuristic)
+    status = CPRL.solve!(model.cpmodel; variableHeuristic=model.variableselection, valueSelection=model.valueselection)
 
     if status == :Optimal
         model.terminationStatus = MOI.OPTIMAL

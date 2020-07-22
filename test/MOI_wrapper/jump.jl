@@ -4,7 +4,12 @@ using MathOptInterface
 
 const MOI = MathOptInterface
 
-function selectVariableColoring(model::CPRL.CPModel, sortedPermutation, degrees)
+struct GraphColoringVariableSelection  <: CPRL.AbstractVariableSelection{true}
+    sortedPermutation
+    degrees
+end
+function (vs::GraphColoringVariableSelection)(model::CPRL.CPModel)
+    sortedPermutation, degrees = vs.sortedPermutation, vs.degrees
     maxDegree = 0
     toReturn = nothing
     for i in sortedPermutation
@@ -25,7 +30,9 @@ function selectVariableColoring(model::CPRL.CPModel, sortedPermutation, degrees)
     return toReturn
 end
 
-function selectVariableKnapsack(model::CPRL.CPModel)
+
+struct KnapsackVariableSelection <: CPRL.AbstractVariableSelection{true} end
+function (::KnapsackVariableSelection)(model::CPRL.CPModel)
     i = 1
     while CPRL.isbound(model.variables[string(i)])
         i += 1
@@ -64,19 +71,19 @@ end
         sortedPermutation = sortperm(degrees; rev=true)
 
         # define the heuristic used for variable selection
-        variableheuristic(m) = selectVariableColoring(m, sortedPermutation, degrees)
-        MOI.set(model, CPRL.VariableSelection(), variableheuristic)
+        variableheuristic = GraphColoringVariableSelection(sortedPermutation, degrees)
+        MOI.set(model, CPRL.MOIVariableSelectionAttribute(), variableheuristic)
 
         # Define the heuristic used for value selection
-        # numberOfSteps = 0
-        # valueheuristic = CPRL.BasicHeuristic()
-        # MOI.set(model, CPRL.MOIValueSelection(), valueheuristic)
-        # @test numberOfSteps == 5
+        numberOfSteps = 0
+        valueheuristic = CPRL.BasicHeuristic((x) -> (numberOfSteps += 1; minimum(x.domain)))
+        MOI.set(model, CPRL.MOIValueSelectionAttribute(), valueheuristic)
 
 
         optimize!(model)
         status = MOI.get(model, MOI.TerminationStatus())
 
+        @test numberOfSteps == 2
         @test status == MOI.OPTIMAL
         @test has_values(model)
         @test value.(x) == [1, 2, 1, 1] || value.(x) == [2, 1, 2, 2] #TODO: See Issue #43
@@ -100,13 +107,18 @@ end
         @expression(model, val_sum, 8 * x[1] + 10 * x[2] + 15 * x[3] + 4 * x[4])
         @objective(model, Min, -val_sum)
 
-        variableheuristic(m) = selectVariableKnapsack(m)
+        variableheuristic = KnapsackVariableSelection()
+        MOI.set(model, CPRL.MOIVariableSelectionAttribute(), variableheuristic)
 
-        MOI.set(model, CPRL.VariableSelection(), variableheuristic)
+        # Define the heuristic used for value selection
+        numberOfSteps = 0
+        valueheuristic = CPRL.BasicHeuristic((x) -> (numberOfSteps += 1; maximum(x.domain)))
+        MOI.set(model, CPRL.MOIValueSelectionAttribute(), valueheuristic)
 
         optimize!(model)
         status = MOI.get(model, MOI.TerminationStatus())
 
+        @test numberOfSteps == 3
         @test status == MOI.OPTIMAL
         @test has_values(model)
         @test value.(x) == [0, 0, 1, 1]
