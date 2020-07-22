@@ -1,4 +1,4 @@
-function solve!(model::CPModel, strategy::Type{T}=DFSearch; variableHeuristic=MinDomainVariableSelection) where T <: SearchStrategy
-    return search!(model, strategy, variableHeuristic)
+function solve!(model::CPModel, strategy::Type{T}=DFSearch; variableHeuristic=MinDomainVariableSelection, valueSelection=BasicHeuristic()) where T <: SearchStrategy
+    return search!(model, strategy, variableHeuristic, valueSelection)
 end
 

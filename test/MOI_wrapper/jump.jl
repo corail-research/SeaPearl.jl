@@ -75,15 +75,15 @@ end
         MOI.set(model, CPRL.MOIVariableSelectionAttribute(), variableheuristic)
 
         # Define the heuristic used for value selection
-        # numberOfSteps = 0
-        # valueheuristic = CPRL.BasicHeuristic()
-        # MOI.set(model, CPRL.MOIValueSelection(), valueheuristic)
-        # @test numberOfSteps == 5
+        numberOfSteps = 0
+        valueheuristic = CPRL.BasicHeuristic((x) -> (numberOfSteps += 1; minimum(x.domain)))
+        MOI.set(model, CPRL.MOIValueSelectionAttribute(), valueheuristic)
 
 
         optimize!(model)
         status = MOI.get(model, MOI.TerminationStatus())
 
+        @test numberOfSteps == 2
         @test status == MOI.OPTIMAL
         @test has_values(model)
         @test value.(x) == [1, 2, 1, 1] || value.(x) == [2, 1, 2, 2] #TODO: See Issue #43
@@ -108,12 +108,17 @@ end
         @objective(model, Min, -val_sum)
 
         variableheuristic = KnapsackVariableSelection()
-
         MOI.set(model, CPRL.MOIVariableSelectionAttribute(), variableheuristic)
+
+        # Define the heuristic used for value selection
+        numberOfSteps = 0
+        valueheuristic = CPRL.BasicHeuristic((x) -> (numberOfSteps += 1; maximum(x.domain)))
+        MOI.set(model, CPRL.MOIValueSelectionAttribute(), valueheuristic)
 
         optimize!(model)
         status = MOI.get(model, MOI.TerminationStatus())
 
+        @test numberOfSteps == 3
         @test status == MOI.OPTIMAL
         @test has_values(model)
         @test value.(x) == [0, 0, 1, 1]
