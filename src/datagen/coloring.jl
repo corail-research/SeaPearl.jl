@@ -2,49 +2,48 @@ using Distributions
 
 struct GraphColoringGenerator <: AbstractModelGenerator
     nb_nodes::Int
-    density::Real
+    probability::Real
+
+    function GraphColoringGenerator(n, p)
+        @assert n > 0
+        @assert 0 < p && p <= 1
+        new(n, p)
+    end
 end
+
+
 
 """
     fill_with_generator!(cpmodel::CPModel, gen::GraphColoringGenerator)::CPModel    
 
 Fill a CPModel with the variables and constraints generated. We fill it directly instead of 
 creating temporary files for efficiency purpose ! Density should be more than 1.
+
+Very simple case from: Exploring the k-colorable Landscape with Iterated Greedy by Culberson & Luo
+https://pdfs.semanticscholar.org/e6cc/ab8f757203bf15680dbf456f295a7a31431a.pdf
 """
 function fill_with_generator!(cpmodel::CPModel, gen::GraphColoringGenerator)
-    density = gen.density
-    nb_nodes = gen.nb_nodes
-
-    nb_edges = floor(Int64, density * nb_nodes)
+    p = gen.probability
+    n = gen.nb_nodes
 
     # create variables
     x = CPRL.IntVar[]
-    for i in 1:nb_nodes
-        push!(x, CPRL.IntVar(1, nb_nodes, string(i), cpmodel.trailer))
+    for i in 1:n
+        push!(x, CPRL.IntVar(1, n, string(i), cpmodel.trailer))
         addVariable!(cpmodel, last(x))
     end
-    @assert nb_edges >= nb_nodes - 1
-    connexions = [1 for i in 1:nb_nodes]
-    # create Geometric distribution
-    p = 2 / nb_nodes
-    distr = Truncated(Geometric(p), 0, nb_nodes)
-    new_connexions = rand(distr, nb_edges - nb_nodes)
-    for new_co in new_connexions
-        connexions[convert(Int64, new_co)] += 1
-    end
-
-    # should make sure that every node has less than nb_nodes - 1 connexions
-
+    
     # edge constraints
-    for i in 1:length(connexions)
-        neighbors = sample([j for j in 1:length(connexions) if j != i && connexions[i] > 0], connexions[i], replace=false)
-        for j in neighbors
-            push!(cpmodel.constraints, CPRL.NotEqual(x[i], x[j], cpmodel.trailer))
+    for i in 1:n
+        for j in 1:n
+            if i != j && rand() <= p
+                push!(cpmodel.constraints, CPRL.NotEqual(x[i], x[j], cpmodel.trailer))
+            end
         end
     end
 
     ### Objective ###
-    numberOfColors = CPRL.IntVar(1, nb_nodes, "numberOfColors", cpmodel.trailer)
+    numberOfColors = CPRL.IntVar(1, n, "numberOfColors", cpmodel.trailer)
     CPRL.addVariable!(cpmodel, numberOfColors)
     for var in x
         push!(cpmodel.constraints, CPRL.LessOrEqual(var, numberOfColors, cpmodel.trailer))
