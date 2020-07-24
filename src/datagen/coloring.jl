@@ -113,7 +113,7 @@ function fill_with_generator!(model::CPModel, gen::GraphColoringWithFileGenerato
     model.objective = numberOfColors
 
 
-    ### Variable selection heurstic ###
+    ### Variable selection heuristic ###
     function selectVariable(model::CPRL.CPModel, sortedPermutation, degrees)
         maxDegree = 0
         toReturn = nothing

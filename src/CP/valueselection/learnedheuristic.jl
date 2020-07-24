@@ -13,9 +13,20 @@ Used to customize the reward function. If you want to use your own reward, you h
 Then, when creating the `LearnedHeuristic`, you define it using `LearnedHeuristic{CustomReward}(agent::RL.Agent)`
 and your functions will be called instead of the default ones.
 """  
-
 abstract type AbstractReward end
 
+"""
+    LearnedHeuristic{SR<:AbstractStateRepresentation, R<:AbstractReward, A<:ActionOutput}
+
+The LearnedHeuristic is a value selection heuristic which is learned thanks to a training made by solving a certain amount 
+of problem instances from files or from an `AbstractModelGenerator`. From the RL point of view, this is an agent which is
+learning how to choose an appropriate action (value to assign) when observing an `AbstractStateRepresentation`. The agent 
+learns thanks to rewards that are given regularly during the search. He wil try to maximize the total reward.
+
+From the RL point of view, this LearnedHeuristic also plays part of the role normally played by the environment. Indeed, the 
+LearnedHeuristic stores the action space, the current state and reward. The other role that a classic RL environment has is describing
+the consequences of an action: in SeaPearl, this is done by the CP part - branching, running fixPoint!, backtracking, etc...
+"""
 mutable struct LearnedHeuristic{SR<:AbstractStateRepresentation, R<:AbstractReward, A<:ActionOutput} <: ValueSelection
     agent::RL.Agent
     fitted_problem::Union{Nothing, Type{G}} where G
@@ -36,8 +47,9 @@ include("lh_utils.jl")
 """
     (valueSelection::LearnedHeuristic)(::InitializingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
 
-Create an RL environment and a first observation. Finally make the agent call the process of 
-the pre episode stage (basically making sure that the buffer is empty).
+Update the part of the LearnedHeuristic which act like an RL environment, by initializing it with informations caracteritic of the new CPModel. Creates an 
+initial observation with a false variable. A fixPoint! will be called before the LearnedHeuristic takes its first decision.
+Finally, makes the agent call the process of the RL pre_episode_stage (basically making sure that the buffer is empty). 
 """
 function (valueSelection::LearnedHeuristic)(::InitializingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
     # create the environment
@@ -48,7 +60,8 @@ function (valueSelection::LearnedHeuristic)(::InitializingPhase, model::CPModel,
     # Reset the agent, useful for things like recurrent networks
     Flux.reset!(valueSelection.agent)
 
-    valueSelection.agent(RL.PRE_EPISODE_STAGE, obs) # just empty the buffer
+    # just empty the buffer
+    valueSelection.agent(RL.PRE_EPISODE_STAGE, obs)
 end
 
 """
@@ -69,8 +82,7 @@ end
 """
     (valueSelection::LearnedHeuristic)(::DecisionPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
 
-Observe, store useful informations in the buffer with agent(POST_ACT_STAGE, ...) and take a decision
-with the call of agent(PRE_ACT_STAGE).
+Observe, store useful informations in the buffer with agent(POST_ACT_STAGE, ...) and take a decision with the call to agent(PRE_ACT_STAGE).
 The metrics that aren't updated in the StepPhase, which are more related to variables domains, are updated here. Once updated, they can 
 be used in the other set_reward! function as the reward of the last action will only be collected in the RL.POST_ACT_STAGE.
 """
@@ -96,22 +108,38 @@ function (valueSelection::LearnedHeuristic)(PHASE::DecisionPhase, model::CPModel
     
 end
 
+"""
+    from_order_to_id(state::AbstractArray, value_order::Int64)
+
+Return the ids of the valid indexes from the Array representation of the AbstractStateRepresentation. Used to be able to work with 
+ActionOutput of variable size (VariableOutput).
+"""
 function from_order_to_id(state::AbstractArray, value_order::Int64)
     value_vector = state[:, end]
     valid_indexes = findall((x) -> x == 1, value_vector)
     return valid_indexes[value_order]
 end
 
+"""
+    action_to_value(vs::LearnedHeuristic{SR, R, VariableOutput}, action::Int64, state::AbstractArray, model::CPModel)
+
+Mapping action taken to corresponding value when handling VariableOutput type of ActionOutput.
+"""
 function action_to_value(vs::LearnedHeuristic{SR, R, VariableOutput}, action::Int64, state::AbstractArray, model::CPModel) where {
     SR <: AbstractStateRepresentation,
     R <: AbstractReward
 }
     value_id = from_order_to_id(state, action)
-    cp_vertex = cpVertexFromIndex(model.RLRep, value_id)
+    cp_vertex = cpVertexFromIndex(vs.current_state.cplayergraph, value_id)
     @assert isa(cp_vertex, ValueVertex)
     return cp_vertex.value
 end
 
+"""
+    action_to_value(vs::LearnedHeuristic{SR, R, FixedOutput}, action::Int64, state::AbstractArray, model::CPModel)
+
+Not implemented yet !
+"""
 function action_to_value(vs::LearnedHeuristic{SR, R, FixedOutput}, action::Int64, state::AbstractArray, model::CPModel) where {
     SR <: AbstractStateRepresentation,
     R <: AbstractReward

@@ -195,6 +195,7 @@ function Base.iterate(dom::IntDomainViewMul, state=1)
     value, newState = returned
     return value * dom.a, newState
 end
+
 function Base.iterate(dom::IntDomainViewOpposite, state=1)
     returned = iterate(dom.orig, state)
     if isnothing(returned)
@@ -204,6 +205,7 @@ function Base.iterate(dom::IntDomainViewOpposite, state=1)
     value, newState = returned
     return -value, newState
 end
+
 function Base.iterate(dom::IntDomainViewOffset, state=1)
     returned = iterate(dom.orig, state)
     if isnothing(returned)
@@ -224,11 +226,13 @@ function updateMaxFromRemovedVal!(dom::IntDomainViewMul, v::Int)
         updateMaxFromRemovedVal!(dom.orig, v ÷ dom.a)
     end
 end
+
 function updateMaxFromRemovedVal!(dom::IntDomainViewOpposite, v::Int)
     if maximum(dom) == v
         updateMinFromRemovedVal!(dom.orig, -v)
     end
 end
+
 function updateMaxFromRemovedVal!(dom::IntDomainViewOffset, v::Int)
     if maximum(dom) == v
         updateMaxFromRemovedVal!(dom.orig, v - dom.c)
@@ -245,11 +249,13 @@ function updateMinFromRemovedVal!(dom::IntDomainViewMul, v::Int)
         updateMinFromRemovedVal!(dom.orig, v ÷ dom.a)
     end
 end
+
 function updateMinFromRemovedVal!(dom::IntDomainViewOpposite, v::Int)
     if minimum(dom) == v
         updateMaxFromRemovedVal!(dom.orig, -v)
     end
 end
+
 function updateMinFromRemovedVal!(dom::IntDomainViewOffset, v::Int)
     if minimum(dom) == v
         updateMinFromRemovedVal!(dom.orig, v - dom.c)

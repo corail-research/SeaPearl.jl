@@ -8,8 +8,7 @@ struct DefaultReward <: AbstractReward end
 """
     set_reward!(::StepPhase, lh::LearnedHeuristic{DefaultReward, A}, model::CPModel, symbol::Union{Nothing, Symbol})
 
-Change the "reward" attribute of the env. This is compulsory as used in the buffer
-for the training.
+Change the "current_reward" attribute of the LearnedHeuristic at the StepPhase.
 """
 function set_reward!(::StepPhase, lh::LearnedHeuristic{SR, DefaultReward, A}, model::CPModel, symbol::Union{Nothing, Symbol}) where {
     SR <: AbstractStateRepresentation,
@@ -21,7 +20,7 @@ end
 """
     set_reward!(::DecisionPhase, lh::LearnedHeuristic{DefaultReward, O}, model::CPModel)
 
-Change the reward of `env`. This is called right before making the next decision, so you know you have the very last state before the new decision
+Change the current reward at the DecisionPhase. This is called right before making the next decision, so you know you have the very last state before the new decision
 and every computation like fixPoints and backtracking has been done.
 """
 function set_reward!(::DecisionPhase, lh::LearnedHeuristic{SR, DefaultReward, A}, model::CPModel) where {
@@ -36,7 +35,8 @@ end
 """
     set_reward!(::EndingPhase, lh::LearnedHeuristic{DefaultReward, A}, model::CPModel, symbol::Union{Nothing, Symbol})
 
-Change the "reward" attribute of the env. Called when the optimality is proved.
+Increment the current reward at the EndingPhase. Called when the search is finished by an optimality proof or by a limit in term of nodes or 
+in terms of number of solution. This is useful to add some general results to the reward like the number of ndoes visited during the episode for instance. 
 """
 function set_reward!(::EndingPhase, lh::LearnedHeuristic{SR, DefaultReward, A}, model::CPModel, symbol::Union{Nothing, Symbol}) where {
     SR <: AbstractStateRepresentation, 
