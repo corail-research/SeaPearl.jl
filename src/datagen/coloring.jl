@@ -6,10 +6,18 @@ struct GraphColoringGenerator <: AbstractModelGenerator
 end
 
 """
-    fill_with_generator!(cpmodel::CPModel, gen::GraphColoringGenerator)::CPModel    
+    fill_with_generator!(cpmodel::CPModel, gen::GraphColoringGenerator)  
 
 Fill a CPModel with the variables and constraints generated. We fill it directly instead of 
-creating temporary files for efficiency purpose ! Density should be more than 1.
+creating temporary files for efficiency purpose.
+
+This generator create clustered graphs for the graph coloring problem. It is having a fixed number of
+nodes and edges which is convenient to have problems of constant size. This is not compulsory (not the case 
+of the knapsack and of the homogeneous graph generator) but it is interesting to be sure we're working
+on more smooth cases.
+
+This is done by getting a geometric distribution of each node connectivity (number of edges) and then select
+randomly the connexions. 
 """
 function fill_with_generator!(cpmodel::CPModel, gen::GraphColoringGenerator)
     density = gen.density

@@ -1,4 +1,10 @@
+"""
 
+This file provides functions used to get a problem from a file. 
+This make it possible to use the problem proposed in the Coursera course. 
+https://www.coursera.org/learn/discrete-optimization/
+
+"""
 
 function parseInput(raw_input)
     lines = split(raw_input, '\n')

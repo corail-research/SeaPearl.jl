@@ -10,9 +10,7 @@
         verbose::Bool=true
     ) where T <: ValueSelection
 
-Training a LearnedHeuristic. Could perfectly work with basic heuristic. (even if 
-prevented at the moment).
-We could rename it experiment and add a train::Bool argument.
+Used to benchmark the performance of some heuristics.
 """
 function benchmark_solving(;
         valueSelectionArray::Union{T, Array{T, 1}}, 
