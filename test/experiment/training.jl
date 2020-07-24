@@ -1,31 +1,44 @@
 @testset "training.jl" begin
-    generator = CPRL.GraphColoringGenerator(10, 1.5)
+    generator = CPRL.GraphColoringGenerator(10, 0.5)
+    numInFeatures = 3
+
+    maxNumberOfCPNodes = 150
+    state_size = (maxNumberOfCPNodes, numInFeatures + maxNumberOfCPNodes + 3, 1)
+
 
     agent = RL.Agent(
             policy = RL.QBasedPolicy(
                 learner = CPRL.CPDQNLearner(
                     approximator = RL.NeuralNetworkApproximator(
-                        model = Chain(
-                            Flux.flatten,
-                            Dense(46*52, 100, Flux.relu),
-                            Dense(100, 50, Flux.relu),
-                            Dense(50, 10, Flux.relu)
+                        model = CPRL.FlexGNN(
+                            graphChain = Flux.Chain(
+                                GeometricFlux.GCNConv(numInFeatures => 20),
+                                GeometricFlux.GCNConv(20 => 20),
+                            ),
+                            nodeChain = Flux.Chain(
+                                Flux.Dense(20, 20),
+                            ),
+                            outputLayer = Flux.Dense(20, generator.nb_nodes)
                         ),
                         optimizer = ADAM(0.0005f0)
                     ),
                     target_approximator = RL.NeuralNetworkApproximator(
-                        model = Chain(
-                            Flux.flatten,
-                            Dense(46*52, 100, Flux.relu),
-                            Dense(100, 50, Flux.relu),
-                            Dense(50, 10, Flux.relu)
+                        model = CPRL.FlexGNN(
+                            graphChain = Flux.Chain(
+                                GeometricFlux.GCNConv(numInFeatures => 20),
+                                GeometricFlux.GCNConv(20 => 20),
+                            ),
+                            nodeChain = Flux.Chain(
+                                Flux.Dense(20, 20),
+                            ),
+                            outputLayer = Flux.Dense(20, generator.nb_nodes)
                         ),
                         optimizer = ADAM(0.0005f0)
                     ),
                     loss_func = huber_loss,
                     stack_size = nothing,
                     γ = 0.99f0,
-                    batch_size = 32,
+                    batch_size = 1,
                     update_horizon = 1,
                     min_replay_history = 1,
                     update_freq = 1,
@@ -47,7 +60,7 @@
             trajectory = RL.CircularCompactSARTSATrajectory(
                 capacity = 500, 
                 state_type = Float32, 
-                state_size = (46, 52, 1),
+                state_size = state_size,
                 action_type = Int,
                 action_size = (),
                 reward_type = Float32,
@@ -58,7 +71,7 @@
             role = :DEFAULT_PLAYER
         )
     
-    learnedHeuristic = CPRL.LearnedHeuristic(agent)
+    learnedHeuristic = CPRL.LearnedHeuristic(agent, maxNumberOfCPNodes)
 
     initial_params = deepcopy(params(learnedHeuristic.agent.policy.learner.approximator.model))
 

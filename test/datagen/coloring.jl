@@ -1,20 +1,22 @@
+using Random
+
 @testset "coloring.jl" begin
     @testset "fill_with_coloring!" begin
         trailer = CPRL.Trailer()
         model = CPRL.CPModel(trailer)
 
         nb_nodes = 10
-        density = 1.5
+        probability = 0.5
 
-        generator = CPRL.GraphColoringGenerator(nb_nodes, density)
+        generator = CPRL.GraphColoringGenerator(nb_nodes, probability)
 
-        for _ in 1:20
-            CPRL.fill_with_generator!(model, generator)
+        
+        CPRL.fill_with_generator!(model, generator;rng=MersenneTwister(12))
 
-            @test length(keys(model.variables)) == nb_nodes + 1
-            @test length(model.constraints) == floor(Int64, density * nb_nodes) + nb_nodes
-            empty!(model)
-        end
+        @test length(keys(model.variables)) == nb_nodes + 1
+        @test length(model.constraints) == 55
+            
+        
     end
 
 end

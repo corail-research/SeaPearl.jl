@@ -22,7 +22,7 @@ creating temporary files for efficiency purpose ! Density should be more than 1.
 Very simple case from: Exploring the k-colorable Landscape with Iterated Greedy by Culberson & Luo
 https://pdfs.semanticscholar.org/e6cc/ab8f757203bf15680dbf456f295a7a31431a.pdf
 """
-function fill_with_generator!(cpmodel::CPModel, gen::GraphColoringGenerator)
+function fill_with_generator!(cpmodel::CPModel, gen::GraphColoringGenerator; rng=nothing)
     p = gen.probability
     n = gen.nb_nodes
 
@@ -36,8 +36,14 @@ function fill_with_generator!(cpmodel::CPModel, gen::GraphColoringGenerator)
     # edge constraints
     for i in 1:n
         for j in 1:n
-            if i != j && rand() <= p
-                push!(cpmodel.constraints, CPRL.NotEqual(x[i], x[j], cpmodel.trailer))
+            if isnothing(rng)
+                if i != j && rand() <= p
+                    push!(cpmodel.constraints, CPRL.NotEqual(x[i], x[j], cpmodel.trailer))
+                end
+            else
+                if i != j && rand(rng) <= p
+                    push!(cpmodel.constraints, CPRL.NotEqual(x[i], x[j], cpmodel.trailer))
+                end
             end
         end
     end
