@@ -25,11 +25,17 @@ function launch_experiment!(
         verbose::Bool
     ) where T <: ValueSelection
 
+    eval_freq = 50
+
     nb_heuristics = length(valueSelectionArray)
+
+    evaluator = SameInstancesEvaluator(generator, 50)
 
     bestsolutions = zeros(Int64, (nb_episodes, nb_heuristics))
     nodevisited = zeros(Int64, (nb_episodes, nb_heuristics))
+    eval_nodevisited = zeros(Float64, (floor(Int64, nb_episodes/eval_freq), nb_heuristics))
     timeneeded = zeros(Float64, (nb_episodes, nb_heuristics))
+    eval_timeneeded = zeros(Float64, (floor(Int64, nb_episodes/eval_freq), nb_heuristics))
 
     trailer = Trailer()
     model = CPModel(trailer)
@@ -62,6 +68,11 @@ function launch_experiment!(
                 set_postfix(iter, Delta=string(nodevisited[i, 1] - nodevisited[i, 2]))
             end
 
+            # eval_nodevisited[i, j], eval_timeneeded[i, j] = 0., 0.
+            if i % eval_freq == 1
+                eval_nodevisited[floor(Int64, (i-1)/eval_freq + 1), j], eval_timeneeded[floor(Int64, (i-1)/eval_freq + 1), j] = evaluate(evaluator, variableHeuristic, valueSelectionArray[j], strategy)
+            end
+
             timeneeded[i, j] = dt
             metricsFun(;episode=i, heuristic=valueSelectionArray[j], nodeVisited=model.statistics.numberOfNodes, bestSolution=(model.objectiveBound + 1))
         end
@@ -69,5 +80,5 @@ function launch_experiment!(
 
     end
 
-    bestsolutions, nodevisited, timeneeded
+    bestsolutions, nodevisited, timeneeded, eval_nodevisited, eval_timeneeded
 end
