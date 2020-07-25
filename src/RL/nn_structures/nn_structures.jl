@@ -1,8 +1,9 @@
 using Flux
 
+abstract type NNStructure end
+
 include("flexGNN.jl")
 
-abstract type NNStructure end
 abstract type NNArgs end
 
 struct ModelNotImplementedError{M} <: Exception

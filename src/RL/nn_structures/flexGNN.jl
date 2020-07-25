@@ -1,9 +1,14 @@
 """
+    FlexGNN(;
+        graphChain::Flux.Chain
+        nodeChain::Flux.Chain
+        outputLayer::Flux.Dense
+    )
 
 This structure is here to provide a flexible way to create a nn model which respect this approach:
 Making modification on the graph, then extract one node feature and modify it. 
 """
-Base.@kwdef struct FlexGNN
+Base.@kwdef struct FlexGNN <: NNStructure
     graphChain::Flux.Chain
     nodeChain::Flux.Chain
     outputLayer::Flux.Dense

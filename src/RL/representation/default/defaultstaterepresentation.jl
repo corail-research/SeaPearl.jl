@@ -1,6 +1,14 @@
 
 struct DefaultFeaturization <: AbstractFeaturization end
 
+include("cp_layer/cp_layer.jl")
+
+"""
+    DefaultStateRepresentation{F}
+
+This is the default represenation used by SeaPearl unless the user define his own and give
+the information to his LearnedHeurstic when defining it. 
+"""
 mutable struct DefaultStateRepresentation{F} <: FeaturizedStateRepresentation{F}
     cplayergraph::CPLayerGraph
     features::Union{Nothing, Array{Float32, 2}}
