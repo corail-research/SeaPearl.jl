@@ -14,7 +14,7 @@ function SameInstancesEvaluator(generator::AbstractModelGenerator, number_of_ins
 end
 
 function evaluate(eval::SameInstancesEvaluator, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, strategy::Type{<:SearchStrategy})
-    testmode!(valueSelection)
+    testmode!(valueSelection, true)
     n = length(eval.instances)
     dt = 0.
     n_nodes = 0.
@@ -24,8 +24,9 @@ function evaluate(eval::SameInstancesEvaluator, variableHeuristic::AbstractVaria
         dt += @elapsed search!(model, strategy, variableHeuristic, valueSelection)
         n_nodes += model.statistics.numberOfNodes
     end
-    testmode!(valueSelection)
+    testmode!(valueSelection, false)
     return n_nodes/n, dt/n
+    # return 0., 0.
 end
 
 
