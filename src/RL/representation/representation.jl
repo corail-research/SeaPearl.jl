@@ -9,6 +9,19 @@ it is the input that the RL agent has to decide the value to be assigned when br
 
 A user can use the DefaultStateRepresentation provided by the package but he has the possibility
 to define his own one.
+
+To define a new one, the user need to:
+- define a new structure, subtype of AbstractStateRepresentation
+- create a constructor from a CPModel 
+- define an `update_representation!` function
+- define a `to_arraybuffer` function
+- define a `featuredgraph` function
+- define a `branchingvariable_id` function
+
+To be able to work with variable action space, you also need to:
+- define the `possible_values` function.
+
+Look at the DefaultStateRepresentation to get inspired.
 """
 abstract type AbstractStateRepresentation end 
 
