@@ -3,7 +3,8 @@
     search!(model::CPModel, ::Type{DFSearch}, variableHeuristic, valueSelection::ValueSelection=BasicHeuristic())
 
 Perform a Depth-First search in the `model` using `variableHeuristic` to choose which domain will be changed
-at each branching. This strategy, starting at the root node, will explore as deep as possible before backtracking.
+at each branching and using `valueSelection` to choose how the branching will be done. 
+This strategy, starting at the root node, will explore as deep as possible before backtracking.
 """
 function search!(model::CPModel, ::Type{DFSearch}, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection=BasicHeuristic())
 
@@ -49,7 +50,8 @@ end
     expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::Function, valueSelection::ValueSelection, newConstraints=nothing)
 
 Add procedures to `toCall`, that, called in the stack order (LIFO) with the `model` parameter, will perform a DFS in the graph.
-Some procedures will contain a call to `expandDfs!` itself.
+Some procedures will contain a call to `expandDfs!` itself. Each `expandDfs!` call is wrapped around a `saveState!` and a `restoreState!` to be
+able to backtrack thanks to the trailer.
 """
 function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, newConstraints=nothing)
     # Dealing with limits

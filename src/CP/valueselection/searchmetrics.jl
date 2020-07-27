@@ -1,22 +1,32 @@
 """
     SearchMetrics
 
+In order to have insights about what is happening during the search, this structure stores a lot 
+of information that describe it. Those informations can eather be used to understand what's happening 
+but also to design the rewards that will be given to the agent. 
+
+Do not hesitate to open github issues to ask for other metrics that could be useful for your current research !
+
 Significations:
 
 total_steps::Int64 -> number of removing, assignment & backtrack !
 total_states::Int64 -> number of differents states we've been in (removing & assignment only)
+total_decisions::Int64
 last_backtrack::Int64 -> steps since last backtrack
 last_unfeasible::Int64 -> steps since last unfeasible state
 last_foundsolution::Int64 -> steps since last found solution
 last_feasible::Int64 -> step since a feasible state was reached
 backtrack_length::Int64 -> number of steps of the current backtrack or 0
 tree_depth::Int64 -> depth in the current research tree
+variable_domain_size
+new_variable_domain_size
+total_boundvariables
+new_total_boundvariables
+domains_product
+new_domains_product
+nb_solutions
 current_best::Union{Nothing, Int64} -> best solution found so far
 true_best::Union{Nothing, Int64} -> eventually true best of the problem
-
-One of the roles of the env is to manage the reward which is going to be given. In the simplest schema, it is
-just a simple reward which is given as a field of RLEnv. To make things more complete and flexible to the user, 
-we add a SearchMetrics which will help design interesting rewards.
 """
 
 mutable struct SearchMetrics
@@ -55,10 +65,9 @@ function SearchMetrics(model::CPModel)
 end
 
 """
-    set_metrics!(::StepPhase, search_metrics::SearchMetrics, model::CPModel, symbol::Union{Nothing, Symbol})
+    set_metrics!(::StepPhase, search_metrics::SearchMetrics, model::CPModel, symbol::Union{Nothing, Symbol}, x::Union{Nothing, AbstractIntVar})
 
-Set the search metrics thanks to informations from the CPModel and the current status. 
-Can be useful for insights or for reward engineering.
+Set the search metrics thanks to informations from the CPModel and the current status during the StepPhase.
 """
 function set_metrics!(::StepPhase, search_metrics::SearchMetrics, model::CPModel, symbol::Union{Nothing, Symbol}, x::Union{Nothing, AbstractIntVar})
     search_metrics.total_steps += 1
@@ -106,10 +115,9 @@ end
 
 
 """
-    set_metrics!(search_metrics::SearchMetrics, model::CPModel, symbol::Union{Nothing, Symbol})
+    set_metrics!(::DecisionPhase, search_metrics::SearchMetrics, model::CPModel, symbol::Union{Nothing, Symbol}, x::Union{Nothing, AbstractIntVar})
 
-Set the search metrics thanks to informations from the CPModel and the current status. 
-Can be useful for insights or for reward engineering.
+Set the search metrics thanks to informations from the CPModel and the current status during the DecisionPhase
 """
 function set_metrics!(::DecisionPhase, search_metrics::SearchMetrics, model::CPModel, symbol::Union{Nothing, Symbol}, x::Union{Nothing, AbstractIntVar})
     search_metrics.total_decisions += 1

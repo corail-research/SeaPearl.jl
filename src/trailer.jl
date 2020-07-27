@@ -9,6 +9,12 @@ abstract type AbstractStateEntry end
 
 Base.show(io::IO, se::AbstractStateEntry) = write(io, "AbstractStateEntry")
 
+"""
+    Trailer
+
+The trailer is the structure which makes it possible to memorize the previous State of our model 
+during the search. It makes it possible to handle the backtrack.
+"""
 mutable struct Trailer
     current     ::Stack{AbstractStateEntry}
     prior       ::Stack{Stack{AbstractStateEntry}}

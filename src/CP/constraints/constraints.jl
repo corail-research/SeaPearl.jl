@@ -1,5 +1,4 @@
 
-
 include("equal.jl")
 include("notequal.jl")
 include("lessorequal.jl")
@@ -12,7 +11,7 @@ include("sumgreaterthan.jl")
 """
     addOnDomainChange!(x::AbstractIntVar, constraint::Constraint)
 
-Make sure `constraint` will be propagated if `x`'s domain changes.
+Make sure `constraint` will be propagated if `x`'s domain changes. 
 """
 function addOnDomainChange!(x::IntVar, constraint::Constraint)
     if !(constraint in x.onDomainChange)

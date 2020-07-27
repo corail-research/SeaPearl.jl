@@ -44,6 +44,11 @@ function IntDomain(trailer::Trailer, n::Int, offset::Int)
     return IntDomain(values, indexes, offset, n, size, min, max, trailer)
 end
 
+"""
+    reset_domain!(dom::IntDomain)
+
+Used in `reset_model!`. 
+"""
 function reset_domain!(dom::IntDomain)
     setValue!(dom.size, dom.initSize)
     setValue!(dom.min, dom.offset + 1)
@@ -68,8 +73,6 @@ end
 Return `true` iff `dom` is an empty set. Done in constant time.
 """
 Base.isempty(dom::CPRL.IntDomain) = dom.size.value == 0
-
-
 
 """
     length(dom::IntDomain)

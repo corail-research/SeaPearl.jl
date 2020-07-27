@@ -1,6 +1,21 @@
 
+"""
+    Flux.testmode!(lh::LearnedHeuristic, mode = true)
+
+Make it possible to change the mode of the LearnedHeuristic: training or testing. This makes sure
+you stop updating the weights or the approximator once the training is done. It is used at the beginning
+of the `train!` function to make sure it's training and changed automatically at the end of it but a user can 
+manually change the mode again if he wants.
+"""
 Flux.testmode!(lh::LearnedHeuristic, mode = true) = Flux.testmode!(lh.agent, mode) 
 
+"""
+    update_with_cpmodel!(lh::LearnedHeuristic{SR, R, A}, model::CPModel)
+
+This function initializes the fields of a LearnedHeuristic which are useful to do reinforcement learning 
+and which depend on the CPModel considered. It is called at the beginning of the `search!` function (in the 
+InitializingPhase).
+"""
 function update_with_cpmodel!(lh::LearnedHeuristic{SR, R, A}, model::CPModel) where {
     SR <: AbstractStateRepresentation, 
     R <: AbstractReward, 
@@ -26,13 +41,26 @@ include("reward.jl")
 """
     sync!(lh::LearnedHeuristic, model::CPModel, x::AbstractIntVar)
 
-Synchronize the env with the CPModel.
+Synchronize the environment part of the LearnedHeuristic with the CPModel.
 """
 function sync_state!(lh::LearnedHeuristic, model::CPModel, x::AbstractIntVar)
     update_representation!(lh.current_state, model, x)
     nothing 
 end
 
+"""
+    get_observation!(lh::LearnedHeuristic, model::CPModel, x::AbstractIntVar, done = false)
+
+This function retrieve all the elements that are useful for doing reinforcement learning. 
+- The reward, which has been incremented through the set_reward!(PHASE, ...) functions. 
+- The terminal boolean (is the episode done or not)
+- The current state, which is the StateRepresentation of the CPModel at this stage of the solving.
+This state is what will then be given to the agent to make him proposed an action (a value to assign.)
+- The legal_actions & legal_actions_mask used to make sure the agent won't propose a value which isn't 
+in the domain of the variable we're branching on. 
+
+The result is given as a namedtuple for convenience with ReinforcementLearning.jl interface. 
+"""
 function get_observation!(lh::LearnedHeuristic, model::CPModel, x::AbstractIntVar, done = false)
     # get legal_actions_mask
     legal_actions_mask = [value in x.domain for value in lh.action_space]

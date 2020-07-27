@@ -1,8 +1,7 @@
 """
     fixPoint!(model::CPModel, new_constraints=nothing)
 
-Run the fix-point algorithm. Will prune the domain of every variable of `model` as much
-as possible, using its constraints.
+Run the fix-point algorithm. Will prune the domain of every variable of `model` as much as possible, using its constraints.
 Return a tuple with a boolean corresponding to the feasibility and a `CPModification` object, containing all the pruned domains.
 
 # Arguments
