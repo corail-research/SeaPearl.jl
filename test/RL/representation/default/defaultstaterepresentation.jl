@@ -141,10 +141,16 @@ adj = [0 1 0 1;
 
     end
 
-    @testset "possible_value_ids" begin
-    
-        #@test possible_value_ids == [6]
-    
+    @testset "possible_value_ids()" begin
+        array = Float32[1 0 0 1 1 0 0 0 0 1 0 0 0 1
+                        1 0 0 1 1 0 0 0 0 1 0 0 0 0
+                        1 1 1 0 0 1 1 0 0 0 1 0 1 0
+                        1 1 1 0 0 1 1 0 0 0 1 0 0 0
+                        1 0 0 1 1 0 0 0 0 0 0 1 0 0
+                        1 0 0 1 1 0 0 0 0 0 0 1 0 1
+                        0 0 0 0 0 0 0 0 0 0 0 0 0 0
+                        0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+        @test CPRL.possible_value_ids(array) == [1, 6]
     end
 
     @testset "to_arraybuffer()" begin

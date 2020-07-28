@@ -91,3 +91,46 @@ Could also add it to basicheuristic !
 function set_metrics!(PHASE::T, lh::LearnedHeuristic, model::CPModel, symbol::Union{Nothing, Symbol}, x::Union{Nothing, AbstractIntVar}) where T <: LearningPhase
     set_metrics!(PHASE, lh.search_metrics, model, symbol, x::Union{Nothing, AbstractIntVar})
 end
+
+wears_mask(valueSelection::LearnedHeuristic) = wears_mask(valueSelection.agent.policy.learner.approximator.model)
+
+
+
+"""
+    from_order_to_id(state::AbstractArray, value_order::Int64)
+
+Return the ids of the valid indexes from the Array representation of the AbstractStateRepresentation. Used to be able to work with 
+ActionOutput of variable size (VariableOutput).
+"""
+function from_order_to_id(state::AbstractArray, value_order::Int64)
+    value_vector = state[:, end]
+    valid_indexes = findall((x) -> x == 1, value_vector)
+    return valid_indexes[value_order]
+end
+
+"""
+    action_to_value(vs::LearnedHeuristic{SR, R, VariableOutput}, action::Int64, state::AbstractArray, model::CPModel)
+
+Mapping action taken to corresponding value when handling VariableOutput type of ActionOutput.
+"""
+function action_to_value(vs::LearnedHeuristic{SR, R, VariableOutput}, action::Int64, state::AbstractArray, model::CPModel) where {
+    SR <: AbstractStateRepresentation,
+    R <: AbstractReward
+}
+    value_id = from_order_to_id(state, action)
+    cp_vertex = cpVertexFromIndex(vs.current_state.cplayergraph, value_id)
+    @assert isa(cp_vertex, ValueVertex)
+    return cp_vertex.value
+end
+
+"""
+    action_to_value(vs::LearnedHeuristic{SR, R, FixedOutput}, action::Int64, state::AbstractArray, model::CPModel)
+
+Mapping index of Q-value vector to value in the action space when using a FixedOutput.
+"""
+function action_to_value(vs::LearnedHeuristic{SR, R, FixedOutput}, action::Int64, state::AbstractArray, model::CPModel) where {
+    SR <: AbstractStateRepresentation,
+    R <: AbstractReward
+}
+    return vs.action_space.span[action]
+end

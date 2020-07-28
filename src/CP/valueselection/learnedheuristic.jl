@@ -40,7 +40,7 @@ mutable struct LearnedHeuristic{SR<:AbstractStateRepresentation, R<:AbstractRewa
     LearnedHeuristic{SR, R, A}(agent::RL.Agent, cpnodes_max=nothing) where {SR, R, A}= new{SR, R, A}(agent, nothing, nothing, nothing, nothing, nothing, cpnodes_max, nothing)
 end
 
-LearnedHeuristic(agent::RL.Agent) = LearnedHeuristic{DefaultStateRepresentation, DefaultReward, FixedOutput}(agent)
+LearnedHeuristic(agent::RL.Agent, cpnodes_max=nothing) = LearnedHeuristic{DefaultStateRepresentation, DefaultReward, FixedOutput}(agent, cpnodes_max)
 
 include("lh_utils.jl")
 
@@ -104,48 +104,6 @@ function (valueSelection::LearnedHeuristic)(PHASE::DecisionPhase, model::CPModel
     action = valueSelection.agent(RL.PRE_ACT_STAGE, obs) # choose action, store it with the state
     
     return action_to_value(valueSelection, action, obs.state, model)
-    # println("Assign value : ", cp_vertex.value, " to variable : ", x)
-    
-end
-
-"""
-    from_order_to_id(state::AbstractArray, value_order::Int64)
-
-Return the ids of the valid indexes from the Array representation of the AbstractStateRepresentation. Used to be able to work with 
-ActionOutput of variable size (VariableOutput).
-"""
-function from_order_to_id(state::AbstractArray, value_order::Int64)
-    value_vector = state[:, end]
-    valid_indexes = findall((x) -> x == 1, value_vector)
-    return valid_indexes[value_order]
-end
-
-"""
-    action_to_value(vs::LearnedHeuristic{SR, R, VariableOutput}, action::Int64, state::AbstractArray, model::CPModel)
-
-Mapping action taken to corresponding value when handling VariableOutput type of ActionOutput.
-"""
-function action_to_value(vs::LearnedHeuristic{SR, R, VariableOutput}, action::Int64, state::AbstractArray, model::CPModel) where {
-    SR <: AbstractStateRepresentation,
-    R <: AbstractReward
-}
-    value_id = from_order_to_id(state, action)
-    cp_vertex = cpVertexFromIndex(vs.current_state.cplayergraph, value_id)
-    @assert isa(cp_vertex, ValueVertex)
-    return cp_vertex.value
-end
-
-"""
-    action_to_value(vs::LearnedHeuristic{SR, R, FixedOutput}, action::Int64, state::AbstractArray, model::CPModel)
-
-Not implemented yet !
-"""
-function action_to_value(vs::LearnedHeuristic{SR, R, FixedOutput}, action::Int64, state::AbstractArray, model::CPModel) where {
-    SR <: AbstractStateRepresentation,
-    R <: AbstractReward
-}
-    #TODO: Do a proper mapping here, using an offset for example
-    return action
 end
 
 """
@@ -168,4 +126,3 @@ function (valueSelection::LearnedHeuristic)(PHASE::EndingPhase, model::CPModel, 
     valueSelection.agent(RL.POST_EPISODE_STAGE, obs)  # let the agent see the last observation
 end
 
-wears_mask(valueSelection::LearnedHeuristic) = wears_mask(valueSelection.agent.policy.learner.approximator.model)
