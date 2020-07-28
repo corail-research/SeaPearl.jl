@@ -17,7 +17,7 @@ function train!(;
         strategy::Type{DFSearch}=DFSearch,
         variableHeuristic::AbstractVariableSelection=MinDomainVariableSelection(),
         metricsFun=((;kwargs...) -> nothing),
-        verbose::Bool=true;
+        verbose::Bool=true,
         evaluator=SameInstancesEvaluator()
     ) where T <: ValueSelection
 
