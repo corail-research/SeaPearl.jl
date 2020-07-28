@@ -19,17 +19,6 @@ Flux.@functor FlexGNN
 # not sure about this line
 functor(::Type{FlexGNN}, c) = (c.graphChain, c.nodeChain, c.outputLayer), ls -> FlexGNN(ls...)
 
-"""
-    (nn::FlexGNN)(x::AbstractArray)
-
-Take the CPGraph and output the q_values. Not that this could be changed a lot in the futur.
-Here we do not put a mask. We let the mask to the RL.jl but this is still under debate !
-"""
-function (nn::FlexGNN)(x::AbstractArray{Float32,3})
-    batch_size = size(x)[end]
-    qval = [nn(x[:, :, i]) for i in 1:batch_size]
-    hcat(qval...)
-end
 
 function (nn::FlexGNN)(x::AbstractArray{Float32,2})
 
