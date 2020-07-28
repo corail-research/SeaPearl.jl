@@ -38,7 +38,7 @@
                 loss_func = huber_loss,
                 stack_size = nothing,
                 γ = 0.99f0,
-                batch_size = 1, #32
+                batch_size = 32, #32
                 update_horizon = 1,
                 min_replay_history = 1,
                 update_freq = 1,
