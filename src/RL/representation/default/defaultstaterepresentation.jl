@@ -99,15 +99,23 @@ function featurize(sr::DefaultStateRepresentation{DefaultFeaturization})
 end
 
 """
-    function possible_values(cpgraph::CPGraph, g::CPLayerGraph)
+    function possible_values(variable_id::Int64, g::CPLayerGraph)
 
 Return the ids of the values that the variable denoted by `variable_id` can take.
 It actually returns the id of every ValueVertex neighbors of the VariableVertex.
 
-WARNING : deprecated - NEED TO BE CHANGED !!!!!!!
 """
 function possible_values(variable_id::Int64, g::CPLayerGraph)
     possible_values = LightGraphs.neighbors(g, variable_id)
     filter!((id) -> isa(cpVertexFromIndex(g, convert(Int64, id)), ValueVertex), possible_values)
     return possible_values
+end
+
+"""
+    function possible_value_ids(array::Array{Float32, 2})
+
+Returns the ids of the ValueVertex that are in the domain of the variable we are branching on.
+"""
+function possible_value_ids(array::Array{Float32, 2})
+    findall(x -> x == 1, array[:, end])
 end

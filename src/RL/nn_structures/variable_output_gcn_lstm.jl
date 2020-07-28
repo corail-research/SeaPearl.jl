@@ -90,7 +90,7 @@ function (nn::VariableOutputGCNLSTM)(x::AbstractArray{Float32,2})
     # extract the feature of the variable we're working on 
     variableFeatures = GeometricFlux.feature(featuredGraph)[:, variableId]
 
-    valueFeatures = view(GeometricFlux.feature(featuredGraph), :, cpg.possible_value_ids)
+    valueFeatures = view(GeometricFlux.feature(featuredGraph), :, possible_value_ids(x))
     
 
     # get through the dense layers 
