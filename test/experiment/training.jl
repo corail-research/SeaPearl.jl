@@ -5,7 +5,7 @@
     maxNumberOfCPNodes = 150
 
 
-    state_size = (numberOfCPNodes, numInFeatures + maxNumberOfCPNodes + 2 + 1) 
+    state_size = (maxNumberOfCPNodes, numInFeatures + maxNumberOfCPNodes + 2 + 1) 
     agent = RL.Agent(
             policy = RL.QBasedPolicy(
                 learner = CPRL.CPDQNLearner(
