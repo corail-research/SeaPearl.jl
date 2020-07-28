@@ -24,10 +24,9 @@ function launch_experiment!(
         strategy::Type{DFSearch},
         variableHeuristic::AbstractVariableSelection,
         metricsFun,
-        verbose::Bool
+        verbose::Bool;
+        evaluator=SameInstancesEvaluator()
     ) where T <: ValueSelection
-
-    evaluator = SameInstancesEvaluator()
     eval_freq = evaluator.eval_freq
 
     nb_heuristics = length(valueSelectionArray)

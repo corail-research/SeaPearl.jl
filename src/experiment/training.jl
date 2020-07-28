@@ -17,7 +17,8 @@ function train!(;
         strategy::Type{DFSearch}=DFSearch,
         variableHeuristic::AbstractVariableSelection=MinDomainVariableSelection(),
         metricsFun=((;kwargs...) -> nothing),
-        verbose::Bool=true
+        verbose::Bool=true;
+        evaluator=SameInstancesEvaluator()
     ) where T <: ValueSelection
 
     if isa(valueSelectionArray, T)
@@ -42,7 +43,8 @@ function train!(;
         strategy,
         variableHeuristic,
         metricsFun, 
-        verbose
+        verbose;
+        evaluator=SameInstancesEvaluator()
     )
 
     for valueSelection in valueSelectionArray
