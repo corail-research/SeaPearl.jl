@@ -89,12 +89,10 @@
 
         X = CPRL.to_arraybuffer(dsr)
 
-        X = reshape(X, size(X)..., 1)
-
         q_values = foGCN(X)
         println("Q values vector :  ", q_values)
 
-        @test size(q_values) == (1, 2, 1)
+        @test size(q_values) == (2,)
 
 
     end
