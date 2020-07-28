@@ -70,10 +70,7 @@ function featuredgraph(array::Array{Float32, 2})::GeometricFlux.FeaturedGraph
 end
 
 function branchingvariable_id(array::Array{Float32, 2})::Int64
-    var_code = array[:, end-1]
-    var_code = findall(x -> x == 1, var_code)
-
-    return var_code[1]
+    findfirst(x -> x == 1, array[:, end-1])
 end
 
 
