@@ -144,8 +144,7 @@ function action_to_value(vs::LearnedHeuristic{SR, R, FixedOutput}, action::Int64
     SR <: AbstractStateRepresentation,
     R <: AbstractReward
 }
-    #TODO: Do a proper mapping here, using an offset for example
-    return action
+    return vs.action_space.span[action]
 end
 
 """
