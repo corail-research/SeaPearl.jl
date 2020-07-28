@@ -1,6 +1,4 @@
-using Random
 using GeometricFlux
-
 
 include("representation/representation.jl")
 include("nn_structures/nn_structures.jl")

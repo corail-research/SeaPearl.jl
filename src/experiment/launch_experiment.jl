@@ -9,11 +9,13 @@
         variableHeuristic=selectVariable
 )
 
-Same but with multiple ValueSelection instances (accepts BasicHeuristics)
-We could rename it experiment and add a train::Bool argument.
+This functions launch an amount of nb_episodes problems solving. The problems are created by
+the given generator. The strategy used during the CP Search and the variable heuristic used can 
+be precised as well. To finish with, the value selection heuristic (eather learned or basic) are 
+given to function. Each problem generated will be solved once by every value selection heuristic
+given, making it possible to compare them.
 
-Call it multitrain because I am having an overwritting error with the simple one 
-and I would like to keep both atm.
+This function is called by `train!` and by `benchmark_solving!`.
 """
 function launch_experiment!(
         valueSelectionArray::Array{T, 1}, 

@@ -1,6 +1,14 @@
 
 struct DefaultFeaturization <: AbstractFeaturization end
 
+include("cp_layer/cp_layer.jl")
+
+"""
+    DefaultStateRepresentation{F}
+
+This is the default representation used by SeaPearl unless the user define his own and give
+the information to his LearnedHeurstic when defining it. 
+"""
 mutable struct DefaultStateRepresentation{F} <: FeaturizedStateRepresentation{F}
     cplayergraph::CPLayerGraph
     features::Union{Nothing, Array{Float32, 2}}
@@ -100,6 +108,8 @@ end
 
 Return the ids of the values that the variable denoted by `variable_id` can take.
 It actually returns the id of every ValueVertex neighbors of the VariableVertex.
+
+WARNING : deprecated - NEED TO BE CHANGED !!!!!!!
 """
 function possible_values(variable_id::Int64, g::CPLayerGraph)
     possible_values = LightGraphs.neighbors(g, variable_id)

@@ -7,7 +7,8 @@
         variableHeuristic=selectVariable)
 )
 
-Launch a training on several ValueSelection instances to get the different results on the same probem instances.
+Training the given LearnedHeuristics and using the Basic One to compare performances. Might evolve soon.
+This function managed the training mode of the LEarnedHeuristic before and after a call to `launch_experiment!`.
 """
 function train!(;
         valueSelectionArray::Union{T, Array{T, 1}}, 

@@ -12,6 +12,18 @@ mutable struct Limit
     numberOfSolutions   ::Union{Int, Nothing}
 end
 
+"""
+    CPModel(trailer::Trailer)
+    CPModel()
+
+The structure storing all the informations needed to solve a specific problem and it also stores the solutions.
+The CPModel is the center of the solver and evolve during the solving. 
+The `AbstractStateRepresentation` used by the RL Agent is created from the CPModel. 
+
+The CPModel is always created empty and is filled eather by hand by the user (or automatically thanks to written files) 
+or filled by an `AbstractModelGenerator`. 
+
+"""
 mutable struct CPModel
     variables               ::Dict{String, AbstractIntVar}
     constraints             ::Array{Constraint}
@@ -116,7 +128,7 @@ end
 """
     tightenObjective!(model::CPModel)
 
-Set a new constraint to minimize the objective variable
+Set a new constraint to minimize the objective variable.
 """
 function tightenObjective!(model::CPModel)
     model.objectiveBound = assignedValue(model.objective)-1
@@ -172,6 +184,13 @@ function Base.empty!(model::CPModel)
     model
 end
 
+"""
+    reset_model!(model::CPModel)
+
+Reset a given CPModel instance. Make it possible to reuse the same instance instead of having to 
+delete the old one and create another one. This is used in `launch_experiment!` in order to be able 
+to use the same CPModel instance to compare different given heuristics. 
+"""
 function reset_model!(model::CPModel)
     restoreInitialState!(model.trailer)
     for (id, x) in model.variables

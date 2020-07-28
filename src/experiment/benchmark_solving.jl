@@ -1,7 +1,7 @@
 
 """
     benchmark_solving!(;
-        learnedHeuristic::Union{T, Array{T, 1}}, 
+        valueSelectionArray::Union{T, Array{T, 1}},
         generator::AbstractModelGenerator,
         nb_episodes::Int64=10,
         strategy::Type{DFSearch}=DFSearch,
@@ -10,9 +10,11 @@
         verbose::Bool=true
     ) where T <: ValueSelection
 
-Training a LearnedHeuristic. Could perfectly work with basic heuristic. (even if 
-prevented at the moment).
-We could rename it experiment and add a train::Bool argument.
+Used to benchmark the performance of some heuristics. It basically put all the LearnedHeuristics in test mode, which
+means that the weights of the approximators are no more updated. Consequently, it's also possible to measure a good 
+aproximation of the time performances. 
+
+This function might evolve for a more precise one which will provide better analysis of the performances.
 """
 function benchmark_solving(;
         valueSelectionArray::Union{T, Array{T, 1}}, 

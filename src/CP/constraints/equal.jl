@@ -3,7 +3,7 @@ abstract type EqualConstraint <: Constraint end
 """
     EqualConstant(x::CPRL.AbstractIntVar, v::Int)
 
-Equality constraint, putting a constant value `v` for the variable `x` i.e. `x == v`
+Equality constraint, putting a constant value `v` for the variable `x` i.e. `x == v`. 
 """
 struct EqualConstant <: EqualConstraint
     x       ::CPRL.AbstractIntVar
