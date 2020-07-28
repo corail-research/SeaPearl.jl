@@ -1,5 +1,5 @@
 @testset "training.jl" begin
-    generator = CPRL.GraphColoringGenerator(10, 0.5)
+    generator = CPRL.HomogenousGraphColoringGenerator(10, 0.1)
     numInFeatures = 3
 
     maxNumberOfCPNodes = 150
