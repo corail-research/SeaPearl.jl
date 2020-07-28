@@ -76,7 +76,7 @@ function get_observation!(lh::LearnedHeuristic, model::CPModel, x::AbstractIntVa
     sync_state!(lh, model, x)
 
     state = to_arraybuffer(lh.current_state, lh.cpnodes_max)
-    state = reshape(state, size(state)..., 1)
+    #state = reshape(state, size(state)..., 1)
     # println("reward", reward)
     
     # return the observation as a named tuple (useful for interface understanding)

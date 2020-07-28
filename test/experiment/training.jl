@@ -4,7 +4,7 @@
     numInFeatures = 3
     numberOfCPNodes = 1 + floor(Int64, generator.nb_nodes * ( 3 + generator.density ))
 
-    state_size = (numberOfCPNodes, numInFeatures + numberOfCPNodes + 2 + 1, 1)
+    state_size = (numberOfCPNodes, numInFeatures + numberOfCPNodes + 2 + 1) #, 1)
 
     agent = RL.Agent(
         policy = RL.QBasedPolicy(
