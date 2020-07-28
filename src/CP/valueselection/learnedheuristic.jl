@@ -40,7 +40,7 @@ mutable struct LearnedHeuristic{SR<:AbstractStateRepresentation, R<:AbstractRewa
     LearnedHeuristic{SR, R, A}(agent::RL.Agent, cpnodes_max=nothing) where {SR, R, A}= new{SR, R, A}(agent, nothing, nothing, nothing, nothing, nothing, cpnodes_max, nothing)
 end
 
-LearnedHeuristic(agent::RL.Agent) = LearnedHeuristic{DefaultStateRepresentation, DefaultReward, FixedOutput}(agent)
+LearnedHeuristic(agent::RL.Agent, cpnodes_max=nothing) = LearnedHeuristic{DefaultStateRepresentation, DefaultReward, FixedOutput}(agent, cpnodes_max)
 
 include("lh_utils.jl")
 

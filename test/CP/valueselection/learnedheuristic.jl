@@ -73,10 +73,10 @@ agent = RL.Agent(
         @test isnothing(learnedheuristic.current_reward)
         @test isnothing(learnedheuristic.search_metrics)
 
-        learnedheuristic.fitted_problem = CPRL.GraphColoringGenerator
+        learnedheuristic.fitted_problem = CPRL.LegacyGraphColoringGenerator
         learnedheuristic.fitted_strategy = CPRL.DFSearch
 
-        @test learnedheuristic.fitted_problem == CPRL.GraphColoringGenerator
+        @test learnedheuristic.fitted_problem == CPRL.LegacyGraphColoringGenerator
         @test learnedheuristic.fitted_strategy == CPRL.DFSearch
 
     end

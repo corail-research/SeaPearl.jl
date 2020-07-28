@@ -17,7 +17,8 @@ function train!(;
         strategy::Type{DFSearch}=DFSearch,
         variableHeuristic::AbstractVariableSelection=MinDomainVariableSelection(),
         metricsFun=((;kwargs...) -> nothing),
-        verbose::Bool=true
+        verbose::Bool=true,
+        evaluator=SameInstancesEvaluator()
     ) where T <: ValueSelection
 
     if isa(valueSelectionArray, T)
@@ -35,14 +36,15 @@ function train!(;
         end
     end
 
-    bestsolutions, nodevisited, timeneeded = launch_experiment!(
+    bestsolutions, nodevisited, timeneeded, eval_nodevisited, eval_timeneeded = launch_experiment!(
         valueSelectionArray,
         generator,
         nb_episodes,
         strategy,
         variableHeuristic,
         metricsFun, 
-        verbose
+        verbose;
+        evaluator=SameInstancesEvaluator()
     )
 
     for valueSelection in valueSelectionArray
@@ -59,5 +61,5 @@ function train!(;
         end
     end
 
-    bestsolutions, nodevisited, timeneeded
+    bestsolutions, nodevisited, timeneeded, eval_nodevisited, eval_timeneeded
 end

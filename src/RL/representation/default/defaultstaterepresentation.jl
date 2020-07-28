@@ -50,6 +50,8 @@ function to_arraybuffer(sr::DefaultStateRepresentation, rows=nothing::Union{Noth
         return hcat(ones(Float32, size(adj, 1), 1), adj, transpose(sr.features), var_code, vector_values)
     end
 
+    @assert rows > size(adj, 1) "maxNumberOfCPNodes too small"
+
     cp_graph_array = hcat(ones(Float32, size(adj, 1), 1), adj, zeros(Float32, size(adj, 1), rows - size(adj, 1)), transpose(sr.features), var_code, vector_values)
     filler = zeros(Float32, rows - size(cp_graph_array, 1), size(cp_graph_array, 2))
 

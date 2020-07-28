@@ -47,7 +47,7 @@ function benchmark_solving(;
     end
 
     # launch the experiment
-    bestsolutions, nodevisited, timeneeded = launch_experiment!(
+    bestsolutions, nodevisited, timeneeded, eval_nodevisited, eval_timeneeded = launch_experiment!(
         valueSelectionArray, 
         generator, 
         nb_episodes, 
@@ -57,5 +57,5 @@ function benchmark_solving(;
         verbose
     )
 
-    bestsolutions, nodevisited, timeneeded
+    bestsolutions, nodevisited, timeneeded, eval_nodevisited, eval_timeneeded
 end

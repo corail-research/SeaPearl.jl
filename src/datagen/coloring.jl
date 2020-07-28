@@ -1,13 +1,12 @@
 using Distributions
 
-struct GraphColoringGenerator <: AbstractModelGenerator
+struct LegacyGraphColoringGenerator <: AbstractModelGenerator
     nb_nodes::Int
     density::Real
 end
 
 """
     fill_with_generator!(cpmodel::CPModel, gen::GraphColoringGenerator)  
-
 Fill a CPModel with the variables and constraints generated. We fill it directly instead of 
 creating temporary files for efficiency purpose.
 
@@ -19,7 +18,7 @@ on more smooth cases.
 This is done by getting a geometric distribution of each node connectivity (number of edges) and then select
 randomly the connexions. 
 """
-function fill_with_generator!(cpmodel::CPModel, gen::GraphColoringGenerator)
+function fill_with_generator!(cpmodel::CPModel, gen::LegacyGraphColoringGenerator)
     density = gen.density
     nb_nodes = gen.nb_nodes
 
@@ -53,6 +52,65 @@ function fill_with_generator!(cpmodel::CPModel, gen::GraphColoringGenerator)
 
     ### Objective ###
     numberOfColors = CPRL.IntVar(1, nb_nodes, "numberOfColors", cpmodel.trailer)
+    CPRL.addVariable!(cpmodel, numberOfColors)
+    for var in x
+        push!(cpmodel.constraints, CPRL.LessOrEqual(var, numberOfColors, cpmodel.trailer))
+    end
+    cpmodel.objective = numberOfColors
+
+    nothing
+end
+
+struct HomogenousGraphColoringGenerator <: AbstractModelGenerator
+    nb_nodes::Int
+    probability::Real
+
+    function HomogenousGraphColoringGenerator(n, p)
+        @assert n > 0
+        @assert 0 < p && p <= 1
+        new(n, p)
+    end
+end
+
+
+
+"""
+    fill_with_generator!(cpmodel::CPModel, gen::GraphColoringGenerator)::CPModel    
+
+Fill a CPModel with the variables and constraints generated. We fill it directly instead of 
+creating temporary files for efficiency purpose ! Density should be more than 1.
+
+Very simple case from: Exploring the k-colorable Landscape with Iterated Greedy by Culberson & Luo
+https://pdfs.semanticscholar.org/e6cc/ab8f757203bf15680dbf456f295a7a31431a.pdf
+"""
+function fill_with_generator!(cpmodel::CPModel, gen::HomogenousGraphColoringGenerator; rng=nothing)
+    p = gen.probability
+    n = gen.nb_nodes
+
+    # create variables
+    x = CPRL.IntVar[]
+    for i in 1:n
+        push!(x, CPRL.IntVar(1, n, string(i), cpmodel.trailer))
+        addVariable!(cpmodel, last(x))
+    end
+    
+    # edge constraints
+    for i in 1:n
+        for j in 1:n
+            if isnothing(rng)
+                if i != j && rand() <= p
+                    push!(cpmodel.constraints, CPRL.NotEqual(x[i], x[j], cpmodel.trailer))
+                end
+            else
+                if i != j && rand(rng) <= p
+                    push!(cpmodel.constraints, CPRL.NotEqual(x[i], x[j], cpmodel.trailer))
+                end
+            end
+        end
+    end
+
+    ### Objective ###
+    numberOfColors = CPRL.IntVar(1, n, "numberOfColors", cpmodel.trailer)
     CPRL.addVariable!(cpmodel, numberOfColors)
     for var in x
         push!(cpmodel.constraints, CPRL.LessOrEqual(var, numberOfColors, cpmodel.trailer))
@@ -144,4 +202,73 @@ function fill_with_generator!(model::CPModel, gen::GraphColoringWithFileGenerato
     end
 
     return ((m) -> selectVariable(m, sortedPermutation, degrees))
+end
+
+struct ClusterizedGraphColoringGenerator <: AbstractModelGenerator
+    n::Int64
+    k::Int64
+    p::Float64
+    
+    function ClusterizedGraphColoringGenerator(n, k, p)
+        @assert n > 0
+        @assert k > 0 && k <= n
+        @assert 0 <= p && p <= 1
+        new(n, k, p)
+    end
+end
+
+"""
+    fill_with_generator!(cpmodel::CPModel, gen::GraphColoringGenerator)::CPModel    
+
+Fill a CPModel with the variables and constraints generated. We fill it directly instead of 
+creating temporary files for efficiency purpose ! Density should be more than 1.
+
+Very simple case from: Exploring the k-colorable Landscape with Iterated Greedy by Culberson & Luo
+https://pdfs.semanticscholar.org/e6cc/ab8f757203bf15680dbf456f295a7a31431a.pdf
+"""
+function fill_with_generator!(cpmodel::CPModel, gen::ClusterizedGraphColoringGenerator; rng=nothing)
+    n = gen.n
+    p = gen.p
+    k = gen.k
+    
+    assigned_colors = zeros(Int64, gen.n)
+    for i in 1:n
+        if isnothing(rng)
+            assigned_colors[i] = rand(1:k)
+        else
+            assigned_colors[i] = rand(rng, 1:k)
+        end
+    end
+
+    # create variables
+    x = CPRL.IntVar[]
+    for i in 1:n
+        push!(x, CPRL.IntVar(1, n, string(i), cpmodel.trailer))
+        addVariable!(cpmodel, last(x))
+    end
+    
+    # edge constraints
+    for i in 1:n
+        for j in 1:n
+            if isnothing(rng)
+                if i != j && assigned_colors[i] != assigned_colors[j] && rand() <= p
+                    push!(cpmodel.constraints, CPRL.NotEqual(x[i], x[j], cpmodel.trailer))
+                end
+            else
+                if i != j && assigned_colors[i] != assigned_colors[j] && rand(rng) <= p
+                    push!(cpmodel.constraints, CPRL.NotEqual(x[i], x[j], cpmodel.trailer))
+                end
+            end
+        end
+    end
+
+    ### Objective ###
+    numberOfColors = CPRL.IntVar(1, n, "numberOfColors", cpmodel.trailer)
+    CPRL.addVariable!(cpmodel, numberOfColors)
+    for var in x
+        push!(cpmodel.constraints, CPRL.LessOrEqual(var, numberOfColors, cpmodel.trailer))
+    end
+    cpmodel.objective = numberOfColors
+
+    nothing
 end
