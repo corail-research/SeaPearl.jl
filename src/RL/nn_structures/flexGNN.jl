@@ -20,7 +20,7 @@ Flux.@functor FlexGNN
 functor(::Type{FlexGNN}, c) = (c.graphChain, c.nodeChain, c.outputLayer), ls -> FlexGNN(ls...)
 
 """
-    (nn::FlexGNN)(x::CPGraph)
+    (nn::FlexGNN)(x::AbstractArray)
 
 Take the CPGraph and output the q_values. Not that this could be changed a lot in the futur.
 Here we do not put a mask. We let the mask to the RL.jl but this is still under debate !
