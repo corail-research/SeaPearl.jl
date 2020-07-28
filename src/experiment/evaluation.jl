@@ -1,16 +1,22 @@
 abstract type AbstractEvaluator end
 
 mutable struct SameInstancesEvaluator <: AbstractEvaluator
-    instances::Array{CPModel}
+    instances::Union{Array{CPModel}, Nothing}
+    eval_freq::Int
+    nb_instances::Int
 end
 
-function SameInstancesEvaluator(generator::AbstractModelGenerator, number_of_instances)
-    instances = Array{CPModel}(undef, number_of_instances)
-    for i in 1:number_of_instances
+function SameInstancesEvaluator(; eval_freq = 50, nb_instances = 50)
+    SameInstancesEvaluator(nothing, eval_freq, nb_instances)
+end
+
+function init_evaluator!(eval::SameInstancesEvaluator, generator::AbstractModelGenerator; rng=nothing)
+    instances = Array{CPModel}(undef, eval.nb_instances)
+    for i in 1:eval.nb_instances
         instances[i] = CPModel()
-        fill_with_generator!(instances[i], generator)
+        fill_with_generator!(instances[i], generator; rng=rng)
     end
-    SameInstancesEvaluator(instances)
+    eval.instances = instances
 end
 
 function evaluate(eval::SameInstancesEvaluator, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, strategy::Type{<:SearchStrategy})

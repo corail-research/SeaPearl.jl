@@ -25,17 +25,18 @@ function launch_experiment!(
         verbose::Bool
     ) where T <: ValueSelection
 
-    eval_freq = 50
+    evaluator = SameInstancesEvaluator()
+    eval_freq = evaluator.eval_freq
 
     nb_heuristics = length(valueSelectionArray)
 
-    evaluator = SameInstancesEvaluator(generator, 50)
+    init_evaluator!(evaluator, generator)
 
     bestsolutions = zeros(Int64, (nb_episodes, nb_heuristics))
     nodevisited = zeros(Int64, (nb_episodes, nb_heuristics))
-    eval_nodevisited = zeros(Float64, (floor(Int64, nb_episodes/eval_freq), nb_heuristics))
+    eval_nodevisited = zeros(Float64, (floor(Int64, nb_episodes/eval_freq) + 1, nb_heuristics))
     timeneeded = zeros(Float64, (nb_episodes, nb_heuristics))
-    eval_timeneeded = zeros(Float64, (floor(Int64, nb_episodes/eval_freq), nb_heuristics))
+    eval_timeneeded = zeros(Float64, (floor(Int64, nb_episodes/eval_freq) + 1, nb_heuristics))
 
     trailer = Trailer()
     model = CPModel(trailer)
