@@ -62,7 +62,7 @@ function remove!(dom::BoolDomain, value::Bool)
     intValue = convert(Int, value)
 
     remove!(dom.inner, intValue)
-    return value
+    return [value]
 end
 
 """
