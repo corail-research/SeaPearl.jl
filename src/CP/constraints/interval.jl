@@ -1,5 +1,5 @@
 """
-    IntervalConstant(x::CPRL.IntVar, lower::Int, upper::Int)
+    IntervalConstant(x::SeaPearl.IntVar, lower::Int, upper::Int)
 
 Inequality constraint, `lower <= x <= upper`
 """

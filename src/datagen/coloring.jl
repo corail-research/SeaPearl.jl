@@ -25,9 +25,9 @@ function fill_with_generator!(cpmodel::CPModel, gen::LegacyGraphColoringGenerato
     nb_edges = floor(Int64, density * nb_nodes)
 
     # create variables
-    x = CPRL.IntVar[]
+    x = SeaPearl.IntVar[]
     for i in 1:nb_nodes
-        push!(x, CPRL.IntVar(1, nb_nodes, string(i), cpmodel.trailer))
+        push!(x, SeaPearl.IntVar(1, nb_nodes, string(i), cpmodel.trailer))
         addVariable!(cpmodel, last(x))
     end
     @assert nb_edges >= nb_nodes - 1
@@ -46,15 +46,15 @@ function fill_with_generator!(cpmodel::CPModel, gen::LegacyGraphColoringGenerato
     for i in 1:length(connexions)
         neighbors = sample([j for j in 1:length(connexions) if j != i && connexions[i] > 0], connexions[i], replace=false)
         for j in neighbors
-            push!(cpmodel.constraints, CPRL.NotEqual(x[i], x[j], cpmodel.trailer))
+            push!(cpmodel.constraints, SeaPearl.NotEqual(x[i], x[j], cpmodel.trailer))
         end
     end
 
     ### Objective ###
-    numberOfColors = CPRL.IntVar(1, nb_nodes, "numberOfColors", cpmodel.trailer)
-    CPRL.addVariable!(cpmodel, numberOfColors)
+    numberOfColors = SeaPearl.IntVar(1, nb_nodes, "numberOfColors", cpmodel.trailer)
+    SeaPearl.addVariable!(cpmodel, numberOfColors)
     for var in x
-        push!(cpmodel.constraints, CPRL.LessOrEqual(var, numberOfColors, cpmodel.trailer))
+        push!(cpmodel.constraints, SeaPearl.LessOrEqual(var, numberOfColors, cpmodel.trailer))
     end
     cpmodel.objective = numberOfColors
 
@@ -88,9 +88,9 @@ function fill_with_generator!(cpmodel::CPModel, gen::HomogenousGraphColoringGene
     n = gen.nb_nodes
 
     # create variables
-    x = CPRL.IntVar[]
+    x = SeaPearl.IntVar[]
     for i in 1:n
-        push!(x, CPRL.IntVar(1, n, string(i), cpmodel.trailer))
+        push!(x, SeaPearl.IntVar(1, n, string(i), cpmodel.trailer))
         addVariable!(cpmodel, last(x))
     end
     
@@ -99,21 +99,21 @@ function fill_with_generator!(cpmodel::CPModel, gen::HomogenousGraphColoringGene
         for j in 1:n
             if isnothing(rng)
                 if i != j && rand() <= p
-                    push!(cpmodel.constraints, CPRL.NotEqual(x[i], x[j], cpmodel.trailer))
+                    push!(cpmodel.constraints, SeaPearl.NotEqual(x[i], x[j], cpmodel.trailer))
                 end
             else
                 if i != j && rand(rng) <= p
-                    push!(cpmodel.constraints, CPRL.NotEqual(x[i], x[j], cpmodel.trailer))
+                    push!(cpmodel.constraints, SeaPearl.NotEqual(x[i], x[j], cpmodel.trailer))
                 end
             end
         end
     end
 
     ### Objective ###
-    numberOfColors = CPRL.IntVar(1, n, "numberOfColors", cpmodel.trailer)
-    CPRL.addVariable!(cpmodel, numberOfColors)
+    numberOfColors = SeaPearl.IntVar(1, n, "numberOfColors", cpmodel.trailer)
+    SeaPearl.addVariable!(cpmodel, numberOfColors)
     for var in x
-        push!(cpmodel.constraints, CPRL.LessOrEqual(var, numberOfColors, cpmodel.trailer))
+        push!(cpmodel.constraints, SeaPearl.LessOrEqual(var, numberOfColors, cpmodel.trailer))
     end
     cpmodel.objective = numberOfColors
 
@@ -150,41 +150,41 @@ function fill_with_generator!(model::CPModel, gen::GraphColoringWithFileGenerato
     trailer = model.trailer
 
     ### Variable declaration ###
-    x = CPRL.IntVar[]
+    x = SeaPearl.IntVar[]
     for i in 1:input.numberOfVertices
-        push!(x, CPRL.IntVar(1, input.numberOfVertices, string(i), trailer))
-        CPRL.addVariable!(model, last(x))
+        push!(x, SeaPearl.IntVar(1, input.numberOfVertices, string(i), trailer))
+        SeaPearl.addVariable!(model, last(x))
     end
 
     ### Constraints ###
     # Breaking some symmetries
-    push!(model.constraints, CPRL.EqualConstant(x[1], 1, trailer))
-    push!(model.constraints, CPRL.LessOrEqual(x[1], x[2], trailer))
+    push!(model.constraints, SeaPearl.EqualConstant(x[1], 1, trailer))
+    push!(model.constraints, SeaPearl.LessOrEqual(x[1], x[2], trailer))
 
     # Edge constraints
     degrees = zeros(Int, input.numberOfVertices)
     for e in input.edges
-        push!(model.constraints, CPRL.NotEqual(x[e.vertex1], x[e.vertex2], trailer))
+        push!(model.constraints, SeaPearl.NotEqual(x[e.vertex1], x[e.vertex2], trailer))
         degrees[e.vertex1] += 1
         degrees[e.vertex2] += 1
     end
     sortedPermutation = sortperm(degrees; rev=true)
 
     ### Objective ###
-    numberOfColors = CPRL.IntVar(1, input.numberOfVertices, "numberOfColors", trailer)
-    CPRL.addVariable!(model, numberOfColors)
+    numberOfColors = SeaPearl.IntVar(1, input.numberOfVertices, "numberOfColors", trailer)
+    SeaPearl.addVariable!(model, numberOfColors)
     for var in x
-        push!(model.constraints, CPRL.LessOrEqual(var, numberOfColors, trailer))
+        push!(model.constraints, SeaPearl.LessOrEqual(var, numberOfColors, trailer))
     end
     model.objective = numberOfColors
 
 
     ### Variable selection heuristic ###
-    function selectVariable(model::CPRL.CPModel, sortedPermutation, degrees)
+    function selectVariable(model::SeaPearl.CPModel, sortedPermutation, degrees)
         maxDegree = 0
         toReturn = nothing
         for i in sortedPermutation
-            if !CPRL.isbound(model.variables[string(i)])
+            if !SeaPearl.isbound(model.variables[string(i)])
                 if isnothing(toReturn)
                     toReturn = model.variables[string(i)]
                     maxDegree = degrees[i]
@@ -241,9 +241,9 @@ function fill_with_generator!(cpmodel::CPModel, gen::ClusterizedGraphColoringGen
     end
 
     # create variables
-    x = CPRL.IntVar[]
+    x = SeaPearl.IntVar[]
     for i in 1:n
-        push!(x, CPRL.IntVar(1, n, string(i), cpmodel.trailer))
+        push!(x, SeaPearl.IntVar(1, n, string(i), cpmodel.trailer))
         addVariable!(cpmodel, last(x))
     end
     
@@ -252,21 +252,21 @@ function fill_with_generator!(cpmodel::CPModel, gen::ClusterizedGraphColoringGen
         for j in 1:n
             if isnothing(rng)
                 if i != j && assigned_colors[i] != assigned_colors[j] && rand() <= p
-                    push!(cpmodel.constraints, CPRL.NotEqual(x[i], x[j], cpmodel.trailer))
+                    push!(cpmodel.constraints, SeaPearl.NotEqual(x[i], x[j], cpmodel.trailer))
                 end
             else
                 if i != j && assigned_colors[i] != assigned_colors[j] && rand(rng) <= p
-                    push!(cpmodel.constraints, CPRL.NotEqual(x[i], x[j], cpmodel.trailer))
+                    push!(cpmodel.constraints, SeaPearl.NotEqual(x[i], x[j], cpmodel.trailer))
                 end
             end
         end
     end
 
     ### Objective ###
-    numberOfColors = CPRL.IntVar(1, n, "numberOfColors", cpmodel.trailer)
-    CPRL.addVariable!(cpmodel, numberOfColors)
+    numberOfColors = SeaPearl.IntVar(1, n, "numberOfColors", cpmodel.trailer)
+    SeaPearl.addVariable!(cpmodel, numberOfColors)
     for var in x
-        push!(cpmodel.constraints, CPRL.LessOrEqual(var, numberOfColors, cpmodel.trailer))
+        push!(cpmodel.constraints, SeaPearl.LessOrEqual(var, numberOfColors, cpmodel.trailer))
     end
     cpmodel.objective = numberOfColors
 

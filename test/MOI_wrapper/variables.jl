@@ -1,7 +1,7 @@
 @testset "variables.jl" begin
     @testset "MOI.add_variable()" begin
-        opt = CPRL.Optimizer()
-        push!(opt.moimodel.variables, CPRL.MOIVariable("", 1, 2, MOI.VariableIndex(1)))
+        opt = SeaPearl.Optimizer()
+        push!(opt.moimodel.variables, SeaPearl.MOIVariable("", 1, 2, MOI.VariableIndex(1)))
 
         @test MOI.add_variable(opt) == MOI.VariableIndex(2)
         @test length(opt.moimodel.variables) == 2

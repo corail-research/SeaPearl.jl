@@ -1,6 +1,6 @@
-# CPRL
+# SeaPearl
 
-[![Build Status](https://travis-ci.com/ilancoulon/CPRL.jl.svg?token=txSsK23gqDP8efBDxJzv&branch=master)](https://travis-ci.com/ilancoulon/CPRL.jl)
+[![Build Status](https://travis-ci.com/ilancoulon/SeaPearl.jl.svg?token=txSsK23gqDP8efBDxJzv&branch=master)](https://travis-ci.com/ilancoulon/SeaPearl.jl)
 
 Hybrid solver using Constraint programming and Reinforcement learning. 
 Ilan Coulon, Félix Chalumeau & Quentin Cappart. 

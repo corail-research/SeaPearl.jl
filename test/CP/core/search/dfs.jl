@@ -4,63 +4,63 @@ using DataStructures
     @testset "expandDfs!()" begin
         ### Checking status ###
         # :NodeLimitStop
-        trailer = CPRL.Trailer()
-        model = CPRL.CPModel(trailer)
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
         model.limit.numberOfNodes = 1
         toCall = Stack{Function}()
-        @test CPRL.expandDfs!(toCall, model, CPRL.MinDomainVariableSelection(), CPRL.BasicHeuristic()) == :NodeLimitStop
+        @test SeaPearl.expandDfs!(toCall, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :NodeLimitStop
         @test isempty(toCall)
 
         # :SolutionLimitStop
-        trailer = CPRL.Trailer()
-        model = CPRL.CPModel(trailer)
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
         model.limit.numberOfSolutions = 0
         
         toCall = Stack{Function}()
-        @test CPRL.expandDfs!(toCall, model, CPRL.MinDomainVariableSelection(), CPRL.BasicHeuristic()) == :SolutionLimitStop
+        @test SeaPearl.expandDfs!(toCall, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :SolutionLimitStop
         @test isempty(toCall)
 
         # :Infeasible
-        trailer = CPRL.Trailer()
-        model = CPRL.CPModel(trailer)
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
         
-        x = CPRL.IntVar(2, 2, "x", trailer)
-        y = CPRL.IntVar(3, 3, "y", trailer)
-        CPRL.addVariable!(model, x)
-        CPRL.addVariable!(model, y)
-        push!(model.constraints, CPRL.Equal(x, y, trailer))
+        x = SeaPearl.IntVar(2, 2, "x", trailer)
+        y = SeaPearl.IntVar(3, 3, "y", trailer)
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y)
+        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
-        @test CPRL.expandDfs!(toCall, model, CPRL.MinDomainVariableSelection(), CPRL.BasicHeuristic()) == :Infeasible
+        @test SeaPearl.expandDfs!(toCall, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Infeasible
         @test isempty(toCall)
 
         # :Feasible
-        trailer = CPRL.Trailer()
-        model = CPRL.CPModel(trailer)
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
         
-        x = CPRL.IntVar(2, 2, "x", trailer)
-        y = CPRL.IntVar(2, 2, "y", trailer)
-        CPRL.addVariable!(model, x)
-        CPRL.addVariable!(model, y)
-        push!(model.constraints, CPRL.Equal(x, y, trailer))
+        x = SeaPearl.IntVar(2, 2, "x", trailer)
+        y = SeaPearl.IntVar(2, 2, "y", trailer)
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y)
+        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
-        @test CPRL.expandDfs!(toCall, model, CPRL.MinDomainVariableSelection(), CPRL.BasicHeuristic()) == :FoundSolution
+        @test SeaPearl.expandDfs!(toCall, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :FoundSolution
         @test isempty(toCall)
 
 
         ### Checking stack ###
-        trailer = CPRL.Trailer()
-        model = CPRL.CPModel(trailer)
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
         
-        x = CPRL.IntVar(2, 3, "x", trailer)
-        y = CPRL.IntVar(2, 3, "y", trailer)
-        CPRL.addVariable!(model, x)
-        CPRL.addVariable!(model, y)
-        push!(model.constraints, CPRL.Equal(x, y, trailer))
+        x = SeaPearl.IntVar(2, 3, "x", trailer)
+        y = SeaPearl.IntVar(2, 3, "y", trailer)
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y)
+        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
-        @test CPRL.expandDfs!(toCall, model, CPRL.MinDomainVariableSelection(), CPRL.BasicHeuristic()) == :Feasible
+        @test SeaPearl.expandDfs!(toCall, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Feasible
         @test length(toCall) == 6
 
         @test pop!(toCall)(model) == :SavingState
@@ -85,59 +85,59 @@ using DataStructures
     @testset "search!(::DFSearch)" begin
         ### Checking status ###
         # :LimitStop
-        trailer = CPRL.Trailer()
-        model = CPRL.CPModel(trailer)
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
         model.limit.numberOfNodes = 1
-        @test CPRL.search!(model, CPRL.DFSearch, CPRL.MinDomainVariableSelection()) == :NodeLimitStop
+        @test SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection()) == :NodeLimitStop
 
         # :SolutionLimitStop
-        trailer = CPRL.Trailer()
-        model = CPRL.CPModel(trailer)
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
         model.limit.numberOfSolutions = 0
         
-        x = CPRL.IntVar(2, 3, "x", trailer)
-        y = CPRL.IntVar(2, 3, "y", trailer)
-        CPRL.addVariable!(model, x)
-        CPRL.addVariable!(model, y)
-        @test CPRL.search!(model, CPRL.DFSearch, CPRL.MinDomainVariableSelection()) == :SolutionLimitStop
+        x = SeaPearl.IntVar(2, 3, "x", trailer)
+        y = SeaPearl.IntVar(2, 3, "y", trailer)
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y)
+        @test SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection()) == :SolutionLimitStop
 
         # :Infeasible
-        trailer = CPRL.Trailer()
-        model = CPRL.CPModel(trailer)
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
         
-        x = CPRL.IntVar(2, 2, "x", trailer)
-        y = CPRL.IntVar(3, 3, "y", trailer)
-        CPRL.addVariable!(model, x)
-        CPRL.addVariable!(model, y)
-        push!(model.constraints, CPRL.Equal(x, y, trailer))
+        x = SeaPearl.IntVar(2, 2, "x", trailer)
+        y = SeaPearl.IntVar(3, 3, "y", trailer)
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y)
+        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
-        @test CPRL.search!(model, CPRL.DFSearch, CPRL.MinDomainVariableSelection()) == :Infeasible
+        @test SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection()) == :Infeasible
 
         # :Optimal
-        trailer = CPRL.Trailer()
-        model = CPRL.CPModel(trailer)
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
         
-        x = CPRL.IntVar(2, 2, "x", trailer)
-        y = CPRL.IntVar(2, 2, "y", trailer)
-        CPRL.addVariable!(model, x)
-        CPRL.addVariable!(model, y)
-        push!(model.constraints, CPRL.Equal(x, y, trailer))
+        x = SeaPearl.IntVar(2, 2, "x", trailer)
+        y = SeaPearl.IntVar(2, 2, "y", trailer)
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y)
+        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
-        @test CPRL.search!(model, CPRL.DFSearch, CPRL.MinDomainVariableSelection()) == :Optimal
+        @test SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection()) == :Optimal
         @test length(model.solutions) == 1
 
 
         ### Checking more complex solutions ###
-        trailer = CPRL.Trailer()
-        model = CPRL.CPModel(trailer)
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
         
-        x = CPRL.IntVar(2, 3, "x", trailer)
-        y = CPRL.IntVar(2, 3, "y", trailer)
-        CPRL.addVariable!(model, x)
-        CPRL.addVariable!(model, y)
-        push!(model.constraints, CPRL.Equal(x, y, trailer))
+        x = SeaPearl.IntVar(2, 3, "x", trailer)
+        y = SeaPearl.IntVar(2, 3, "y", trailer)
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y)
+        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
-        @test CPRL.search!(model, CPRL.DFSearch, CPRL.MinDomainVariableSelection()) == :Optimal
+        @test SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection()) == :Optimal
         @test length(model.solutions) == 2
         @test model.solutions[1] == Dict("x" => 3,"y" => 3)
         @test model.solutions[2] == Dict("x" => 2,"y" => 2)
@@ -146,29 +146,29 @@ using DataStructures
 
     @testset "search!() with a BasicHeuristic" begin
 
-        trailer = CPRL.Trailer()
-        model = CPRL.CPModel(trailer)
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
         
-        x = CPRL.IntVar(2, 3, "x", trailer)
-        y = CPRL.IntVar(2, 3, "y", trailer)
-        CPRL.addVariable!(model, x)
-        CPRL.addVariable!(model, y)
-        push!(model.constraints, CPRL.Equal(x, y, trailer))
+        x = SeaPearl.IntVar(2, 3, "x", trailer)
+        y = SeaPearl.IntVar(2, 3, "y", trailer)
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y)
+        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
-        @test CPRL.search!(model, CPRL.DFSearch, CPRL.MinDomainVariableSelection(), CPRL.BasicHeuristic()) == :Optimal
+        @test SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Optimal
         @test model.solutions[1] == Dict("x" => 3,"y" => 3)
         @test model.solutions[2] == Dict("x" => 2,"y" => 2)
 
-        CPRL.empty!(model)
+        SeaPearl.empty!(model)
 
-        x = CPRL.IntVar(2, 3, "x", model.trailer)
-        y = CPRL.IntVar(2, 3, "y", model.trailer)
-        CPRL.addVariable!(model, x)
-        CPRL.addVariable!(model, y)
-        push!(model.constraints, CPRL.Equal(x, y, model.trailer))
+        x = SeaPearl.IntVar(2, 3, "x", model.trailer)
+        y = SeaPearl.IntVar(2, 3, "y", model.trailer)
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y)
+        push!(model.constraints, SeaPearl.Equal(x, y, model.trailer))
 
-        my_heuristic(x::CPRL.IntVar) = minimum(x.domain)
-        @test CPRL.search!(model, CPRL.DFSearch, CPRL.MinDomainVariableSelection(), CPRL.BasicHeuristic(my_heuristic)) == :Optimal
+        my_heuristic(x::SeaPearl.IntVar) = minimum(x.domain)
+        @test SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(my_heuristic)) == :Optimal
         @test model.solutions[1] == Dict("x" => 2,"y" => 2)
         @test model.solutions[2] == Dict("x" => 3,"y" => 3)
 
@@ -178,7 +178,7 @@ using DataStructures
 
         agent = RL.Agent(
             policy = RL.QBasedPolicy(
-                learner = CPRL.CPDQNLearner(
+                learner = SeaPearl.CPDQNLearner(
                     approximator = RL.NeuralNetworkApproximator(
                         model = Chain(
                             Flux.flatten,
@@ -207,7 +207,7 @@ using DataStructures
                     target_update_freq = 100,
                     seed = 22,
                 ), 
-                explorer = CPRL.CPEpsilonGreedyExplorer(
+                explorer = SeaPearl.CPEpsilonGreedyExplorer(
                     ϵ_stable = 0.01,
                     kind = :exp,
                     ϵ_init = 1.0,
@@ -234,29 +234,29 @@ using DataStructures
         )
 
         # define the value selection
-        valueSelection = CPRL.LearnedHeuristic(agent)
+        valueSelection = SeaPearl.LearnedHeuristic(agent)
 
-        trailer = CPRL.Trailer()
-        model = CPRL.CPModel(trailer)
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
 
-        x1 = CPRL.IntVar(1, 2, "x1", trailer)
-        x2 = CPRL.IntVar(1, 2, "x2", trailer)
-        x3 = CPRL.IntVar(2, 3, "x3", trailer)
-        x4 = CPRL.IntVar(1, 4, "x4", trailer)
-        CPRL.addVariable!(model, x1)
-        CPRL.addVariable!(model, x2)
-        CPRL.addVariable!(model, x3)
-        CPRL.addVariable!(model, x4)
+        x1 = SeaPearl.IntVar(1, 2, "x1", trailer)
+        x2 = SeaPearl.IntVar(1, 2, "x2", trailer)
+        x3 = SeaPearl.IntVar(2, 3, "x3", trailer)
+        x4 = SeaPearl.IntVar(1, 4, "x4", trailer)
+        SeaPearl.addVariable!(model, x1)
+        SeaPearl.addVariable!(model, x2)
+        SeaPearl.addVariable!(model, x3)
+        SeaPearl.addVariable!(model, x4)
 
-        push!(model.constraints, CPRL.NotEqual(x1, x2, trailer))
-        push!(model.constraints, CPRL.NotEqual(x2, x3, trailer))
-        push!(model.constraints, CPRL.NotEqual(x3, x4, trailer))
+        push!(model.constraints, SeaPearl.NotEqual(x1, x2, trailer))
+        push!(model.constraints, SeaPearl.NotEqual(x2, x3, trailer))
+        push!(model.constraints, SeaPearl.NotEqual(x3, x4, trailer))
 
         # define the variable selection
-        variableSelection = CPRL.MinDomainVariableSelection()
+        variableSelection = SeaPearl.MinDomainVariableSelection()
 
         # launch the search 
-        CPRL.search!(model, CPRL.DFSearch, variableSelection, valueSelection)
+        SeaPearl.search!(model, SeaPearl.DFSearch, variableSelection, valueSelection)
 
         possible_solutions = [
             Dict("x1" => 1, "x2" => 2, "x3" => 3, "x4" => 1),

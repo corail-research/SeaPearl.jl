@@ -1,5 +1,5 @@
 @testset "training.jl" begin
-    generator = CPRL.HomogenousGraphColoringGenerator(10, 0.1)
+    generator = SeaPearl.HomogenousGraphColoringGenerator(10, 0.1)
     numInFeatures = 3
 
     maxNumberOfCPNodes = 150
@@ -8,9 +8,9 @@
     state_size = (maxNumberOfCPNodes, numInFeatures + maxNumberOfCPNodes + 2 + 1) 
     agent = RL.Agent(
             policy = RL.QBasedPolicy(
-                learner = CPRL.CPDQNLearner(
+                learner = SeaPearl.CPDQNLearner(
                     approximator = RL.NeuralNetworkApproximator(
-                        model = CPRL.FlexGNN(
+                        model = SeaPearl.FlexGNN(
                             graphChain = Flux.Chain(
                                 GeometricFlux.GCNConv(numInFeatures => 20),
                                 GeometricFlux.GCNConv(20 => 20),
@@ -23,7 +23,7 @@
                         optimizer = ADAM(0.001f0)
                     ),
                     target_approximator = RL.NeuralNetworkApproximator(
-                        model = CPRL.FlexGNN(
+                        model = SeaPearl.FlexGNN(
                             graphChain = Flux.Chain(
                                 GeometricFlux.GCNConv(numInFeatures => 20),
                                 GeometricFlux.GCNConv(20 => 20),
@@ -45,7 +45,7 @@
                     target_update_freq = 100,
                     seed = 22,
                 ), 
-                explorer = CPRL.CPEpsilonGreedyExplorer(
+                explorer = SeaPearl.CPEpsilonGreedyExplorer(
                     ϵ_stable = 0.01,
                     kind = :exp,
                     ϵ_init = 1.0,
@@ -71,16 +71,16 @@
             role = :DEFAULT_PLAYER
         )
     
-    learnedHeuristic = CPRL.LearnedHeuristic(agent, maxNumberOfCPNodes)
+    learnedHeuristic = SeaPearl.LearnedHeuristic(agent, maxNumberOfCPNodes)
 
     initial_params = deepcopy(params(learnedHeuristic.agent.policy.learner.approximator.model))
 
-    bestsolutions, nodevisited, timeneeded = CPRL.train!(
+    bestsolutions, nodevisited, timeneeded = SeaPearl.train!(
         valueSelectionArray=learnedHeuristic, 
         generator=generator,
         nb_episodes=3,
-        strategy=CPRL.DFSearch,
-        variableHeuristic=CPRL.MinDomainVariableSelection{true}()
+        strategy=SeaPearl.DFSearch,
+        variableHeuristic=SeaPearl.MinDomainVariableSelection{true}()
     )
 
     final_params = params(learnedHeuristic.agent.policy.learner.approximator.model)

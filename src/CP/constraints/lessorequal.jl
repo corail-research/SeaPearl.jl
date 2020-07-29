@@ -1,5 +1,5 @@
 """
-    LessOrEqualConstant(x::CPRL.AbstractIntVar, v::Int)
+    LessOrEqualConstant(x::SeaPearl.AbstractIntVar, v::Int)
 
 Inequality constraint, `x <= v`
 """

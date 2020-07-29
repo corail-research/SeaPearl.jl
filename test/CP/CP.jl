@@ -16,6 +16,6 @@
     include("core/solver.jl")
 
     # @testset "solve()" begin
-    #     @test (@test_logs (:info, "Solved !") CPRL.solve()) == nothing
+    #     @test (@test_logs (:info, "Solved !") SeaPearl.solve()) == nothing
     # end
 end

@@ -1,16 +1,16 @@
 """
-    This a list of all the supported variables' creation of CPRL Solver
+    This a list of all the supported variables' creation of SeaPearl Solver
 """
-# MOI.supports_add_constrained_variable(::CPRL.Optimizer, ::Type{MOI.Interval{Int64}}) = true
-# MOI.supports_add_constrained_variable(::CPRL.Optimizer, ::Type{CPRL.VariablesEquality}) = false
-# MOI.supports_add_constrained_variables(::CPRL.Optimizer, ::Type{CPRL.VariablesEquality}) = false
-# MOI.supports_add_constrained_variables(::CPRL.Optimizer, ::Type{MOI.Reals}) = false
+# MOI.supports_add_constrained_variable(::SeaPearl.Optimizer, ::Type{MOI.Interval{Int64}}) = true
+# MOI.supports_add_constrained_variable(::SeaPearl.Optimizer, ::Type{SeaPearl.VariablesEquality}) = false
+# MOI.supports_add_constrained_variables(::SeaPearl.Optimizer, ::Type{SeaPearl.VariablesEquality}) = false
+# MOI.supports_add_constrained_variables(::SeaPearl.Optimizer, ::Type{MOI.Reals}) = false
 
-# MOI.supports_constraint(::CPRL.Optimizer, ::Type{MOI.SingleVariable}, ::Type{MOI.Interval{Int64}}) = true
+# MOI.supports_constraint(::SeaPearl.Optimizer, ::Type{MOI.SingleVariable}, ::Type{MOI.Interval{Int64}}) = true
 
 
 """
-    This a list of all the supported constraints of CPRL Solver
+    This a list of all the supported constraints of SeaPearl Solver
 """
 function MOI.supports_constraint(
     ::Optimizer, ::Type{MOI.SingleVariable}, ::Type{F}
@@ -38,7 +38,7 @@ function MOI.supports_constraint(
 end
 
 """
-    This a list of all the supported objective functions of the CPRL Solver
+    This a list of all the supported objective functions of the SeaPearl Solver
 """
 MOI.supports(::Optimizer, ::MOI.ObjectiveSense) = true
 MOI.supports(::Optimizer, ::MOI.ObjectiveFunction{MOI.SingleVariable}) = true

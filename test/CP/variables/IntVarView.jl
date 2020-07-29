@@ -1,33 +1,33 @@
 @testset "IntVarView.jl" begin
     @testset "IntVarViewMul" begin
         @testset "isempty()" begin
-            trailer = CPRL.Trailer()
-            domNotEmpty = CPRL.IntDomain(trailer, 20, 10)
-            ax = CPRL.IntDomainViewMul(domNotEmpty, 4)
+            trailer = SeaPearl.Trailer()
+            domNotEmpty = SeaPearl.IntDomain(trailer, 20, 10)
+            ax = SeaPearl.IntDomainViewMul(domNotEmpty, 4)
 
             @test !isempty(ax)
 
-            emptyDom = CPRL.IntDomain(trailer, 0, 1)
-            ay = CPRL.IntDomainViewMul(emptyDom, 4)
+            emptyDom = SeaPearl.IntDomain(trailer, 0, 1)
+            ay = SeaPearl.IntDomainViewMul(emptyDom, 4)
             @test isempty(ay)
         end
 
         @testset "length()" begin
-            trailer = CPRL.Trailer()
-            dom20 = CPRL.IntDomain(trailer, 20, 10)
-            ax = CPRL.IntDomainViewMul(dom20, 4)
+            trailer = SeaPearl.Trailer()
+            dom20 = SeaPearl.IntDomain(trailer, 20, 10)
+            ax = SeaPearl.IntDomainViewMul(dom20, 4)
             @test length(ax) == 20
 
-            dom2 = CPRL.IntDomain(trailer, 2, 0)
-            ax = CPRL.IntDomainViewMul(dom2, 4)
+            dom2 = SeaPearl.IntDomain(trailer, 2, 0)
+            ax = SeaPearl.IntDomainViewMul(dom2, 4)
 
             @test length(ax) == 2
         end
 
         @testset "in()" begin
-            trailer = CPRL.Trailer()
-            dom20 = CPRL.IntDomain(trailer, 3, 2)
-            ax = CPRL.IntDomainViewMul(dom20, 4)
+            trailer = SeaPearl.Trailer()
+            dom20 = SeaPearl.IntDomain(trailer, 3, 2)
+            ax = SeaPearl.IntDomainViewMul(dom20, 4)
 
             @test !(2 in ax)
             @test !(3 in ax)
@@ -37,19 +37,19 @@
         end
 
         @testset "minimum()" begin
-            trailer = CPRL.Trailer()
-            x = CPRL.IntVar(5, 10, "x", trailer)
-            axDom = CPRL.IntDomainViewMul(x.domain, 4)
+            trailer = SeaPearl.Trailer()
+            x = SeaPearl.IntVar(5, 10, "x", trailer)
+            axDom = SeaPearl.IntDomainViewMul(x.domain, 4)
 
-            @test CPRL.minimum(axDom) == 20
+            @test SeaPearl.minimum(axDom) == 20
         end
 
         @testset "removeAll!()" begin
-            trailer = CPRL.Trailer()
-            dom = CPRL.IntDomain(trailer, 3, 10)
-            axDom = CPRL.IntDomainViewMul(dom, 4)
+            trailer = SeaPearl.Trailer()
+            dom = SeaPearl.IntDomain(trailer, 3, 10)
+            axDom = SeaPearl.IntDomainViewMul(dom, 4)
 
-            removed = CPRL.removeAll!(axDom)
+            removed = SeaPearl.removeAll!(axDom)
 
             @test isempty(axDom)
             @test removed == [44, 48, 52]
@@ -57,47 +57,47 @@
 
         
         @testset "maximum()" begin
-            trailer = CPRL.Trailer()
-            x = CPRL.IntVar(5, 10, "x", trailer)
-            axDom = CPRL.IntDomainViewMul(x.domain, 4)
+            trailer = SeaPearl.Trailer()
+            x = SeaPearl.IntVar(5, 10, "x", trailer)
+            axDom = SeaPearl.IntDomainViewMul(x.domain, 4)
 
-            @test CPRL.maximum(axDom) == 40
+            @test SeaPearl.maximum(axDom) == 40
         end
 
         @testset "remove!()" begin
-            trailer = CPRL.Trailer()
-            dom = CPRL.IntDomain(trailer, 3, 2)
-            ax = CPRL.IntDomainViewMul(dom, 4)
+            trailer = SeaPearl.Trailer()
+            dom = SeaPearl.IntDomain(trailer, 3, 2)
+            ax = SeaPearl.IntDomainViewMul(dom, 4)
 
-            @test CPRL.remove!(ax, 12) == [12]
+            @test SeaPearl.remove!(ax, 12) == [12]
 
 
             @test !(12 in ax)
             @test length(ax) == 2
-            @test CPRL.minimum(ax) == 16
+            @test SeaPearl.minimum(ax) == 16
         end
 
         @testset "removeAbove!()" begin
-            trailer = CPRL.Trailer()
-            x = CPRL.IntVar(1, 5, "x", trailer)
-            axDom = CPRL.IntDomainViewMul(x.domain, 4)
+            trailer = SeaPearl.Trailer()
+            x = SeaPearl.IntVar(1, 5, "x", trailer)
+            axDom = SeaPearl.IntDomainViewMul(x.domain, 4)
 
-            @test sort(CPRL.removeAbove!(axDom, 8)) == [12, 16, 20]
+            @test sort(SeaPearl.removeAbove!(axDom, 8)) == [12, 16, 20]
 
             @test length(axDom) == 2
             @test 8 in axDom
             @test 4 in axDom
             @test !(12 in axDom)
 
-            @test sort(CPRL.removeAbove!(axDom, 2)) == [4, 8]
+            @test sort(SeaPearl.removeAbove!(axDom, 2)) == [4, 8]
 
             @test isempty(axDom)
 
             
-            x = CPRL.IntVar(1, 5, "x", trailer)
-            axDom = CPRL.IntDomainViewMul(x.domain, 4)
+            x = SeaPearl.IntVar(1, 5, "x", trailer)
+            axDom = SeaPearl.IntDomainViewMul(x.domain, 4)
 
-            @test sort(CPRL.removeAbove!(axDom, 10)) == [12, 16, 20]
+            @test sort(SeaPearl.removeAbove!(axDom, 10)) == [12, 16, 20]
             @test length(axDom) == 2
             @test 8 in axDom
             @test 4 in axDom
@@ -105,26 +105,26 @@
         end
 
         @testset "removeBelow!()" begin
-            trailer = CPRL.Trailer()
-            x = CPRL.IntVar(1, 5, "x", trailer)
-            axDom = CPRL.IntDomainViewMul(x.domain, 4)
+            trailer = SeaPearl.Trailer()
+            x = SeaPearl.IntVar(1, 5, "x", trailer)
+            axDom = SeaPearl.IntDomainViewMul(x.domain, 4)
 
-            @test sort(CPRL.removeBelow!(axDom, 8)) == [4]
+            @test sort(SeaPearl.removeBelow!(axDom, 8)) == [4]
 
             @test length(axDom) == 4
             @test 8 in axDom
             @test 12 in axDom
             @test !(4 in axDom)
 
-            @test sort(CPRL.removeBelow!(axDom, 21)) == [8, 12, 16, 20]
+            @test sort(SeaPearl.removeBelow!(axDom, 21)) == [8, 12, 16, 20]
 
             @test isempty(axDom)
 
             
-            x = CPRL.IntVar(1, 5, "x", trailer)
-            axDom = CPRL.IntDomainViewMul(x.domain, 4)
+            x = SeaPearl.IntVar(1, 5, "x", trailer)
+            axDom = SeaPearl.IntDomainViewMul(x.domain, 4)
 
-            @test sort(CPRL.removeBelow!(axDom, 6)) == [4]
+            @test sort(SeaPearl.removeBelow!(axDom, 6)) == [4]
             
             @test length(axDom) == 4
             @test 8 in axDom
@@ -133,9 +133,9 @@
         end
 
         @testset "iterate()" begin
-            trailer = CPRL.Trailer()
-            x = CPRL.IntVar(1, 5, "x", trailer)
-            axDom = CPRL.IntDomainViewMul(x.domain, 4)
+            trailer = SeaPearl.Trailer()
+            x = SeaPearl.IntVar(1, 5, "x", trailer)
+            axDom = SeaPearl.IntDomainViewMul(x.domain, 4)
 
             j = 4
             for i in axDom
@@ -148,110 +148,110 @@
         end
 
         @testset "updateMinFromRemovedVal!()" begin
-            trailer = CPRL.Trailer()
-            x = CPRL.IntVar(1, 5, "x", trailer)
-            axDom = CPRL.IntDomainViewMul(x.domain, 4)
+            trailer = SeaPearl.Trailer()
+            x = SeaPearl.IntVar(1, 5, "x", trailer)
+            axDom = SeaPearl.IntDomainViewMul(x.domain, 4)
 
-            @test CPRL.minimum(axDom) == 4
+            @test SeaPearl.minimum(axDom) == 4
 
-            CPRL.remove!(axDom, 4)
-            CPRL.updateMinFromRemovedVal!(axDom, 4)
+            SeaPearl.remove!(axDom, 4)
+            SeaPearl.updateMinFromRemovedVal!(axDom, 4)
 
-            @test CPRL.minimum(axDom) == 8
+            @test SeaPearl.minimum(axDom) == 8
         end
 
         @testset "updateMaxFromRemovedVal!()" begin
-            trailer = CPRL.Trailer()
-            x = CPRL.IntVar(1, 5, "x", trailer)
-            axDom = CPRL.IntDomainViewMul(x.domain, 4)
+            trailer = SeaPearl.Trailer()
+            x = SeaPearl.IntVar(1, 5, "x", trailer)
+            axDom = SeaPearl.IntDomainViewMul(x.domain, 4)
 
-            @test CPRL.maximum(axDom) == 20
+            @test SeaPearl.maximum(axDom) == 20
 
-            CPRL.remove!(axDom, 20)
-            CPRL.updateMaxFromRemovedVal!(axDom, 20)
+            SeaPearl.remove!(axDom, 20)
+            SeaPearl.updateMaxFromRemovedVal!(axDom, 20)
 
-            @test CPRL.maximum(axDom) == 16
+            @test SeaPearl.maximum(axDom) == 16
         end
 
         @testset "updateBoundsFromRemovedVal!()" begin
-            trailer = CPRL.Trailer()
-            x = CPRL.IntVar(1, 5, "x", trailer)
-            axDom = CPRL.IntDomainViewMul(x.domain, 4)
+            trailer = SeaPearl.Trailer()
+            x = SeaPearl.IntVar(1, 5, "x", trailer)
+            axDom = SeaPearl.IntDomainViewMul(x.domain, 4)
 
-            CPRL.remove!(axDom, 20)
-            CPRL.remove!(axDom, 4)
-            CPRL.updateBoundsFromRemovedVal!(axDom, 20)
-            CPRL.updateBoundsFromRemovedVal!(axDom, 4)
+            SeaPearl.remove!(axDom, 20)
+            SeaPearl.remove!(axDom, 4)
+            SeaPearl.updateBoundsFromRemovedVal!(axDom, 20)
+            SeaPearl.updateBoundsFromRemovedVal!(axDom, 4)
 
-            @test CPRL.minimum(axDom) == 8
-            @test CPRL.maximum(axDom) == 16
+            @test SeaPearl.minimum(axDom) == 8
+            @test SeaPearl.maximum(axDom) == 16
         end
 
         @testset "isbound()" begin
-            trailer = CPRL.Trailer()
-            x = CPRL.IntVar(2, 6, "x", trailer)
-            ax = CPRL.IntVarViewMul(x, 3, "ax")
+            trailer = SeaPearl.Trailer()
+            x = SeaPearl.IntVar(2, 6, "x", trailer)
+            ax = SeaPearl.IntVarViewMul(x, 3, "ax")
 
-            @test !CPRL.isbound(ax)
+            @test !SeaPearl.isbound(ax)
 
-            CPRL.assign!(ax, 6)
+            SeaPearl.assign!(ax, 6)
 
-            @test CPRL.isbound(ax)
+            @test SeaPearl.isbound(ax)
         end
 
         @testset "assignedValue()" begin
-            trailer = CPRL.Trailer()
-            x = CPRL.IntVar(5, 5, "x", trailer)
-            ax = CPRL.IntVarViewMul(x, 3, "ax")
+            trailer = SeaPearl.Trailer()
+            x = SeaPearl.IntVar(5, 5, "x", trailer)
+            ax = SeaPearl.IntVarViewMul(x, 3, "ax")
 
-            @test CPRL.assignedValue(ax) == 15
+            @test SeaPearl.assignedValue(ax) == 15
 
-            y = CPRL.IntVar(5, 8, "y", trailer)
-            ay = CPRL.IntVarViewMul(y, 3, "ay")
-            @test_throws AssertionError CPRL.assignedValue(y)
+            y = SeaPearl.IntVar(5, 8, "y", trailer)
+            ay = SeaPearl.IntVarViewMul(y, 3, "ay")
+            @test_throws AssertionError SeaPearl.assignedValue(y)
         end
 
         @testset "rootVariable()" begin
-            trailer = CPRL.Trailer()
-            x = CPRL.IntVar(5, 5, "x", trailer)
-            ax = CPRL.IntVarViewMul(x, 3, "ax")
+            trailer = SeaPearl.Trailer()
+            x = SeaPearl.IntVar(5, 5, "x", trailer)
+            ax = SeaPearl.IntVarViewMul(x, 3, "ax")
 
-            @test CPRL.rootVariable(CPRL.IntVarViewOpposite(ax, "-ax")) == x
+            @test SeaPearl.rootVariable(SeaPearl.IntVarViewOpposite(ax, "-ax")) == x
 
-            @test CPRL.rootVariable(x) == x
-            @test CPRL.rootVariable(ax) == x
+            @test SeaPearl.rootVariable(x) == x
+            @test SeaPearl.rootVariable(ax) == x
         end
     end
     @testset "IntVarViewOpposite" begin
     
         @testset "isempty()" begin
-            trailer = CPRL.Trailer()
-            domNotEmpty = CPRL.IntDomain(trailer, 20, 10)
-            ax = CPRL.IntDomainViewOpposite(domNotEmpty)
+            trailer = SeaPearl.Trailer()
+            domNotEmpty = SeaPearl.IntDomain(trailer, 20, 10)
+            ax = SeaPearl.IntDomainViewOpposite(domNotEmpty)
 
             @test !isempty(ax)
 
-            emptyDom = CPRL.IntDomain(trailer, 0, 1)
-            ay = CPRL.IntDomainViewOpposite(emptyDom)
+            emptyDom = SeaPearl.IntDomain(trailer, 0, 1)
+            ay = SeaPearl.IntDomainViewOpposite(emptyDom)
             @test isempty(ay)
         end
 
         @testset "length()" begin
-            trailer = CPRL.Trailer()
-            dom20 = CPRL.IntDomain(trailer, 20, 10)
-            ax = CPRL.IntDomainViewOpposite(dom20)
+            trailer = SeaPearl.Trailer()
+            dom20 = SeaPearl.IntDomain(trailer, 20, 10)
+            ax = SeaPearl.IntDomainViewOpposite(dom20)
             @test length(ax) == 20
 
-            dom2 = CPRL.IntDomain(trailer, 2, 0)
-            ax = CPRL.IntDomainViewOpposite(dom2)
+            dom2 = SeaPearl.IntDomain(trailer, 2, 0)
+            ax = SeaPearl.IntDomainViewOpposite(dom2)
 
             @test length(ax) == 2
         end
 
         @testset "in()" begin
-            trailer = CPRL.Trailer()
-            dom20 = CPRL.IntDomain(trailer, 3, 2)
-            ax = CPRL.IntDomainViewOpposite(dom20)
+            trailer = SeaPearl.Trailer()
+            dom20 = SeaPearl.IntDomain(trailer, 3, 2)
+            ax = SeaPearl.IntDomainViewOpposite(dom20)
 
             @test !(4 in ax)
             @test !(3 in ax)
@@ -261,19 +261,19 @@
         end
 
         @testset "minimum()" begin
-            trailer = CPRL.Trailer()
-            x = CPRL.IntVar(5, 10, "x", trailer)
-            axDom = CPRL.IntDomainViewOpposite(x.domain)
+            trailer = SeaPearl.Trailer()
+            x = SeaPearl.IntVar(5, 10, "x", trailer)
+            axDom = SeaPearl.IntDomainViewOpposite(x.domain)
 
-            @test CPRL.minimum(axDom) == -10
+            @test SeaPearl.minimum(axDom) == -10
         end
 
         @testset "removeAll!()" begin
-            trailer = CPRL.Trailer()
-            dom = CPRL.IntDomain(trailer, 3, 10)
-            axDom = CPRL.IntDomainViewOpposite(dom)
+            trailer = SeaPearl.Trailer()
+            dom = SeaPearl.IntDomain(trailer, 3, 10)
+            axDom = SeaPearl.IntDomainViewOpposite(dom)
 
-            removed = CPRL.removeAll!(axDom)
+            removed = SeaPearl.removeAll!(axDom)
 
             @test isempty(axDom)
             @test removed == [-11, -12, -13]
@@ -281,64 +281,64 @@
 
         
         @testset "maximum()" begin
-            trailer = CPRL.Trailer()
-            x = CPRL.IntVar(5, 10, "x", trailer)
-            axDom = CPRL.IntDomainViewOpposite(x.domain)
+            trailer = SeaPearl.Trailer()
+            x = SeaPearl.IntVar(5, 10, "x", trailer)
+            axDom = SeaPearl.IntDomainViewOpposite(x.domain)
 
-            @test CPRL.maximum(axDom) == -5
+            @test SeaPearl.maximum(axDom) == -5
         end
 
         @testset "remove!()" begin
-            trailer = CPRL.Trailer()
-            dom = CPRL.IntDomain(trailer, 3, 2)
-            ax = CPRL.IntDomainViewOpposite(dom)
+            trailer = SeaPearl.Trailer()
+            dom = SeaPearl.IntDomain(trailer, 3, 2)
+            ax = SeaPearl.IntDomainViewOpposite(dom)
 
-            @test CPRL.remove!(ax, -5) == [-5]
+            @test SeaPearl.remove!(ax, -5) == [-5]
 
 
             @test !(-5 in ax)
             @test length(ax) == 2
-            @test CPRL.minimum(ax) == -4
+            @test SeaPearl.minimum(ax) == -4
         end
 
         @testset "removeAbove!()" begin
-            trailer = CPRL.Trailer()
-            x = CPRL.IntVar(1, 5, "x", trailer)
-            axDom = CPRL.IntDomainViewOpposite(x.domain)
+            trailer = SeaPearl.Trailer()
+            x = SeaPearl.IntVar(1, 5, "x", trailer)
+            axDom = SeaPearl.IntDomainViewOpposite(x.domain)
 
-            @test sort(CPRL.removeAbove!(axDom, -4)) == [-3, -2, -1]
+            @test sort(SeaPearl.removeAbove!(axDom, -4)) == [-3, -2, -1]
 
             @test length(axDom) == 2
             @test -4 in axDom
             @test -5 in axDom
             @test !(-3 in axDom)
 
-            @test sort(CPRL.removeAbove!(axDom, -6)) == [-5, -4]
+            @test sort(SeaPearl.removeAbove!(axDom, -6)) == [-5, -4]
 
             @test isempty(axDom)
         end
 
         @testset "removeBelow!()" begin
-            trailer = CPRL.Trailer()
-            x = CPRL.IntVar(1, 5, "x", trailer)
-            axDom = CPRL.IntDomainViewOpposite(x.domain)
+            trailer = SeaPearl.Trailer()
+            x = SeaPearl.IntVar(1, 5, "x", trailer)
+            axDom = SeaPearl.IntDomainViewOpposite(x.domain)
 
-            @test sort(CPRL.removeBelow!(axDom, -4)) == [-5]
+            @test sort(SeaPearl.removeBelow!(axDom, -4)) == [-5]
 
             @test length(axDom) == 4
             @test -4 in axDom
             @test -3 in axDom
             @test !(-5 in axDom)
 
-            @test sort(CPRL.removeBelow!(axDom, 0)) == [-4, -3, -2, -1]
+            @test sort(SeaPearl.removeBelow!(axDom, 0)) == [-4, -3, -2, -1]
 
             @test isempty(axDom)
         end
 
         @testset "iterate()" begin
-            trailer = CPRL.Trailer()
-            x = CPRL.IntVar(1, 5, "x", trailer)
-            axDom = CPRL.IntDomainViewOpposite(x.domain)
+            trailer = SeaPearl.Trailer()
+            x = SeaPearl.IntVar(1, 5, "x", trailer)
+            axDom = SeaPearl.IntDomainViewOpposite(x.domain)
 
             j = -1
             for i in axDom
@@ -351,108 +351,108 @@
         end
 
         @testset "updateMinFromRemovedVal!()" begin
-            trailer = CPRL.Trailer()
-            x = CPRL.IntVar(1, 5, "x", trailer)
-            axDom = CPRL.IntDomainViewOpposite(x.domain)
+            trailer = SeaPearl.Trailer()
+            x = SeaPearl.IntVar(1, 5, "x", trailer)
+            axDom = SeaPearl.IntDomainViewOpposite(x.domain)
 
-            @test CPRL.minimum(axDom) == -5
+            @test SeaPearl.minimum(axDom) == -5
 
-            CPRL.remove!(axDom, -5)
-            CPRL.updateMinFromRemovedVal!(axDom, -5)
+            SeaPearl.remove!(axDom, -5)
+            SeaPearl.updateMinFromRemovedVal!(axDom, -5)
 
-            @test CPRL.minimum(axDom) == -4
+            @test SeaPearl.minimum(axDom) == -4
         end
 
         @testset "updateMaxFromRemovedVal!()" begin
-            trailer = CPRL.Trailer()
-            x = CPRL.IntVar(1, 5, "x", trailer)
-            axDom = CPRL.IntDomainViewOpposite(x.domain)
+            trailer = SeaPearl.Trailer()
+            x = SeaPearl.IntVar(1, 5, "x", trailer)
+            axDom = SeaPearl.IntDomainViewOpposite(x.domain)
 
-            @test CPRL.maximum(axDom) == -1
+            @test SeaPearl.maximum(axDom) == -1
 
-            CPRL.remove!(axDom, -1)
-            CPRL.updateMaxFromRemovedVal!(axDom, -1)
+            SeaPearl.remove!(axDom, -1)
+            SeaPearl.updateMaxFromRemovedVal!(axDom, -1)
 
-            @test CPRL.maximum(axDom) == -2
+            @test SeaPearl.maximum(axDom) == -2
         end
 
         @testset "updateBoundsFromRemovedVal!()" begin
-            trailer = CPRL.Trailer()
-            x = CPRL.IntVar(1, 5, "x", trailer)
-            axDom = CPRL.IntDomainViewOpposite(x.domain)
+            trailer = SeaPearl.Trailer()
+            x = SeaPearl.IntVar(1, 5, "x", trailer)
+            axDom = SeaPearl.IntDomainViewOpposite(x.domain)
 
-            CPRL.remove!(axDom, -5)
-            CPRL.remove!(axDom, -1)
-            CPRL.updateBoundsFromRemovedVal!(axDom, -5)
-            CPRL.updateBoundsFromRemovedVal!(axDom, -1)
+            SeaPearl.remove!(axDom, -5)
+            SeaPearl.remove!(axDom, -1)
+            SeaPearl.updateBoundsFromRemovedVal!(axDom, -5)
+            SeaPearl.updateBoundsFromRemovedVal!(axDom, -1)
 
-            @test CPRL.minimum(axDom) == -4
-            @test CPRL.maximum(axDom) == -2
+            @test SeaPearl.minimum(axDom) == -4
+            @test SeaPearl.maximum(axDom) == -2
         end
 
         @testset "isbound()" begin
-            trailer = CPRL.Trailer()
-            x = CPRL.IntVar(2, 6, "x", trailer)
-            ax = CPRL.IntVarViewOpposite(x, "-x")
+            trailer = SeaPearl.Trailer()
+            x = SeaPearl.IntVar(2, 6, "x", trailer)
+            ax = SeaPearl.IntVarViewOpposite(x, "-x")
 
-            @test !CPRL.isbound(ax)
+            @test !SeaPearl.isbound(ax)
 
-            CPRL.assign!(ax, -5)
+            SeaPearl.assign!(ax, -5)
 
-            @test CPRL.isbound(ax)
+            @test SeaPearl.isbound(ax)
         end
 
         @testset "assignedValue()" begin
-            trailer = CPRL.Trailer()
-            x = CPRL.IntVar(5, 5, "x", trailer)
-            ax = CPRL.IntVarViewOpposite(x, "-x")
+            trailer = SeaPearl.Trailer()
+            x = SeaPearl.IntVar(5, 5, "x", trailer)
+            ax = SeaPearl.IntVarViewOpposite(x, "-x")
 
-            @test CPRL.assignedValue(ax) == -5
+            @test SeaPearl.assignedValue(ax) == -5
 
-            y = CPRL.IntVar(5, 8, "y", trailer)
-            ay = CPRL.IntVarViewOpposite(y, "-y")
-            @test_throws AssertionError CPRL.assignedValue(y)
+            y = SeaPearl.IntVar(5, 8, "y", trailer)
+            ay = SeaPearl.IntVarViewOpposite(y, "-y")
+            @test_throws AssertionError SeaPearl.assignedValue(y)
         end
 
         @testset "rootVariable()" begin
-            trailer = CPRL.Trailer()
-            x = CPRL.IntVar(5, 5, "x", trailer)
-            ax = CPRL.IntVarViewOpposite(x, "-x")
+            trailer = SeaPearl.Trailer()
+            x = SeaPearl.IntVar(5, 5, "x", trailer)
+            ax = SeaPearl.IntVarViewOpposite(x, "-x")
 
-            @test CPRL.rootVariable(x) == x
-            @test CPRL.rootVariable(ax) == x
+            @test SeaPearl.rootVariable(x) == x
+            @test SeaPearl.rootVariable(ax) == x
         end
     end
 
     @testset "IntVarViewOffset" begin
         @testset "isempty()" begin
-            trailer = CPRL.Trailer()
-            domNotEmpty = CPRL.IntDomain(trailer, 20, 10)
-            ax = CPRL.IntDomainViewOffset(domNotEmpty, 4)
+            trailer = SeaPearl.Trailer()
+            domNotEmpty = SeaPearl.IntDomain(trailer, 20, 10)
+            ax = SeaPearl.IntDomainViewOffset(domNotEmpty, 4)
 
             @test !isempty(ax)
 
-            emptyDom = CPRL.IntDomain(trailer, 0, 1)
-            ay = CPRL.IntDomainViewOffset(emptyDom, 4)
+            emptyDom = SeaPearl.IntDomain(trailer, 0, 1)
+            ay = SeaPearl.IntDomainViewOffset(emptyDom, 4)
             @test isempty(ay)
         end
 
         @testset "length()" begin
-            trailer = CPRL.Trailer()
-            dom20 = CPRL.IntDomain(trailer, 20, 10)
-            ax = CPRL.IntDomainViewOffset(dom20, 4)
+            trailer = SeaPearl.Trailer()
+            dom20 = SeaPearl.IntDomain(trailer, 20, 10)
+            ax = SeaPearl.IntDomainViewOffset(dom20, 4)
             @test length(ax) == 20
 
-            dom2 = CPRL.IntDomain(trailer, 2, 0)
-            ax = CPRL.IntDomainViewOffset(dom2, 4)
+            dom2 = SeaPearl.IntDomain(trailer, 2, 0)
+            ax = SeaPearl.IntDomainViewOffset(dom2, 4)
 
             @test length(ax) == 2
         end
 
         @testset "in()" begin
-            trailer = CPRL.Trailer()
-            dom20 = CPRL.IntDomain(trailer, 3, 2)
-            ax = CPRL.IntDomainViewOffset(dom20, 4)
+            trailer = SeaPearl.Trailer()
+            dom20 = SeaPearl.IntDomain(trailer, 3, 2)
+            ax = SeaPearl.IntDomainViewOffset(dom20, 4)
 
             @test !(2 in ax)
             @test !(3 in ax)
@@ -462,19 +462,19 @@
         end
 
         @testset "minimum()" begin
-            trailer = CPRL.Trailer()
-            x = CPRL.IntVar(5, 10, "x", trailer)
-            axDom = CPRL.IntDomainViewOffset(x.domain, 4)
+            trailer = SeaPearl.Trailer()
+            x = SeaPearl.IntVar(5, 10, "x", trailer)
+            axDom = SeaPearl.IntDomainViewOffset(x.domain, 4)
 
-            @test CPRL.minimum(axDom) == 9
+            @test SeaPearl.minimum(axDom) == 9
         end
 
         @testset "removeAll!()" begin
-            trailer = CPRL.Trailer()
-            dom = CPRL.IntDomain(trailer, 3, 10)
-            axDom = CPRL.IntDomainViewOffset(dom, 4)
+            trailer = SeaPearl.Trailer()
+            dom = SeaPearl.IntDomain(trailer, 3, 10)
+            axDom = SeaPearl.IntDomainViewOffset(dom, 4)
 
-            removed = CPRL.removeAll!(axDom)
+            removed = SeaPearl.removeAll!(axDom)
 
             @test isempty(axDom)
             @test removed == [15, 16, 17]
@@ -482,32 +482,32 @@
 
         
         @testset "maximum()" begin
-            trailer = CPRL.Trailer()
-            x = CPRL.IntVar(5, 10, "x", trailer)
-            axDom = CPRL.IntDomainViewOffset(x.domain, 4)
+            trailer = SeaPearl.Trailer()
+            x = SeaPearl.IntVar(5, 10, "x", trailer)
+            axDom = SeaPearl.IntDomainViewOffset(x.domain, 4)
 
-            @test CPRL.maximum(axDom) == 14
+            @test SeaPearl.maximum(axDom) == 14
         end
 
         @testset "remove!()" begin
-            trailer = CPRL.Trailer()
-            dom = CPRL.IntDomain(trailer, 3, 2)
-            ax = CPRL.IntDomainViewOffset(dom, 4)
+            trailer = SeaPearl.Trailer()
+            dom = SeaPearl.IntDomain(trailer, 3, 2)
+            ax = SeaPearl.IntDomainViewOffset(dom, 4)
 
-            CPRL.remove!(ax, 7)
+            SeaPearl.remove!(ax, 7)
 
 
             @test !(7 in ax)
             @test length(ax) == 2
-            @test CPRL.minimum(ax) == 8
+            @test SeaPearl.minimum(ax) == 8
         end
 
         @testset "removeAbove!()" begin
-            trailer = CPRL.Trailer()
-            x = CPRL.IntVar(1, 5, "x", trailer)
-            axDom = CPRL.IntDomainViewOffset(x.domain, 4)
+            trailer = SeaPearl.Trailer()
+            x = SeaPearl.IntVar(1, 5, "x", trailer)
+            axDom = SeaPearl.IntDomainViewOffset(x.domain, 4)
 
-            @test sort(CPRL.removeAbove!(axDom, 7)) == [8, 9]
+            @test sort(SeaPearl.removeAbove!(axDom, 7)) == [8, 9]
 
             @test length(axDom) == 3
             @test 7 in axDom
@@ -515,17 +515,17 @@
             @test !(9 in axDom)
             @test 5 in axDom
 
-            @test sort(CPRL.removeAbove!(axDom, 2)) == [5, 6, 7]
+            @test sort(SeaPearl.removeAbove!(axDom, 2)) == [5, 6, 7]
 
             @test isempty(axDom)
         end
 
         @testset "removeBelow!()" begin
-            trailer = CPRL.Trailer()
-            x = CPRL.IntVar(1, 5, "x", trailer)
-            axDom = CPRL.IntDomainViewOffset(x.domain, 4)
+            trailer = SeaPearl.Trailer()
+            x = SeaPearl.IntVar(1, 5, "x", trailer)
+            axDom = SeaPearl.IntDomainViewOffset(x.domain, 4)
 
-            @test sort(CPRL.removeBelow!(axDom, 8)) == [5, 6, 7]
+            @test sort(SeaPearl.removeBelow!(axDom, 8)) == [5, 6, 7]
 
             @test length(axDom) == 2
             @test 8 in axDom
@@ -533,15 +533,15 @@
             @test !(5 in axDom)
             @test !(4 in axDom)
 
-            @test sort(CPRL.removeBelow!(axDom, 21)) == [8, 9]
+            @test sort(SeaPearl.removeBelow!(axDom, 21)) == [8, 9]
 
             @test isempty(axDom)
         end
 
         @testset "iterate()" begin
-            trailer = CPRL.Trailer()
-            x = CPRL.IntVar(1, 5, "x", trailer)
-            axDom = CPRL.IntDomainViewOffset(x.domain, 4)
+            trailer = SeaPearl.Trailer()
+            x = SeaPearl.IntVar(1, 5, "x", trailer)
+            axDom = SeaPearl.IntDomainViewOffset(x.domain, 4)
 
             j = 5
             for i in axDom
@@ -554,67 +554,67 @@
         end
 
         @testset "updateMinFromRemovedVal!()" begin
-            trailer = CPRL.Trailer()
-            x = CPRL.IntVar(1, 5, "x", trailer)
-            axDom = CPRL.IntDomainViewOffset(x.domain, 4)
+            trailer = SeaPearl.Trailer()
+            x = SeaPearl.IntVar(1, 5, "x", trailer)
+            axDom = SeaPearl.IntDomainViewOffset(x.domain, 4)
 
-            @test CPRL.minimum(axDom) == 5
+            @test SeaPearl.minimum(axDom) == 5
 
-            CPRL.remove!(axDom, 5)
-            CPRL.updateMinFromRemovedVal!(axDom, 5)
+            SeaPearl.remove!(axDom, 5)
+            SeaPearl.updateMinFromRemovedVal!(axDom, 5)
 
-            @test CPRL.minimum(axDom) == 6
+            @test SeaPearl.minimum(axDom) == 6
         end
 
         @testset "updateMaxFromRemovedVal!()" begin
-            trailer = CPRL.Trailer()
-            x = CPRL.IntVar(1, 5, "x", trailer)
-            axDom = CPRL.IntDomainViewOffset(x.domain, 4)
+            trailer = SeaPearl.Trailer()
+            x = SeaPearl.IntVar(1, 5, "x", trailer)
+            axDom = SeaPearl.IntDomainViewOffset(x.domain, 4)
 
-            @test CPRL.maximum(axDom) == 9
+            @test SeaPearl.maximum(axDom) == 9
 
-            CPRL.remove!(axDom, 9)
-            CPRL.updateMaxFromRemovedVal!(axDom, 9)
+            SeaPearl.remove!(axDom, 9)
+            SeaPearl.updateMaxFromRemovedVal!(axDom, 9)
 
-            @test CPRL.maximum(axDom) == 8
+            @test SeaPearl.maximum(axDom) == 8
         end
 
         @testset "updateBoundsFromRemovedVal!()" begin
-            trailer = CPRL.Trailer()
-            x = CPRL.IntVar(1, 5, "x", trailer)
-            axDom = CPRL.IntDomainViewOffset(x.domain, 4)
+            trailer = SeaPearl.Trailer()
+            x = SeaPearl.IntVar(1, 5, "x", trailer)
+            axDom = SeaPearl.IntDomainViewOffset(x.domain, 4)
 
-            CPRL.remove!(axDom, 9)
-            CPRL.remove!(axDom, 5)
-            CPRL.updateBoundsFromRemovedVal!(axDom, 9)
-            CPRL.updateBoundsFromRemovedVal!(axDom, 5)
+            SeaPearl.remove!(axDom, 9)
+            SeaPearl.remove!(axDom, 5)
+            SeaPearl.updateBoundsFromRemovedVal!(axDom, 9)
+            SeaPearl.updateBoundsFromRemovedVal!(axDom, 5)
 
-            @test CPRL.minimum(axDom) == 6
-            @test CPRL.maximum(axDom) == 8
+            @test SeaPearl.minimum(axDom) == 6
+            @test SeaPearl.maximum(axDom) == 8
         end
 
         @testset "isbound()" begin
-            trailer = CPRL.Trailer()
-            x = CPRL.IntVar(2, 6, "x", trailer)
-            ax = CPRL.IntVarViewOffset(x, 3, "ax")
+            trailer = SeaPearl.Trailer()
+            x = SeaPearl.IntVar(2, 6, "x", trailer)
+            ax = SeaPearl.IntVarViewOffset(x, 3, "ax")
 
-            @test !CPRL.isbound(ax)
+            @test !SeaPearl.isbound(ax)
 
-            CPRL.assign!(ax, 6)
+            SeaPearl.assign!(ax, 6)
 
-            @test CPRL.isbound(ax)
+            @test SeaPearl.isbound(ax)
         end
 
         @testset "assignedValue()" begin
-            trailer = CPRL.Trailer()
-            x = CPRL.IntVar(5, 5, "x", trailer)
-            ax = CPRL.IntVarViewOffset(x, 3, "ax")
+            trailer = SeaPearl.Trailer()
+            x = SeaPearl.IntVar(5, 5, "x", trailer)
+            ax = SeaPearl.IntVarViewOffset(x, 3, "ax")
 
-            @test CPRL.assignedValue(ax) == 8
+            @test SeaPearl.assignedValue(ax) == 8
 
-            y = CPRL.IntVar(5, 8, "y", trailer)
-            ay = CPRL.IntVarViewOffset(y, 3, "ay")
-            @test_throws AssertionError CPRL.assignedValue(y)
+            y = SeaPearl.IntVar(5, 8, "y", trailer)
+            ay = SeaPearl.IntVarViewOffset(y, 3, "ay")
+            @test_throws AssertionError SeaPearl.assignedValue(y)
         end
     end
 end

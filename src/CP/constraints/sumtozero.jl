@@ -1,5 +1,5 @@
 """
-    SumToZero(x::CPRL.AbstractIntVar, v::Int)
+    SumToZero(x::SeaPearl.AbstractIntVar, v::Int)
 
 Summing constraint, states that `x[1] + x[2] + ... + x[length(x)] == 0`
 """

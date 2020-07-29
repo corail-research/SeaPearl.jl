@@ -86,7 +86,7 @@ function featurize(sr::DefaultStateRepresentation{DefaultFeaturization})
     g = sr.cplayergraph
     features = zeros(Float32, nv(g), 3)
     for i in 1:nv(g)
-        cp_vertex = CPRL.cpVertexFromIndex(g, i)
+        cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
         if isa(cp_vertex, ConstraintVertex)
             features[i, 1] = 1.0f0
         end

@@ -43,7 +43,7 @@ function MOI.add_constraint(model::Optimizer, saf::MOI.ScalarAffineFunction{Floa
 
         newId = length(model.moimodel.constraints) + 1
         ci = MOI.ConstraintIndex{MOI.ScalarAffineFunction{Float64}, MOI.LessThan{Float64}}(newId)
-        constraint = MOIConstraint(CPRL.LessOrEqualConstant, (AffineIndex(length(model.moimodel.affines)), set.upper), ci)
+        constraint = MOIConstraint(SeaPearl.LessOrEqualConstant, (AffineIndex(length(model.moimodel.affines)), set.upper), ci)
         push!(model.moimodel.constraints, constraint)
 
         return ci
@@ -56,13 +56,13 @@ function MOI.add_constraint(model::Optimizer, saf::MOI.ScalarAffineFunction{Floa
 
     newId = length(model.moimodel.constraints) + 1
     ci = MOI.ConstraintIndex{MOI.ScalarAffineFunction{Float64}, MOI.LessThan{Float64}}(newId)
-    constraint = MOIConstraint(CPRL.LessOrEqual, (saf.terms[1].variable_index, saf.terms[2].variable_index), ci)
+    constraint = MOIConstraint(SeaPearl.LessOrEqual, (saf.terms[1].variable_index, saf.terms[2].variable_index), ci)
     push!(model.moimodel.constraints, constraint)
 
     return ci
 end
 
-function create_CPConstraint(moiconstraint::MOIConstraint{CPRL.LessOrEqual}, optimizer::Optimizer)
+function create_CPConstraint(moiconstraint::MOIConstraint{SeaPearl.LessOrEqual}, optimizer::Optimizer)
     if !isa(moiconstraint.ci, MOI.ConstraintIndex{MOI.ScalarAffineFunction{Float64}, MOI.LessThan{Float64}})
         return nothing
     end
@@ -73,7 +73,7 @@ function create_CPConstraint(moiconstraint::MOIConstraint{CPRL.LessOrEqual}, opt
     LessOrEqual(x, y, optimizer.cpmodel.trailer)
 end
 
-function create_CPConstraint(moiconstraint::MOIConstraint{CPRL.LessOrEqualConstant}, optimizer::Optimizer)
+function create_CPConstraint(moiconstraint::MOIConstraint{SeaPearl.LessOrEqualConstant}, optimizer::Optimizer)
     x = get_cp_variable(optimizer, moiconstraint.args[1])
     c = Int(floor(moiconstraint.args[2]))
 

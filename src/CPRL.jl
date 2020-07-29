@@ -1,4 +1,4 @@
-module CPRL
+module SeaPearl
 
 using ReinforcementLearning
 const RL = ReinforcementLearning
