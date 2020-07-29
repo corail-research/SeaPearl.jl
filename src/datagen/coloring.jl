@@ -18,7 +18,7 @@ on more smooth cases.
 This is done by getting a geometric distribution of each node connectivity (number of edges) and then select
 randomly the connexions. 
 """
-function fill_with_generator!(cpmodel::CPModel, gen::LegacyGraphColoringGenerator)
+function fill_with_generator!(cpmodel::CPModel, gen::LegacyGraphColoringGenerator; rng=nothing)
     density = gen.density
     nb_nodes = gen.nb_nodes
 
@@ -143,7 +143,7 @@ end
 
 include("IOmanager.jl")
 
-function fill_with_generator!(model::CPModel, gen::GraphColoringWithFileGenerator)
+function fill_with_generator!(model::CPModel, gen::GraphColoringWithFileGenerator; rng=nothing)
     input_file = gen.input_file
     input = getInputData(input_file)
 
