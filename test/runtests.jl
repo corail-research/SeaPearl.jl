@@ -12,3 +12,6 @@ const RL = ReinforcementLearning
     include("datagen/datagen.jl")
     include("experiment/experiment.jl")
 end
+
+revise_user = "You use Revise, you're efficient in your work, well done ;)"
+revise_user
