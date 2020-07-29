@@ -3,7 +3,7 @@
 
 Abstract domain type. Every integer domain must inherit from this type.
 """
-abstract type AbstractIntDomain end
+abstract type AbstractIntDomain <: AbstractDomain end
 
 """
     struct IntDomain <: AbstractIntDomain

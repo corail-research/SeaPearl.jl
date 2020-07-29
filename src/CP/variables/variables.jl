@@ -1,4 +1,5 @@
 abstract type AbstractVar end
+abstract type AbstractDomain end
 
 abstract type AbstractSetVar <: AbstractVar end
 
@@ -19,6 +20,9 @@ id(x::AbstractVar) = x.id
 
 include("IntDomain.jl")
 include("IntVar.jl")
+
+include("BoolDomain.jl")
+include("BoolVar.jl")
 
 abstract type IntVarView <: AbstractIntVar end
 abstract type IntDomainView <: AbstractIntDomain end

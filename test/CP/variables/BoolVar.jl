@@ -14,7 +14,7 @@
         trailer = SeaPearl.Trailer()
         x = SeaPearl.BoolVar("x", trailer)
 
-        @test_throws AssertionError SeaPearl.assignedValue(y)
+        @test_throws AssertionError SeaPearl.assignedValue(x)
 
         SeaPearl.assign!(x, false)
 
@@ -24,7 +24,7 @@
 
     @testset "BoolVar()" begin
         trailer = SeaPearl.Trailer()
-        x = SeaPearl.IntVar("x", trailer)
+        x = SeaPearl.BoolVar("x", trailer)
 
         @test length(x.domain) == 2
         @test true in x.domain && false in x.domain
