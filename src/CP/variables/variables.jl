@@ -1,9 +1,13 @@
+abstract type AbstractVar end
+
+abstract type AbstractSetVar <: AbstractVar end
+
 """
     abstract type AbstractIntVar end
 
 Abstract type for integer variables.
 """
-abstract type AbstractIntVar end
+abstract type AbstractIntVar <: AbstractVar end
 
 """
     function id(x::AbstractIntVar)
@@ -11,7 +15,7 @@ abstract type AbstractIntVar end
 Return the `string` identifier of `x`. Every variable must be assigned a unique identifier upon creation, that
 will be used as a key to identify the variable in the `CPModel` object.
 """
-id(x::AbstractIntVar) = x.id
+id(x::AbstractVar) = x.id
 
 include("IntDomain.jl")
 include("IntVar.jl")
