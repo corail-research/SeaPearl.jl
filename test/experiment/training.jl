@@ -20,10 +20,7 @@
                             ),
                             outputLayer = Flux.Dense(20, generator.nb_nodes)
                         ),
-                        nodeChain = Flux.Chain(
-                            Flux.Dense(20, 20),
-                        ),
-                        outputLayer = Flux.Dense(20, 10)
+                        optimizer = ADAM(0.001f0)
                     ),
                     target_approximator = RL.NeuralNetworkApproximator(
                         model = CPRL.FlexGNN(
@@ -36,10 +33,7 @@
                             ),
                             outputLayer = Flux.Dense(20, generator.nb_nodes)
                         ),
-                        nodeChain = Flux.Chain(
-                            Flux.Dense(20, 20),
-                        ),
-                        outputLayer = Flux.Dense(20, 10)
+                        optimizer = ADAM(0.001f0)
                     ),
                     loss_func = huber_loss,
                     stack_size = nothing,
