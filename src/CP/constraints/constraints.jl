@@ -14,11 +14,12 @@ include("islessorequal.jl")
 
 Make sure `constraint` will be propagated if `x`'s domain changes. 
 """
-function addOnDomainChange!(x::IntVar, constraint::Constraint)
+function addOnDomainChange!(x::Union{IntVar, BoolVar}, constraint::Constraint)
     if !(constraint in x.onDomainChange)
         push!(x.onDomainChange, constraint)
     end
 end
+
 addOnDomainChange!(x::IntVarView, constraint::Constraint) = addOnDomainChange!(x.x, constraint)
 
 """
@@ -39,6 +40,6 @@ end
 
 Add the constraints that have to be propagated when the domain of `x` changes to `toPropagate`.
 """
-triggerDomainChange!(toPropagate::Set{Constraint}, x::AbstractIntVar) = addToPropagate!(toPropagate, getOnDomainChange(x))
-getOnDomainChange(x::IntVar) = x.onDomainChange
+triggerDomainChange!(toPropagate::Set{Constraint}, x::Union{AbstractIntVar, BoolVar}) = addToPropagate!(toPropagate, getOnDomainChange(x))
+getOnDomainChange(x::Union{IntVar, BoolVar}) = x.onDomainChange
 getOnDomainChange(x::IntVarView) = getOnDomainChange(x.x)
