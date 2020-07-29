@@ -1,4 +1,3 @@
-using SeaPearl
 
 @testset "lessorqual.jl" begin
     @testset "LessOrEqualConstant()" begin
