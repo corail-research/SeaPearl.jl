@@ -4,4 +4,5 @@ using SeaPearl
     include("IntDomain.jl")
     include("IntVar.jl")
     include("IntVarView.jl")
+    include("BoolVar.jl")
 end
