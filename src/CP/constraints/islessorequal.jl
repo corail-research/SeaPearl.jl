@@ -24,17 +24,17 @@ end
 
 `isLessOrEqual` propagation function.
 """
-function propagate!(constraint::LessOrEqual, toPropagate::Set{Constraint}, prunedDomains::CPModification)
+function propagate!(constraint::isLessOrEqual, toPropagate::Set{Constraint}, prunedDomains::CPModification)
     
     if !isbound(constraint.b)
         if maximum(constraint.x.domain) <= minimum(constraint.y.domain)
-            prunedB = assign!(constraint.b.domain, true)
+            prunedB = remove!(constraint.b.domain, false)
             if !isempty(prunedB)
                 addToPrunedDomains!(prunedDomains, constraint.b, prunedB)
                 triggerDomainChange!(toPropagate, constraint.b)
             end
         elseif minimum(constraint.x.domain) > maximum(constraint.y.domain)
-            prunedB = assign!(constraint.b.domain, false)
+            prunedB = remove!(constraint.b.domain, true)
             if !isempty(prunedB)
                 addToPrunedDomains!(prunedDomains, constraint.b, prunedB)
                 triggerDomainChange!(toPropagate, constraint.b)
