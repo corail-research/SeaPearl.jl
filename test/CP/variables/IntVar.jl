@@ -28,4 +28,15 @@
         @test length(x.domain) == 4
         @test 5 in x.domain && 8 in x.domain && !(4 in x.domain) && !(9 in x.domain)
     end
+
+    @testset "assign!()" begin
+        trailer = SeaPearl.Trailer()
+        x = SeaPearl.IntVar(5, 6, "x", trailer)
+
+        @test_throws AssertionError SeaPearl.assignedValue(x)
+
+        SeaPearl.assign!(x, 5)
+
+        @test SeaPearl.assignedValue(x) == 5
+    end
 end
