@@ -3,9 +3,9 @@
     numInFeatures = 3
 
     maxNumberOfCPNodes = 150
-    state_size = (maxNumberOfCPNodes, numInFeatures + maxNumberOfCPNodes + 3, 1)
 
 
+    state_size = (maxNumberOfCPNodes, numInFeatures + maxNumberOfCPNodes + 2 + 1) 
     agent = RL.Agent(
             policy = RL.QBasedPolicy(
                 learner = CPRL.CPDQNLearner(
@@ -20,7 +20,7 @@
                             ),
                             outputLayer = Flux.Dense(20, generator.nb_nodes)
                         ),
-                        optimizer = ADAM(0.0005f0)
+                        optimizer = ADAM(0.001f0)
                     ),
                     target_approximator = RL.NeuralNetworkApproximator(
                         model = CPRL.FlexGNN(
@@ -33,12 +33,12 @@
                             ),
                             outputLayer = Flux.Dense(20, generator.nb_nodes)
                         ),
-                        optimizer = ADAM(0.0005f0)
+                        optimizer = ADAM(0.001f0)
                     ),
                     loss_func = huber_loss,
                     stack_size = nothing,
                     γ = 0.99f0,
-                    batch_size = 1,
+                    batch_size = 32,
                     update_horizon = 1,
                     min_replay_history = 1,
                     update_freq = 1,
@@ -80,7 +80,7 @@
         generator=generator,
         nb_episodes=3,
         strategy=CPRL.DFSearch,
-        variableHeuristic=CPRL.MinDomainVariableSelection{false}()
+        variableHeuristic=CPRL.MinDomainVariableSelection{true}()
     )
 
     final_params = params(learnedHeuristic.agent.policy.learner.approximator.model)

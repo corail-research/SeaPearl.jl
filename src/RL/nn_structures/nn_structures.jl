@@ -2,6 +2,17 @@ using Flux
 
 abstract type NNStructure end
 
+"""
+    (nn::NNStructure)(x::AbstractArray{Float32,3})
+
+Make NNStructure able to work with batches.
+"""
+function (nn::NNStructure)(x::AbstractArray{Float32,3})
+    batch_size = size(x)[end]
+    qval = [nn(x[:, :, i]) for i in 1:batch_size]
+    hcat(qval...)
+end
+
 include("flexGNN.jl")
 
 abstract type NNArgs end
@@ -21,6 +32,5 @@ wears_mask(structure::NNStructure) = true
 wears_mask(structure) = true # For simpler structures like Flux.Chain
 
 include("fixed_output_gcn.jl")
-include("fixed_output_gcn_lstm.jl")
 include("fixed_output_gat.jl")
 include("variable_output_gcn_lstm.jl")
