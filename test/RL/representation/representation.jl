@@ -1,9 +1,9 @@
-struct UnimplementedFeaturization <: CPRL.AbstractFeaturization end
-struct TestFeatState{F} <: CPRL.FeaturizedStateRepresentation{F} end
+struct UnimplementedFeaturization <: SeaPearl.AbstractFeaturization end
+struct TestFeatState{F} <: SeaPearl.FeaturizedStateRepresentation{F} end
 
-struct TestFeaturization <: CPRL.AbstractFeaturization end
+struct TestFeaturization <: SeaPearl.AbstractFeaturization end
 
-function CPRL.featurize(::TestFeatState{TestFeaturization})
+function SeaPearl.featurize(::TestFeatState{TestFeaturization})
     return [1, 2, 3]
 end
 
@@ -13,11 +13,11 @@ end
     include("default/defaultstaterepresentation.jl")
 
     @testset "Unimplemented featurization" begin
-        @test_throws ErrorException CPRL.featurize(TestFeatState{UnimplementedFeaturization}())
+        @test_throws ErrorException SeaPearl.featurize(TestFeatState{UnimplementedFeaturization}())
     end
 
     @testset "Custom featurization" begin
-        @test CPRL.featurize(TestFeatState{TestFeaturization}()) == [1, 2, 3]
+        @test SeaPearl.featurize(TestFeatState{TestFeaturization}()) == [1, 2, 3]
     end
 
 end

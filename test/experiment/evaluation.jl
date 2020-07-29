@@ -1,6 +1,6 @@
 @testset "evaluation.jl" begin
     @testset "SameInstancesEvaluator constructor" begin
-        eval = CPRL.SameInstancesEvaluator()
+        eval = SeaPearl.SameInstancesEvaluator()
 
         @test eval.nb_instances == 50
         @test eval.eval_freq == 50
@@ -8,11 +8,11 @@
     end
 
     @testset "init_evaluator!(::SameInstancesEvaluator)" begin
-        eval = CPRL.SameInstancesEvaluator(; nb_instances = 2)
-        generator = CPRL.HomogenousGraphColoringGenerator(10, 0.1)
+        eval = SeaPearl.SameInstancesEvaluator(; nb_instances = 2)
+        generator = SeaPearl.HomogenousGraphColoringGenerator(10, 0.1)
 
 
-        CPRL.init_evaluator!(eval, generator)
+        SeaPearl.init_evaluator!(eval, generator)
 
         @test length(eval.instances) == 2
         @test length(values(eval.instances[1].variables)) == 11
@@ -21,15 +21,15 @@
 
     @testset "evaluate(::SameInstancesEvaluator)" begin
         
-        eval = CPRL.SameInstancesEvaluator(; nb_instances = 2)
-        generator = CPRL.HomogenousGraphColoringGenerator(10, 0.1)
-        CPRL.init_evaluator!(eval, generator; rng=MersenneTwister(8))
+        eval = SeaPearl.SameInstancesEvaluator(; nb_instances = 2)
+        generator = SeaPearl.HomogenousGraphColoringGenerator(10, 0.1)
+        SeaPearl.init_evaluator!(eval, generator; rng=MersenneTwister(8))
 
-        variableheuristic = CPRL.MinDomainVariableSelection{false}()
-        my_heuristic(x::CPRL.IntVar) = minimum(x.domain)
-        valueheuristic = CPRL.BasicHeuristic(my_heuristic)
+        variableheuristic = SeaPearl.MinDomainVariableSelection{false}()
+        my_heuristic(x::SeaPearl.IntVar) = minimum(x.domain)
+        valueheuristic = SeaPearl.BasicHeuristic(my_heuristic)
 
-        nodes, dtime = CPRL.evaluate(eval, variableheuristic, valueheuristic, CPRL.DFSearch)
+        nodes, dtime = SeaPearl.evaluate(eval, variableheuristic, valueheuristic, SeaPearl.DFSearch)
         @test nodes == 23.
     end
 end

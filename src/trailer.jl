@@ -106,11 +106,11 @@ Call the `func` function with a new state, restoring it after. Aimed to be used 
 
 # Examples
 ```julia
-using CPRL
-trailer = CPRL.Trailer()
-reversibleInt = CPRL.StateObject{Int}(3, trailer)
-CPRL.withNewState!(trailer) do
-    CPRL.setValue!(reversibleInt, 5)
+using SeaPearl
+trailer = SeaPearl.Trailer()
+reversibleInt = SeaPearl.StateObject{Int}(3, trailer)
+SeaPearl.withNewState!(trailer) do
+    SeaPearl.setValue!(reversibleInt, 5)
 end
 reversibleInt.value # 3
 ```

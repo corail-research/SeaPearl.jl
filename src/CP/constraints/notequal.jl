@@ -1,7 +1,7 @@
 abstract type NotEqualConstraint <: Constraint end
 
 """
-    NotEqualConstant(x::CPRL.IntVar, v::Int)
+    NotEqualConstant(x::SeaPearl.IntVar, v::Int)
 
 Inequality constraint, `x != v`
 """
@@ -34,16 +34,16 @@ function propagate!(constraint::NotEqualConstant, toPropagate::Set{Constraint}, 
 end
 
 """
-    NotEqual(x::CPRL.IntVar, y::CPRL.IntVar)
+    NotEqual(x::SeaPearl.IntVar, y::SeaPearl.IntVar)
 
 Inequality constraint between two variables, stating that `x != y`.
 """
 struct NotEqual <: NotEqualConstraint
-    x       ::CPRL.AbstractIntVar
-    y       ::CPRL.AbstractIntVar
+    x       ::SeaPearl.AbstractIntVar
+    y       ::SeaPearl.AbstractIntVar
     active  ::StateObject{Bool}
 
-    function NotEqual(x::CPRL.AbstractIntVar, y::CPRL.AbstractIntVar, trailer::Trailer)
+    function NotEqual(x::SeaPearl.AbstractIntVar, y::SeaPearl.AbstractIntVar, trailer::Trailer)
         constraint = new(x, y, StateObject(true, trailer))
         addOnDomainChange!(x, constraint)
         addOnDomainChange!(y, constraint)

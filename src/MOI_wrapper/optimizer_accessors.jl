@@ -1,8 +1,8 @@
-MOI.get(::Optimizer, ::MOI.SolverName) = "CPRL Solver"
+MOI.get(::Optimizer, ::MOI.SolverName) = "SeaPearl Solver"
 MOI.get(model::Optimizer, ::MOI.TerminationStatus) = model.terminationStatus
 MOI.get(model::Optimizer, ::MOI.PrimalStatus) = model.primalStatus
 
-function MOI.get(optimizer::CPRL.Optimizer, ::MathOptInterface.VariablePrimal, vi::MathOptInterface.VariableIndex)
+function MOI.get(optimizer::SeaPearl.Optimizer, ::MathOptInterface.VariablePrimal, vi::MathOptInterface.VariableIndex)
     id = vi.value
     last(optimizer.cpmodel.solutions)[string(id)]
 end
@@ -35,8 +35,8 @@ function MOI.empty!(model::Optimizer)
 end
 
 MOI.supports(::Optimizer, ::MOI.RawParameter) = true
-MOI.supports(::Optimizer, ::CPRL.MOIVariableSelectionAttribute) = true
-MOI.supports(::Optimizer, ::CPRL.MOIValueSelectionAttribute) = true
+MOI.supports(::Optimizer, ::SeaPearl.MOIVariableSelectionAttribute) = true
+MOI.supports(::Optimizer, ::SeaPearl.MOIValueSelectionAttribute) = true
 MOI.supports(::Optimizer, ::MOI.VariablePrimal) = true
 
 MOI.Utilities.map_indices(::Function, x::AbstractVariableSelection) = x
@@ -46,7 +46,7 @@ function MOI.set(model::Optimizer, p::MOI.RawParameter, value)
     model.options[p.name] = value
 end
 
-function MOI.set(model::Optimizer, ::CPRL.MOIVariableSelectionAttribute, heuristic::AbstractVariableSelection)
+function MOI.set(model::Optimizer, ::SeaPearl.MOIVariableSelectionAttribute, heuristic::AbstractVariableSelection)
     model.variableselection = heuristic
 end
 

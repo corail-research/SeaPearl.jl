@@ -1,31 +1,31 @@
-using CPRL
+using SeaPearl
 
 @testset "fixPoint.jl" begin
     @testset "fixPoint!()" begin
-        trailer = CPRL.Trailer()
-        x = CPRL.IntVar(2, 6, "x", trailer)
-        y = CPRL.IntVar(5, 8, "y", trailer)
-        z = CPRL.IntVar(6, 15, "z", trailer)
-        t = CPRL.IntVar(6, 10, "t", trailer)
-        u = CPRL.IntVar(10, 25, "u", trailer)
+        trailer = SeaPearl.Trailer()
+        x = SeaPearl.IntVar(2, 6, "x", trailer)
+        y = SeaPearl.IntVar(5, 8, "y", trailer)
+        z = SeaPearl.IntVar(6, 15, "z", trailer)
+        t = SeaPearl.IntVar(6, 10, "t", trailer)
+        u = SeaPearl.IntVar(10, 25, "u", trailer)
 
-        constraint = CPRL.Equal(x, y, trailer)
+        constraint = SeaPearl.Equal(x, y, trailer)
         
-        constraint3 = CPRL.Equal(z, t, trailer)
+        constraint3 = SeaPearl.Equal(z, t, trailer)
 
-        model = CPRL.CPModel(trailer)
+        model = SeaPearl.CPModel(trailer)
 
-        CPRL.addVariable!(model, x)
-        CPRL.addVariable!(model, y)
-        CPRL.addVariable!(model, z)
-        CPRL.addVariable!(model, t)
-        CPRL.addVariable!(model, u)
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y)
+        SeaPearl.addVariable!(model, z)
+        SeaPearl.addVariable!(model, t)
+        SeaPearl.addVariable!(model, u)
 
         push!(model.constraints, constraint)
         push!(model.constraints, constraint3)
-        feasability, prunedDomains = CPRL.fixPoint!(model)
+        feasability, prunedDomains = SeaPearl.fixPoint!(model)
         
-        rightPruning = CPRL.CPModification("x" => [2, 3, 4],"z" => [11, 12, 13, 14, 15],"y" => [7, 8])
+        rightPruning = SeaPearl.CPModification("x" => [2, 3, 4],"z" => [11, 12, 13, 14, 15],"y" => [7, 8])
 
         @test prunedDomains == rightPruning
         @test feasability
@@ -35,21 +35,21 @@ using CPRL
         @test length(z.domain) == 5
         @test length(t.domain) == 5
 
-        constraint2 = CPRL.Equal(y, z, trailer)
+        constraint2 = SeaPearl.Equal(y, z, trailer)
         push!(model.constraints, constraint2)
 
-        CPRL.fixPoint!(model, Array{CPRL.Constraint}([constraint2]))
+        SeaPearl.fixPoint!(model, Array{SeaPearl.Constraint}([constraint2]))
 
 
-        @test CPRL.isbound(x)
-        @test CPRL.isbound(y)
-        @test CPRL.isbound(z)
-        @test CPRL.isbound(t)
+        @test SeaPearl.isbound(x)
+        @test SeaPearl.isbound(y)
+        @test SeaPearl.isbound(z)
+        @test SeaPearl.isbound(t)
 
-        constraint4 = CPRL.Equal(u, z, trailer)
+        constraint4 = SeaPearl.Equal(u, z, trailer)
         push!(model.constraints, constraint4)
 
-        feasability2, pruned = CPRL.fixPoint!(model, Array{CPRL.Constraint}([constraint4]))
+        feasability2, pruned = SeaPearl.fixPoint!(model, Array{SeaPearl.Constraint}([constraint4]))
         @test !feasability2
     end
 end

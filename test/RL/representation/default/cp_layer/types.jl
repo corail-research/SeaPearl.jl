@@ -1,29 +1,29 @@
-using CPRL
+using SeaPearl
 
 @testset "CPLayerGraph()" begin
-    trailer = CPRL.Trailer()
-    model = CPRL.CPModel(trailer)
+    trailer = SeaPearl.Trailer()
+    model = SeaPearl.CPModel(trailer)
 
-    x = CPRL.IntVar(2, 3, "x", trailer)
-    y = CPRL.IntVar(2, 3, "y", trailer)
-    z = CPRL.IntVarViewOpposite(y, "-y")
-    CPRL.addVariable!(model, x)
-    CPRL.addVariable!(model, y)
-    push!(model.constraints, CPRL.Equal(x, y, trailer))
-    push!(model.constraints, CPRL.NotEqual(x, y, trailer))
-    push!(model.constraints, CPRL.NotEqual(z, y, trailer))
+    x = SeaPearl.IntVar(2, 3, "x", trailer)
+    y = SeaPearl.IntVar(2, 3, "y", trailer)
+    z = SeaPearl.IntVarViewOpposite(y, "-y")
+    SeaPearl.addVariable!(model, x)
+    SeaPearl.addVariable!(model, y)
+    push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+    push!(model.constraints, SeaPearl.NotEqual(x, y, trailer))
+    push!(model.constraints, SeaPearl.NotEqual(z, y, trailer))
 
-    g = CPRL.CPLayerGraph(model)
+    g = SeaPearl.CPLayerGraph(model)
 
     true_idToNode = [
-        CPRL.ConstraintVertex(model.constraints[1]), 
-        CPRL.ConstraintVertex(model.constraints[2]),
-        CPRL.ConstraintVertex(model.constraints[3]),
-        CPRL.VariableVertex(z),
-        CPRL.VariableVertex(x),
-        CPRL.VariableVertex(y),
-        CPRL.ValueVertex(2),
-        CPRL.ValueVertex(3)
+        SeaPearl.ConstraintVertex(model.constraints[1]), 
+        SeaPearl.ConstraintVertex(model.constraints[2]),
+        SeaPearl.ConstraintVertex(model.constraints[3]),
+        SeaPearl.VariableVertex(z),
+        SeaPearl.VariableVertex(x),
+        SeaPearl.VariableVertex(y),
+        SeaPearl.ValueVertex(2),
+        SeaPearl.ValueVertex(3)
     ]
 
     @test g.cpmodel == model
@@ -48,6 +48,6 @@ using CPRL
     @test g.numberOfValues == 2
     @test g.totalLength == 8
 
-    empty_g = CPRL.CPLayerGraph()
+    empty_g = SeaPearl.CPLayerGraph()
     @test isnothing(empty_g.cpmodel)
 end

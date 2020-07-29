@@ -1,10 +1,10 @@
-using CPRL
+using SeaPearl
 using Test
 
 using ReinforcementLearning
 const RL = ReinforcementLearning
 
-@testset "CPRL.jl" begin
+@testset "SeaPearl.jl" begin
     include("CP/CP.jl")
     # RL tests are launched in CP/valueselection
     include("MOI_wrapper/MOI_wrapper.jl")

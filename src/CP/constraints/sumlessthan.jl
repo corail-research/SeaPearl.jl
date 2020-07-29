@@ -1,5 +1,5 @@
 """
-    SumLessThan(x::CPRL.AbstractIntVar, v::Int)
+    SumLessThan(x::SeaPearl.AbstractIntVar, v::Int)
 
 Summing constraint, states that `x[1] + x[2] + ... + x[length(x)] <= v`
 """

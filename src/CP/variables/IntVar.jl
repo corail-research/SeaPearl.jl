@@ -6,7 +6,7 @@ The constraints that affect this variable are stored in the `onDomainChange` arr
 """
 struct IntVar <: AbstractIntVar
     onDomainChange      ::Array{Constraint}
-    domain              ::CPRL.IntDomain
+    domain              ::SeaPearl.IntDomain
     id                  ::String
 end
 

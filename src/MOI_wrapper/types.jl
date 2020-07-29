@@ -9,7 +9,7 @@ mutable struct MOIVariable
     vi::MOI.VariableIndex
 end
 
-struct MOIConstraint{T <: Union{MOI.AbstractSet, CPRL.Constraint}}
+struct MOIConstraint{T <: Union{MOI.AbstractSet, SeaPearl.Constraint}}
     type::Type{T}
     args::Tuple
     ci::MOI.ConstraintIndex
@@ -42,7 +42,7 @@ mutable struct Optimizer <: MOI.AbstractOptimizer
     primalStatus::MOI.ResultStatusCode
 
     function Optimizer()
-        cpmodel = CPRL.CPModel(CPRL.Trailer())
+        cpmodel = SeaPearl.CPModel(SeaPearl.Trailer())
         new(cpmodel, MOIModel(), MinDomainVariableSelection(), BasicHeuristic(), Dict{String, Any}(), MOI.OPTIMIZE_NOT_CALLED)
     end
 end

@@ -1,11 +1,11 @@
 using Documenter
-using CPRL
+using SeaPearl
 
 makedocs(
-    sitename = "CPRL",
+    sitename = "SeaPearl",
     doctest = VERSION >= v"1.4",
     format = Documenter.HTML(),
-    modules = [CPRL],
+    modules = [SeaPearl],
     pages = ["Home" => "index.md",
     "Trailer" => "trailer.md",
     "Constraint Programming solver" =>

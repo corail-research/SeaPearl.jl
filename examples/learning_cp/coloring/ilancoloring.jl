@@ -1,4 +1,4 @@
-using CPRL
+using SeaPearl
 using ReinforcementLearning
 const RL = ReinforcementLearning
 using Flux
@@ -9,8 +9,8 @@ gr()
 
 
 problem_generator = Dict(
-    :coloring => CPRL.fill_with_coloring!,
-    :filecoloring => CPRL.fill_with_coloring_file!
+    :coloring => SeaPearl.fill_with_coloring!,
+    :filecoloring => SeaPearl.fill_with_coloring_file!
 )
 
 coloring_file_params = Dict(
@@ -22,7 +22,7 @@ coloring_params = Dict(
     "density" => 2.5
 )
 
-fixedGCNargs = CPRL.ArgsFixedOutputGCN( 
+fixedGCNargs = SeaPearl.ArgsFixedOutputGCN( 
     maxDomainSize= 15, 
     numInFeatures = 83, 
     firstHiddenGCN = 20, 
@@ -31,7 +31,7 @@ fixedGCNargs = CPRL.ArgsFixedOutputGCN(
 ) 
 numberOfCPNodes = 83 
 
-function CPRL.featurize(g::CPRL.CPLayerGraph)
+function SeaPearl.featurize(g::SeaPearl.CPLayerGraph)
     features = zeros(Float32, nv(g), nv(g))
     for i in 1:size(features)[1]
         features[i, i] = 1.0f0
@@ -39,14 +39,14 @@ function CPRL.featurize(g::CPRL.CPLayerGraph)
     features
 end
 
-struct IlanReward <: CPRL.AbstractReward end 
+struct IlanReward <: SeaPearl.AbstractReward end 
  
-function CPRL.set_before_next_decision_reward!(env::CPRL.RLEnv{IlanReward}, model::CPRL.CPModel) 
+function SeaPearl.set_before_next_decision_reward!(env::SeaPearl.RLEnv{IlanReward}, model::SeaPearl.CPModel) 
     env.reward -= 0 
     nothing 
 end 
  
-function CPRL.set_final_reward!(env::CPRL.RLEnv{IlanReward}, model::CPRL.CPModel) 
+function SeaPearl.set_final_reward!(env::SeaPearl.RLEnv{IlanReward}, model::SeaPearl.CPModel) 
     env.reward += 30/model.statistics.numberOfNodes + 50 
     nothing 
 end 
@@ -55,13 +55,13 @@ state_size = (numberOfCPNodes,fixedGCNargs.numInFeatures + numberOfCPNodes + 2, 
 
 agent = RL.Agent(
         policy = RL.QBasedPolicy(
-            learner = CPRL.CPDQNLearner(
+            learner = SeaPearl.CPDQNLearner(
                 approximator = RL.NeuralNetworkApproximator(
-                    model = CPRL.build_model(CPRL.FixedOutputGCN, fixedGCNargs),
+                    model = SeaPearl.build_model(SeaPearl.FixedOutputGCN, fixedGCNargs),
                     optimizer = ADAM(0.0005f0)
                 ),
                 target_approximator = RL.NeuralNetworkApproximator(
-                    model = CPRL.build_model(CPRL.FixedOutputGCN, fixedGCNargs),
+                    model = SeaPearl.build_model(SeaPearl.FixedOutputGCN, fixedGCNargs),
                     optimizer = ADAM(0.0005f0)
                 ),
                 loss_func = huber_loss,
@@ -74,8 +74,8 @@ agent = RL.Agent(
                 target_update_freq = 100,
                 seed = 22,
             ), 
-            # explorer = CPRL.DirectedExplorer(;
-                explorer = CPRL.CPEpsilonGreedyExplorer(
+            # explorer = SeaPearl.DirectedExplorer(;
+                explorer = SeaPearl.CPEpsilonGreedyExplorer(
                     ϵ_stable = 0.001,
                     kind = :exp,
                     ϵ_init = 1.0,
@@ -103,11 +103,11 @@ agent = RL.Agent(
         role = :DEFAULT_PLAYER
     )
 
-learnedHeuristic = CPRL.LearnedHeuristic{IlanReward}(agent)
+learnedHeuristic = SeaPearl.LearnedHeuristic{IlanReward}(agent)
 
-basicHeuristic = CPRL.BasicHeuristic((x) -> CPRL.minimum(x.domain))
+basicHeuristic = SeaPearl.BasicHeuristic((x) -> SeaPearl.minimum(x.domain))
 
-function selectNonObjVariable(model::CPRL.CPModel)
+function selectNonObjVariable(model::SeaPearl.CPModel)
     selectedVar = nothing
     minSize = typemax(Int)
     for (k, x) in model.variables
@@ -163,12 +163,12 @@ end
 
 function trytrain(nepisodes::Int)
     
-    bestsolutions, nodevisited = CPRL.train!(
+    bestsolutions, nodevisited = SeaPearl.train!(
         valueSelectionArray=[learnedHeuristic, basicHeuristic], 
         problem_type=:coloring,
         problem_params=coloring_params,
         nb_episodes=nepisodes,
-        strategy=CPRL.DFSearch,
+        strategy=SeaPearl.DFSearch,
         variableHeuristic=selectNonObjVariable,
         metricsFun=metricsFun,
         verbose=false

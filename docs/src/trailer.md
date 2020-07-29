@@ -9,18 +9,18 @@ can be saved and restored on demand using the functions described below.
 Those functions are used to change the current state, save and or restore it.
 
 Note that during your "state exploration", you can only restore higher. It is not possible to restore some deeper state, or state that could be in the same level.
-For example, if you have a state A at some point, you call [`CPRL.saveState!`](@ref) to store it.
-You edit some [`CPRL.StateObject`](@ref), making you at some state B. Then you call [`CPRL.restoreState!`](@ref)
-that will restore every [`CPRL.StateObject`](@ref) to the state A. At that point, there is no way to go back to the state B
+For example, if you have a state A at some point, you call [`SeaPearl.saveState!`](@ref) to store it.
+You edit some [`SeaPearl.StateObject`](@ref), making you at some state B. Then you call [`SeaPearl.restoreState!`](@ref)
+that will restore every [`SeaPearl.StateObject`](@ref) to the state A. At that point, there is no way to go back to the state B
 using the trailer.
 
 ```@docs
-CPRL.StateObject
-CPRL.StateEntry
-CPRL.trail!
-CPRL.setValue!
-CPRL.saveState!
-CPRL.restoreState!
-CPRL.withNewState!
-CPRL.restoreInitialState!
+SeaPearl.StateObject
+SeaPearl.StateEntry
+SeaPearl.trail!
+SeaPearl.setValue!
+SeaPearl.saveState!
+SeaPearl.restoreState!
+SeaPearl.withNewState!
+SeaPearl.restoreInitialState!
 ```

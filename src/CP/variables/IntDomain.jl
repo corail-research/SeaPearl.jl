@@ -18,10 +18,10 @@ struct IntDomain <: AbstractIntDomain
     indexes         ::Array{Int}
     offset          ::Int
     initSize        ::Int
-    size            ::CPRL.StateObject{Int}
-    min             ::CPRL.StateObject{Int}
-    max             ::CPRL.StateObject{Int}
-    trailer         ::CPRL.Trailer
+    size            ::SeaPearl.StateObject{Int}
+    min             ::SeaPearl.StateObject{Int}
+    max             ::SeaPearl.StateObject{Int}
+    trailer         ::SeaPearl.Trailer
 end
 
 """
@@ -32,9 +32,9 @@ Will be backtracked by the given `trailer`.
 """
 function IntDomain(trailer::Trailer, n::Int, offset::Int)
 
-    size = CPRL.StateObject{Int}(n, trailer)
-    min = CPRL.StateObject{Int}(offset + 1, trailer)
-    max = CPRL.StateObject{Int}(offset + n, trailer)
+    size = SeaPearl.StateObject{Int}(n, trailer)
+    min = SeaPearl.StateObject{Int}(offset + 1, trailer)
+    max = SeaPearl.StateObject{Int}(offset + n, trailer)
     values = zeros(n)
     indexes = zeros(n)
     for i in 1:n
@@ -72,14 +72,14 @@ end
 
 Return `true` iff `dom` is an empty set. Done in constant time.
 """
-Base.isempty(dom::CPRL.IntDomain) = dom.size.value == 0
+Base.isempty(dom::SeaPearl.IntDomain) = dom.size.value == 0
 
 """
     length(dom::IntDomain)
 
 Return the size of `dom`. Done in constant time.
 """
-Base.length(dom::CPRL.IntDomain) = dom.size.value
+Base.length(dom::SeaPearl.IntDomain) = dom.size.value
 
 """
     Base.in(value::Int, dom::IntDomain)

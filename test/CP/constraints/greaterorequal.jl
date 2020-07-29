@@ -1,36 +1,36 @@
-using CPRL
+using SeaPearl
 
 @testset "greaterorqual.jl" begin
     @testset "GreaterOrEqualConstant()" begin
-        trailer = CPRL.Trailer()
-        x = CPRL.IntVar(2, 6, "x", trailer)
+        trailer = SeaPearl.Trailer()
+        x = SeaPearl.IntVar(2, 6, "x", trailer)
 
-        constraint = CPRL.GreaterOrEqualConstant(x, 3, trailer)
+        constraint = SeaPearl.GreaterOrEqualConstant(x, 3, trailer)
 
         @test constraint in x.onDomainChange
         @test constraint.active.value
     end
     @testset "propagate!(::GreaterOrEqualConstant)" begin
-        trailer = CPRL.Trailer()
-        x = CPRL.IntVar(2, 6, "x", trailer)
+        trailer = SeaPearl.Trailer()
+        x = SeaPearl.IntVar(2, 6, "x", trailer)
 
-        constraint = CPRL.GreaterOrEqualConstant(x, 5, trailer)
+        constraint = SeaPearl.GreaterOrEqualConstant(x, 5, trailer)
 
-        toPropagate = Set{CPRL.Constraint}()
-        prunedDomains = CPRL.CPModification()
+        toPropagate = Set{SeaPearl.Constraint}()
+        prunedDomains = SeaPearl.CPModification()
 
-        @test CPRL.propagate!(constraint, toPropagate, prunedDomains)
+        @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
 
         @test length(x.domain) == 2
         @test 5 in x.domain
         @test !(4 in x.domain)
-        @test prunedDomains == CPRL.CPModification("x" => [2, 3, 4])
+        @test prunedDomains == SeaPearl.CPModification("x" => [2, 3, 4])
 
-        y = CPRL.IntVar(2, 2, "y", trailer)
+        y = SeaPearl.IntVar(2, 2, "y", trailer)
 
-        cons2 = CPRL.GreaterOrEqualConstant(y, 3, trailer)
+        cons2 = SeaPearl.GreaterOrEqualConstant(y, 3, trailer)
 
-        @test !CPRL.propagate!(cons2, toPropagate, prunedDomains)
+        @test !SeaPearl.propagate!(cons2, toPropagate, prunedDomains)
 
         @test isempty(y.domain)
 

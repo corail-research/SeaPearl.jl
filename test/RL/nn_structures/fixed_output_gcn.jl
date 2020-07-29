@@ -2,7 +2,7 @@
 
     @testset "ArgsFixedOutputGCN constructor" begin
 
-        args_foGCN = CPRL.ArgsFixedOutputGCN(
+        args_foGCN = SeaPearl.ArgsFixedOutputGCN(
             maxDomainSize = 10,
             numInFeatures = 5,
             firstHiddenGCN = 20,
@@ -20,7 +20,7 @@
 
     @testset "FixedOutputGCN constructor" begin
 
-        args_foGCN = CPRL.ArgsFixedOutputGCN(
+        args_foGCN = SeaPearl.ArgsFixedOutputGCN(
             maxDomainSize = 10,
             numInFeatures = 5,
             firstHiddenGCN = 20,
@@ -28,7 +28,7 @@
             hiddenDense = 20
         )
 
-        foGCN = CPRL.FixedOutputGCN(
+        foGCN = SeaPearl.FixedOutputGCN(
             firstGCNHiddenLayer = GeometricFlux.GCNConv(10 => 10, Flux.relu),
             secondGCNHiddenLayer = GeometricFlux.GCNConv(10 => 10, Flux.relu),
             denseLayer = Flux.Dense(10, 10, Flux.relu),
@@ -44,7 +44,7 @@
 
     @testset "build_model()" begin
 
-        args_foGCN = CPRL.ArgsFixedOutputGCN(
+        args_foGCN = SeaPearl.ArgsFixedOutputGCN(
             maxDomainSize = 10,
             numInFeatures = 5,
             firstHiddenGCN = 20,
@@ -52,7 +52,7 @@
             hiddenDense = 20
         )
 
-        foGCN = CPRL.build_model(CPRL.FixedOutputGCN, args_foGCN)
+        foGCN = SeaPearl.build_model(SeaPearl.FixedOutputGCN, args_foGCN)
 
         @test typeof(foGCN.firstGCNHiddenLayer) == GeometricFlux.GCNConv{Float32,typeof(relu), GeometricFlux.FeaturedGraph{Nothing,Nothing}}
         @test typeof(foGCN.secondGCNHiddenLayer) == GeometricFlux.GCNConv{Float32,typeof(relu), GeometricFlux.FeaturedGraph{Nothing,Nothing}}
@@ -63,7 +63,7 @@
 
     @testset "FixedOutputGCN as function" begin
 
-        args_foGCN = CPRL.ArgsFixedOutputGCN(
+        args_foGCN = SeaPearl.ArgsFixedOutputGCN(
             maxDomainSize = 2,
             numInFeatures = 3,
             firstHiddenGCN = 20,
@@ -71,23 +71,23 @@
             hiddenDense = 6
         )
 
-        foGCN = CPRL.build_model(CPRL.FixedOutputGCN, args_foGCN)
+        foGCN = SeaPearl.build_model(SeaPearl.FixedOutputGCN, args_foGCN)
 
         # constructing a CPGraph
-        trailer = CPRL.Trailer()
-        model = CPRL.CPModel(trailer)
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
 
-        x = CPRL.IntVar(2, 3, "x", trailer)
-        y = CPRL.IntVar(2, 3, "y", trailer)
-        CPRL.addVariable!(model, x)
-        CPRL.addVariable!(model, y)
-        push!(model.constraints, CPRL.Equal(x, y, trailer))
-        push!(model.constraints, CPRL.NotEqual(x, y, trailer))
+        x = SeaPearl.IntVar(2, 3, "x", trailer)
+        y = SeaPearl.IntVar(2, 3, "y", trailer)
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y)
+        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+        push!(model.constraints, SeaPearl.NotEqual(x, y, trailer))
 
-        dsr = CPRL.DefaultStateRepresentation(model)
-        CPRL.update_representation!(dsr, model, x)
+        dsr = SeaPearl.DefaultStateRepresentation(model)
+        SeaPearl.update_representation!(dsr, model, x)
 
-        X = CPRL.to_arraybuffer(dsr)
+        X = SeaPearl.to_arraybuffer(dsr)
 
         q_values = foGCN(X)
         println("Q values vector :  ", q_values)

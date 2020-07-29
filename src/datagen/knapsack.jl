@@ -40,48 +40,48 @@ function fill_with_generator!(cpmodel::CPModel, gen::KnapsackGenerator)
     
     
     ### Variables
-    x = CPRL.IntVar[]
+    x = SeaPearl.IntVar[]
     for i in 1:nb_items
-        push!(x, CPRL.IntVar(0, 1, "x[" * string(i) * "]", cpmodel.trailer))
+        push!(x, SeaPearl.IntVar(0, 1, "x[" * string(i) * "]", cpmodel.trailer))
         addVariable!(cpmodel, last(x))
     end
 
     ### Constraints
 
     # Creating the totalWeight variable
-    varsWeight = CPRL.AbstractIntVar[]
+    varsWeight = SeaPearl.AbstractIntVar[]
     maxWeight = 0
     for i in 1:nb_items
-        wx_i = CPRL.IntVarViewMul(x[i], weights[i], "w["*string(i)*"]*x["*string(i)*"]")
+        wx_i = SeaPearl.IntVarViewMul(x[i], weights[i], "w["*string(i)*"]*x["*string(i)*"]")
         push!(varsWeight, wx_i)
         maxWeight += weights[i]
     end
-    totalWeight = CPRL.IntVar(0, maxWeight, "totalWeight", cpmodel.trailer)
-    minusTotalWeight = CPRL.IntVarViewOpposite(totalWeight, "-totalWeight")
-    CPRL.addVariable!(cpmodel, totalWeight)
-    CPRL.addVariable!(cpmodel, minusTotalWeight)
+    totalWeight = SeaPearl.IntVar(0, maxWeight, "totalWeight", cpmodel.trailer)
+    minusTotalWeight = SeaPearl.IntVarViewOpposite(totalWeight, "-totalWeight")
+    SeaPearl.addVariable!(cpmodel, totalWeight)
+    SeaPearl.addVariable!(cpmodel, minusTotalWeight)
     push!(varsWeight, minusTotalWeight)
-    weightEquality = CPRL.SumToZero(varsWeight, cpmodel.trailer)
+    weightEquality = SeaPearl.SumToZero(varsWeight, cpmodel.trailer)
     push!(cpmodel.constraints, weightEquality)
 
     # Making sure it is below the capacity
-    weightConstraint = CPRL.LessOrEqualConstant(totalWeight, capacity, cpmodel.trailer)
+    weightConstraint = SeaPearl.LessOrEqualConstant(totalWeight, capacity, cpmodel.trailer)
     push!(cpmodel.constraints, weightConstraint)
 
     ### Objective ### minimize: -sum(v[i]*x_a[i])
 
     # Creating the sum
-    varsValue = CPRL.AbstractIntVar[]
+    varsValue = SeaPearl.AbstractIntVar[]
     maxValue = 0
     for i in 1:nb_items
-        vx_i = CPRL.IntVarViewMul(x[i], values[i], "v["*string(i)*"]*x["*string(i)*"]")
+        vx_i = SeaPearl.IntVarViewMul(x[i], values[i], "v["*string(i)*"]*x["*string(i)*"]")
         push!(varsValue, vx_i)
         maxValue += values[i]
     end
-    totalValue = CPRL.IntVar(-maxValue, 0, "totalValue", cpmodel.trailer)
-    CPRL.addVariable!(cpmodel, totalValue)
+    totalValue = SeaPearl.IntVar(-maxValue, 0, "totalValue", cpmodel.trailer)
+    SeaPearl.addVariable!(cpmodel, totalValue)
     push!(varsValue, totalValue)
-    valueEquality = CPRL.SumToZero(varsValue, cpmodel.trailer)
+    valueEquality = SeaPearl.SumToZero(varsValue, cpmodel.trailer)
     push!(cpmodel.constraints, valueEquality)
 
     # Setting it as the objective

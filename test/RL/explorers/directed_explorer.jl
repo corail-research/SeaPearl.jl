@@ -8,7 +8,7 @@ using Distributions: Categorical
             nothing
         end
 
-        trueExplorer = CPRL.CPEpsilonGreedyExplorer(
+        trueExplorer = SeaPearl.CPEpsilonGreedyExplorer(
             ϵ_stable = 0.001,
             kind = :exp,
             ϵ_init = 0.1,
@@ -19,7 +19,7 @@ using Distributions: Categorical
             is_training = false
         )
 
-        explorer = CPRL.DirectedExplorer(;
+        explorer = SeaPearl.DirectedExplorer(;
             explorer = trueExplorer,
             direction = dummyDirection,
             directed_steps=1234,
@@ -28,7 +28,7 @@ using Distributions: Categorical
             seed = 4321
         )
 
-        @test isa(explorer, CPRL.DirectedExplorer{MersenneTwister})
+        @test isa(explorer, SeaPearl.DirectedExplorer{MersenneTwister})
         @test explorer.explorer == trueExplorer
         @test explorer.direction == dummyDirection
         @test explorer.directed_steps == 1234
@@ -37,8 +37,8 @@ using Distributions: Categorical
         @test explorer.rng == MersenneTwister(4321)
 
         # Default values
-        explorer = CPRL.DirectedExplorer(trueExplorer, dummyDirection; seed = 12)
-        @test isa(explorer, CPRL.DirectedExplorer{MersenneTwister})
+        explorer = SeaPearl.DirectedExplorer(trueExplorer, dummyDirection; seed = 12)
+        @test isa(explorer, SeaPearl.DirectedExplorer{MersenneTwister})
         @test explorer.explorer == trueExplorer
         @test explorer.direction == dummyDirection
         @test explorer.directed_steps == 100
@@ -47,7 +47,7 @@ using Distributions: Categorical
         @test explorer.rng == MersenneTwister(12)
     end
     @testset "Flux.testmode!()" begin
-        trueExplorer = CPRL.CPEpsilonGreedyExplorer(
+        trueExplorer = SeaPearl.CPEpsilonGreedyExplorer(
             ϵ_stable = 0.001,
             kind = :exp,
             ϵ_init = 0.1,
@@ -58,7 +58,7 @@ using Distributions: Categorical
             is_training = false,
         )
 
-        explorer = CPRL.DirectedExplorer(;
+        explorer = SeaPearl.DirectedExplorer(;
             explorer = trueExplorer,
             direction = () -> nothing,
             directed_steps=1234,
@@ -82,7 +82,7 @@ using Distributions: Categorical
             4
         end
 
-        trueExplorer = CPRL.CPEpsilonGreedyExplorer(
+        trueExplorer = SeaPearl.CPEpsilonGreedyExplorer(
             ϵ_stable = 0.01,
             kind = :exp,
             ϵ_init = 0.1,
@@ -94,7 +94,7 @@ using Distributions: Categorical
             seed = 5
         )
 
-        explorer = CPRL.DirectedExplorer(;
+        explorer = SeaPearl.DirectedExplorer(;
             explorer = trueExplorer,
             direction = dummyDirection2,
             directed_steps=1234,
@@ -126,7 +126,7 @@ using Distributions: Categorical
             3
         end
 
-        trueExplorer = CPRL.CPEpsilonGreedyExplorer(
+        trueExplorer = SeaPearl.CPEpsilonGreedyExplorer(
             ϵ_stable = 0.01,
             kind = :exp,
             ϵ_init = 0.1,
@@ -138,7 +138,7 @@ using Distributions: Categorical
             seed = 5
         )
 
-        explorer = CPRL.DirectedExplorer(;
+        explorer = SeaPearl.DirectedExplorer(;
             explorer = trueExplorer,
             direction = dummyDirection3,
             directed_steps=1234,
@@ -171,7 +171,7 @@ using Distributions: Categorical
             3
         end
 
-        trueExplorer = CPRL.CPEpsilonGreedyExplorer(
+        trueExplorer = SeaPearl.CPEpsilonGreedyExplorer(
             ϵ_stable = 0.01,
             kind = :exp,
             ϵ_init = 0.5,
@@ -183,7 +183,7 @@ using Distributions: Categorical
             seed = 5
         )
 
-        explorer = CPRL.DirectedExplorer(;
+        explorer = SeaPearl.DirectedExplorer(;
             explorer = trueExplorer,
             direction = dummyDirection4,
             directed_steps=1234,
@@ -193,10 +193,10 @@ using Distributions: Categorical
         )
 
         values = Float32[0.1, 0.5, 0.4, 0., 0.]
-        @test CPRL.get_prob(explorer, values) == Categorical(Float64[0., 0., 1., 0., 0.])
+        @test SeaPearl.get_prob(explorer, values) == Categorical(Float64[0., 0., 1., 0., 0.])
         
         explorer.step = 1235
-        @test CPRL.get_prob(explorer, values) == Categorical(Float64[0., 1., 0., 0., 0.])
+        @test SeaPearl.get_prob(explorer, values) == Categorical(Float64[0., 1., 0., 0., 0.])
     end
 
     @testset "get_prob(exp, values, action)" begin
@@ -205,7 +205,7 @@ using Distributions: Categorical
             3
         end
 
-        trueExplorer = CPRL.CPEpsilonGreedyExplorer(
+        trueExplorer = SeaPearl.CPEpsilonGreedyExplorer(
             ϵ_stable = 0.01,
             kind = :exp,
             ϵ_init = 0.5,
@@ -217,7 +217,7 @@ using Distributions: Categorical
             seed = 5
         )
 
-        explorer = CPRL.DirectedExplorer(;
+        explorer = SeaPearl.DirectedExplorer(;
             explorer = trueExplorer,
             direction = dummyDirection5,
             directed_steps=1234,
@@ -227,10 +227,10 @@ using Distributions: Categorical
         )
 
         values = Float32[0.1, 0.5, 0.4, 0., 0.]
-        @test [CPRL.get_prob(explorer, values, i) for i in 1:5] == Float64[0., 0., 1., 0., 0.]
+        @test [SeaPearl.get_prob(explorer, values, i) for i in 1:5] == Float64[0., 0., 1., 0., 0.]
         
         explorer.step = 1235
-        @test [CPRL.get_prob(explorer, values, i) for i in 1:5] == Float64[0., 1., 0., 0., 0.]
+        @test [SeaPearl.get_prob(explorer, values, i) for i in 1:5] == Float64[0., 1., 0., 0., 0.]
     end
 
     @testset "get_prob(exp, values, mask)" begin
@@ -239,7 +239,7 @@ using Distributions: Categorical
             3
         end
 
-        trueExplorer = CPRL.CPEpsilonGreedyExplorer(
+        trueExplorer = SeaPearl.CPEpsilonGreedyExplorer(
             ϵ_stable = 0.01,
             kind = :exp,
             ϵ_init = 0.5,
@@ -251,7 +251,7 @@ using Distributions: Categorical
             seed = 5
         )
 
-        explorer = CPRL.DirectedExplorer(;
+        explorer = SeaPearl.DirectedExplorer(;
             explorer = trueExplorer,
             direction = dummyDirection6,
             directed_steps=1234,
@@ -262,9 +262,9 @@ using Distributions: Categorical
 
         values = Float32[0.1, 0.5, 0.4, 0., 0.]
         mask = Int[1, 4, 5]
-        @test CPRL.get_prob(explorer, values, mask) == Categorical(Float64[0., 0., 1., 0., 0.])
+        @test SeaPearl.get_prob(explorer, values, mask) == Categorical(Float64[0., 0., 1., 0., 0.])
         
         explorer.step = 1235
-        @test CPRL.get_prob(explorer, values, mask) == Categorical(Float64[1., 0., 0., 0., 0.])
+        @test SeaPearl.get_prob(explorer, values, mask) == Categorical(Float64[1., 0., 0., 0., 0.])
     end
 end

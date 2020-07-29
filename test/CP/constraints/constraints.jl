@@ -7,47 +7,47 @@
     include("sumtozero.jl")
 
     @testset "addOnDomainChange!()" begin
-        trailer = CPRL.Trailer()
-        x = CPRL.IntVar(2, 6, "x", trailer)
-        ax = CPRL.IntVarViewMul(x, 3, "ax")
+        trailer = SeaPearl.Trailer()
+        x = SeaPearl.IntVar(2, 6, "x", trailer)
+        ax = SeaPearl.IntVarViewMul(x, 3, "ax")
 
-        constraint = CPRL.EqualConstant(ax, 6, trailer)
+        constraint = SeaPearl.EqualConstant(ax, 6, trailer)
 
-        CPRL.addOnDomainChange!(ax, constraint)
+        SeaPearl.addOnDomainChange!(ax, constraint)
 
         @test constraint in x.onDomainChange
     end
 
     @testset "addToPropagate!()" begin
-        trailer = CPRL.Trailer()
-        x = CPRL.IntVar(2, 6, "x", trailer)
-        ax = CPRL.IntVarViewMul(x, 3, "ax")
+        trailer = SeaPearl.Trailer()
+        x = SeaPearl.IntVar(2, 6, "x", trailer)
+        ax = SeaPearl.IntVarViewMul(x, 3, "ax")
 
-        constraint = CPRL.EqualConstant(ax, 6, trailer)
+        constraint = SeaPearl.EqualConstant(ax, 6, trailer)
 
-        toPropagate = Set{CPRL.Constraint}()
-        constraints = Array{CPRL.Constraint}([constraint])
+        toPropagate = Set{SeaPearl.Constraint}()
+        constraints = Array{SeaPearl.Constraint}([constraint])
 
-        CPRL.addToPropagate!(toPropagate, constraints)
+        SeaPearl.addToPropagate!(toPropagate, constraints)
 
         @test constraint in toPropagate
 
-        toPropagate = Set{CPRL.Constraint}()
-        CPRL.setValue!(constraint.active, false)
+        toPropagate = Set{SeaPearl.Constraint}()
+        SeaPearl.setValue!(constraint.active, false)
         @test !(constraint in toPropagate)
     end
 
     @testset "triggerDomainChange!()" begin
-        trailer = CPRL.Trailer()
-        x = CPRL.IntVar(2, 6, "x", trailer)
-        ax = CPRL.IntVarViewMul(x, 3, "ax")
+        trailer = SeaPearl.Trailer()
+        x = SeaPearl.IntVar(2, 6, "x", trailer)
+        ax = SeaPearl.IntVarViewMul(x, 3, "ax")
 
-        constraint = CPRL.EqualConstant(ax, 6, trailer)
+        constraint = SeaPearl.EqualConstant(ax, 6, trailer)
 
-        toPropagate = Set{CPRL.Constraint}()
+        toPropagate = Set{SeaPearl.Constraint}()
 
 
-        CPRL.triggerDomainChange!(toPropagate, ax)
+        SeaPearl.triggerDomainChange!(toPropagate, ax)
 
         @test constraint in toPropagate
     end

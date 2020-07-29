@@ -1,33 +1,33 @@
 @testset "constraints.jl" begin
     @testset "MOI.add_constraint(::NotEqualSet)" begin
-        opt = CPRL.Optimizer()
+        opt = SeaPearl.Optimizer()
 
         x = MOI.add_variable(opt)
         y = MOI.add_variable(opt)
 
-        ci = MOI.add_constraint(opt, MOI.VectorOfVariables([x, y]), CPRL.NotEqualSet())
-        @test ci == MOI.ConstraintIndex{MOI.VectorOfVariables, CPRL.NotEqualSet}(1)
+        ci = MOI.add_constraint(opt, MOI.VectorOfVariables([x, y]), SeaPearl.NotEqualSet())
+        @test ci == MOI.ConstraintIndex{MOI.VectorOfVariables, SeaPearl.NotEqualSet}(1)
         @test length(opt.moimodel.constraints) == 1
-        @test opt.moimodel.constraints[1] == CPRL.MOIConstraint(CPRL.NotEqualSet, (x, y), ci)
+        @test opt.moimodel.constraints[1] == SeaPearl.MOIConstraint(SeaPearl.NotEqualSet, (x, y), ci)
     end
     @testset "create_CPConstraint(::NotEqualSet)" begin
-        opt = CPRL.Optimizer()
+        opt = SeaPearl.Optimizer()
 
-        push!(opt.moimodel.variables, CPRL.MOIVariable("", 1, 2, MOI.VariableIndex(1)))
-        push!(opt.moimodel.variables, CPRL.MOIVariable("", 1, 2, MOI.VariableIndex(2)))
+        push!(opt.moimodel.variables, SeaPearl.MOIVariable("", 1, 2, MOI.VariableIndex(1)))
+        push!(opt.moimodel.variables, SeaPearl.MOIVariable("", 1, 2, MOI.VariableIndex(2)))
         x = MOI.VariableIndex(1)
         y = MOI.VariableIndex(2)
 
-        ci = MOI.add_constraint(opt, MOI.VectorOfVariables([x, y]), CPRL.NotEqualSet())
+        ci = MOI.add_constraint(opt, MOI.VectorOfVariables([x, y]), SeaPearl.NotEqualSet())
 
-        CPRL.bridge_variables!(opt)
+        SeaPearl.bridge_variables!(opt)
 
-        cp_constraint = CPRL.create_CPConstraint(opt.moimodel.constraints[1], opt)
-        @test isa(cp_constraint, CPRL.NotEqual)
-        @test CPRL.variablesArray(cp_constraint) == [CPRL.get_cp_variable(opt, x), CPRL.get_cp_variable(opt, y)]
+        cp_constraint = SeaPearl.create_CPConstraint(opt.moimodel.constraints[1], opt)
+        @test isa(cp_constraint, SeaPearl.NotEqual)
+        @test SeaPearl.variablesArray(cp_constraint) == [SeaPearl.get_cp_variable(opt, x), SeaPearl.get_cp_variable(opt, y)]
     end
     @testset "MOI.add_constraint(::LessThan)" begin
-        opt = CPRL.Optimizer()
+        opt = SeaPearl.Optimizer()
 
         x = MOI.add_variable(opt)
 
@@ -37,7 +37,7 @@
         @test isnothing(opt.moimodel.variables[1].min)
     end
     @testset "MOI.add_constraint(::GreaterThan)" begin
-        opt = CPRL.Optimizer()
+        opt = SeaPearl.Optimizer()
 
         x = MOI.add_variable(opt)
 
@@ -47,7 +47,7 @@
         @test isnothing(opt.moimodel.variables[1].max)
     end
     @testset "MOI.add_constraint(::MOI.ScalarAffineFunction, ::MOI.EqualTo)" begin
-        opt = CPRL.Optimizer()
+        opt = SeaPearl.Optimizer()
 
         x = MOI.add_variable(opt)
         y = MOI.add_variable(opt)
@@ -56,13 +56,13 @@
         ci = MOI.add_constraint(opt, aff, MOI.EqualTo(5.))
         @test aff.constant == -2
         @test length(opt.moimodel.constraints) == 1
-        @test opt.moimodel.constraints[1] == CPRL.MOIConstraint(MOI.EqualTo, (CPRL.AffineIndex(1),), ci)
+        @test opt.moimodel.constraints[1] == SeaPearl.MOIConstraint(MOI.EqualTo, (SeaPearl.AffineIndex(1),), ci)
         @test length(opt.moimodel.affines) == 1
         @test opt.moimodel.affines[1].content == aff
         @test isnothing(opt.moimodel.affines[1].cp_identifier)
     end
     @testset "create_CPConstraint(::MOI.EqualTo)" begin
-        opt = CPRL.Optimizer()
+        opt = SeaPearl.Optimizer()
 
         x = MOI.add_variable(opt)
         MOI.add_constraint(opt, x, MOI.LessThan(2.))
@@ -74,15 +74,15 @@
 
         ci = MOI.add_constraint(opt, aff, MOI.EqualTo(5.))
 
-        CPRL.bridge_variables!(opt)
-        CPRL.bridge_affines!(opt)
+        SeaPearl.bridge_variables!(opt)
+        SeaPearl.bridge_affines!(opt)
 
-        cp_constraint = CPRL.create_CPConstraint(opt.moimodel.constraints[1], opt)
+        cp_constraint = SeaPearl.create_CPConstraint(opt.moimodel.constraints[1], opt)
 
-        @test CPRL.assignedValue(opt.cpmodel.variables["7"]) == 0
+        @test SeaPearl.assignedValue(opt.cpmodel.variables["7"]) == 0
 
         # Sometimes clearly infeasible
-        opt = CPRL.Optimizer()
+        opt = SeaPearl.Optimizer()
 
         x = MOI.add_variable(opt)
         MOI.add_constraint(opt, x, MOI.LessThan(2.))
@@ -94,9 +94,9 @@
 
         ci = MOI.add_constraint(opt, aff, MOI.EqualTo(5.))
 
-        CPRL.bridge_variables!(opt)
-        CPRL.bridge_affines!(opt)
+        SeaPearl.bridge_variables!(opt)
+        SeaPearl.bridge_affines!(opt)
 
-        @test_throws AssertionError CPRL.create_CPConstraint(opt.moimodel.constraints[1], opt)
+        @test_throws AssertionError SeaPearl.create_CPConstraint(opt.moimodel.constraints[1], opt)
     end
 end

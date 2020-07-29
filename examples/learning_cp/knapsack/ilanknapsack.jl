@@ -1,4 +1,4 @@
-using CPRL
+using SeaPearl
 using ReinforcementLearning
 const RL = ReinforcementLearning
 using Flux
@@ -9,8 +9,8 @@ gr()
 
 
 problem_generator = Dict(
-    :coloring => CPRL.fill_with_coloring!,
-    :filecoloring => CPRL.fill_with_coloring_file!
+    :coloring => SeaPearl.fill_with_coloring!,
+    :filecoloring => SeaPearl.fill_with_coloring_file!
 )
 
 knapsack_params = Dict(
@@ -22,36 +22,36 @@ knapsack_params = Dict(
 
 numberOfFeatures = 10
 
-function CPRL.featurize(g::CPRL.CPLayerGraph) 
+function SeaPearl.featurize(g::SeaPearl.CPLayerGraph) 
     features = zeros(Float32, nv(g), numberOfFeatures) 
     for i in 1:nv(g) 
-        cp_vertex = CPRL.cpVertexFromIndex(g, i) 
-        if isa(cp_vertex, CPRL.VariableVertex) 
+        cp_vertex = SeaPearl.cpVertexFromIndex(g, i) 
+        if isa(cp_vertex, SeaPearl.VariableVertex) 
             variable = cp_vertex.variable 
             features[i, 1] = 1. 
             if g.cpmodel.objective == variable
                 features[i, 2] = 1. 
             end 
             
-            if isa(variable, CPRL.IntVarViewOpposite)
+            if isa(variable, SeaPearl.IntVarViewOpposite)
                 features[i, 3] = 1. 
             end
-            if isa(variable, CPRL.IntVarViewMul)
+            if isa(variable, SeaPearl.IntVarViewMul)
                 features[i, 4] = 1. 
                 features[i, 5] = variable.a 
             end
         end 
-        if isa(cp_vertex, CPRL.ConstraintVertex) 
+        if isa(cp_vertex, SeaPearl.ConstraintVertex) 
             features[i, 6] = 1. 
             constraint = cp_vertex.constraint 
-            if isa(constraint, CPRL.SumToZero) 
+            if isa(constraint, SeaPearl.SumToZero) 
                 features[i, 7] = 1. 
             end 
-            if isa(constraint, CPRL.LessOrEqualConstant) 
+            if isa(constraint, SeaPearl.LessOrEqualConstant) 
                 features[i, 8] = 1. 
             end 
         end 
-        if isa(cp_vertex, CPRL.ValueVertex) 
+        if isa(cp_vertex, SeaPearl.ValueVertex) 
             features[i, 9] = 1. 
             value = cp_vertex.value 
             features[i, 10] = value/knapsack_params["max_weight"]
@@ -66,7 +66,7 @@ function CPRL.featurize(g::CPRL.CPLayerGraph)
 end 
 
 
-fixedGCNargs = CPRL.ArgsVariableOutputGCNLSTM( 
+fixedGCNargs = SeaPearl.ArgsVariableOutputGCNLSTM( 
     lastLayer = 20,
     numInFeatures = numberOfFeatures,
     firstHiddenGCN = 20,
@@ -81,13 +81,13 @@ println("state_size", state_size)
 
 agent = RL.Agent(
         policy = RL.QBasedPolicy(
-            learner = CPRL.CPDQNLearner(
+            learner = SeaPearl.CPDQNLearner(
                 approximator = RL.NeuralNetworkApproximator(
-                    model = CPRL.build_model(CPRL.VariableOutputGCNLSTM, fixedGCNargs),
+                    model = SeaPearl.build_model(SeaPearl.VariableOutputGCNLSTM, fixedGCNargs),
                     optimizer = ADAM(0.0005f0)
                 ),
                 target_approximator = RL.NeuralNetworkApproximator(
-                    model = CPRL.build_model(CPRL.VariableOutputGCNLSTM, fixedGCNargs),
+                    model = SeaPearl.build_model(SeaPearl.VariableOutputGCNLSTM, fixedGCNargs),
                     optimizer = ADAM(0.0005f0)
                 ),
                 loss_func = huber_loss,
@@ -100,8 +100,8 @@ agent = RL.Agent(
                 target_update_freq = 200,
                 seed = 22,
             ), 
-            # explorer = CPRL.DirectedExplorer(;
-                explorer = CPRL.CPEpsilonGreedyExplorer(
+            # explorer = SeaPearl.DirectedExplorer(;
+                explorer = SeaPearl.CPEpsilonGreedyExplorer(
                     ϵ_stable = 0.01,
                     kind = :linear,
                     ϵ_init = 1.0,
@@ -130,23 +130,23 @@ agent = RL.Agent(
     )
 
 
-struct IlanReward <: CPRL.AbstractReward end  
+struct IlanReward <: SeaPearl.AbstractReward end  
 
-function CPRL.set_before_next_decision_reward!(env::CPRL.RLEnv{IlanReward}, model::CPRL.CPModel)  
+function SeaPearl.set_before_next_decision_reward!(env::SeaPearl.RLEnv{IlanReward}, model::SeaPearl.CPModel)  
     env.reward -= 1/40
     nothing  
 end  
     
-function CPRL.set_final_reward!(env::CPRL.RLEnv{IlanReward}, model::CPRL.CPModel)  
+function SeaPearl.set_final_reward!(env::SeaPearl.RLEnv{IlanReward}, model::SeaPearl.CPModel)  
     env.reward += 100/model.statistics.numberOfNodes + 10 
     nothing  
 end  
 
-learnedHeuristic = CPRL.LearnedHeuristic{IlanReward, CPRL.VariableOutput}(agent, maxNumberOfCPnodes)
+learnedHeuristic = SeaPearl.LearnedHeuristic{IlanReward, SeaPearl.VariableOutput}(agent, maxNumberOfCPnodes)
 
-basicHeuristic = CPRL.BasicHeuristic((x) -> CPRL.maximum(x.domain))
+basicHeuristic = SeaPearl.BasicHeuristic((x) -> SeaPearl.maximum(x.domain))
 
-function selectNonObjVariable(model::CPRL.CPModel)
+function selectNonObjVariable(model::SeaPearl.CPModel)
     selectedVar = nothing
     minSize = typemax(Int)
     for (k, x) in model.variables
@@ -202,12 +202,12 @@ end
 
 function trytrain(nepisodes::Int)
     
-    bestsolutions, nodevisited = CPRL.train!(
+    bestsolutions, nodevisited = SeaPearl.train!(
         valueSelectionArray=[learnedHeuristic, basicHeuristic], 
         problem_type=:knapsack,
         problem_params=knapsack_params,
         nb_episodes=nepisodes,
-        strategy=CPRL.DFSearch,
+        strategy=SeaPearl.DFSearch,
         variableHeuristic=selectNonObjVariable,
         metricsFun=metricsFun,
         verbose=false

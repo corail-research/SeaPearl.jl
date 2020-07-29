@@ -23,7 +23,7 @@ function MOI.set(model::Optimizer, ::MOI.ObjectiveFunction, svf::MOI.SingleVaria
 end
 
 function MOI.set(model::Optimizer, ::MOI.ObjectiveSense, sense::MOI.OptimizationSense)
-    @assert sense == MOI.MIN_SENSE "CPRL does not support maximisation"
+    @assert sense == MOI.MIN_SENSE "SeaPearl does not support maximisation"
 end
 
 function MOI.set(model::Optimizer, ::MOI.ObjectiveFunction, saf::MOI.ScalarAffineFunction{T}) where {T<:Real}

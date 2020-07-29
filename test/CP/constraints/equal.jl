@@ -1,57 +1,57 @@
-using CPRL
+using SeaPearl
 
 @testset "equal.jl" begin
     @testset "EqualConstant()" begin
-        trailer = CPRL.Trailer()
-        x = CPRL.IntVar(2, 6, "x", trailer)
+        trailer = SeaPearl.Trailer()
+        x = SeaPearl.IntVar(2, 6, "x", trailer)
 
-        constraint = CPRL.EqualConstant(x, 3, trailer)
+        constraint = SeaPearl.EqualConstant(x, 3, trailer)
 
         @test constraint in x.onDomainChange
         @test constraint.active.value
     end
     @testset "propagate!(::EqualConstant)" begin
-        trailer = CPRL.Trailer()
-        x = CPRL.IntVar(2, 6, "x", trailer)
-        ax = CPRL.IntVarViewMul(x, 3, "3x")
+        trailer = SeaPearl.Trailer()
+        x = SeaPearl.IntVar(2, 6, "x", trailer)
+        ax = SeaPearl.IntVarViewMul(x, 3, "3x")
 
-        constraint = CPRL.EqualConstant(ax, 6, trailer)
+        constraint = SeaPearl.EqualConstant(ax, 6, trailer)
 
-        toPropagate = Set{CPRL.Constraint}()
-        prunedDomains = CPRL.CPModification()
+        toPropagate = Set{SeaPearl.Constraint}()
+        prunedDomains = SeaPearl.CPModification()
 
-        @test CPRL.propagate!(constraint, toPropagate, prunedDomains)
+        @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
 
         @test length(ax.domain) == 1
         @test 6 in ax.domain
         @test !(9 in ax.domain)
         @test !(10 in ax.domain)
-        @test prunedDomains == CPRL.CPModification("3x" => [9, 12, 15, 18])
+        @test prunedDomains == SeaPearl.CPModification("3x" => [9, 12, 15, 18])
 
 
-        cons2 = CPRL.EqualConstant(ax, 9, trailer)
+        cons2 = SeaPearl.EqualConstant(ax, 9, trailer)
 
-        @test !CPRL.propagate!(cons2, toPropagate, prunedDomains)
+        @test !SeaPearl.propagate!(cons2, toPropagate, prunedDomains)
 
         @test isempty(ax.domain)
 
-        y = CPRL.IntVar(2, 6, "y", trailer)
-        constraint1 = CPRL.EqualConstant(y, 3, trailer)
-        constraint2 = CPRL.EqualConstant(y, 4, trailer)
+        y = SeaPearl.IntVar(2, 6, "y", trailer)
+        constraint1 = SeaPearl.EqualConstant(y, 3, trailer)
+        constraint2 = SeaPearl.EqualConstant(y, 4, trailer)
 
-        toPropagate2 = Set{CPRL.Constraint}()
-        CPRL.propagate!(constraint1, toPropagate2, prunedDomains)
+        toPropagate2 = Set{SeaPearl.Constraint}()
+        SeaPearl.propagate!(constraint1, toPropagate2, prunedDomains)
         
         @test constraint2 in toPropagate2
 
     end
 
     @testset "pruneEqual!()" begin
-        trailer = CPRL.Trailer()
-        x = CPRL.IntVar(2, 6, "x", trailer)
-        y = CPRL.IntVar(5, 8, "y", trailer)
+        trailer = SeaPearl.Trailer()
+        x = SeaPearl.IntVar(2, 6, "x", trailer)
+        y = SeaPearl.IntVar(5, 8, "y", trailer)
 
-        CPRL.pruneEqual!(y, x)
+        SeaPearl.pruneEqual!(y, x)
 
         @test length(y.domain) == 2
         @test !(8 in y.domain) && 5 in y.domain && 6 in y.domain
@@ -60,41 +60,41 @@ using CPRL
     end
 
     @testset "propagate!(::Equal)" begin
-        trailer = CPRL.Trailer()
-        x = CPRL.IntVar(2, 6, "x", trailer)
-        y = CPRL.IntVar(5, 8, "y", trailer)
+        trailer = SeaPearl.Trailer()
+        x = SeaPearl.IntVar(2, 6, "x", trailer)
+        y = SeaPearl.IntVar(5, 8, "y", trailer)
 
-        constraint = CPRL.Equal(x, y, trailer)
-        toPropagate = Set{CPRL.Constraint}()
-        prunedDomains = CPRL.CPModification()
+        constraint = SeaPearl.Equal(x, y, trailer)
+        toPropagate = Set{SeaPearl.Constraint}()
+        prunedDomains = SeaPearl.CPModification()
 
-        @test CPRL.propagate!(constraint, toPropagate, prunedDomains)
+        @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
 
 
         @test length(x.domain) == 2
         @test length(y.domain) == 2
         @test !(2 in x.domain) && 5 in x.domain && 6 in x.domain
         @test !(8 in y.domain) && 5 in y.domain && 6 in y.domain
-        @test prunedDomains == CPRL.CPModification("x" => [2, 3, 4],"y" => [7, 8])
+        @test prunedDomains == SeaPearl.CPModification("x" => [2, 3, 4],"y" => [7, 8])
 
         # Propagation test
-        z = CPRL.IntVar(5, 15, "z", trailer)
-        constraint2 = CPRL.Equal(y, z, trailer)
-        CPRL.propagate!(constraint2, toPropagate, prunedDomains)
+        z = SeaPearl.IntVar(5, 15, "z", trailer)
+        constraint2 = SeaPearl.Equal(y, z, trailer)
+        SeaPearl.propagate!(constraint2, toPropagate, prunedDomains)
 
         # Domain not reduced => not propagation
         @test !(constraint in toPropagate)
         @test !(constraint2 in toPropagate)
 
         # Domain reduced => propagation
-        CPRL.remove!(z.domain, 5)
-        CPRL.propagate!(constraint2, toPropagate, prunedDomains)
+        SeaPearl.remove!(z.domain, 5)
+        SeaPearl.propagate!(constraint2, toPropagate, prunedDomains)
         @test constraint in toPropagate
         @test !(constraint2 in toPropagate)
 
         #Unfeasible test
-        t = CPRL.IntVar(15, 30, "t", trailer)
-        constraint3 = CPRL.Equal(z, t, trailer)
-        @test !CPRL.propagate!(constraint3, toPropagate, prunedDomains)
+        t = SeaPearl.IntVar(15, 30, "t", trailer)
+        constraint3 = SeaPearl.Equal(z, t, trailer)
+        @test !SeaPearl.propagate!(constraint3, toPropagate, prunedDomains)
     end
 end

@@ -48,8 +48,8 @@ function bridge_variables!(optimizer::Optimizer)
         @assert !isnothing(x.min) "Every variable must have a lower bound"
         @assert !isnothing(x.max) "Every variable must have an upper bound"
         x.cp_identifier = string(length(keys(optimizer.cpmodel.variables)) + 1)
-        newvariable = CPRL.IntVar(x.min, x.max, x.cp_identifier, optimizer.cpmodel.trailer)
-        CPRL.addVariable!(optimizer.cpmodel, newvariable)
+        newvariable = SeaPearl.IntVar(x.min, x.max, x.cp_identifier, optimizer.cpmodel.trailer)
+        SeaPearl.addVariable!(optimizer.cpmodel, newvariable)
         i += 1
     end
 end

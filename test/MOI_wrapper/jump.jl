@@ -1,19 +1,19 @@
 using JuMP
-using CPRL
+using SeaPearl
 using MathOptInterface
 
 const MOI = MathOptInterface
 
-struct GraphColoringVariableSelection  <: CPRL.AbstractVariableSelection{true}
+struct GraphColoringVariableSelection  <: SeaPearl.AbstractVariableSelection{true}
     sortedPermutation
     degrees
 end
-function (vs::GraphColoringVariableSelection)(model::CPRL.CPModel)
+function (vs::GraphColoringVariableSelection)(model::SeaPearl.CPModel)
     sortedPermutation, degrees = vs.sortedPermutation, vs.degrees
     maxDegree = 0
     toReturn = nothing
     for i in sortedPermutation
-        if !CPRL.isbound(model.variables[string(i)])
+        if !SeaPearl.isbound(model.variables[string(i)])
             if isnothing(toReturn)
                 toReturn = model.variables[string(i)]
                 maxDegree = degrees[i]
@@ -31,18 +31,18 @@ function (vs::GraphColoringVariableSelection)(model::CPRL.CPModel)
 end
 
 
-struct KnapsackVariableSelection <: CPRL.AbstractVariableSelection{true} end
-function (::KnapsackVariableSelection)(model::CPRL.CPModel)
+struct KnapsackVariableSelection <: SeaPearl.AbstractVariableSelection{true} end
+function (::KnapsackVariableSelection)(model::SeaPearl.CPModel)
     i = 1
-    while CPRL.isbound(model.variables[string(i)])
+    while SeaPearl.isbound(model.variables[string(i)])
         i += 1
     end
     return model.variables[string(i)]
 end
 
-@testset "Using CPRL with JuMP" begin
+@testset "Using SeaPearl with JuMP" begin
     @testset "GraphColoring model" begin
-        model = Model(CPRL.Optimizer)
+        model = Model(SeaPearl.Optimizer)
 
         numberOfVertices = 4
 
@@ -52,9 +52,9 @@ end
 
         degrees = zeros(Int, numberOfVertices)
 
-        @constraint(model, [x[1], x[2]] in CPRL.NotEqualSet())
-        @constraint(model, [x[2], x[3]] in CPRL.NotEqualSet())
-        @constraint(model, [x[2], x[4]] in CPRL.NotEqualSet())
+        @constraint(model, [x[1], x[2]] in SeaPearl.NotEqualSet())
+        @constraint(model, [x[2], x[3]] in SeaPearl.NotEqualSet())
+        @constraint(model, [x[2], x[4]] in SeaPearl.NotEqualSet())
             
         degrees[1] = 1
         degrees[2] = 3
@@ -72,12 +72,12 @@ end
 
         # define the heuristic used for variable selection
         variableheuristic = GraphColoringVariableSelection(sortedPermutation, degrees)
-        MOI.set(model, CPRL.MOIVariableSelectionAttribute(), variableheuristic)
+        MOI.set(model, SeaPearl.MOIVariableSelectionAttribute(), variableheuristic)
 
         # Define the heuristic used for value selection
         numberOfSteps = 0
-        valueheuristic = CPRL.BasicHeuristic((x) -> (numberOfSteps += 1; minimum(x.domain)))
-        MOI.set(model, CPRL.MOIValueSelectionAttribute(), valueheuristic)
+        valueheuristic = SeaPearl.BasicHeuristic((x) -> (numberOfSteps += 1; minimum(x.domain)))
+        MOI.set(model, SeaPearl.MOIValueSelectionAttribute(), valueheuristic)
 
 
         optimize!(model)
@@ -99,7 +99,7 @@ end
         n = 4
         capacity = 11
 
-        model = Model(CPRL.Optimizer)
+        model = Model(SeaPearl.Optimizer)
 
         @variable(model, 0 <= x[1:n] <= 1)
         @constraint(model, 4 * x[1] + 5 * x[2] + 8 * x[3] + 3 * x[4] <= capacity)
@@ -108,12 +108,12 @@ end
         @objective(model, Min, -val_sum)
 
         variableheuristic = KnapsackVariableSelection()
-        MOI.set(model, CPRL.MOIVariableSelectionAttribute(), variableheuristic)
+        MOI.set(model, SeaPearl.MOIVariableSelectionAttribute(), variableheuristic)
 
         # Define the heuristic used for value selection
         numberOfSteps = 0
-        valueheuristic = CPRL.BasicHeuristic((x) -> (numberOfSteps += 1; maximum(x.domain)))
-        MOI.set(model, CPRL.MOIValueSelectionAttribute(), valueheuristic)
+        valueheuristic = SeaPearl.BasicHeuristic((x) -> (numberOfSteps += 1; maximum(x.domain)))
+        MOI.set(model, SeaPearl.MOIValueSelectionAttribute(), valueheuristic)
 
         optimize!(model)
         status = MOI.get(model, MOI.TerminationStatus())

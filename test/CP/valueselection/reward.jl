@@ -1,16 +1,16 @@
-struct TestReward <: CPRL.AbstractReward end
+struct TestReward <: SeaPearl.AbstractReward end
 
-function CPRL.set_reward!(::CPRL.DecisionPhase, lh::CPRL.LearnedHeuristic{SR, TestReward, A}, model::CPRL.CPModel) where {
-    SR <: CPRL.AbstractStateRepresentation, 
-    A <: CPRL.ActionOutput
+function SeaPearl.set_reward!(::SeaPearl.DecisionPhase, lh::SeaPearl.LearnedHeuristic{SR, TestReward, A}, model::SeaPearl.CPModel) where {
+    SR <: SeaPearl.AbstractStateRepresentation, 
+    A <: SeaPearl.ActionOutput
 }
     lh.current_reward += 3
     nothing
 end
 
-function CPRL.set_reward!(::CPRL.EndingPhase, lh::CPRL.LearnedHeuristic{SR, TestReward, A}, model::CPRL.CPModel, symbol::Union{Nothing, Symbol}) where {
-    SR <: CPRL.AbstractStateRepresentation, 
-    A <: CPRL.ActionOutput
+function SeaPearl.set_reward!(::SeaPearl.EndingPhase, lh::SeaPearl.LearnedHeuristic{SR, TestReward, A}, model::SeaPearl.CPModel, symbol::Union{Nothing, Symbol}) where {
+    SR <: SeaPearl.AbstractStateRepresentation, 
+    A <: SeaPearl.ActionOutput
 }
     lh.current_reward += -5
     nothing
@@ -19,51 +19,51 @@ end
 @testset "reward.jl" begin
     @testset "Default reward" begin
         @testset "set_reward!(DecisionPhase)" begin
-            trailer = CPRL.Trailer()
-            model = CPRL.CPModel(trailer)
+            trailer = SeaPearl.Trailer()
+            model = SeaPearl.CPModel(trailer)
 
-            lh = CPRL.LearnedHeuristic(agent)
-            CPRL.update_with_cpmodel!(lh, model)
+            lh = SeaPearl.LearnedHeuristic(agent)
+            SeaPearl.update_with_cpmodel!(lh, model)
 
             lh.current_reward = 0
-            CPRL.set_reward!(CPRL.DecisionPhase(), lh, model)
+            SeaPearl.set_reward!(SeaPearl.DecisionPhase(), lh, model)
             @test lh.current_reward == -1/40
         end
 
         @testset "set_reward!(EndingPhase)" begin
-            trailer = CPRL.Trailer()
-            model = CPRL.CPModel(trailer)
+            trailer = SeaPearl.Trailer()
+            model = SeaPearl.CPModel(trailer)
 
-            lh = CPRL.LearnedHeuristic(agent)
-            CPRL.update_with_cpmodel!(lh, model)
+            lh = SeaPearl.LearnedHeuristic(agent)
+            SeaPearl.update_with_cpmodel!(lh, model)
 
             lh.current_reward = 5
             model.statistics.numberOfNodes = 30
-            CPRL.set_reward!(CPRL.EndingPhase(), lh, model, nothing)
+            SeaPearl.set_reward!(SeaPearl.EndingPhase(), lh, model, nothing)
             @test lh.current_reward == 6
         end
     end
     @testset "Custom reward" begin
         @testset "set_reward!(DecisionPhase)" begin
-            trailer = CPRL.Trailer()
-            model = CPRL.CPModel(trailer)
+            trailer = SeaPearl.Trailer()
+            model = SeaPearl.CPModel(trailer)
 
-            lh = CPRL.LearnedHeuristic{CPRL.DefaultStateRepresentation, TestReward, CPRL.FixedOutput}(agent)
-            CPRL.update_with_cpmodel!(lh, model)
+            lh = SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation, TestReward, SeaPearl.FixedOutput}(agent)
+            SeaPearl.update_with_cpmodel!(lh, model)
 
             lh.current_reward = 0
-            CPRL.set_reward!(CPRL.DecisionPhase(), lh, model)
+            SeaPearl.set_reward!(SeaPearl.DecisionPhase(), lh, model)
             @test lh.current_reward == 3
         end
         @testset "set_reward!(EndingPhase)" begin
-            trailer = CPRL.Trailer()
-            model = CPRL.CPModel(trailer)
+            trailer = SeaPearl.Trailer()
+            model = SeaPearl.CPModel(trailer)
 
-            lh = CPRL.LearnedHeuristic{CPRL.DefaultStateRepresentation, TestReward, CPRL.FixedOutput}(agent)
-            CPRL.update_with_cpmodel!(lh, model)
+            lh = SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation, TestReward, SeaPearl.FixedOutput}(agent)
+            SeaPearl.update_with_cpmodel!(lh, model)
 
             lh.current_reward = 6
-            CPRL.set_reward!(CPRL.EndingPhase(), lh, model, nothing)
+            SeaPearl.set_reward!(SeaPearl.EndingPhase(), lh, model, nothing)
             @test lh.current_reward == 1
         end
     end

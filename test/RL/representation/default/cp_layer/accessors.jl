@@ -1,92 +1,92 @@
-using CPRL
+using SeaPearl
 using LightGraphs
 
 @testset "arrayOfEveryValue()" begin
-    trailer = CPRL.Trailer()
+    trailer = SeaPearl.Trailer()
 
-    x = CPRL.IntVar(2, 3, "x", trailer)
-    y = CPRL.IntVar(3, 4, "y", trailer)
+    x = SeaPearl.IntVar(2, 3, "x", trailer)
+    y = SeaPearl.IntVar(3, 4, "y", trailer)
 
-    @test CPRL.arrayOfEveryValue(CPRL.AbstractIntVar[x, y]) == [4, 2, 3]
+    @test SeaPearl.arrayOfEveryValue(SeaPearl.AbstractIntVar[x, y]) == [4, 2, 3]
 end
 
 @testset "cpVertexFromIndex()" begin
-    trailer = CPRL.Trailer()
-    model = CPRL.CPModel(trailer)
+    trailer = SeaPearl.Trailer()
+    model = SeaPearl.CPModel(trailer)
 
-    x = CPRL.IntVar(2, 3, "x", trailer)
-    y = CPRL.IntVar(2, 3, "y", trailer)
-    CPRL.addVariable!(model, x)
-    CPRL.addVariable!(model, y)
-    push!(model.constraints, CPRL.Equal(x, y, trailer))
-    push!(model.constraints, CPRL.NotEqual(x, y, trailer))
+    x = SeaPearl.IntVar(2, 3, "x", trailer)
+    y = SeaPearl.IntVar(2, 3, "y", trailer)
+    SeaPearl.addVariable!(model, x)
+    SeaPearl.addVariable!(model, y)
+    push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+    push!(model.constraints, SeaPearl.NotEqual(x, y, trailer))
 
-    g = CPRL.CPLayerGraph(model)
+    g = SeaPearl.CPLayerGraph(model)
 
     true_idToNode = [
-        CPRL.ConstraintVertex(model.constraints[1]), 
-        CPRL.ConstraintVertex(model.constraints[2]),
-        CPRL.VariableVertex(x),
-        CPRL.VariableVertex(y),
-        CPRL.ValueVertex(2),
-        CPRL.ValueVertex(3)
+        SeaPearl.ConstraintVertex(model.constraints[1]), 
+        SeaPearl.ConstraintVertex(model.constraints[2]),
+        SeaPearl.VariableVertex(x),
+        SeaPearl.VariableVertex(y),
+        SeaPearl.ValueVertex(2),
+        SeaPearl.ValueVertex(3)
     ]
 
     for i in 1:6
-        @test CPRL.cpVertexFromIndex(g, i) == true_idToNode[i]
+        @test SeaPearl.cpVertexFromIndex(g, i) == true_idToNode[i]
     end
 end
 
 @testset "indexFromCpVertex()" begin
-    trailer = CPRL.Trailer()
-    model = CPRL.CPModel(trailer)
+    trailer = SeaPearl.Trailer()
+    model = SeaPearl.CPModel(trailer)
 
-    x = CPRL.IntVar(2, 3, "x", trailer)
-    y = CPRL.IntVar(2, 3, "y", trailer)
-    CPRL.addVariable!(model, x)
-    CPRL.addVariable!(model, y)
-    push!(model.constraints, CPRL.Equal(x, y, trailer))
-    push!(model.constraints, CPRL.NotEqual(x, y, trailer))
+    x = SeaPearl.IntVar(2, 3, "x", trailer)
+    y = SeaPearl.IntVar(2, 3, "y", trailer)
+    SeaPearl.addVariable!(model, x)
+    SeaPearl.addVariable!(model, y)
+    push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+    push!(model.constraints, SeaPearl.NotEqual(x, y, trailer))
 
-    g = CPRL.CPLayerGraph(model)
+    g = SeaPearl.CPLayerGraph(model)
 
     true_idToNode = [
-        CPRL.ConstraintVertex(model.constraints[1]), 
-        CPRL.ConstraintVertex(model.constraints[2]),
-        CPRL.VariableVertex(x),
-        CPRL.VariableVertex(y),
-        CPRL.ValueVertex(2),
-        CPRL.ValueVertex(3)
+        SeaPearl.ConstraintVertex(model.constraints[1]), 
+        SeaPearl.ConstraintVertex(model.constraints[2]),
+        SeaPearl.VariableVertex(x),
+        SeaPearl.VariableVertex(y),
+        SeaPearl.ValueVertex(2),
+        SeaPearl.ValueVertex(3)
     ]
 
     for i in 1:6
-        @test CPRL.indexFromCpVertex(g, true_idToNode[i]) == i
+        @test SeaPearl.indexFromCpVertex(g, true_idToNode[i]) == i
     end
 end
 
 @testset "caracteristics" begin
-    trailer = CPRL.Trailer()
-    model = CPRL.CPModel(trailer)
+    trailer = SeaPearl.Trailer()
+    model = SeaPearl.CPModel(trailer)
 
-    g = CPRL.CPLayerGraph(model)
+    g = SeaPearl.CPLayerGraph(model)
 
     @test eltype(g) == Int64
     @test LightGraphs.edgetype(g) == LightGraphs.SimpleEdge{Int64}
-    @test !LightGraphs.is_directed(CPRL.CPLayerGraph)
+    @test !LightGraphs.is_directed(SeaPearl.CPLayerGraph)
 end
 
 @testset "has_vertex()" begin
-    trailer = CPRL.Trailer()
-    model = CPRL.CPModel(trailer)
+    trailer = SeaPearl.Trailer()
+    model = SeaPearl.CPModel(trailer)
 
-    x = CPRL.IntVar(2, 3, "x", trailer)
-    y = CPRL.IntVar(2, 3, "y", trailer)
-    CPRL.addVariable!(model, x)
-    CPRL.addVariable!(model, y)
-    push!(model.constraints, CPRL.Equal(x, y, trailer))
-    push!(model.constraints, CPRL.NotEqual(x, y, trailer))
+    x = SeaPearl.IntVar(2, 3, "x", trailer)
+    y = SeaPearl.IntVar(2, 3, "y", trailer)
+    SeaPearl.addVariable!(model, x)
+    SeaPearl.addVariable!(model, y)
+    push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+    push!(model.constraints, SeaPearl.NotEqual(x, y, trailer))
 
-    g = CPRL.CPLayerGraph(model)
+    g = SeaPearl.CPLayerGraph(model)
 
     for i in 1:6
         @test LightGraphs.has_vertex(g, i)
@@ -96,19 +96,19 @@ end
 end
 
 @testset "has_edge()" begin
-    trailer = CPRL.Trailer()
-    model = CPRL.CPModel(trailer)
+    trailer = SeaPearl.Trailer()
+    model = SeaPearl.CPModel(trailer)
 
-    x = CPRL.IntVar(2, 3, "x", trailer)
-    y = CPRL.IntVar(2, 3, "y", trailer)
-    CPRL.addVariable!(model, x)
-    CPRL.addVariable!(model, y)
-    push!(model.constraints, CPRL.Equal(x, y, trailer))
-    push!(model.constraints, CPRL.NotEqual(x, y, trailer))
+    x = SeaPearl.IntVar(2, 3, "x", trailer)
+    y = SeaPearl.IntVar(2, 3, "y", trailer)
+    SeaPearl.addVariable!(model, x)
+    SeaPearl.addVariable!(model, y)
+    push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+    push!(model.constraints, SeaPearl.NotEqual(x, y, trailer))
 
-    g = CPRL.CPLayerGraph(model)
+    g = SeaPearl.CPLayerGraph(model)
 
-    CPRL.assign!(x, 2)
+    SeaPearl.assign!(x, 2)
 
     @test !has_edge(g, 1, 2)
     @test !has_edge(g, 2, 1)
@@ -123,19 +123,19 @@ end
 end
 
 @testset "edges() & ne() & nv()" begin
-    trailer = CPRL.Trailer()
-    model = CPRL.CPModel(trailer)
+    trailer = SeaPearl.Trailer()
+    model = SeaPearl.CPModel(trailer)
 
-    x = CPRL.IntVar(2, 3, "x", trailer)
-    y = CPRL.IntVar(2, 3, "y", trailer)
-    CPRL.addVariable!(model, x)
-    CPRL.addVariable!(model, y)
-    push!(model.constraints, CPRL.Equal(x, y, trailer))
-    push!(model.constraints, CPRL.NotEqual(x, y, trailer))
+    x = SeaPearl.IntVar(2, 3, "x", trailer)
+    y = SeaPearl.IntVar(2, 3, "y", trailer)
+    SeaPearl.addVariable!(model, x)
+    SeaPearl.addVariable!(model, y)
+    push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+    push!(model.constraints, SeaPearl.NotEqual(x, y, trailer))
 
-    g = CPRL.CPLayerGraph(model)
+    g = SeaPearl.CPLayerGraph(model)
 
-    CPRL.assign!(x, 2)
+    SeaPearl.assign!(x, 2)
 
     @test sort(LightGraphs.edges(g); by=(e -> (e.src, e.dst))) == sort([
         LightGraphs.SimpleEdge{Int64}(1, 4),
@@ -151,19 +151,19 @@ end
 end
 
 @testset "inneighbors()/outneightbors()" begin
-    trailer = CPRL.Trailer()
-    model = CPRL.CPModel(trailer)
+    trailer = SeaPearl.Trailer()
+    model = SeaPearl.CPModel(trailer)
 
-    x = CPRL.IntVar(2, 3, "x", trailer)
-    y = CPRL.IntVar(2, 3, "y", trailer)
-    CPRL.addVariable!(model, x)
-    CPRL.addVariable!(model, y)
-    push!(model.constraints, CPRL.Equal(x, y, trailer))
-    push!(model.constraints, CPRL.NotEqual(x, y, trailer))
+    x = SeaPearl.IntVar(2, 3, "x", trailer)
+    y = SeaPearl.IntVar(2, 3, "y", trailer)
+    SeaPearl.addVariable!(model, x)
+    SeaPearl.addVariable!(model, y)
+    push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+    push!(model.constraints, SeaPearl.NotEqual(x, y, trailer))
 
-    g = CPRL.CPLayerGraph(model)
+    g = SeaPearl.CPLayerGraph(model)
 
-    CPRL.assign!(x, 2)
+    SeaPearl.assign!(x, 2)
 
     @test LightGraphs.inneighbors(g, 3) == [1, 2, 5]
     @test LightGraphs.inneighbors(g, 4) == [1, 2, 5, 6]

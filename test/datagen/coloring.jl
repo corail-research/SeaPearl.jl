@@ -2,16 +2,16 @@ using Random
 
 @testset "coloring.jl" begin
     @testset "fill_with_generator!(::LegacyGraphColoringGenerator)" begin
-        trailer = CPRL.Trailer()
-        model = CPRL.CPModel(trailer)
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
 
         nb_nodes = 10
         probability = 1.4
 
-        generator = CPRL.LegacyGraphColoringGenerator(nb_nodes, probability)
+        generator = SeaPearl.LegacyGraphColoringGenerator(nb_nodes, probability)
 
         
-        CPRL.fill_with_generator!(model, generator)
+        SeaPearl.fill_with_generator!(model, generator)
 
         @test length(keys(model.variables)) == nb_nodes + 1
         @test length(model.constraints) == 24
@@ -21,16 +21,16 @@ using Random
 
     
     @testset "fill_with_generator!(::HomogenousGraphColoringGenerator)" begin
-        trailer = CPRL.Trailer()
-        model = CPRL.CPModel(trailer)
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
 
         nb_nodes = 10
         probability = 0.5
 
-        generator = CPRL.HomogenousGraphColoringGenerator(nb_nodes, probability)
+        generator = SeaPearl.HomogenousGraphColoringGenerator(nb_nodes, probability)
 
         
-        CPRL.fill_with_generator!(model, generator; rng=MersenneTwister(12))
+        SeaPearl.fill_with_generator!(model, generator; rng=MersenneTwister(12))
 
         @test length(keys(model.variables)) == nb_nodes + 1
         @test length(model.constraints) == 55
@@ -42,17 +42,17 @@ using Random
 
     
     @testset "fill_with_generator!(::ClusterizedGraphColoringGenerator)" begin
-        trailer = CPRL.Trailer()
-        model = CPRL.CPModel(trailer)
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
 
         nb_nodes = 10
         k = 3
         probability = 0.5
 
-        generator = CPRL.ClusterizedGraphColoringGenerator(nb_nodes, k, probability)
+        generator = SeaPearl.ClusterizedGraphColoringGenerator(nb_nodes, k, probability)
 
         
-        CPRL.fill_with_generator!(model, generator; rng=MersenneTwister(12))
+        SeaPearl.fill_with_generator!(model, generator; rng=MersenneTwister(12))
 
         @test length(keys(model.variables)) == nb_nodes + 1
         @test length(model.constraints) == 37

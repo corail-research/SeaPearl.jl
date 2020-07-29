@@ -1,15 +1,15 @@
 abstract type EqualConstraint <: Constraint end
 
 """
-    EqualConstant(x::CPRL.AbstractIntVar, v::Int)
+    EqualConstant(x::SeaPearl.AbstractIntVar, v::Int)
 
 Equality constraint, putting a constant value `v` for the variable `x` i.e. `x == v`. 
 """
 struct EqualConstant <: EqualConstraint
-    x       ::CPRL.AbstractIntVar
+    x       ::SeaPearl.AbstractIntVar
     v       ::Int
     active  ::StateObject{Bool}
-    function EqualConstant(x::CPRL.AbstractIntVar, v::Int, trailer)
+    function EqualConstant(x::SeaPearl.AbstractIntVar, v::Int, trailer)
         constraint = new(x, v, StateObject{Bool}(true, trailer))
         addOnDomainChange!(x, constraint)
         return constraint
@@ -42,16 +42,16 @@ variablesArray(constraint::EqualConstant) = [constraint.x]
 
 
 """
-    Equal(x::CPRL.AbstractIntVar, y::CPRL.AbstractIntVar)
+    Equal(x::SeaPearl.AbstractIntVar, y::SeaPearl.AbstractIntVar)
 
 Equality constraint between two variables, stating that `x == y`.
 """
 struct Equal <: EqualConstraint
-    x       ::CPRL.AbstractIntVar
-    y       ::CPRL.AbstractIntVar
+    x       ::SeaPearl.AbstractIntVar
+    y       ::SeaPearl.AbstractIntVar
     active  ::StateObject{Bool}
 
-    function Equal(x::CPRL.AbstractIntVar, y::CPRL.AbstractIntVar, trailer::Trailer)
+    function Equal(x::SeaPearl.AbstractIntVar, y::SeaPearl.AbstractIntVar, trailer::Trailer)
         constraint = new(x, y, StateObject(true, trailer))
         addOnDomainChange!(x, constraint)
         addOnDomainChange!(y, constraint)

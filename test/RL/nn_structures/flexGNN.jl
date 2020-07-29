@@ -2,7 +2,7 @@
 
     @testset "constructor" begin 
 
-        model = CPRL.FlexGNN(
+        model = SeaPearl.FlexGNN(
             graphChain = Flux.Chain(
                 GeometricFlux.GCNConv(3 => 3),
                 GeometricFlux.GCNConv(3 => 3),
