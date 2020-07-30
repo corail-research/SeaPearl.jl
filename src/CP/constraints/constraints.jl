@@ -8,6 +8,7 @@ include("sumtozero.jl")
 include("sumlessthan.jl")
 include("sumgreaterthan.jl")
 include("islessorequal.jl")
+include("isor.jl")
 include("isbinaryor.jl")
 
 """
