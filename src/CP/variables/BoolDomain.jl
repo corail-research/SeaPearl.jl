@@ -59,6 +59,10 @@ end
 Remove `value` from `dom`. Done in constant time.
 """
 function remove!(dom::BoolDomain, value::Bool)
+    if !(value in dom)
+        return Bool[]
+    end
+    
     intValue = convert(Int, value)
 
     remove!(dom.inner, intValue)
