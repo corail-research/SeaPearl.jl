@@ -8,6 +8,7 @@ include("sumtozero.jl")
 include("sumlessthan.jl")
 include("sumgreaterthan.jl")
 include("islessorequal.jl")
+include("alldifferent.jl")
 
 """
     addOnDomainChange!(x::AbstractIntVar, constraint::Constraint)

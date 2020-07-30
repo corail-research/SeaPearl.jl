@@ -5,6 +5,7 @@
     include("lessorequal.jl")
     include("greaterorequal.jl")
     include("sumtozero.jl")
+    include("alldifferent.jl")
     include("sumlessthan.jl")
     include("sumgreaterthan.jl")
     include("islessorequal.jl")
