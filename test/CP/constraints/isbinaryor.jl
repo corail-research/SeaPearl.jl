@@ -79,6 +79,69 @@
             
         end
 
+        @testset "b true - x false, y unassigned" begin
+
+            trailer = SeaPearl.Trailer()
+            b = SeaPearl.BoolVar("b", trailer)
+            x = SeaPearl.BoolVar("x", trailer)
+            y = SeaPearl.BoolVar("y", trailer)
+
+            constraint = SeaPearl.isBinaryOr(b, x, y, trailer)
+            toPropagate = Set{SeaPearl.Constraint}()
+            prunedDomains = SeaPearl.CPModification()
+
+            SeaPearl.assign!(b, true)
+            SeaPearl.assign!(x, false)
+
+            @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
+            @test SeaPearl.assignedValue(y)
+            @test prunedDomains == SeaPearl.CPModification("y" => [false])
+            @test !constraint.active.value
+            
+        end
+
+        @testset "b true - x false, y false" begin
+
+            trailer = SeaPearl.Trailer()
+            b = SeaPearl.BoolVar("b", trailer)
+            x = SeaPearl.BoolVar("x", trailer)
+            y = SeaPearl.BoolVar("y", trailer)
+
+            constraint = SeaPearl.isBinaryOr(b, x, y, trailer)
+            toPropagate = Set{SeaPearl.Constraint}()
+            prunedDomains = SeaPearl.CPModification()
+
+            SeaPearl.assign!(b, true)
+            SeaPearl.assign!(x, false)
+            SeaPearl.assign!(y, false)
+
+            @test !SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
+            @test SeaPearl.length(y.domain) == 0
+            @test prunedDomains == SeaPearl.CPModification("y" => [false])
+            @test !constraint.active.value
+            
+        end
+
+        @testset "b true - x true, y unassigned" begin
+
+            trailer = SeaPearl.Trailer()
+            b = SeaPearl.BoolVar("b", trailer)
+            x = SeaPearl.BoolVar("x", trailer)
+            y = SeaPearl.BoolVar("y", trailer)
+
+            constraint = SeaPearl.isBinaryOr(b, x, y, trailer)
+            toPropagate = Set{SeaPearl.Constraint}()
+            prunedDomains = SeaPearl.CPModification()
+
+            SeaPearl.assign!(b, true)
+            SeaPearl.assign!(x, true)
+
+            @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
+            @test prunedDomains == SeaPearl.CPModification()
+            @test !constraint.active.value
+            
+        end
+
         @testset "b unassigned - x true, y unassigned" begin
 
             trailer = SeaPearl.Trailer()
