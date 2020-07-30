@@ -10,7 +10,7 @@ struct SumGreaterThan <: Constraint
     numberOfFreeVars    ::StateObject{Int}
     sumOfFixedVars      ::StateObject{Int}
     freeIds             ::Array{Int}
-    function SumToZero(x::Array{AbstractIntVar}, lower, trailer)
+    function SumGreaterThan(x::Array{AbstractIntVar}, lower, trailer)
         @assert !isempty(x)
 
         freeIds = zeros(length(x))
@@ -27,9 +27,9 @@ struct SumGreaterThan <: Constraint
 end
 
 """
-    propagate!(constraint::SumToZero, toPropagate::Set{Constraint}, prunedDomains::CPModification)
+    propagate!(constraint::SumGreaterThan, toPropagate::Set{Constraint}, prunedDomains::CPModification)
 
-`SumToZero` propagation function. The pruning is quite superficial.
+`SumGreaterThan` propagation function. The pruning is quite superficial.
 """
 function propagate!(constraint::SumGreaterThan, toPropagate::Set{Constraint}, prunedDomains::CPModification)
     # Stop propagation if constraint not active

@@ -5,6 +5,8 @@
     include("lessorequal.jl")
     include("greaterorequal.jl")
     include("sumtozero.jl")
+    include("sumlessthan.jl")
+    include("sumgreaterthan.jl")
     include("islessorequal.jl")
 
     @testset "addOnDomainChange!()" begin
