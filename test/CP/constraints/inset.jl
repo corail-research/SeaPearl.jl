@@ -2,9 +2,9 @@
     @testset "InSet()" begin
         trailer = SeaPearl.Trailer()
         a = SeaPearl.IntSetVar(2, 5, "a", trailer)
-        x = SeaPearl.IntVar(0, 3)
+        x = SeaPearl.IntVar(0, 3, "x", trailer)
 
-        constraint = SeaPearl.InSet(a, x, trailer)
+        constraint = SeaPearl.InSet(x, a, trailer)
 
         @test constraint in a.onDomainChange
         @test constraint in x.onDomainChange
@@ -14,8 +14,8 @@
     @testset "propagate!(::InSet)" begin
         trailer = SeaPearl.Trailer()
         a = SeaPearl.IntSetVar(2, 5, "a", trailer)
-        x = SeaPearl.IntVar(0, 3)
-        constraint = SeaPearl.InSet(a, x, trailer)
+        x = SeaPearl.IntVar(0, 3, "x", trailer)
+        constraint = SeaPearl.InSet(x, a, trailer)
 
         toPropagate = Set{SeaPearl.Constraint}()
         prunedDomains = SeaPearl.CPModification()
@@ -39,8 +39,8 @@
         # Infeasibility
         trailer = SeaPearl.Trailer()
         a = SeaPearl.IntSetVar(2, 5, "a", trailer)
-        x = SeaPearl.IntVar(0, 1)
-        constraint = SeaPearl.InSet(a, x, trailer)
+        x = SeaPearl.IntVar(0, 1, "x", trailer)
+        constraint = SeaPearl.InSet(x, a, trailer)
 
         toPropagate = Set{SeaPearl.Constraint}()
         prunedDomains = SeaPearl.CPModification()
@@ -50,8 +50,8 @@
         #Infeasibility with excluding
         trailer = SeaPearl.Trailer()
         a = SeaPearl.IntSetVar(2, 5, "a", trailer)
-        x = SeaPearl.IntVar(2, 3)
-        constraint = SeaPearl.InSet(a, x, trailer)
+        x = SeaPearl.IntVar(2, 3, "x", trailer)
+        constraint = SeaPearl.InSet(x, a, trailer)
 
         toPropagate = Set{SeaPearl.Constraint}()
         prunedDomains = SeaPearl.CPModification()
@@ -64,8 +64,8 @@
         # Deactivation
         trailer = SeaPearl.Trailer()
         a = SeaPearl.IntSetVar(2, 5, "a", trailer)
-        x = SeaPearl.IntVar(3, 4)
-        constraint = SeaPearl.InSet(a, x, trailer)
+        x = SeaPearl.IntVar(2, 3, "x", trailer)
+        constraint = SeaPearl.InSet(x, a, trailer)
 
         toPropagate = Set{SeaPearl.Constraint}()
         prunedDomains = SeaPearl.CPModification()
