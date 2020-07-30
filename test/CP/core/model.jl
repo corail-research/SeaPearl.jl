@@ -30,6 +30,7 @@
         trailer = SeaPearl.Trailer()
         x = SeaPearl.IntVar(2, 6, "x", trailer)
         t = SeaPearl.IntVar(2, 6, "t", trailer)
+        b = SeaPearl.BoolVar("b", trailer)
 
         SeaPearl.addToPrunedDomains!(test1, x, [5, 6])
 
@@ -38,6 +39,11 @@
         SeaPearl.addToPrunedDomains!(test1, t, [5, 6])
 
         @test test1 == SeaPearl.CPModification("x" => [2, 3, 4, 5, 6],"z" => [11, 12, 13, 14, 15],"y" => [7, 8], "t" => [5, 6])
+
+        SeaPearl.addToPrunedDomains!(test1, b, [true])
+
+        @test test1 == SeaPearl.CPModification("x" => [2, 3, 4, 5, 6],"z" => [11, 12, 13, 14, 15],"y" => [7, 8], "t" => [5, 6], "b" => [true])
+
     end
 
     @testset "solutionFound()" begin
