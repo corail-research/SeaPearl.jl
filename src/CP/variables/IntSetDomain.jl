@@ -10,7 +10,6 @@ end
 
 function IntSetDomain(trailer::Trailer, min::Int, max::Int)
     n = max - min + 1
-    size = SeaPearl.StateObject{Int}(n, trailer)
     requiring_index = SeaPearl.StateObject{Int}(1, trailer)
     excluding_index = SeaPearl.StateObject{Int}(n, trailer)
 
