@@ -28,6 +28,14 @@
         SeaPearl.addOnDomainChange!(b, reified_constraint)
 
         @test reified_constraint in b.onDomainChange
+
+        s = SeaPearl.IntSetVar(2, 6, "x", trailer)
+        set_constraint = SeaPear.InSet(ax, s, trailer)
+        SeaPearl.addOnDomainChange!(s, constraint)
+        SeaPearl.addOnDomainChange!(ax, constraint)
+
+        @test set_constraint in s.onDomainChange
+        @test set_constraint in x.onDomainChange
     end
 
     @testset "addToPropagate!()" begin
@@ -47,6 +55,12 @@
         toPropagate = Set{SeaPearl.Constraint}()
         SeaPearl.setValue!(constraint.active, false)
         @test !(constraint in toPropagate)
+
+        s = SeaPearl.IntSetVar(2, 6, "x", trailer)
+        set_constraint = SeaPear.InSet(ax, s, trailer)
+        SeaPearl.addToPropagate!(toPropagate, constraint)
+
+        @test set_constraint in toPropagate
     end
 
     @testset "triggerDomainChange!()" begin
@@ -68,5 +82,11 @@
 
         SeaPearl.triggerDomainChange!(toPropagate, b)
         @test reified_constraint in toPropagate
+
+        s = SeaPearl.IntSetVar(2, 6, "x", trailer)
+        set_constraint = SeaPear.InSet(ax, s, trailer)
+        SeaPearl.triggerDomainChange!(toPropagate, constraint)
+
+        @test set_constraint in toPropagate
     end
 end
