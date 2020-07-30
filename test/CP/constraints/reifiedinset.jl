@@ -42,6 +42,7 @@
         @test SeaPearl.assignedValue(b)
         @test !constraint.active.value
 
+
         # b -> false
         trailer = SeaPearl.Trailer()
         a = SeaPearl.IntSetVar(2, 5, "a", trailer)
@@ -112,6 +113,7 @@
         @test !constraint.active.value
 
 
+        ### Infeasible
         trailer = SeaPearl.Trailer()
         a = SeaPearl.IntSetVar(2, 5, "a", trailer)
         x = SeaPearl.IntVar(2, 3, "x", trailer)
@@ -121,6 +123,17 @@
         SeaPearl.assign!(b, false)
         SeaPearl.require!(a.domain, 2)
         SeaPearl.require!(a.domain, 3)
+
+        @test !SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
+
+
+        trailer = SeaPearl.Trailer()
+        a = SeaPearl.IntSetVar(2, 5, "a", trailer)
+        x = SeaPearl.IntVar(0, 1, "x", trailer)
+        b = SeaPearl.BoolVar("b", trailer)
+        constraint = SeaPearl.ReifiedInSet(x, a, b, trailer)
+
+        SeaPearl.assign!(b, true)
 
         @test !SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
     end
