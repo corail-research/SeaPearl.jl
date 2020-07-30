@@ -139,8 +139,8 @@ using DataStructures
 
         @test SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection()) == :Optimal
         @test length(model.solutions) == 2
-        @test model.solutions[1] == Dict("x" => 3,"y" => 3)
-        @test model.solutions[2] == Dict("x" => 2,"y" => 2)
+        @test model.solutions[1] == Dict("x" => 2,"y" => 2)
+        @test model.solutions[2] == Dict("x" => 3,"y" => 3)
 
     end
 
@@ -156,8 +156,8 @@ using DataStructures
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
         @test SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Optimal
-        @test model.solutions[1] == Dict("x" => 3,"y" => 3)
-        @test model.solutions[2] == Dict("x" => 2,"y" => 2)
+        @test model.solutions[1] == Dict("x" => 2,"y" => 2)
+        @test model.solutions[2] == Dict("x" => 3,"y" => 3)
 
         SeaPearl.empty!(model)
 
