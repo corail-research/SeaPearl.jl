@@ -41,5 +41,5 @@ end
 Add the constraints that have to be propagated when the domain of `x` changes to `toPropagate`.
 """
 triggerDomainChange!(toPropagate::Set{Constraint}, x::Union{AbstractIntVar, BoolVar, IntSetVar}) = addToPropagate!(toPropagate, getOnDomainChange(x))
-getOnDomainChange(x::Union{IntVar, BoolVar}) = x.onDomainChange
+getOnDomainChange(x::Union{IntVar, BoolVar, IntSetVar}) = x.onDomainChange
 getOnDomainChange(x::IntVarView) = getOnDomainChange(x.x)

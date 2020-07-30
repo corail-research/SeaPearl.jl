@@ -85,7 +85,7 @@
 
         s = SeaPearl.IntSetVar(2, 6, "x", trailer)
         set_constraint = SeaPearl.InSet(ax, s, trailer)
-        SeaPearl.triggerDomainChange!(toPropagate, constraint)
+        SeaPearl.triggerDomainChange!(toPropagate, s)
 
         @test set_constraint in toPropagate
     end
