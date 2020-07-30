@@ -58,20 +58,18 @@ function propagate!(constraint::isBinaryOr, toPropagate::Set{Constraint}, pruned
             end
         end
     else # b not bound
-        if isbound(constraint.x) && isbound(constraint.y)
-            if assignedValue(constraint.x) || assignedValue(constraint.y)
-                prunedB = remove!(constraint.b.domain, false)
-                addToPrunedDomains!(prunedDomains, constraint.b, prunedB)
-                triggerDomainChange!(toPropagate, constraint.b)
-                setValue!(constraint.active, false)
-                return true
-            elseif !assignedValue(constraint.x) && !assignedValue(constraint.y)
-                prunedB = remove!(constraint.b.domain, true)
-                addToPrunedDomains!(prunedDomains, constraint.b, prunedB)
-                triggerDomainChange!(toPropagate, constraint.b)
-                setValue!(constraint.active, false)
-                return true
-            end
+        if (isbound(constraint.x) && assignedValue(constraint.x)) || (isbound(constraint.y) && assignedValue(constraint.y))
+            prunedB = remove!(constraint.b.domain, false)
+            addToPrunedDomains!(prunedDomains, constraint.b, prunedB)
+            triggerDomainChange!(toPropagate, constraint.b)
+            setValue!(constraint.active, false)
+            return true
+        elseif (isbound(constraint.x) && !assignedValue(constraint.x)) && (isbound(constraint.y) && !assignedValue(constraint.y))
+            prunedB = remove!(constraint.b.domain, true)
+            addToPrunedDomains!(prunedDomains, constraint.b, prunedB)
+            triggerDomainChange!(toPropagate, constraint.b)
+            setValue!(constraint.active, false)
+            return true
         end
     end
 
