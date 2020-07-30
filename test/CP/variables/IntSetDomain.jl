@@ -27,16 +27,19 @@
 
         SeaPearl.saveState!(trailer)
 
-        SeaPearl.require!(dom, 11)
+        @test SeaPearl.is_possible(dom, 10)
+        @test !SeaPearl.is_required(dom, 10)
 
-        @test SeaPearl.is_possible(dom, 11)
-        @test SeaPearl.is_required(dom, 11)
+        SeaPearl.require!(dom, 10)
+
+        @test SeaPearl.is_possible(dom, 10)
+        @test SeaPearl.is_required(dom, 10)
 
 
         SeaPearl.restoreState!(trailer)
 
-        @test SeaPearl.is_possible(dom, 11)
-        @test !SeaPearl.is_required(dom, 11)
+        @test SeaPearl.is_possible(dom, 10)
+        @test !SeaPearl.is_required(dom, 10)
     end
 
     @testset "is_possible()" begin
@@ -105,7 +108,7 @@
 
         SeaPearl.exchangePositions!(dom, 9, 5)
 
-        @test dom.values == [2, 5, 3, 4, 1, 6]
-        @test dom.indexes == [5, 1, 3, 4, 2, 6]
+        @test dom.values == [5, 1, 3, 4, 2, 6]
+        @test dom.indexes == [2, 5, 3, 4, 1, 6]
     end
 end
