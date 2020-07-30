@@ -33,6 +33,7 @@ function propagate!(constraint::isLessOrEqual, toPropagate::Set{Constraint}, pru
                 addToPrunedDomains!(prunedDomains, constraint.b, prunedB)
                 triggerDomainChange!(toPropagate, constraint.b)
             end
+            setValue!(constraint.active, false)
         elseif minimum(constraint.x.domain) > maximum(constraint.y.domain)
             prunedB = remove!(constraint.b.domain, true)
             if !isempty(prunedB)
