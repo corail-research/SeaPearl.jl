@@ -6,4 +6,5 @@ using SeaPearl
     include("IntVarView.jl")
     include("BoolVar.jl")
     include("IntSetDomain.jl")
+    include("IntSetVar.jl")
 end
