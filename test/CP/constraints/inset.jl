@@ -71,8 +71,8 @@
         toPropagate = Set{SeaPearl.Constraint}()
         prunedDomains = SeaPearl.CPModification()
 
+        SeaPearl.require!(a.domain, 2)
         SeaPearl.require!(a.domain, 3)
-        SeaPearl.require!(a.domain, 4)
 
         @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
         @test !constraint.active.value
