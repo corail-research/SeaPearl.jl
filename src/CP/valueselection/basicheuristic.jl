@@ -13,11 +13,18 @@ mutable struct BasicHeuristic <: ValueSelection
 end
 
 """
+    lexicographicValueOrdering
+    
+Create the default `BasicHeuristic` that selects the minimum value of the domain
+"""
+lexicographicValueOrdering = BasicHeuristic(x -> minimum(x.domain))
+
+"""
     BasicHeuristic()
     
-Create the default `BasicHeuristic` that selects the maximum value of the domain
+Create the default `BasicHeuristic` (`lexicographicValueOrdering` by default)
 """
-BasicHeuristic() = BasicHeuristic(x -> maximum(x.domain))
+BasicHeuristic() = lexicographicValueOrdering
 
 """
     (valueSelection::BasicHeuristic)(::LearningPhase, model, x, current_status)
