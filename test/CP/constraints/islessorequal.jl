@@ -47,7 +47,7 @@
 
             trailer = SeaPearl.Trailer()
             b = SeaPearl.BoolVar("b", trailer)
-            x = SeaPearl.IntVar(2, 4, "x", trailer)
+            x = SeaPearl.IntVar(1, 4, "x", trailer)
             y = SeaPearl.IntVar(2, 6, "y", trailer)
 
             constraint = SeaPearl.isLessOrEqual(b, x, y, trailer)
@@ -60,9 +60,13 @@
             @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
 
             @test length(y.domain) == 2
+            @test length(x.domain) == 3
             @test !(4 in y.domain)
+            @test !(5 in y.domain)
             @test 3 in y.domain
-            @test prunedDomains == SeaPearl.CPModification("y" => [4, 5, 6])
+            @test !(1 in x.domain)
+            @test 2 in x.domain
+            @test prunedDomains == SeaPearl.CPModification("y" => [4, 5, 6], "x" => [1])
 
             z = SeaPearl.IntVar(4, 4, "z", trailer)
             constraint2 = SeaPearl.isLessOrEqual(b, x, z, trailer)
