@@ -25,7 +25,8 @@ function IntSetDomain(trailer::Trailer, min::Int, max::Int)
 end
 
 function exclude!(dom::IntSetDomain, v::Int)
-    @assert dom.min <= v && v <= dom.max
+    @assert dom.min <= v <= dom.max
+
     if !is_possible(dom, v)
         return nothing
     end
@@ -37,7 +38,8 @@ function exclude!(dom::IntSetDomain, v::Int)
 end
 
 function require!(dom::IntSetDomain, v::Int)
-    @assert v >= dom.min && v <= dom.max
+    @assert dom.min <= v <= dom.max
+
     if is_required(dom, v)
         return nothing
     end
@@ -76,8 +78,9 @@ end
 Intended for internal use only, exchange the position of `v1` and `v2` in the array of the domain.
 """
 function exchangePositions!(dom::IntSetDomain, v1::Int, v2::Int)
-    @assert dom.min <= v1 && v1 <= dom.max
-    @assert dom.min <= v2 && v2 <= dom.max
+    @assert dom.min <= v1 <= dom.max
+    @assert dom.min <= v2 <= dom.max
+
 
     v1, v2 = v1 - dom.min + 1, v2 - dom.min + 1
 
@@ -90,4 +93,3 @@ function exchangePositions!(dom::IntSetDomain, v1::Int, v2::Int)
 
     return dom
 end
-
