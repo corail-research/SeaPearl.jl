@@ -31,7 +31,7 @@ function propagate!(constraint::InSet, toPropagate::Set{Constraint}, prunedDomai
     for v in x_values
         if !is_possible(constraint.s.domain, v)
             remove!(constraint.x.domain, v)
-            addToPrunedDomains!(prunedDomains, constraint.x, v)
+            addToPrunedDomains!(prunedDomains, constraint.x, [v])
             triggerDomainChange!(toPropagate, constraint.x)
         end
     end

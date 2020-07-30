@@ -27,6 +27,7 @@
         @test !(1 in x.domain)
         @test 2 in x.domain
         @test constraint.active.value
+        @test prunedDomains == SeaPearl.CPModification("x" => [0, 1])
 
         SeaPearl.assign!(x, 3)
 
