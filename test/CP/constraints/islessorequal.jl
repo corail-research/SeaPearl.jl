@@ -35,6 +35,7 @@
             @test !(5 in x.domain)
             @test 3 in x.domain
             @test prunedDomains == SeaPearl.CPModification("x" => [4, 5, 6])
+            @test constraint.active.value
 
             z = SeaPearl.IntVar(1, 1, "z", trailer)
             constraint2 = SeaPearl.isLessOrEqual(b, x, z, trailer)
@@ -68,6 +69,7 @@
             @test !(2 in x.domain)
             @test 3 in x.domain
             @test prunedDomains == SeaPearl.CPModification("y" => [4, 5, 6], "x" => [1, 2])
+            @test constraint.active.value
 
             z = SeaPearl.IntVar(4, 4, "z", trailer)
             constraint2 = SeaPearl.isLessOrEqual(b, x, z, trailer)
@@ -94,6 +96,7 @@
             @test length(y.domain) == 3
             @test SeaPearl.assignedValue(b)
             @test prunedDomains == SeaPearl.CPModification("b" => [false])
+            @test !constraint.active.value
 
         end
 
@@ -115,6 +118,7 @@
             @test length(y.domain) == 3
             @test !SeaPearl.assignedValue(b)
             @test prunedDomains == SeaPearl.CPModification("b" => [true])
+            @test !constraint.active.value
 
         end
 
@@ -136,6 +140,7 @@
             @test length(y.domain) == 5
             @test length(b.domain) == 2
             @test prunedDomains == SeaPearl.CPModification()
+            @test constraint.active.value
 
         end
 
