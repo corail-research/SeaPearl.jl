@@ -60,13 +60,14 @@
             @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
 
             @test length(y.domain) == 2
-            @test length(x.domain) == 3
+            @test length(x.domain) == 2
             @test !(4 in y.domain)
             @test !(5 in y.domain)
             @test 3 in y.domain
             @test !(1 in x.domain)
-            @test 2 in x.domain
-            @test prunedDomains == SeaPearl.CPModification("y" => [4, 5, 6], "x" => [1])
+            @test !(2 in x.domain)
+            @test 3 in x.domain
+            @test prunedDomains == SeaPearl.CPModification("y" => [4, 5, 6], "x" => [1, 2])
 
             z = SeaPearl.IntVar(4, 4, "z", trailer)
             constraint2 = SeaPearl.isLessOrEqual(b, x, z, trailer)

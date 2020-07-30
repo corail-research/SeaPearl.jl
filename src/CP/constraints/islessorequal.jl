@@ -74,7 +74,7 @@ function propagate!(constraint::isLessOrEqual, toPropagate::Set{Constraint}, pru
                 triggerDomainChange!(toPropagate, constraint.y)
             end
             
-            prunedX = removeBelow!(constraint.x.domain, minimum(constraint.x.domain) - 1)
+            prunedX = removeBelow!(constraint.x.domain, minimum(constraint.y.domain) + 1)
             if !isempty(prunedX)
                 addToPrunedDomains!(prunedDomains, constraint.x, prunedX)
                 triggerDomainChange!(toPropagate, constraint.x)
