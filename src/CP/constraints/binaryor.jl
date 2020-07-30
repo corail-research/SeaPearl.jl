@@ -1,14 +1,14 @@
 """
-    isOr(x::BoolVar, y::BoolVar)
+    BinaryOr(x::BoolVar, y::BoolVar)
 
-Is Or constraint, states that `x || y`.
+Binary Or constraint, states that `x || y`.
 """
-struct isOr <: Constraint
+struct BinaryOr <: Constraint
     x::BoolVar
     y::BoolVar
     active::StateObject{Bool}
 
-    function isOr(x::BoolVar, y::BoolVar, trailer)
+    function BinaryOr(x::BoolVar, y::BoolVar, trailer)
         constraint = new(x, y, StateObject{Bool}(true, trailer))
         addOnDomainChange!(x, constraint)
         addOnDomainChange!(y, constraint)
@@ -17,11 +17,11 @@ struct isOr <: Constraint
 end
 
 """
-    propagate!(constraint::isOr, toPropagate::Set{Constraint}, prunedDomains::CPModification)
+    propagate!(constraint::BinaryOr, toPropagate::Set{Constraint}, prunedDomains::CPModification)
 
-`isOr` propagation function. The pruning is quite superficial.
+`BinaryOr` propagation function. The pruning is quite superficial.
 """
-function propagate!(constraint::isOr, toPropagate::Set{Constraint}, prunedDomains::CPModification)
+function propagate!(constraint::BinaryOr, toPropagate::Set{Constraint}, prunedDomains::CPModification)
     
     if isbound(constraint.x) && !assignedValue(constraint.x)
         prunedY = remove!(constraint.y.domain, false)
@@ -46,4 +46,4 @@ function propagate!(constraint::isOr, toPropagate::Set{Constraint}, prunedDomain
     return true
 end
 
-variablesArray(constraint::isBinaryOr) = [constraint.x, constraint.y]
+variablesArray(constraint::BinaryOr) = [constraint.x, constraint.y]
