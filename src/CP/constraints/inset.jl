@@ -1,13 +1,13 @@
 """
-    EqualConstant(x::SeaPearl.AbstractIntVar, v::Int)
+    InSet(x::AbstractIntVar, s::IntSetVar, trailer::Trailer)
 
-Equality constraint, putting a constant value `v` for the variable `x` i.e. `x == v`. 
+InSet constraint, states that x ∈ s
 """
 struct InSet <: Constraint
     x       ::AbstractIntVar
     s       ::IntSetVar
     active  ::StateObject{Bool}
-    function InSet(x::SeaPearl.AbstractIntVar, s::IntSetVar, trailer)
+    function InSet(x::AbstractIntVar, s::IntSetVar, trailer)
         constraint = new(x, s, StateObject{Bool}(true, trailer))
         addOnDomainChange!(x, constraint)
         addOnDomainChange!(s, constraint)
