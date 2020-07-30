@@ -9,6 +9,7 @@
     include("sumgreaterthan.jl")
     include("islessorequal.jl")
     include("inset.jl")
+    include("reifiedinset.jl")
 
     @testset "addOnDomainChange!()" begin
         trailer = SeaPearl.Trailer()
