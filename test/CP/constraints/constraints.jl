@@ -58,7 +58,8 @@
 
         s = SeaPearl.IntSetVar(2, 6, "x", trailer)
         set_constraint = SeaPearl.InSet(ax, s, trailer)
-        SeaPearl.addToPropagate!(toPropagate, constraint)
+        constraints = Array{SeaPearl.Constraint}([set_constraint])
+        SeaPearl.addToPropagate!(toPropagate, constraints)
 
         @test set_constraint in toPropagate
     end
