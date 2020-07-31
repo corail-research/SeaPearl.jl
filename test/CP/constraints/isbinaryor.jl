@@ -73,9 +73,6 @@
             SeaPearl.assign!(x, true)
 
             @test !SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
-            @test !SeaPearl.assignedValue(y)
-            @test prunedDomains == SeaPearl.CPModification("x" => [true], "y" => [true])
-            @test !constraint.active.value
             
         end
 
