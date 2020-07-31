@@ -77,7 +77,7 @@ Update the `CPModification` by adding the pruned integers.
 - `x::IntVar`: the variable that had its domain pruned.
 - `pruned::Array{Int}`: the pruned integers.
 """
-function addToPrunedDomains!(prunedDomains::CPModification, x::Union{AbstractIntVar, BoolVar}, pruned::Union{Array{Int}, Array{Bool}})
+function addToPrunedDomains!(prunedDomains::CPModification, x::Union{AbstractIntVar, BoolVar}, pruned::Union{Array{Int}, Array{Bool}, BitArray})
     if isempty(pruned)
         return
     end
