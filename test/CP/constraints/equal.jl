@@ -1,4 +1,3 @@
-using SeaPearl
 
 @testset "equal.jl" begin
     @testset "EqualConstant()" begin
