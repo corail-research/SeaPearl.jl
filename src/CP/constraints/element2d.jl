@@ -38,7 +38,15 @@ struct Element2D <: Constraint
     end
 end
 
-function update_support_and_prune!(constraint, xyz, lost_position::Int)
+"""
+    update_support_and_prune!(constraint::Element2D, xyz::Array{Tuple{Int, Int, Int}, 1}, lost_position::Int)
+
+Supports are associated to x and y 's domains. Each possible value of x & y can be associated with n number of possible
+values of z. If this number n equal 0, the value associated is pruned. 
+
+This function basically handle the increment, prune domains when necessary and retrieve the pruned values.
+"""
+function update_support_and_prune!(constraint::Element2D, xyz::Array{Tuple{Int, Int, Int}, 1}, lost_position::Int)
     setValue!(constraint.n_rows_sup[xyz[lost_position][1]], constraint.n_rows_sup[xyz[lost_position][1]].value - 1)
     setValue!(constraint.n_cols_sup[xyz[lost_position][2]], constraint.n_cols_sup[xyz[lost_position][2]].value - 1)
     prunedX, prunedY = [], []
@@ -54,9 +62,33 @@ end
 """
     propagate!(constraint::Element2D, toPropagate::Set{Constraint}, prunedDomains::CPModification)
 
-`Element2D` propagation function.
+`Element2D` propagation function. 
+
+Supports (n_cols_sup & n_rows_sup) are the number of possible z values that 
+are in a row or column. Once a support reaches 0, the value corresponding to the index cannot be taken by 
+the corresponding variable. 
+x = [1, 2, 3]
+y = [1, 2, 3]
+z = [6, 7]
+          | 1 | 2 | 3 | n_rows_sup
+        --------------
+        1 | 3   4   2    0
+        2 | 6   7   1    2 
+        3 | 7   5   1    1
+
+n_cols_sup  2   1   0
+
+Here, the value 3 can be pruned from y and the value 1 can be pruned from x. 
+
+Only the lowest and the highest values of z are pruned when they are not in the matrix. 
+(it's be for performance reason, this implemention is inspired by miniCP)
+
+It'd be interesting to try to benchmark with a propagation function which also pruned
+non extreme values to make sure it's not better.
+
 """
 function propagate!(constraint::Element2D, toPropagate::Set{Constraint}, prunedDomains::CPModification)
+    # get useful variables
     low = constraint.low.value
     up = constraint.up.value
     z_min = minimum(constraint.z.domain)
@@ -64,12 +96,9 @@ function propagate!(constraint::Element2D, toPropagate::Set{Constraint}, prunedD
     xyz = constraint.xyz
     n, m = size(constraint.matrix)
 
-    prunedX_b = removeBelow!(constraint.x.domain, 1)
-    prunedX_a = removeAbove!(constraint.x.domain, n)
-    prunedX = vcat(prunedX_b, prunedX_a)
-    prunedY_b = removeBelow!(constraint.y.domain, 1)
-    prunedY_a = removeAbove!(constraint.y.domain, m)
-    prunedY = vcat(prunedY_b, prunedY_a)
+    # make sure x, y are valid indexes of matrix
+    prunedX = vcat(removeBelow!(constraint.x.domain, 1), removeAbove!(constraint.x.domain, n))
+    prunedY = vcat(removeBelow!(constraint.y.domain, 1), removeAbove!(constraint.y.domain, m))
     if !isempty(prunedX)
         addToPrunedDomains!(prunedDomains, constraint.x, prunedX)
         triggerDomainChange!(toPropagate, constraint.x)
@@ -79,6 +108,8 @@ function propagate!(constraint::Element2D, toPropagate::Set{Constraint}, prunedD
         triggerDomainChange!(toPropagate, constraint.y)
     end
 
+    # update the supports of the cols and the rows and prune X or Y if some supports equal 0
+    # lower bound
     while xyz[low][3] < z_min || !(xyz[low][1] in constraint.x.domain) || !(xyz[low][2] in constraint.y.domain)
         prunedX, prunedY = update_support_and_prune!(constraint, xyz, low)
         if !isempty(prunedX)
@@ -92,6 +123,7 @@ function propagate!(constraint::Element2D, toPropagate::Set{Constraint}, prunedD
         low += 1
         @assert low <= up
     end
+    # upper bound
     while xyz[up][3] > z_max || !(xyz[up][1] in constraint.x.domain) || !(xyz[up][2] in constraint.y.domain)
         prunedX, prunedY = update_support_and_prune!(constraint, xyz, up)
         if !isempty(prunedX)
@@ -105,19 +137,24 @@ function propagate!(constraint::Element2D, toPropagate::Set{Constraint}, prunedD
         up -= 1
         @assert low <= up
     end
-    prunedZ_below = removeBelow!(constraint.z.domain, xyz[low][3])
-    prunedZ_above = removeAbove!(constraint.z.domain, xyz[up][3])
-    prunedZ = vcat(prunedZ_below, prunedZ_above)
+
+    # try to prune lower or upper values of z's domain
+    prunedZ = vcat(removeBelow!(constraint.z.domain, xyz[low][3]), removeAbove!(constraint.z.domain, xyz[up][3]))
     if !isempty(prunedZ)
         addToPrunedDomains!(prunedDomains, constraint.z, prunedZ)
         triggerDomainChange!(toPropagate, constraint.z)
     end
+
+    # update useful variables
     setValue!(constraint.low, low)
     setValue!(constraint.up, up)
     
+    # deactivate the constraint if necessary
     if isbound(constraint.z)
         setValue!(constraint.active, false)
     end
+
+    # check feasibility
     return !isempty(constraint.x.domain) && !isempty(constraint.y.domain) && !isempty(constraint.z.domain)
 end
 

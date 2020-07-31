@@ -102,6 +102,27 @@
             
         end
 
+        @testset "Prune z below & above" begin
+
+            trailer = SeaPearl.Trailer()
+            matrix = [5 3 3 4;
+                      5 6 6 8;
+                      9 10 9 6]
+            x = SeaPearl.IntVar(1, 3, "x", trailer)
+            y = SeaPearl.IntVar(1, 4, "y", trailer)
+            z = SeaPearl.IntVar(1, 12, "z", trailer)
+
+            constraint = SeaPearl.Element2D(matrix, x, y, z, trailer)
+            toPropagate = Set{SeaPearl.Constraint}()
+            prunedDomains = SeaPearl.CPModification()
+
+            @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
+            # 7 shouldn't be pruned 
+            @test prunedDomains == SeaPearl.CPModification("z" => [1, 2, 11, 12])
+            @test constraint.active.value
+            
+        end
+
         @testset "Prune x" begin
 
             trailer = SeaPearl.Trailer()
