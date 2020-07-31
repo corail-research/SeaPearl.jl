@@ -22,12 +22,32 @@
 
     @testset "propagate!(::Element2D)" begin
 
-        @testset "x false, y unassigned" begin
+        @testset "Prune x & y to be valid indexes" begin
 
             trailer = SeaPearl.Trailer()
             matrix = [3 2 3 4;
                       5 6 7 8;
-                      9 10 11 8]
+                      9 10 11 12]
+            x = SeaPearl.IntVar(1, 5, "x", trailer)
+            y = SeaPearl.IntVar(1, 6, "y", trailer)
+            z = SeaPearl.IntVar(1, 12, "z", trailer)
+
+            constraint = SeaPearl.Element2D(matrix, x, y, z, trailer)
+            toPropagate = Set{SeaPearl.Constraint}()
+            prunedDomains = SeaPearl.CPModification()
+
+            @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
+            @test prunedDomains == SeaPearl.CPModification("x" => [4, 5], "y" => [5, 6], "z" => [1])
+            @test constraint.active.value
+        
+        end
+
+        @testset "Prune z below" begin
+
+            trailer = SeaPearl.Trailer()
+            matrix = [3 2 3 4;
+                      5 6 7 8;
+                      9 10 11 12]
             x = SeaPearl.IntVar(1, 3, "x", trailer)
             y = SeaPearl.IntVar(1, 4, "y", trailer)
             z = SeaPearl.IntVar(1, 12, "z", trailer)
@@ -37,17 +57,17 @@
             prunedDomains = SeaPearl.CPModification()
 
             @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
-            @test prunedDomains == SeaPearl.CPModification("z" => [1, 12])
+            @test prunedDomains == SeaPearl.CPModification("z" => [1])
             @test constraint.active.value
             
         end
 
-        @testset "x false, y unassigned" begin
+        @testset "Prune z above" begin
 
             trailer = SeaPearl.Trailer()
-            matrix = [3 2 3 4;
+            matrix = [1 2 3 4;
                       5 6 7 8;
-                      9 10 11 8]
+                      9 10 9 7]
             x = SeaPearl.IntVar(1, 3, "x", trailer)
             y = SeaPearl.IntVar(1, 4, "y", trailer)
             z = SeaPearl.IntVar(1, 12, "z", trailer)
@@ -57,25 +77,109 @@
             prunedDomains = SeaPearl.CPModification()
 
             @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
-            @test prunedDomains == SeaPearl.CPModification("z" => [1, 12])
+            @test prunedDomains == SeaPearl.CPModification("z" => [11, 12])
             @test constraint.active.value
             
         end
 
-        @testset "x true, y unassigned" begin
+        @testset "Prune z below & above" begin
 
             trailer = SeaPearl.Trailer()
-            x = SeaPearl.BoolVar("x", trailer)
-            y = SeaPearl.BoolVar("y", trailer)
+            matrix = [5 3 3 4;
+                      5 6 7 8;
+                      9 10 9 7]
+            x = SeaPearl.IntVar(1, 3, "x", trailer)
+            y = SeaPearl.IntVar(1, 4, "y", trailer)
+            z = SeaPearl.IntVar(1, 12, "z", trailer)
 
-            constraint = SeaPearl.BinaryOr(x, y, trailer)
+            constraint = SeaPearl.Element2D(matrix, x, y, z, trailer)
             toPropagate = Set{SeaPearl.Constraint}()
             prunedDomains = SeaPearl.CPModification()
 
-            SeaPearl.assign!(x, true)
+            @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
+            @test prunedDomains == SeaPearl.CPModification("z" => [1, 2, 11, 12])
+            @test constraint.active.value
+            
+        end
+
+        @testset "Prune x" begin
+
+            trailer = SeaPearl.Trailer()
+            matrix = [3 2 3 4;
+                      5 6 7 8;
+                      9 10 11 12]
+            x = SeaPearl.IntVar(1, 3, "x", trailer)
+            y = SeaPearl.IntVar(1, 4, "y", trailer)
+            z = SeaPearl.IntVar(6, 12, "z", trailer)
+
+            constraint = SeaPearl.Element2D(matrix, x, y, z, trailer)
+            toPropagate = Set{SeaPearl.Constraint}()
+            prunedDomains = SeaPearl.CPModification()
 
             @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
-            @test prunedDomains == SeaPearl.CPModification()
+            @test prunedDomains == SeaPearl.CPModification("x" => [1])
+            @test constraint.active.value
+            
+        end
+
+        @testset "Prune x & y" begin
+
+            trailer = SeaPearl.Trailer()
+            matrix = [3 2 3 4;
+                      5 6 7 8;
+                      9 10 11 12]
+            x = SeaPearl.IntVar(1, 3, "x", trailer)
+            y = SeaPearl.IntVar(1, 4, "y", trailer)
+            z = SeaPearl.IntVar(10, 12, "z", trailer)
+
+            constraint = SeaPearl.Element2D(matrix, x, y, z, trailer)
+            toPropagate = Set{SeaPearl.Constraint}()
+            prunedDomains = SeaPearl.CPModification()
+
+            @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
+            @test prunedDomains == SeaPearl.CPModification("x" => [1, 2], "y" => [1])
+            @test constraint.active.value
+            
+        end
+
+        @testset "z assigned make x & y assigned" begin
+
+            trailer = SeaPearl.Trailer()
+            matrix = [3 2 3 4;
+                      5 6 12 8;
+                      9 10 11 10]
+            x = SeaPearl.IntVar(1, 3, "x", trailer)
+            y = SeaPearl.IntVar(1, 4, "y", trailer)
+            z = SeaPearl.IntVar(12, 12, "z", trailer)
+
+            constraint = SeaPearl.Element2D(matrix, x, y, z, trailer)
+            toPropagate = Set{SeaPearl.Constraint}()
+            prunedDomains = SeaPearl.CPModification()
+
+            @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
+            @test SeaPearl.assignedValue(x) == 2
+            @test SeaPearl.assignedValue(y) == 3
+            @test prunedDomains == SeaPearl.CPModification("x" => [1, 3], "y" => [1, 2, 4])
+            @test !constraint.active.value
+            
+        end
+
+        @testset "z assigned make x & y pruned" begin
+
+            trailer = SeaPearl.Trailer()
+            matrix = [3 2 3 4;
+                      5 12 12 8;
+                      9 12 11 10]
+            x = SeaPearl.IntVar(1, 3, "x", trailer)
+            y = SeaPearl.IntVar(1, 4, "y", trailer)
+            z = SeaPearl.IntVar(12, 12, "z", trailer)
+
+            constraint = SeaPearl.Element2D(matrix, x, y, z, trailer)
+            toPropagate = Set{SeaPearl.Constraint}()
+            prunedDomains = SeaPearl.CPModification()
+
+            @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
+            @test prunedDomains == SeaPearl.CPModification("x" => [1], "y" => [1, 4])
             @test !constraint.active.value
             
         end
