@@ -28,3 +28,6 @@ abstract type IntVarView <: AbstractIntVar end
 abstract type IntDomainView <: AbstractIntDomain end
 
 include("IntVarView.jl")
+
+include("IntSetDomain.jl")
+include("IntSetVar.jl")
