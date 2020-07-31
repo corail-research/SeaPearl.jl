@@ -21,7 +21,8 @@ end
 `InSet` propagation function. 
 """
 function propagate!(constraint::InSet, toPropagate::Set{Constraint}, prunedDomains::CPModification)
-    # Feasability
+    # Feasibility
+
     if all(!is_possible(constraint.s.domain, v) for v in constraint.x.domain)
         return false
     end
