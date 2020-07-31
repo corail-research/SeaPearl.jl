@@ -39,14 +39,14 @@ struct Element2D <: Constraint
 end
 
 function update_support_and_prune!(constraint, xyz, lost_position::Int)
-    setValue!(constraint.n_cols_sup[xyz[lost_position][1]], constraint.n_cols_sup[xyz[lost_position][1]] - 1)
-    setValue!(constraint.n_rows_sup[xyz[lost_position][2]], constraint.n_cols_sup[xyz[lost_position][1]] - 1)
+    setValue!(constraint.n_rows_sup[xyz[lost_position][1]], constraint.n_rows_sup[xyz[lost_position][1]].value - 1)
+    setValue!(constraint.n_cols_sup[xyz[lost_position][2]], constraint.n_cols_sup[xyz[lost_position][2]].value - 1)
     prunedX, prunedY = [], []
-    if constraint.n_cols_sup[xyz[lost_position][1]] == 0
-        prunedX = remove!(x.domain, xyz[lost_position][1])
+    if constraint.n_rows_sup[xyz[lost_position][1]].value == 0
+        prunedX = remove!(constraint.x.domain, xyz[lost_position][1])
     end
-    if constraint.n_rows_sup[xyz[lost_position][2]] == 0
-        prunedY = remove!(y.domain, xyz[lost_position][2])
+    if constraint.n_cols_sup[xyz[lost_position][2]].value == 0
+        prunedY = remove!(constraint.y.domain, xyz[lost_position][2])
     end
     return prunedX, prunedY
 end
@@ -57,12 +57,27 @@ end
 `Element2D` propagation function.
 """
 function propagate!(constraint::Element2D, toPropagate::Set{Constraint}, prunedDomains::CPModification)
-    # to do: support, feasibility, deactivate
     low = constraint.low.value
     up = constraint.up.value
     z_min = minimum(constraint.z.domain)
     z_max = maximum(constraint.z.domain)
     xyz = constraint.xyz
+    n, m = size(constraint.matrix)
+
+    prunedX_b = removeBelow!(constraint.x.domain, 1)
+    prunedX_a = removeAbove!(constraint.x.domain, n)
+    prunedX = vcat(prunedX_b, prunedX_a)
+    prunedY_b = removeBelow!(constraint.y.domain, 1)
+    prunedY_a = removeAbove!(constraint.y.domain, m)
+    prunedY = vcat(prunedY_b, prunedY_a)
+    if !isempty(prunedX)
+        addToPrunedDomains!(prunedDomains, constraint.x, prunedX)
+        triggerDomainChange!(toPropagate, constraint.x)
+    end
+    if !isempty(prunedY)
+        addToPrunedDomains!(prunedDomains, constraint.y, prunedY)
+        triggerDomainChange!(toPropagate, constraint.y)
+    end
 
     while xyz[low][3] < z_min || !(xyz[low][1] in constraint.x.domain) || !(xyz[low][2] in constraint.y.domain)
         prunedX, prunedY = update_support_and_prune!(constraint, xyz, low)
@@ -99,6 +114,10 @@ function propagate!(constraint::Element2D, toPropagate::Set{Constraint}, prunedD
     end
     setValue!(constraint.low, low)
     setValue!(constraint.up, up)
+    
+    if isbound(constraint.z)
+        setValue!(constraint.active, false)
+    end
     return !isempty(constraint.x.domain) && !isempty(constraint.y.domain) && !isempty(constraint.z.domain)
 end
 
