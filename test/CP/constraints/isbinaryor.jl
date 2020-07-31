@@ -113,9 +113,6 @@
             SeaPearl.assign!(y, false)
 
             @test !SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
-            @test SeaPearl.length(y.domain) == 0
-            @test prunedDomains == SeaPearl.CPModification("y" => [false])
-            @test !constraint.active.value
             
         end
 
