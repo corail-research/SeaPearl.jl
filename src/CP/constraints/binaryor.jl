@@ -19,7 +19,7 @@ end
 """
     propagate!(constraint::BinaryOr, toPropagate::Set{Constraint}, prunedDomains::CPModification)
 
-`BinaryOr` propagation function. The pruning is quite superficial.
+`BinaryOr` propagation function.
 """
 function propagate!(constraint::BinaryOr, toPropagate::Set{Constraint}, prunedDomains::CPModification)
     
