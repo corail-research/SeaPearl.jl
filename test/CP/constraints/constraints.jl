@@ -12,6 +12,7 @@
     include("reifiedinset.jl")
     include("binaryor.jl")
     include("isbinaryor.jl")
+    include("element2d.jl")
 
     @testset "addOnDomainChange!()" begin
         trailer = SeaPearl.Trailer()
