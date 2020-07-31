@@ -8,13 +8,15 @@ include("sumtozero.jl")
 include("sumlessthan.jl")
 include("sumgreaterthan.jl")
 include("islessorequal.jl")
+include("inset.jl")
+include("reifiedinset.jl")
 
 """
     addOnDomainChange!(x::AbstractIntVar, constraint::Constraint)
 
 Make sure `constraint` will be propagated if `x`'s domain changes. 
 """
-function addOnDomainChange!(x::Union{IntVar, BoolVar}, constraint::Constraint)
+function addOnDomainChange!(x::Union{IntVar, BoolVar, IntSetVar}, constraint::Constraint)
     if !(constraint in x.onDomainChange)
         push!(x.onDomainChange, constraint)
     end
@@ -40,6 +42,6 @@ end
 
 Add the constraints that have to be propagated when the domain of `x` changes to `toPropagate`.
 """
-triggerDomainChange!(toPropagate::Set{Constraint}, x::Union{AbstractIntVar, BoolVar}) = addToPropagate!(toPropagate, getOnDomainChange(x))
-getOnDomainChange(x::Union{IntVar, BoolVar}) = x.onDomainChange
+triggerDomainChange!(toPropagate::Set{Constraint}, x::Union{AbstractIntVar, BoolVar, IntSetVar}) = addToPropagate!(toPropagate, getOnDomainChange(x))
+getOnDomainChange(x::Union{IntVar, BoolVar, IntSetVar}) = x.onDomainChange
 getOnDomainChange(x::IntVarView) = getOnDomainChange(x.x)

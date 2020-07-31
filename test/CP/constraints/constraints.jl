@@ -8,6 +8,8 @@
     include("sumlessthan.jl")
     include("sumgreaterthan.jl")
     include("islessorequal.jl")
+    include("inset.jl")
+    include("reifiedinset.jl")
 
     @testset "addOnDomainChange!()" begin
         trailer = SeaPearl.Trailer()
@@ -27,6 +29,14 @@
         SeaPearl.addOnDomainChange!(b, reified_constraint)
 
         @test reified_constraint in b.onDomainChange
+
+        s = SeaPearl.IntSetVar(2, 6, "x", trailer)
+        set_constraint = SeaPearl.InSet(ax, s, trailer)
+        SeaPearl.addOnDomainChange!(s, constraint)
+        SeaPearl.addOnDomainChange!(ax, constraint)
+
+        @test set_constraint in s.onDomainChange
+        @test set_constraint in x.onDomainChange
     end
 
     @testset "addToPropagate!()" begin
@@ -46,6 +56,13 @@
         toPropagate = Set{SeaPearl.Constraint}()
         SeaPearl.setValue!(constraint.active, false)
         @test !(constraint in toPropagate)
+
+        s = SeaPearl.IntSetVar(2, 6, "x", trailer)
+        set_constraint = SeaPearl.InSet(ax, s, trailer)
+        constraints = Array{SeaPearl.Constraint}([set_constraint])
+        SeaPearl.addToPropagate!(toPropagate, constraints)
+
+        @test set_constraint in toPropagate
     end
 
     @testset "triggerDomainChange!()" begin
@@ -67,5 +84,11 @@
 
         SeaPearl.triggerDomainChange!(toPropagate, b)
         @test reified_constraint in toPropagate
+
+        s = SeaPearl.IntSetVar(2, 6, "x", trailer)
+        set_constraint = SeaPearl.InSet(ax, s, trailer)
+        SeaPearl.triggerDomainChange!(toPropagate, s)
+
+        @test set_constraint in toPropagate
     end
 end
