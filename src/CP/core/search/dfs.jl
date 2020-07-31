@@ -1,12 +1,12 @@
 
 """
-    search!(model::CPModel, ::Type{DFSearch}, variableHeuristic, valueSelection::ValueSelection=BasicHeuristic())
+    search!(model::CPModel, ::Type{DFSearch}, variableHeuristic, valueSelection::ValueSelection=LexicographicOrder())
 
 Perform a Depth-First search in the `model` using `variableHeuristic` to choose which domain will be changed
 at each branching and using `valueSelection` to choose how the branching will be done. 
 This strategy, starting at the root node, will explore as deep as possible before backtracking.
 """
-function search!(model::CPModel, ::Type{DFSearch}, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection=BasicHeuristic())
+function search!(model::CPModel, ::Type{DFSearch}, variableHeuristic::AbstractVariableSelection, valueSelection::AbstractValueSelection=LexicographicOrder())
 
     # create env and get first observation
     valueSelection(InitializingPhase(), model, nothing, nothing)
@@ -53,7 +53,7 @@ Add procedures to `toCall`, that, called in the stack order (LIFO) with the `mod
 Some procedures will contain a call to `expandDfs!` itself. Each `expandDfs!` call is wrapped around a `saveState!` and a `restoreState!` to be
 able to backtrack thanks to the trailer.
 """
-function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, newConstraints=nothing)
+function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::AbstractValueSelection, newConstraints=nothing)
     # Dealing with limits
     model.statistics.numberOfNodes += 1
     if !belowNodeLimit(model)

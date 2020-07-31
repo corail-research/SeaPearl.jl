@@ -19,7 +19,7 @@ function train!(;
         metricsFun=((;kwargs...) -> nothing),
         verbose::Bool=true,
         evaluator=SameInstancesEvaluator()
-    ) where T <: ValueSelection
+    ) where T <: AbstractValueSelection
 
     if isa(valueSelectionArray, T)
         valueSelectionArray = [valueSelectionArray]

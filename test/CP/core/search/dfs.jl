@@ -8,7 +8,7 @@ using DataStructures
         model = SeaPearl.CPModel(trailer)
         model.limit.numberOfNodes = 1
         toCall = Stack{Function}()
-        @test SeaPearl.expandDfs!(toCall, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :NodeLimitStop
+        @test SeaPearl.expandDfs!(toCall, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.LexicographicOrder()) == :NodeLimitStop
         @test isempty(toCall)
 
         # :SolutionLimitStop
@@ -17,7 +17,7 @@ using DataStructures
         model.limit.numberOfSolutions = 0
         
         toCall = Stack{Function}()
-        @test SeaPearl.expandDfs!(toCall, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :SolutionLimitStop
+        @test SeaPearl.expandDfs!(toCall, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.LexicographicOrder()) == :SolutionLimitStop
         @test isempty(toCall)
 
         # :Infeasible
@@ -31,7 +31,7 @@ using DataStructures
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
-        @test SeaPearl.expandDfs!(toCall, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Infeasible
+        @test SeaPearl.expandDfs!(toCall, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.LexicographicOrder()) == :Infeasible
         @test isempty(toCall)
 
         # :Feasible
@@ -45,7 +45,7 @@ using DataStructures
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
-        @test SeaPearl.expandDfs!(toCall, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :FoundSolution
+        @test SeaPearl.expandDfs!(toCall, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.LexicographicOrder()) == :FoundSolution
         @test isempty(toCall)
 
 
@@ -60,7 +60,7 @@ using DataStructures
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
-        @test SeaPearl.expandDfs!(toCall, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Feasible
+        @test SeaPearl.expandDfs!(toCall, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.LexicographicOrder()) == :Feasible
         @test length(toCall) == 6
 
         @test pop!(toCall)(model) == :SavingState
@@ -144,7 +144,7 @@ using DataStructures
 
     end
 
-    @testset "search!() with a BasicHeuristic" begin
+    @testset "search!() with `LexicographicOrder` value ordering" begin
 
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
@@ -155,7 +155,7 @@ using DataStructures
         SeaPearl.addVariable!(model, y)
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
-        @test SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Optimal
+        @test SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection(), SeaPearl.LexicographicOrder()) == :Optimal
         @test model.solutions[1] == Dict("x" => 2,"y" => 2)
         @test model.solutions[2] == Dict("x" => 3,"y" => 3)
 
@@ -168,7 +168,7 @@ using DataStructures
         push!(model.constraints, SeaPearl.Equal(x, y, model.trailer))
 
         my_heuristic(x::SeaPearl.IntVar) = minimum(x.domain)
-        @test SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(my_heuristic)) == :Optimal
+        @test SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection(), SeaPearl.LexicographicOrder()) == :Optimal
         @test model.solutions[1] == Dict("x" => 2,"y" => 2)
         @test model.solutions[2] == Dict("x" => 3,"y" => 3)
 

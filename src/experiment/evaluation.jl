@@ -19,7 +19,7 @@ function init_evaluator!(eval::SameInstancesEvaluator, generator::AbstractModelG
     eval.instances = instances
 end
 
-function evaluate(eval::SameInstancesEvaluator, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, strategy::Type{<:SearchStrategy})
+function evaluate(eval::SameInstancesEvaluator, variableHeuristic::AbstractVariableSelection, valueSelection::AbstractValueSelection, strategy::Type{<:SearchStrategy})
     testmode!(valueSelection, true)
     n = length(eval.instances)
     dt = 0.

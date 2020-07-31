@@ -36,13 +36,13 @@ mutable struct Optimizer <: MOI.AbstractOptimizer
     cpmodel::CPModel
     moimodel::MOIModel
     variableselection::AbstractVariableSelection
-    valueselection::ValueSelection
+    valueselection::AbstractValueSelection
     options::Dict{String, Any}
     terminationStatus::MOI.TerminationStatusCode
     primalStatus::MOI.ResultStatusCode
 
     function Optimizer()
         cpmodel = SeaPearl.CPModel(SeaPearl.Trailer())
-        new(cpmodel, MOIModel(), MinDomainVariableSelection(), BasicHeuristic(), Dict{String, Any}(), MOI.OPTIMIZE_NOT_CALLED)
+        new(cpmodel, MOIModel(), MinDomainVariableSelection(), LexicographicOrder(), Dict{String, Any}(), MOI.OPTIMIZE_NOT_CALLED)
     end
 end

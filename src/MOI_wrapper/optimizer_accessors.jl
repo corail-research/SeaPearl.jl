@@ -40,7 +40,7 @@ MOI.supports(::Optimizer, ::SeaPearl.MOIValueSelectionAttribute) = true
 MOI.supports(::Optimizer, ::MOI.VariablePrimal) = true
 
 MOI.Utilities.map_indices(::Function, x::AbstractVariableSelection) = x
-MOI.Utilities.map_indices(::Function, x::ValueSelection) = x
+MOI.Utilities.map_indices(::Function, x::AbstractValueSelection) = x
 
 function MOI.set(model::Optimizer, p::MOI.RawParameter, value)
     model.options[p.name] = value
@@ -50,7 +50,7 @@ function MOI.set(model::Optimizer, ::SeaPearl.MOIVariableSelectionAttribute, heu
     model.variableselection = heuristic
 end
 
-function MOI.set(model::Optimizer, ::MOIValueSelectionAttribute, valueselection::ValueSelection)
+function MOI.set(model::Optimizer, ::MOIValueSelectionAttribute, valueselection::AbstractValueSelection)
     model.valueselection = valueselection
 end
 

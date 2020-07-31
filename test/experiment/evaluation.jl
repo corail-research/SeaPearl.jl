@@ -26,8 +26,7 @@
         SeaPearl.init_evaluator!(eval, generator; rng=MersenneTwister(8))
 
         variableheuristic = SeaPearl.MinDomainVariableSelection{false}()
-        my_heuristic(x::SeaPearl.IntVar) = minimum(x.domain)
-        valueheuristic = SeaPearl.BasicHeuristic(my_heuristic)
+        valueheuristic = SeaPearl.LexicographicOrder()
 
         nodes, dtime = SeaPearl.evaluate(eval, variableheuristic, valueheuristic, SeaPearl.DFSearch)
         @test nodes == 23.

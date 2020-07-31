@@ -24,7 +24,7 @@ function benchmark_solving(;
         variableHeuristic::AbstractVariableSelection=MinDomainVariableSelection(),
         metricsFun=((;kwargs...) -> nothing),
         verbose::Bool=true
-    ) where T <: ValueSelection
+    ) where T <: AbstractValueSelection
 
     if isa(valueSelectionArray, T)
         valueSelectionArray = [valueSelectionArray]

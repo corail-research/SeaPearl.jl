@@ -20,7 +20,7 @@ struct EndingPhase <: LearningPhase end
 
 include("../../RL/RL.jl")
 
-abstract type ValueSelection end
+abstract type AbstractValueSelection end
 
 include("basicheuristic.jl")
 

@@ -26,7 +26,7 @@ function launch_experiment!(
         metricsFun,
         verbose::Bool;
         evaluator=SameInstancesEvaluator()
-    ) where T <: ValueSelection
+    ) where T <: AbstractValueSelection
     eval_freq = evaluator.eval_freq
 
     nb_heuristics = length(valueSelectionArray)

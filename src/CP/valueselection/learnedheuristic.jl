@@ -27,7 +27,7 @@ From the RL point of view, this LearnedHeuristic also plays part of the role nor
 LearnedHeuristic stores the action space, the current state and reward. The other role that a classic RL environment has is describing
 the consequences of an action: in SeaPearl, this is done by the CP part - branching, running fixPoint!, backtracking, etc...
 """
-mutable struct LearnedHeuristic{SR<:AbstractStateRepresentation, R<:AbstractReward, A<:ActionOutput} <: ValueSelection
+mutable struct LearnedHeuristic{SR<:AbstractStateRepresentation, R<:AbstractReward, A<:ActionOutput} <: AbstractValueSelection
     agent::RL.Agent
     fitted_problem::Union{Nothing, Type{G}} where G
     fitted_strategy::Union{Nothing, Type{S}} where S <: SearchStrategy

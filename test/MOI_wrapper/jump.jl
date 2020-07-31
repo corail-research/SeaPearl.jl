@@ -75,9 +75,10 @@ end
         MOI.set(model, SeaPearl.MOIVariableSelectionAttribute(), variableheuristic)
 
         # Define the heuristic used for value selection
+        struct CustomMinValueHeuristic <: SeaPearl.AbstractBasicHeuristic end
+        SeaPearl.selectValue(::CustomMinValueHeuristic, x::SeaPearl.AbstractVar) = (numberOfSteps += 1; minimum(x.domain))
         numberOfSteps = 0
-        valueheuristic = SeaPearl.BasicHeuristic((x) -> (numberOfSteps += 1; minimum(x.domain)))
-        MOI.set(model, SeaPearl.MOIValueSelectionAttribute(), valueheuristic)
+        MOI.set(model, SeaPearl.MOIValueSelectionAttribute(), CustomMinValueHeuristic())
 
 
         optimize!(model)
@@ -111,9 +112,10 @@ end
         MOI.set(model, SeaPearl.MOIVariableSelectionAttribute(), variableheuristic)
 
         # Define the heuristic used for value selection
+        struct CustomMaxValueHeuristic <: SeaPearl.AbstractBasicHeuristic end
+        SeaPearl.selectValue(::CustomMaxValueHeuristic, x::SeaPearl.AbstractVar) = (numberOfSteps += 1; maximum(x.domain))
         numberOfSteps = 0
-        valueheuristic = SeaPearl.BasicHeuristic((x) -> (numberOfSteps += 1; maximum(x.domain)))
-        MOI.set(model, SeaPearl.MOIValueSelectionAttribute(), valueheuristic)
+        MOI.set(model, SeaPearl.MOIValueSelectionAttribute(), CustomMaxValueHeuristic())
 
         optimize!(model)
         status = MOI.get(model, MOI.TerminationStatus())
