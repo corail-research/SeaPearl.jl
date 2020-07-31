@@ -31,8 +31,12 @@ function propagate!(constraint::SetDiffSingleton, toPropagate::Set{Constraint}, 
     for v in possible_not_required_values(b.domain)
         if !is_possible(a.domain, v) && !(isbound(x) && assignedValue(x) != v)
             if is_possible(b.domain, v)
-                exclude!(b.domain, v)
-                triggerDomainChange!(toPropagate, b)
+                if !is_required(b.domain, v)
+                    exclude!(b.domain, v)
+                    triggerDomainChange!(toPropagate, b)
+                else
+                    return false
+                end
             end
         end
     end
@@ -68,8 +72,12 @@ function propagate!(constraint::SetDiffSingleton, toPropagate::Set{Constraint}, 
     for v in possible_not_required_values(a.domain)
         if !is_possible(b.domain, v)
             if is_possible(a.domain, v)
-                exclude!(a.domain, v)
-                triggerDomainChange!(toPropagate, a)
+                if !is_required(a.domain, v)
+                    exclude!(a.domain, v)
+                    triggerDomainChange!(toPropagate, a)
+                else
+                    return false
+                end
             end
         end
     end
@@ -93,8 +101,12 @@ function propagate!(constraint::SetDiffSingleton, toPropagate::Set{Constraint}, 
     if isbound(x)
         v = assignedValue(x)
         if is_possible(a.domain, v)
-            exclude!(a.domain, v)
-            triggerDomainChange!(toPropagate, a)
+            if !is_required(a.domain, v)
+                exclude!(a.domain, v)
+                triggerDomainChange!(toPropagate, a)
+            else
+                return false
+            end
         end
     end
 
