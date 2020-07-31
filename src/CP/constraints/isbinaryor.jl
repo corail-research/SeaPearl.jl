@@ -21,7 +21,7 @@ end
 """
     propagate!(constraint::isBinaryOr, toPropagate::Set{Constraint}, prunedDomains::CPModification)
 
-`isBinaryOr` propagation function. The pruning is quite superficial.
+`isBinaryOr` propagation function.
 """
 function propagate!(constraint::isBinaryOr, toPropagate::Set{Constraint}, prunedDomains::CPModification)
     if isbound(constraint.b)
