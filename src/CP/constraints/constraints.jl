@@ -10,6 +10,7 @@ include("sumgreaterthan.jl")
 include("islessorequal.jl")
 include("inset.jl")
 include("reifiedinset.jl")
+include("element2d.jl")
 
 """
     addOnDomainChange!(x::AbstractIntVar, constraint::Constraint)
