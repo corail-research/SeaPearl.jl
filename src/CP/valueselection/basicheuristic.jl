@@ -1,8 +1,8 @@
 
 """
-    abstract type AbstractBasicHeuristic <: ValueSelection end
+    abstract type AbstractBasicHeuristic <: AbstractValueSelection end
 
-A `AbstractBasicHeuristic` is any type of `ValueSelection` that is not learning. It makes it possible to use 
+A `AbstractBasicHeuristic` is any type of `AbstractValueSelection` that is not learning. It makes it possible to use 
 SeaPearl.jl as a classic CP Solver. This is useful in itself as it is a fully Julia native CP Solver.
 This is also useful to be able to compare the performances of the LearnedHeuristic to some handcrafted heuristics.
 
