@@ -28,54 +28,43 @@ function propagate!(constraint::BinaryMaximumBC, toPropagate::Set{Constraint}, p
     max_x, max_y, max_z = minimum(constraint.x.domain), maximum(constraint.y.domain), maximum(constraint.z.domain)
     max_of_min = max(min_y, min_z)
     max_of_max = max(max_y, max_z)
+    min_of_min = min(min_y, min_z)
     
     # feasibility
-    if min_x > max_of_max
+    if min_x > max_of_max || max_x < min_of_min
         return false 
     end
 
-    # bound pruning
+    # y & z pruning x 
     if min_x < max_of_min || max_x > max_of_max
         prunedX = vcat(removeBelow!(constraint.x, max_of_min), removeAbove!(constraint.x, max_of_max))
         addToPrunedDomains!(prunedDomains, constraint.x, prunedX)
         triggerDomainChange!(toPropagate, constraint.x)
     end
 
-    # if one of y, z dominate the other, the dominant can help assign x and x can help prune the dominant one 
-    if min_y > max_z # y is dominant on z 
-        # y try to assign a value to x 
-        if isbound(constraint.y)
-            prunedX = assign!(constraint.x, assignedValue(constraint.y))
-            if !isempty(prunedX)
-                addToPrunedDomains!(prunedDomains, constraint.x, prunedX)
-                triggerDomainChange!(toPropagate, constraint.x)
-            end
-            setValue!(constraint.active, false)
-        end
+    # x pruning y & z
+    if (min_x > max_z & min_x <= max_y) || (max_x < min_z & max_x >= min_y) # if x can only be associated to y       
         # x trying to prune y 
-        prunedY = removeBelow!(constraint.y.domain, min_x)
+        prunedY = vcat(removeBelow!(constraint.y.domain, min_x), removeAbove!(constraint.y.domain, max_x))
         if !isempty(prunedY)
             addToPrunedDomains!(prunedDomains, constraint.y, prunedY)
             triggerDomainChange!(toPropagate, constraint.y)
         end
-    elseif min_z > max_y # z is dominant on y 
-        # 
-        if isbound(constraint.z)
-            prunedX = assign!(constraint.x, assignedValue(constraint.z))
-            if !isempty(prunedX)
-                addToPrunedDomains!(prunedDomains, constraint.x, prunedX)
-                triggerDomainChange!(toPropagate, constraint.x)
-            end
-            setValue!(constraint.active, false)
-        end
-        prunedZ = removeBelow!(constraint.z.domain, min_x)
+    elseif (min_x > max_y & min_x <= max_z) || (max_x < min_y & max_x >= min_z) # if x can only be associated to z 
+        # x trying to prune z 
+        prunedZ = vcat(removeBelow!(constraint.z.domain, min_x), removeAbove!(constraint.z.domain, max_x))
         if !isempty(prunedZ)
             addToPrunedDomains!(prunedDomains, constraint.z, prunedZ)
             triggerDomainChange!(toPropagate, constraint.z)
         end
     end
 
-    return true
+    # deactivation
+    if isbound(constraint.x) + isbound(constraint.y) + isbound(constraint. z) >= 2
+        setValue!(constraint.active, false)
+    end
+
+    return !isempty(constraint.x) & !isempty(constraint.y) & !isempty(constraint.z)
 end
 
 variablesArray(constraint::BinaryMaximumBC) = [constraint.x, constraint.y, constraint.z]
