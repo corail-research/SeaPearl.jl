@@ -7,7 +7,7 @@
         y = SeaPearl.IntVar(1, 4, "y", trailer)
         z = SeaPearl.IntVar(1, 12, "z", trailer)
 
-        constraint = SeaPearl.BinaryMaximumBC(matrix, x, y, z, trailer)
+        constraint = SeaPearl.BinaryMaximumBC(x, y, z, trailer)
 
         @test constraint in x.onDomainChange
         @test constraint in y.onDomainChange
@@ -17,11 +17,43 @@
 
     @testset "propagate!(::BinaryMaximumBC)" begin
 
-        @testset "Prune x below" begin
+        @testset "x to small" begin
 
             trailer = SeaPearl.Trailer()
 
-            x = SeaPearl.IntVar(1, 5, "x", trailer)
+            x = SeaPearl.IntVar(1, 3, "x", trailer)
+            y = SeaPearl.IntVar(4, 6, "y", trailer)
+            z = SeaPearl.IntVar(5, 12, "z", trailer)
+
+            constraint = SeaPearl.BinaryMaximumBC(x, y, z, trailer)
+            toPropagate = Set{SeaPearl.Constraint}()
+            prunedDomains = SeaPearl.CPModification()
+
+            @test !SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
+        
+        end
+
+        @testset "z too big" begin
+
+            trailer = SeaPearl.Trailer()
+            
+            x = SeaPearl.IntVar(2, 4, "x", trailer)
+            y = SeaPearl.IntVar(1, 4, "y", trailer)
+            z = SeaPearl.IntVar(8, 12, "z", trailer)
+
+            constraint = SeaPearl.BinaryMaximumBC(x, y, z, trailer)
+            toPropagate = Set{SeaPearl.Constraint}()
+            prunedDomains = SeaPearl.CPModification()
+
+            @test !SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
+            
+        end
+
+        @testset "x too big" begin
+
+            trailer = SeaPearl.Trailer()
+
+            x = SeaPearl.IntVar(15, 18, "x", trailer)
             y = SeaPearl.IntVar(3, 6, "y", trailer)
             z = SeaPearl.IntVar(4, 12, "z", trailer)
 
@@ -29,109 +61,78 @@
             toPropagate = Set{SeaPearl.Constraint}()
             prunedDomains = SeaPearl.CPModification()
 
-            @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
-            @test prunedDomains == SeaPearl.CPModification("x" => [1, 2])
-            @test constraint.active.value
+            @test !SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
         
         end
 
-        @testset "Prune z below" begin
+        @testset "Prune x below" begin
 
             trailer = SeaPearl.Trailer()
-            matrix = [3 2 3 4;
-                      5 6 7 8;
-                      9 10 11 12]
-            x = SeaPearl.IntVar(1, 3, "x", trailer)
-            y = SeaPearl.IntVar(1, 4, "y", trailer)
-            z = SeaPearl.IntVar(1, 12, "z", trailer)
+            
+            x = SeaPearl.IntVar(1, 6, "x", trailer)
+            y = SeaPearl.IntVar(3, 4, "y", trailer)
+            z = SeaPearl.IntVar(4, 12, "z", trailer)
 
-            constraint = SeaPearl.Element2D(matrix, x, y, z, trailer)
+            constraint = SeaPearl.BinaryMaximumBC(x, y, z, trailer)
             toPropagate = Set{SeaPearl.Constraint}()
             prunedDomains = SeaPearl.CPModification()
 
             @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
-            @test prunedDomains == SeaPearl.CPModification("z" => [1])
+            @test prunedDomains == SeaPearl.CPModification("x" => [1, 2, 3])
             @test constraint.active.value
             
         end
 
-        @testset "Prune z above" begin
+        @testset "Prune x above" begin
 
             trailer = SeaPearl.Trailer()
-            matrix = [1 2 3 4;
-                      5 6 7 8;
-                      9 10 9 7]
-            x = SeaPearl.IntVar(1, 3, "x", trailer)
-            y = SeaPearl.IntVar(1, 4, "y", trailer)
-            z = SeaPearl.IntVar(1, 12, "z", trailer)
+            
+            x = SeaPearl.IntVar(5, 15, "x", trailer)
+            y = SeaPearl.IntVar(3, 8, "y", trailer)
+            z = SeaPearl.IntVar(4, 12, "z", trailer)
 
-            constraint = SeaPearl.Element2D(matrix, x, y, z, trailer)
+            constraint = SeaPearl.BinaryMaximumBC(x, y, z, trailer)
             toPropagate = Set{SeaPearl.Constraint}()
             prunedDomains = SeaPearl.CPModification()
 
             @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
-            @test prunedDomains == SeaPearl.CPModification("z" => [11, 12])
+            @test prunedDomains == SeaPearl.CPModification("x" => [13, 14, 15])
             @test constraint.active.value
             
         end
 
-        @testset "Prune z below & above" begin
+        @testset "Prune y" begin
 
             trailer = SeaPearl.Trailer()
-            matrix = [5 3 3 4;
-                      5 6 7 8;
-                      9 10 9 7]
-            x = SeaPearl.IntVar(1, 3, "x", trailer)
-            y = SeaPearl.IntVar(1, 4, "y", trailer)
-            z = SeaPearl.IntVar(1, 12, "z", trailer)
+            
+            x = SeaPearl.IntVar(4, 5, "x", trailer)
+            y = SeaPearl.IntVar(4, 7, "y", trailer)
+            z = SeaPearl.IntVar(1, 3, "z", trailer)
 
-            constraint = SeaPearl.Element2D(matrix, x, y, z, trailer)
+            constraint = SeaPearl.BinaryMaximumBC(x, y, z, trailer)
             toPropagate = Set{SeaPearl.Constraint}()
             prunedDomains = SeaPearl.CPModification()
 
             @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
-            @test prunedDomains == SeaPearl.CPModification("z" => [1, 2, 11, 12])
+            @test prunedDomains == SeaPearl.CPModification("y" => [6, 7])
             @test constraint.active.value
             
         end
 
-        @testset "Prune z below & above" begin
+        @testset "Prune z" begin
 
             trailer = SeaPearl.Trailer()
-            matrix = [5 3 3 4;
-                      5 6 6 8;
-                      9 10 9 6]
-            x = SeaPearl.IntVar(1, 3, "x", trailer)
-            y = SeaPearl.IntVar(1, 4, "y", trailer)
-            z = SeaPearl.IntVar(1, 12, "z", trailer)
-
-            constraint = SeaPearl.Element2D(matrix, x, y, z, trailer)
-            toPropagate = Set{SeaPearl.Constraint}()
-            prunedDomains = SeaPearl.CPModification()
-
-            @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
-            # 7 shouldn't be pruned 
-            @test prunedDomains == SeaPearl.CPModification("z" => [1, 2, 11, 12])
-            @test constraint.active.value
             
-        end
+            x = SeaPearl.IntVar(7, 10, "x", trailer)
+            y = SeaPearl.IntVar(1, 6, "y", trailer)
+            z = SeaPearl.IntVar(5, 12, "z", trailer)
 
-        @testset "Prune x" begin
-
-            trailer = SeaPearl.Trailer()
-            matrix = [3 2 3 4;
-                      5 6 7 8;
-                      9 10 11 12]
-            x = SeaPearl.IntVar(1, 3, "x", trailer)
-            y = SeaPearl.IntVar(1, 4, "y", trailer)
-            z = SeaPearl.IntVar(6, 12, "z", trailer)
-
-            constraint = SeaPearl.Element2D(matrix, x, y, z, trailer)
+            constraint = SeaPearl.BinaryMaximumBC(x, y, z, trailer)
             toPropagate = Set{SeaPearl.Constraint}()
             prunedDomains = SeaPearl.CPModification()
 
             @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
-            @test prunedDomains == SeaPearl.CPModification("x" => [1])
+            @test prunedDomains == SeaPearl.CPModification("z" => [5, 6, 11, 12])
             @test constraint.active.value
             
         end
@@ -139,61 +140,55 @@
         @testset "Prune x & y" begin
 
             trailer = SeaPearl.Trailer()
-            matrix = [3 2 3 4;
-                      5 6 7 8;
-                      9 10 11 12]
-            x = SeaPearl.IntVar(1, 3, "x", trailer)
-            y = SeaPearl.IntVar(1, 4, "y", trailer)
-            z = SeaPearl.IntVar(10, 12, "z", trailer)
+            
+            x = SeaPearl.IntVar(7, 10, "x", trailer)
+            y = SeaPearl.IntVar(4, 8, "y", trailer)
+            z = SeaPearl.IntVar(1, 4, "z", trailer)
 
-            constraint = SeaPearl.Element2D(matrix, x, y, z, trailer)
+            constraint = SeaPearl.BinaryMaximumBC(x, y, z, trailer)
             toPropagate = Set{SeaPearl.Constraint}()
             prunedDomains = SeaPearl.CPModification()
 
             @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
-            @test prunedDomains == SeaPearl.CPModification("x" => [1, 2], "y" => [1])
+            @test prunedDomains == SeaPearl.CPModification("x" => [9, 10], "y" => [4, 5, 6])
             @test constraint.active.value
             
         end
 
-        @testset "z assigned make x & y assigned" begin
+        @testset "Assign x and deactivate" begin
 
             trailer = SeaPearl.Trailer()
-            matrix = [3 2 3 4;
-                      5 6 12 8;
-                      9 10 11 10]
-            x = SeaPearl.IntVar(1, 3, "x", trailer)
-            y = SeaPearl.IntVar(1, 4, "y", trailer)
-            z = SeaPearl.IntVar(12, 12, "z", trailer)
+            
+            x = SeaPearl.IntVar(7, 10, "x", trailer)
+            y = SeaPearl.IntVar(8, 8, "y", trailer)
+            z = SeaPearl.IntVar(1, 4, "z", trailer)
 
-            constraint = SeaPearl.Element2D(matrix, x, y, z, trailer)
+            constraint = SeaPearl.BinaryMaximumBC(x, y, z, trailer)
             toPropagate = Set{SeaPearl.Constraint}()
             prunedDomains = SeaPearl.CPModification()
 
             @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
-            @test SeaPearl.assignedValue(x) == 2
-            @test SeaPearl.assignedValue(y) == 3
-            @test prunedDomains == SeaPearl.CPModification("x" => [1, 3], "y" => [1, 2, 4])
+            @test SeaPearl.assignedValue(x) == 8
+            @test prunedDomains == SeaPearl.CPModification("x" => [7, 9, 10])
             @test !constraint.active.value
             
         end
 
-        @testset "z assigned make x & y pruned" begin
+        @testset "Assign x and deactivate" begin
 
             trailer = SeaPearl.Trailer()
-            matrix = [3 2 3 4;
-                      5 12 12 8;
-                      9 12 11 10]
-            x = SeaPearl.IntVar(1, 3, "x", trailer)
-            y = SeaPearl.IntVar(1, 4, "y", trailer)
-            z = SeaPearl.IntVar(12, 12, "z", trailer)
+            
+            x = SeaPearl.IntVar(1, 10, "x", trailer)
+            y = SeaPearl.IntVar(3, 3, "y", trailer)
+            z = SeaPearl.IntVar(4, 4, "z", trailer)
 
-            constraint = SeaPearl.Element2D(matrix, x, y, z, trailer)
+            constraint = SeaPearl.BinaryMaximumBC(x, y, z, trailer)
             toPropagate = Set{SeaPearl.Constraint}()
             prunedDomains = SeaPearl.CPModification()
 
             @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
-            @test prunedDomains == SeaPearl.CPModification("x" => [1], "y" => [1, 4])
+            @test SeaPearl.assignedValue(x) == 4
+            @test prunedDomains == SeaPearl.CPModification("x" => [1, 2, 3, 5, 6, 7, 8, 9, 10])
             @test !constraint.active.value
             
         end
