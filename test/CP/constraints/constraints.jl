@@ -13,6 +13,7 @@
     include("binaryor.jl")
     include("isbinaryor.jl")
     include("element2d.jl")
+    include("binarymaximum.jl")
 
     @testset "addOnDomainChange!()" begin
         trailer = SeaPearl.Trailer()
