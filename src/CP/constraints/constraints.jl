@@ -12,6 +12,7 @@ include("inset.jl")
 include("reifiedinset.jl")
 include("binaryor.jl")
 include("isbinaryor.jl")
+include("setdiffsingleton.jl")
 include("element2d.jl")
 include("binarymaximum.jl")
 
