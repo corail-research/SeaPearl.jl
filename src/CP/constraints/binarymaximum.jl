@@ -35,10 +35,44 @@ function propagate!(constraint::BinaryMaximumBC, toPropagate::Set{Constraint}, p
     end
 
     # bound pruning
-    if min_x < max_of_min
-        prunedX = removeBelow!(constraint.x, max_of_min)
+    if min_x < max_of_min || max_x > max_of_max
+        prunedX = vcat(removeBelow!(constraint.x, max_of_min), removeAbove!(constraint.x, max_of_max))
         addToPrunedDomains!(prunedDomains, constraint.x, prunedX)
         triggerDomainChange!(toPropagate, constraint.x)
+    end
+
+    # if one of y, z dominate the other, the dominant can help assign x and x can help prune the dominant one 
+    if min_y > max_z # y is dominant on z 
+        # y try to assign a value to x 
+        if isbound(constraint.y)
+            prunedX = assign!(constraint.x, assignedValue(constraint.y))
+            if !isempty(prunedX)
+                addToPrunedDomains!(prunedDomains, constraint.x, prunedX)
+                triggerDomainChange!(toPropagate, constraint.x)
+            end
+            setValue!(constraint.active, false)
+        end
+        # x trying to prune y 
+        prunedY = removeBelow!(constraint.y.domain, min_x)
+        if !isempty(prunedY)
+            addToPrunedDomains!(prunedDomains, constraint.y, prunedY)
+            triggerDomainChange!(toPropagate, constraint.y)
+        end
+    elseif min_z > max_y # z is dominant on y 
+        # 
+        if isbound(constraint.z)
+            prunedX = assign!(constraint.x, assignedValue(constraint.z))
+            if !isempty(prunedX)
+                addToPrunedDomains!(prunedDomains, constraint.x, prunedX)
+                triggerDomainChange!(toPropagate, constraint.x)
+            end
+            setValue!(constraint.active, false)
+        end
+        prunedZ = removeBelow!(constraint.z.domain, min_x)
+        if !isempty(prunedZ)
+            addToPrunedDomains!(prunedDomains, constraint.z, prunedZ)
+            triggerDomainChange!(toPropagate, constraint.z)
+        end
     end
 
     return true
