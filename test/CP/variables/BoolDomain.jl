@@ -62,9 +62,9 @@
         j = 1
         for i in dom
             if i == 1
-                @test !i
-            else
                 @test i
+            else
+                @test !i
             end
             j += 1
         end
