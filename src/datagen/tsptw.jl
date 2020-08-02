@@ -76,13 +76,24 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
     lower_tw = [IntVar(time_windows[i, 1], time_windows[i, 1], "low_tw_"+string(i), cpmodel.trailer) for i in 1:gen.n_city] # time_windows[i, 1]
     upper_tw_plus_1 = [IntVar(time_windows[i, 2] + 1, time_windows[i, 2] + 1, "upper_tw_"+string(i), cpmodel.trailer) for i in 1:gen.n_city] # time_windows[i, 2] + 1
     still_time = [BoolVar("s_t_"*string(i)*"_"*string(j), cpmodel.trailer) for i in 1:gen.n_city for j in 1:gen.n_city] # t_i < upper_bound[j]
+    one_var = IntVar(1, 1, "one", cpmodel.trailer)
+    j_index = [IntVarViewMul(one_var, j, "index_"*string(j)) for j in 1:gen.n_city]
+    j_in_m_i = [BoolVar(string(j)*"_in_m_"*string(i), cpmodel.trailer) for i in 1:gen.n_city for j in 1:gen.n_city] # t_i < upper_bound[j]
+
     addVariable!.(cpmodel, d)
     addVariable!.(cpmodel, lowers)
     addVariable!.(cpmodel, lower_tw)
+    addVariable!.(cpmodel, upper_tw_plus_1)
+    addVariable!.(cpmodel, still_time)
+    addVariable!(cpmodel, one_var)
+    addVariable!.(cpmodel, j_index)
+    addVariable!.(cpmodel, j_in_m_i)
 
     ## Constraints
     # Initialization
-
+    push!(cpmodel.constraints, EqualConstant(t[1], 0, cpmodel.trailer))
+    push!(cpmodel.constraints, EqualConstant(v[1], 1, cpmodel.trailer))
+    push!(cpmodel.constraints, EqualConstant(c[1], 0, cpmodel.trailer))
 
     # Variable definition
     for i in 1:(gen.n_city - 1)
@@ -115,10 +126,21 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
     end
 
     # Pruning constraints
-    for i in 1:(gen.n_city - 1)
-        # still_time[i] = t[i] < upper_tw[i]
-        push!(cpmodel.constraints, isLessOrEqual(still_time[i], t[i], upper_tw_plus_1[i], cpmodel.trailer))
-        
-        
+    for i in 1:gen.n_city
+        for j in 1:gen.n_city
+            # still_time[i, j] = t[i] < upper_tw[j]
+            push!(cpmodel.constraints, isLessOrEqual(still_time[i, j], t[i], upper_tw_plus_1[j], cpmodel.trailer))
+
+            # j_in_m_i[i, j] = j_index[j] ∈ m[i]
+            push!(cpmodel.constraints, ReifiedInSet(j_index[j], m[i], j_in_m_i[i, j]))
+
+            # t[i] >= upper[j] ⟹ j ∉ m[i]
+            # ≡ t[i] < upper[j] ⋁ j ∉ m[i]
+            # ≡ still_time[i, j] ⋁ ¬j_in_m_i[i, j]
+            push!(cpmodel.constraints, BinaryOr(still_time[i, j], BoolVarViewNot(j_in_m_i[i, j], "¬"*string(j)*"_in_m_"*string(i))))
+        end
     end
+
+    # Objective function: min c[n]
+    cpmodel.objective = c[gen.n_city]
 end
