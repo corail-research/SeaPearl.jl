@@ -17,7 +17,7 @@
 
     @testset "propagate!(::BinaryMaximumBC)" begin
 
-        @testset "x to small" begin
+        @testset "x too small" begin
 
             trailer = SeaPearl.Trailer()
 
