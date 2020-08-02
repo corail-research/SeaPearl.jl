@@ -1,10 +1,12 @@
+abstract type AbstractBoolDomain <: AbstractDomain end
+
 """
     struct BoolDomain <: AbstractDomain
 
 Boolean domain, uses a IntDomain in it. (true is 1 and false is 0)
 """
 
-struct BoolDomain <: AbstractDomain
+struct BoolDomain <: AbstractBoolDomain
     inner::IntDomain
 
     function BoolDomain(trailer::Trailer)
