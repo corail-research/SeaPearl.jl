@@ -64,7 +64,7 @@
             if i == 1
                 @test !i
             else
-                @est i
+                @test i
             end
             j += 1
         end
