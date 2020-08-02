@@ -74,7 +74,7 @@ end
 
 Remove every value from `dom`. Return the removed values. Done in constant time.
 """
-removeAll!(dom::BoolDomain) = convert.(Bool, removeAll!(dom::BoolDomain))
+removeAll!(dom::BoolDomain) = convert.(Bool, removeAll!(dom.inner))
 
 
 """
