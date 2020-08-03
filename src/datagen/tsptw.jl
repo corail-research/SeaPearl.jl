@@ -66,7 +66,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
     t = [IntVar(1, gen.max_tw, "t_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # Current time
     a = [IntVar(1, gen.n_city, "a_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # Action: serving customer a_i at stage i
     c = [IntVar(1, gen.max_tw, "c_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # Current cost
-    for i in gen.n_city
+    for i in 1:gen.n_city
         addVariable!(cpmodel, m[i])
         addVariable!(cpmodel, v[i])
         addVariable!(cpmodel, t[i])
