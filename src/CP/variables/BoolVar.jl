@@ -4,7 +4,7 @@
 A "simple" boolean variable.
 The constraints that affect this variable are stored in the `onDomainChange` array.
 """
-struct BoolVar <: AbstractVar
+struct BoolVar <: AbstractBoolVar
     onDomainChange      ::Array{Constraint}
     domain              ::SeaPearl.BoolDomain
     id                  ::String
