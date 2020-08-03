@@ -42,7 +42,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
     time_windows = zeros(Int64, gen.n_city, 2)
     time_windows[1, :] = [0 1000]
 
-    random_solution = hcat([1], shuffle(Vector(2:gen.n_city)))
+    random_solution = [1, shuffle(Vector(2:gen.n_city))...]
 
     for i in 2:gen.n_city
         prev_city = random_solution[i-1]
