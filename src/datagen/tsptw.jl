@@ -80,10 +80,17 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
     lowers = [IntVar(1, gen.max_tw, "td_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # t + d[v_i, a_i]
     lower_tw = [IntVar(time_windows[i, 1], time_windows[i, 1], "low_tw_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # time_windows[i, 1]
     upper_tw_plus_1 = [IntVar(time_windows[i, 2] + 1, time_windows[i, 2] + 1, "upper_tw_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # time_windows[i, 2] + 1
-    still_time = [BoolVar("s_t_"*string(i)*"_"*string(j), cpmodel.trailer) for i in 1:gen.n_city for j in 1:gen.n_city] # t_i < upper_bound[j]
     one_var = IntVar(1, 1, "one", cpmodel.trailer)
     j_index = [IntVarViewMul(one_var, j, "index_"*string(j)) for j in 1:gen.n_city]
-    j_in_m_i = [BoolVar(string(j)*"_in_m_"*string(i), cpmodel.trailer) for i in 1:gen.n_city for j in 1:gen.n_city] # t_i < upper_bound[j]
+
+    still_time = Array{BoolVar, 2}(undef, (gen.n_city, gen.n_city))
+    j_in_m_i = Array{BoolVar, 2}(undef, (gen.n_city, gen.n_city))
+    for i in 1:gen.n_city
+        for j in 1:gen.n_city
+            still_time[i, j] = BoolVar("s_t_"*string(i)*"_"*string(j), cpmodel.trailer) # t_i < upper_bound[j]
+            j_in_m_i[i, j] = BoolVar(string(j)*"_in_m_"*string(i), cpmodel.trailer) # t_i < upper_bound[j]
+        end
+    end
 
     addVariable!(cpmodel, one_var)
     for i in 1:gen.n_city
@@ -117,13 +124,13 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
         push!(cpmodel.constraints, Element2D(dist, v[i], a[i], d[i], cpmodel.trailer))
 
         # lowers[i] = t[i] + d[i]
-        push!(cpmodel.constraints, SumToZero(AbstractIntVar[t[i], d[i], IntVarViewOpposite(lowers[i], "-td_"+string(i))], cpmodel.trailer))
+        push!(cpmodel.constraints, SumToZero(AbstractIntVar[t[i], d[i], IntVarViewOpposite(lowers[i], "-td_"*string(i))], cpmodel.trailer))
 
         # t[i+1] = max(lowers[i], lower_tw[i])
         push!(cpmodel.constraints, BinaryMaximumBC(t[i+1], lowers[i], lower_tw[i], cpmodel.trailer))
 
         # c[i + 1] = c[i] + d[i]
-        push!(cpmodel.constraints, SumToZero(AbstractIntVar[c[i], d[i], IntVarViewOpposite(c[i+1], "-c_"+string(i+1))], cpmodel.trailer))
+        push!(cpmodel.constraints, SumToZero(AbstractIntVar[c[i], d[i], IntVarViewOpposite(c[i+1], "-c_"*string(i+1))], cpmodel.trailer))
     end
 
     # Validity constraints
