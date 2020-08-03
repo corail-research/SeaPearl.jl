@@ -40,7 +40,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
     end
 
     time_windows = zeros(Int64, gen.n_city, 2)
-    time_windows[1, :] = [0 1000]
+    time_windows[1, :] = [0 10]
 
     random_solution = [1, shuffle(Vector(2:gen.n_city))...]
 
@@ -58,7 +58,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
         time_windows[cur_city, :] = [rand_tw_lb rand_tw_ub]
     end
 
-    max_upper_tw = (gen.max_tw + gen.max_tw_gap) * gen.n_city
+    max_upper_tw = Base.maximum(time_windows) + 10
 
 
     ### Filling the CPModel
@@ -122,26 +122,27 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
         # v[i+1] = a[i]
         push!(cpmodel.constraints, Equal(v[i+1], a[i], cpmodel.trailer))
 
-        # d[i] = dist[v[i], a[i]]
-        push!(cpmodel.constraints, Element2D(dist, v[i], a[i], d[i], cpmodel.trailer))
-
-        # lowers[i] = t[i] + d[i]
-        push!(cpmodel.constraints, SumToZero(AbstractIntVar[t[i], d[i], IntVarViewOpposite(lowers[i], "-td_"*string(i))], cpmodel.trailer))
-
         # t[i+1] = max(lowers[i], lower_tw[i])
         push!(cpmodel.constraints, BinaryMaximumBC(t[i+1], lowers[i], lower_tw[i], cpmodel.trailer))
 
         # c[i + 1] = c[i] + d[i]
         push!(cpmodel.constraints, SumToZero(AbstractIntVar[c[i], d[i], IntVarViewOpposite(c[i+1], "-c_"*string(i+1))], cpmodel.trailer))
     end
+    for i in 1:gen.n_city
+        # d[i] = dist[v[i], a[i]]
+        push!(cpmodel.constraints, Element2D(dist, v[i], a[i], d[i], cpmodel.trailer))
+
+        # lowers[i] = t[i] + d[i]
+        push!(cpmodel.constraints, SumToZero(AbstractIntVar[t[i], d[i], IntVarViewOpposite(lowers[i], "-td_"*string(i))], cpmodel.trailer))
+    end
 
     # Validity constraints
-    for i in 1:gen.n_city
+    for i in 1:(gen.n_city - 1)
         # a[i] ∈ m[i]
         push!(cpmodel.constraints, InSet(a[i], m[i], cpmodel.trailer))
 
         # lowers[i] <= lower_bound[a[i]]
-        push!(cpmodel.constraints, LessOrEqualConstant(lowers[i], time_windows[i, 2], cpmodel.trailer))
+        push!(cpmodel.constraints, LessOrEqualConstant(lowers[i], 10000, cpmodel.trailer))
     end
 
     # Pruning constraints
@@ -163,5 +164,5 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
     # Objective function: min c[n]
     cpmodel.objective = c[gen.n_city]
 
-    nothing
+    return dist, time_windows, x_pos, y_pos
 end
