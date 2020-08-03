@@ -18,7 +18,11 @@ on more smooth cases.
 This is done by getting a geometric distribution of each node connectivity (number of edges) and then select
 randomly the connexions. 
 """
-function fill_with_generator!(cpmodel::CPModel, gen::LegacyGraphColoringGenerator; rng=nothing)
+function fill_with_generator!(cpmodel::CPModel, gen::LegacyGraphColoringGenerator; seed=nothing)
+    if !isnothing(seed)
+        Random.seed!(seed)
+    end
+
     density = gen.density
     nb_nodes = gen.nb_nodes
 
@@ -83,7 +87,11 @@ creating temporary files for efficiency purpose ! Density should be more than 1.
 Very simple case from: Exploring the k-colorable Landscape with Iterated Greedy by Culberson & Luo
 https://pdfs.semanticscholar.org/e6cc/ab8f757203bf15680dbf456f295a7a31431a.pdf
 """
-function fill_with_generator!(cpmodel::CPModel, gen::HomogenousGraphColoringGenerator; rng=nothing)
+function fill_with_generator!(cpmodel::CPModel, gen::HomogenousGraphColoringGenerator; seed=nothing)
+    if !isnothing(seed)
+        Random.seed!(seed)
+    end
+
     p = gen.probability
     n = gen.nb_nodes
 
@@ -97,14 +105,8 @@ function fill_with_generator!(cpmodel::CPModel, gen::HomogenousGraphColoringGene
     # edge constraints
     for i in 1:n
         for j in 1:n
-            if isnothing(rng)
-                if i != j && rand() <= p
-                    push!(cpmodel.constraints, SeaPearl.NotEqual(x[i], x[j], cpmodel.trailer))
-                end
-            else
-                if i != j && rand(rng) <= p
-                    push!(cpmodel.constraints, SeaPearl.NotEqual(x[i], x[j], cpmodel.trailer))
-                end
+            if i != j && rand() <= p
+                push!(cpmodel.constraints, SeaPearl.NotEqual(x[i], x[j], cpmodel.trailer))
             end
         end
     end
@@ -143,7 +145,7 @@ end
 
 include("IOmanager.jl")
 
-function fill_with_generator!(model::CPModel, gen::GraphColoringWithFileGenerator; rng=nothing)
+function fill_with_generator!(model::CPModel, gen::GraphColoringWithFileGenerator; seed=nothing)
     input_file = gen.input_file
     input = getInputData(input_file)
 

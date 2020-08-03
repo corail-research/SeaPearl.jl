@@ -11,7 +11,7 @@ using Random
         generator = SeaPearl.LegacyGraphColoringGenerator(nb_nodes, probability)
 
         
-        SeaPearl.fill_with_generator!(model, generator)
+        SeaPearl.fill_with_generator!(model, generator; seed=12)
 
         @test length(keys(model.variables)) == nb_nodes + 1
         @test length(model.constraints) == 24
@@ -30,7 +30,7 @@ using Random
         generator = SeaPearl.HomogenousGraphColoringGenerator(nb_nodes, probability)
 
         
-        SeaPearl.fill_with_generator!(model, generator; rng=MersenneTwister(12))
+        SeaPearl.fill_with_generator!(model, generator; seed=12)
 
         @test length(keys(model.variables)) == nb_nodes + 1
         @test length(model.constraints) == 55
