@@ -15,6 +15,7 @@ include("isbinaryor.jl")
 include("setdiffsingleton.jl")
 include("element2d.jl")
 include("binarymaximum.jl")
+include("setequalconstant.jl")
 
 """
     addOnDomainChange!(x::AbstractIntVar, constraint::Constraint)
