@@ -94,6 +94,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
     push!(cpmodel.constraints, EqualConstant(t[1], 0, cpmodel.trailer))
     push!(cpmodel.constraints, EqualConstant(v[1], 1, cpmodel.trailer))
     push!(cpmodel.constraints, EqualConstant(c[1], 0, cpmodel.trailer))
+    push!(cpmodel.constraints, SetEqualConstant(m[1], Set{Int}(collect(2:gen.n_city)), cpmodel.trailer))
 
     # Variable definition
     for i in 1:(gen.n_city - 1)
