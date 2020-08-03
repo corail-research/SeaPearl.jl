@@ -58,14 +58,16 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
         time_windows[cur_city, :] = [rand_tw_lb rand_tw_ub]
     end
 
+    max_upper_tw = (gen.max_tw + gen.max_tw_gap) * gen.n_city
+
 
     ### Filling the CPModel
     ## Creating variables
     m = [IntSetVar(1, gen.n_city, "m_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # Remaining cities to visit
     v = [IntVar(1, gen.n_city, "v_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # Last customer
-    t = [IntVar(1, gen.max_tw, "t_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # Current time
+    t = [IntVar(0, max_upper_tw, "t_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # Current time
     a = [IntVar(1, gen.n_city, "a_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # Action: serving customer a_i at stage i
-    c = [IntVar(1, gen.max_tw, "c_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # Current cost
+    c = [IntVar(0, max_upper_tw, "c_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # Current cost
     for i in 1:gen.n_city
         addVariable!(cpmodel, m[i])
         addVariable!(cpmodel, v[i])
@@ -77,7 +79,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
 
     ## Intermediaries
     d = [IntVar(1, gen.grid_size, "d_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # d[v_i, a_i]
-    lowers = [IntVar(1, gen.max_tw, "td_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # t + d[v_i, a_i]
+    lowers = [IntVar(0, max_upper_tw, "td_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # t + d[v_i, a_i]
     lower_tw = [IntVar(time_windows[i, 1], time_windows[i, 1], "low_tw_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # time_windows[i, 1]
     upper_tw_plus_1 = [IntVar(time_windows[i, 2] + 1, time_windows[i, 2] + 1, "upper_tw_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # time_windows[i, 2] + 1
     one_var = IntVar(1, 1, "one", cpmodel.trailer)
