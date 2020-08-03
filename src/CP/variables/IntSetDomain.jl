@@ -49,6 +49,24 @@ function require!(dom::IntSetDomain, v::Int)
     setValue!(dom.requiring_index, dom.requiring_index.value + 1)
 end
 
+"""
+    function exclude_all!(dom::IntSetDomain)
+
+Exclude all possible not yet required values from the set domain.
+"""
+function exclude_all!(dom::IntSetDomain)
+    setValue!(dom.excluding_index, dom.requiring_index.value - 1)
+end
+
+"""
+    function require_all!(dom::IntSetDomain)
+
+Require all possible not yet excluded values from the set domain.
+"""
+function require_all!(dom::IntSetDomain)
+    setValue!(dom.requiring_index, dom.excluding_index.value + 1)
+end
+
 function is_possible(dom::IntSetDomain, v::Int)
     if dom.min > v || v > dom.max
         return false
