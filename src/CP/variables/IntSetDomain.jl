@@ -23,6 +23,13 @@ function IntSetDomain(trailer::Trailer, min::Int, max::Int)
     return IntSetDomain(values, indexes, min, max, requiring_index, excluding_index, trailer)
 end
 
+function Base.show(io::IO, dom::IntSetDomain)
+    write(io, "req=")
+    show(io, required_values(dom))
+    write(io, "; poss=")
+    show(io, possible_not_required_values(dom))
+end
+
 function exclude!(dom::IntSetDomain, v::Int)
     @assert dom.min <= v <= dom.max
 
