@@ -19,7 +19,11 @@ It is possible to give `Inf` as the `gen.correlation` to have a strict equality 
 This method is from the following paper:
 https://www.researchgate.net/publication/2548374_Core_Problems_in_Knapsack_Algorithms
 """
-function fill_with_generator!(cpmodel::CPModel, gen::KnapsackGenerator; rng=nothing)
+function fill_with_generator!(cpmodel::CPModel, gen::KnapsackGenerator; seed=nothing)
+    if !isnothing(seed)
+        Random.seed!(seed)
+    end
+    
     correlation = gen.correlation
     max_weight = gen.max_weight
     nb_items = gen.nb_items

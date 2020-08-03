@@ -23,7 +23,7 @@
         
         eval = SeaPearl.SameInstancesEvaluator(; nb_instances = 2)
         generator = SeaPearl.HomogenousGraphColoringGenerator(10, 0.1)
-        SeaPearl.init_evaluator!(eval, generator; rng=MersenneTwister(8))
+        SeaPearl.init_evaluator!(eval, generator; seed=8)
 
         variableheuristic = SeaPearl.MinDomainVariableSelection{false}()
         my_heuristic(x::SeaPearl.IntVar) = minimum(x.domain)

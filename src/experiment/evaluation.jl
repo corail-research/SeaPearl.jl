@@ -10,11 +10,11 @@ function SameInstancesEvaluator(; eval_freq = 50, nb_instances = 50)
     SameInstancesEvaluator(nothing, eval_freq, nb_instances)
 end
 
-function init_evaluator!(eval::SameInstancesEvaluator, generator::AbstractModelGenerator; rng=nothing)
+function init_evaluator!(eval::SameInstancesEvaluator, generator::AbstractModelGenerator; seed=nothing)
     instances = Array{CPModel}(undef, eval.nb_instances)
     for i in 1:eval.nb_instances
         instances[i] = CPModel()
-        fill_with_generator!(instances[i], generator; rng=rng)
+        fill_with_generator!(instances[i], generator; seed=seed)
     end
     eval.instances = instances
 end
