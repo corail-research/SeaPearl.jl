@@ -16,7 +16,7 @@ end
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
 
-        n_city = 3
+        n_city = 10
         grid_size = 10
         max_tw_gap = 5
         max_tw = 10
@@ -33,8 +33,8 @@ end
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
 
-        n_city = 4
-        grid_size = 10
+        n_city = 10
+        grid_size = 40
         max_tw_gap = 5
         max_tw = 10
 
@@ -61,11 +61,12 @@ end
 
         
 
-        @test length(model.solutions) == 1
+        @test length(model.solutions) >= 1
 
-        println("model.solutions", model.solutions)
+        # println("model.solutions", model.solutions)
         for i in 1:(n_city-1)
-            println("a_"*string(i)*": ", model.solutions[1]["a_"*string(i)])
+            println("a_"*string(i)*": ", model.solutions[end]["a_"*string(i)])
         end
+        println("c_"*string(n_city)*": ", model.solutions[end]["c_"*string(n_city)])
     end
 end
