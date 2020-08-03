@@ -144,4 +144,6 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
 
     # Objective function: min c[n]
     cpmodel.objective = c[gen.n_city]
+
+    nothing
 end
