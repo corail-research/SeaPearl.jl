@@ -111,4 +111,42 @@
         @test dom.values == [5, 1, 3, 4, 2, 6]
         @test dom.indexes == [2, 5, 3, 4, 1, 6]
     end
+
+    @testset "require_all!()" begin
+        trailer = SeaPearl.Trailer()
+        dom = SeaPearl.IntSetDomain(trailer, 10, 13)
+        SeaPearl.exclude!(dom, 12)
+        SeaPearl.require!(dom, 11)
+
+        SeaPearl.saveState!(trailer)
+
+        SeaPearl.require_all!(dom)
+
+        @test SeaPearl.required_values(dom) == Set{Int}([10, 11, 13])
+        @test SeaPearl.possible_not_required_values(dom) == Set{Int}()
+
+        SeaPearl.restoreState!(trailer)
+
+        @test SeaPearl.required_values(dom) == Set{Int}([11])
+        @test SeaPearl.possible_not_required_values(dom) == Set{Int}([10, 13])
+    end
+
+    @testset "exclude_all!()" begin
+        trailer = SeaPearl.Trailer()
+        dom = SeaPearl.IntSetDomain(trailer, 10, 13)
+        SeaPearl.exclude!(dom, 12)
+        SeaPearl.require!(dom, 11)
+
+        SeaPearl.saveState!(trailer)
+
+        SeaPearl.exclude_all!(dom)
+
+        @test SeaPearl.required_values(dom) == Set{Int}([11])
+        @test SeaPearl.possible_not_required_values(dom) == Set{Int}()
+
+        SeaPearl.restoreState!(trailer)
+
+        @test SeaPearl.required_values(dom) == Set{Int}([11])
+        @test SeaPearl.possible_not_required_values(dom) == Set{Int}([10, 13])
+    end
 end
