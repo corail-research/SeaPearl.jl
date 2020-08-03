@@ -4,11 +4,11 @@
 Binary Or constraint, states that `x || y`.
 """
 struct BinaryOr <: Constraint
-    x::BoolVar
-    y::BoolVar
+    x::AbstractBoolVar
+    y::AbstractBoolVar
     active::StateObject{Bool}
 
-    function BinaryOr(x::BoolVar, y::BoolVar, trailer)
+    function BinaryOr(x::AbstractBoolVar, y::AbstractBoolVar, trailer)
         constraint = new(x, y, StateObject{Bool}(true, trailer))
         addOnDomainChange!(x, constraint)
         addOnDomainChange!(y, constraint)

@@ -29,6 +29,7 @@ function addOnDomainChange!(x::Union{IntVar, BoolVar, IntSetVar}, constraint::Co
 end
 
 addOnDomainChange!(x::IntVarView, constraint::Constraint) = addOnDomainChange!(x.x, constraint)
+addOnDomainChange!(x::BoolVarView, constraint::Constraint) = addOnDomainChange!(x.x, constraint)
 
 """
     addToPropagate!(toPropagate::Set{Constraint}, constraints::Array{Constraint})
