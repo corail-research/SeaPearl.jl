@@ -52,8 +52,8 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
 
         tw_lb_min = time_windows[prev_city, 1] + cur_dist
 
-        rand_tw_lb = rand(Uniform(tw_lb_min, tw_lb_min + gen.max_tw_gap))
-        rand_tw_ub = rand(Uniform(rand_tw_lb, rand_tw_lb + gen.max_tw))
+        rand_tw_lb = rand(DiscreteUniform(tw_lb_min, tw_lb_min + gen.max_tw_gap))
+        rand_tw_ub = rand(DiscreteUniform(rand_tw_lb, rand_tw_lb + gen.max_tw))
 
         time_windows[cur_city, :] = [rand_tw_lb rand_tw_ub]
     end
