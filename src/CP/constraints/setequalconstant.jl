@@ -38,4 +38,4 @@ function propagate!(constraint::SetEqualConstant, toPropagate::Set{Constraint}, 
     return true
 end
 
-variablesArray(constraint::InSet) = [constraint.x, constraint.s]
+variablesArray(constraint::SetEqualConstant) = [constraint.s]
