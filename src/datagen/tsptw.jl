@@ -66,11 +66,14 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
     t = [IntVar(1, gen.max_tw, "t_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # Current time
     a = [IntVar(1, gen.n_city, "a_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # Action: serving customer a_i at stage i
     c = [IntVar(1, gen.max_tw, "c_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # Current cost
-    addVariable!.(cpmodel, m)
-    addVariable!.(cpmodel, v)
-    addVariable!.(cpmodel, t)
-    addVariable!.(cpmodel, a)
-    addVariable!.(cpmodel, c)
+    for i in gen.n_city
+        addVariable!(cpmodel, m[i])
+        addVariable!(cpmodel, v[i])
+        addVariable!(cpmodel, t[i])
+        addVariable!(cpmodel, a[i])
+        addVariable!(cpmodel, c[i])
+    end
+    
 
     ## Intermediaries
     d = [IntVar(1, gen.grid_size, "d_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # d[v_i, a_i]
@@ -82,14 +85,18 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
     j_index = [IntVarViewMul(one_var, j, "index_"*string(j)) for j in 1:gen.n_city]
     j_in_m_i = [BoolVar(string(j)*"_in_m_"*string(i), cpmodel.trailer) for i in 1:gen.n_city for j in 1:gen.n_city] # t_i < upper_bound[j]
 
-    addVariable!.(cpmodel, d)
-    addVariable!.(cpmodel, lowers)
-    addVariable!.(cpmodel, lower_tw)
-    addVariable!.(cpmodel, upper_tw_plus_1)
-    addVariable!.(cpmodel, still_time)
     addVariable!(cpmodel, one_var)
-    addVariable!.(cpmodel, j_index)
-    addVariable!.(cpmodel, j_in_m_i)
+    for i in 1:gen.n_city
+        addVariable!(cpmodel, d[i])
+        addVariable!(cpmodel, lowers[i])
+        addVariable!(cpmodel, lower_tw[i])
+        addVariable!(cpmodel, upper_tw_plus_1[i])
+        addVariable!(cpmodel, j_index[i])
+        for j in 1:gen.n_city
+            addVariable!(cpmodel, j_in_m_i[i, j])
+            addVariable!(cpmodel, still_time[i, j])
+        end
+    end
 
     ## Constraints
     # Initialization
