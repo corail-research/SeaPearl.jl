@@ -1,6 +1,6 @@
 using LightGraphs
 
-const Solution = Dict{String, Int}
+const Solution = Dict{String, Union{Int, Bool, Set{Int}}}
 
 mutable struct Statistics
     numberOfNodes       ::Int
