@@ -52,7 +52,7 @@ using Random
         generator = SeaPearl.ClusterizedGraphColoringGenerator(nb_nodes, k, probability)
 
         
-        SeaPearl.fill_with_generator!(model, generator; rng=MersenneTwister(12))
+        SeaPearl.fill_with_generator!(model, generator; seed=12)
 
         @test length(keys(model.variables)) == nb_nodes + 1
         @test length(model.constraints) == 37

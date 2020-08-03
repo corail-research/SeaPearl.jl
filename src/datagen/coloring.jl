@@ -226,18 +226,18 @@ creating temporary files for efficiency purpose ! Density should be more than 1.
 Very simple case from: Exploring the k-colorable Landscape with Iterated Greedy by Culberson & Luo
 https://pdfs.semanticscholar.org/e6cc/ab8f757203bf15680dbf456f295a7a31431a.pdf
 """
-function fill_with_generator!(cpmodel::CPModel, gen::ClusterizedGraphColoringGenerator; rng=nothing)
+function fill_with_generator!(cpmodel::CPModel, gen::ClusterizedGraphColoringGenerator; seed=nothing)
+    if !isnothing(seed)
+        Random.seed!(seed)
+    end
+    
     n = gen.n
     p = gen.p
     k = gen.k
     
     assigned_colors = zeros(Int64, gen.n)
     for i in 1:n
-        if isnothing(rng)
-            assigned_colors[i] = rand(1:k)
-        else
-            assigned_colors[i] = rand(rng, 1:k)
-        end
+        assigned_colors[i] = rand(1:k)
     end
 
     # create variables
@@ -250,14 +250,8 @@ function fill_with_generator!(cpmodel::CPModel, gen::ClusterizedGraphColoringGen
     # edge constraints
     for i in 1:n
         for j in 1:n
-            if isnothing(rng)
-                if i != j && assigned_colors[i] != assigned_colors[j] && rand() <= p
-                    push!(cpmodel.constraints, SeaPearl.NotEqual(x[i], x[j], cpmodel.trailer))
-                end
-            else
-                if i != j && assigned_colors[i] != assigned_colors[j] && rand(rng) <= p
-                    push!(cpmodel.constraints, SeaPearl.NotEqual(x[i], x[j], cpmodel.trailer))
-                end
+            if i != j && assigned_colors[i] != assigned_colors[j] && rand() <= p
+                push!(cpmodel.constraints, SeaPearl.NotEqual(x[i], x[j], cpmodel.trailer))
             end
         end
     end
