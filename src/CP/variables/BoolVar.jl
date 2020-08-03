@@ -28,11 +28,11 @@ function Base.show(io::IO, var::BoolVar)
 end
 
 """
-    isbound(x::BoolVar)
+    isbound(x::AbstractBoolVar)
 
 Check whether x has an assigned value.
 """
-isbound(x::BoolVar) = length(x.domain) == 1
+isbound(x::AbstractBoolVar) = length(x.domain) == 1
 
 
 
