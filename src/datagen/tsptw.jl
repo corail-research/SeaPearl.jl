@@ -139,7 +139,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
         push!(cpmodel.constraints, InSet(a[i], m[i], cpmodel.trailer))
 
         # lowers[i] <= lower_bound[a[i]]
-        push!(cpmodel.constraints, LessOrEqualConstant(lowers[i], time_windows[i, 2], trailer))
+        push!(cpmodel.constraints, LessOrEqualConstant(lowers[i], time_windows[i, 2], cpmodel.trailer))
     end
 
     # Pruning constraints
@@ -149,12 +149,12 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
             push!(cpmodel.constraints, isLessOrEqual(still_time[i, j], t[i], upper_tw_plus_1[j], cpmodel.trailer))
 
             # j_in_m_i[i, j] = j_index[j] ∈ m[i]
-            push!(cpmodel.constraints, ReifiedInSet(j_index[j], m[i], j_in_m_i[i, j]))
+            push!(cpmodel.constraints, ReifiedInSet(j_index[j], m[i], j_in_m_i[i, j], cpmodel.trailer))
 
             # t[i] >= upper[j] ⟹ j ∉ m[i]
             # ≡ t[i] < upper[j] ⋁ j ∉ m[i]
             # ≡ still_time[i, j] ⋁ ¬j_in_m_i[i, j]
-            push!(cpmodel.constraints, BinaryOr(still_time[i, j], BoolVarViewNot(j_in_m_i[i, j], "¬"*string(j)*"_in_m_"*string(i))))
+            push!(cpmodel.constraints, BinaryOr(still_time[i, j], BoolVarViewNot(j_in_m_i[i, j], "¬"*string(j)*"_in_m_"*string(i)), cpmodel.trailer))
         end
     end
 
