@@ -33,8 +33,10 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
     y_pos = rand(pos_distribution, gen.n_city)
 
     dist = zeros(Int64, gen.n_city, gen.n_city)
-    for (i, j) in eachindex(dist)
-        dist[i, j] = round(sqrt((x_pos[i] - x_pos[j])^2 + (y_pos[i] - y_pos[j])^2))
+    for i in 1:gen.n_city
+        for j in 1:gen.n_city
+            dist[i, j] = round(sqrt((x_pos[i] - x_pos[j])^2 + (y_pos[i] - y_pos[j])^2))
+        end
     end
 
     time_windows = zeros(Int64, gen.n_city, 2)
