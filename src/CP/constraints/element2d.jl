@@ -121,7 +121,10 @@ function propagate!(constraint::Element2D, toPropagate::Set{Constraint}, prunedD
             triggerDomainChange!(toPropagate, constraint.y)
         end
         low += 1
-        @assert low <= up
+        # @assert low <= up
+        if low > up
+            return false
+        end
     end
     # upper bound
     while xyz[up][3] > z_max || !(xyz[up][1] in constraint.x.domain) || !(xyz[up][2] in constraint.y.domain)
@@ -135,7 +138,10 @@ function propagate!(constraint::Element2D, toPropagate::Set{Constraint}, prunedD
             triggerDomainChange!(toPropagate, constraint.y)
         end
         up -= 1
-        @assert low <= up
+        # @assert low <= up
+        if low > up
+            return false
+        end
     end
 
     # try to prune lower or upper values of z's domain
