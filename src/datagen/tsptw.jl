@@ -86,16 +86,16 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
     upper_tw_minus_1 = [IntVar(time_windows[i, 2] - 1, time_windows[i, 2] - 1, "upper_tw_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # time_windows[i, 2] + 1
     one_var = IntVar(1, 1, "one", cpmodel.trailer)
     upper_ai = [IntVar(0, max_upper_tw, "upper_ai_"*string(i), cpmodel.trailer) for i in 1:(gen.n_city-1)] # time_windows[a_i, 2]
-    # j_index = [IntVarViewMul(one_var, j, "index_"*string(j)) for j in 1:gen.n_city]
+    j_index = [IntVarViewMul(one_var, j, "index_"*string(j)) for j in 1:gen.n_city]
 
-    # still_time = Array{BoolVar, 2}(undef, (gen.n_city, gen.n_city))
-    # j_in_m_i = Array{BoolVar, 2}(undef, (gen.n_city, gen.n_city))
-    # for i in 1:gen.n_city
-    #     for j in 1:gen.n_city
-    #         still_time[i, j] = BoolVar("s_t_"*string(i)*"_"*string(j), cpmodel.trailer) # t_i < upper_bound[j]
-    #         j_in_m_i[i, j] = BoolVar(string(j)*"_in_m_"*string(i), cpmodel.trailer) # t_i < upper_bound[j]
-    #     end
-    # end
+    still_time = Array{BoolVar, 2}(undef, (gen.n_city, gen.n_city))
+    j_in_m_i = Array{BoolVar, 2}(undef, (gen.n_city, gen.n_city))
+    for i in 1:gen.n_city
+        for j in 1:gen.n_city
+            still_time[i, j] = BoolVar("s_t_"*string(i)*"_"*string(j), cpmodel.trailer) # t_i < upper_bound[j]
+            j_in_m_i[i, j] = BoolVar(string(j)*"_in_m_"*string(i), cpmodel.trailer) # t_i < upper_bound[j]
+        end
+    end
 
     addVariable!(cpmodel, one_var)
     for i in 1:gen.n_city
@@ -105,12 +105,12 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
             addVariable!(cpmodel, upper_ai[i])
             addVariable!(cpmodel, lowers[i])
         end
-        # addVariable!(cpmodel, upper_tw_minus_1[i])
-        # addVariable!(cpmodel, j_index[i])
-        # for j in 1:gen.n_city
-        #     addVariable!(cpmodel, j_in_m_i[i, j])
-        #     addVariable!(cpmodel, still_time[i, j])
-        # end
+        addVariable!(cpmodel, upper_tw_minus_1[i])
+        addVariable!(cpmodel, j_index[i])
+        for j in 1:gen.n_city
+            addVariable!(cpmodel, j_in_m_i[i, j])
+            addVariable!(cpmodel, still_time[i, j])
+        end
     end
 
     ## Constraints
@@ -157,21 +157,21 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
         push!(cpmodel.constraints, LessOrEqual(lowers[i], upper_ai[i], cpmodel.trailer))
     end
 
-    # # Pruning constraints
-    # for i in 1:gen.n_city
-    #     for j in 1:gen.n_city
-    #         # still_time[i, j] = t[i] < upper_tw[j]
-    #         push!(cpmodel.constraints, isLessOrEqual(still_time[i, j], t[i], upper_tw_minus_1[j], cpmodel.trailer))
+    # Pruning constraints
+    for i in 1:gen.n_city
+        for j in 1:gen.n_city
+            # still_time[i, j] = t[i] < upper_tw[j]
+            push!(cpmodel.constraints, isLessOrEqual(still_time[i, j], t[i], upper_tw_minus_1[j], cpmodel.trailer))
 
-    #         # j_in_m_i[i, j] = j_index[j] ∈ m[i]
-    #         push!(cpmodel.constraints, ReifiedInSet(j_index[j], m[i], j_in_m_i[i, j], cpmodel.trailer))
+            # j_in_m_i[i, j] = j_index[j] ∈ m[i]
+            push!(cpmodel.constraints, ReifiedInSet(j_index[j], m[i], j_in_m_i[i, j], cpmodel.trailer))
 
-    #         # t[i] >= upper[j] ⟹ j ∉ m[i]
-    #         # ≡ t[i] < upper[j] ⋁ j ∉ m[i]
-    #         # ≡ still_time[i, j] ⋁ ¬j_in_m_i[i, j]
-    #         push!(cpmodel.constraints, BinaryOr(still_time[i, j], BoolVarViewNot(j_in_m_i[i, j], "¬"*string(j)*"_in_m_"*string(i)), cpmodel.trailer))
-    #     end
-    # end
+            # t[i] >= upper[j] ⟹ j ∉ m[i]
+            # ≡ t[i] < upper[j] ⋁ j ∉ m[i]
+            # ≡ still_time[i, j] ⋁ ¬j_in_m_i[i, j]
+            push!(cpmodel.constraints, BinaryOr(still_time[i, j], BoolVarViewNot(j_in_m_i[i, j], "¬"*string(j)*"_in_m_"*string(i)), cpmodel.trailer))
+        end
+    end
 
     # Objective function: min c[n]
     cpmodel.objective = c[gen.n_city]
