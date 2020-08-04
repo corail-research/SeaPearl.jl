@@ -68,6 +68,8 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
     t = [IntVar(0, max_upper_tw, "t_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # Current time
     a = [IntVar(1, gen.n_city, "a_"*string(i), cpmodel.trailer) for i in 1:(gen.n_city-1)] # Action: serving customer a_i at stage i
     c = [IntVar(0, max_upper_tw, "c_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # Current cost
+    total_cost = IntVar(0, max_upper_tw, "total_cost", cpmodel.trailer)
+    addVariable!(cpmodel, total_cost)
     for i in 1:gen.n_city
         addVariable!(cpmodel, m[i])
         addVariable!(cpmodel, v[i])
@@ -80,7 +82,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
     
 
     ## Intermediaries
-    d = [IntVar(0, gen.grid_size * 2, "d_"*string(i), cpmodel.trailer) for i in 1:(gen.n_city-1)] # d[v_i, a_i]
+    d = [IntVar(0, gen.grid_size * 2, "d_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # d[v_i, a_i]
     lowers = [IntVar(0, max_upper_tw, "td_"*string(i), cpmodel.trailer) for i in 1:(gen.n_city-1)] # t + d[v_i, a_i]
     lower_ai = [IntVar(0, max_upper_tw, "lower_ai_"*string(i), cpmodel.trailer) for i in 1:(gen.n_city-1)] # time_windows[i, 1]
     upper_tw_minus_1 = [IntVar(time_windows[i, 2] - 1, time_windows[i, 2] - 1, "upper_tw_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # time_windows[i, 2] + 1
@@ -99,8 +101,8 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
 
     addVariable!(cpmodel, one_var)
     for i in 1:gen.n_city
-        if i != gen.n_city
-            addVariable!(cpmodel, d[i])
+        addVariable!(cpmodel, d[i])
+            if i != gen.n_city
             addVariable!(cpmodel, lower_ai[i])
             addVariable!(cpmodel, upper_ai[i])
             addVariable!(cpmodel, lowers[i])
@@ -145,8 +147,10 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
         # lowers[i] = t[i] + d[i]
         push!(cpmodel.constraints, SumToZero(AbstractIntVar[t[i], d[i], IntVarViewOpposite(lowers[i], "-td_"*string(i))], cpmodel.trailer))
     end
-    for i in 1:gen.n_city
-    end
+    # d[n] = dist[a[n-1], 1]
+    push!(cpmodel.constraints, Element2D(dist, a[gen.n_city-1], one_var, d[gen.n_city], cpmodel.trailer))
+    # total_cost = c[n] + d[n]
+    push!(cpmodel.constraints, SumToZero(AbstractIntVar[c[gen.n_city], d[gen.n_city], IntVarViewOpposite(total_cost, "-total_cost")], cpmodel.trailer))
 
     # Validity constraints
     for i in 1:(gen.n_city - 1)
@@ -173,8 +177,8 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
         end
     end
 
-    # Objective function: min c[n]
-    cpmodel.objective = c[gen.n_city]
+    # Objective function: min total_cost
+    cpmodel.objective = total_cost
 
     return dist, time_windows, x_pos, y_pos
 end
