@@ -1,10 +1,12 @@
+abstract type AbstractBoolDomain <: AbstractDomain end
+
 """
     struct BoolDomain <: AbstractDomain
 
 Boolean domain, uses a IntDomain in it. (true is 1 and false is 0)
 """
 
-struct BoolDomain <: AbstractDomain
+struct BoolDomain <: AbstractBoolDomain
     inner::IntDomain
 
     function BoolDomain(trailer::Trailer)
@@ -74,7 +76,7 @@ end
 
 Remove every value from `dom`. Return the removed values. Done in constant time.
 """
-removeAll!(dom::BoolDomain) = convert.(Bool, removeAll!(dom::BoolDomain))
+removeAll!(dom::BoolDomain) = convert.(Bool, removeAll!(dom.inner))
 
 
 """
