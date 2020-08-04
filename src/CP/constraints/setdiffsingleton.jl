@@ -28,9 +28,9 @@ function propagate!(constraint::SetDiffSingleton, toPropagate::Set{Constraint}, 
     x = constraint.x
 
 
-    # For all b possible, exlucde if not possible in a and not in x domain
+    # For all b possible, exlucde if not possible in a and x not assigned to the value
     for v in possible_not_required_values(b.domain)
-        if !is_possible(a.domain, v) && !(isbound(x) && assignedValue(x) != v)
+        if !is_possible(a.domain, v) && !(isbound(x) && assignedValue(x) == v)
             if is_possible(b.domain, v)
                 if !is_required(b.domain, v)
                     exclude!(b.domain, v)
