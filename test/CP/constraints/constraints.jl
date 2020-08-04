@@ -14,6 +14,7 @@
     include("isbinaryor.jl")
     include("setdiffsingleton.jl")
     include("element2d.jl")
+    include("element1d.jl")
     include("binarymaximum.jl")
     include("setequalconstant.jl")
 
