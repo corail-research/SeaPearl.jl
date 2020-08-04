@@ -80,7 +80,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
     
 
     ## Intermediaries
-    d = [IntVar(1, gen.grid_size, "d_"*string(i), cpmodel.trailer) for i in 1:(gen.n_city-1)] # d[v_i, a_i]
+    d = [IntVar(0, gen.grid_size * 2, "d_"*string(i), cpmodel.trailer) for i in 1:(gen.n_city-1)] # d[v_i, a_i]
     lowers = [IntVar(0, max_upper_tw, "td_"*string(i), cpmodel.trailer) for i in 1:(gen.n_city-1)] # t + d[v_i, a_i]
     lower_ai = [IntVar(0, max_upper_tw, "lower_ai_"*string(i), cpmodel.trailer) for i in 1:(gen.n_city-1)] # time_windows[i, 1]
     upper_tw_minus_1 = [IntVar(time_windows[i, 2] - 1, time_windows[i, 2] - 1, "upper_tw_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # time_windows[i, 2] + 1
