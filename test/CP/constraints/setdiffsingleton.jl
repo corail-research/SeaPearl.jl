@@ -22,9 +22,16 @@
         constraint = SeaPearl.SetDiffSingleton(a, b, x, trailer)
 
         SeaPearl.require!(a.domain, 2)
+        
+        @test SeaPearl.possible_not_required_values(b.domain) == Set{Int}([2, 3, 4, 5])
+        @test SeaPearl.possible_not_required_values(a.domain) == Set{Int}([1, 3])
+        @test SeaPearl.required_values(a.domain) == Set{Int}([2])
+        @test length(x.domain) == 4
 
         toPropagate = Set{SeaPearl.Constraint}()
         prunedDomains = SeaPearl.CPModification()
+
+        SeaPearl.saveState!(trailer)
 
         @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
 
@@ -48,6 +55,13 @@
         @test SeaPearl.required_values(a.domain) == Set{Int}([2])
         @test SeaPearl.possible_not_required_values(a.domain) == Set{Int}()
         @test !constraint.active.value
+
+        SeaPearl.restoreState!(trailer)
+        @test SeaPearl.possible_not_required_values(b.domain) == Set{Int}([2, 3, 4, 5])
+        @test SeaPearl.possible_not_required_values(a.domain) == Set{Int}([1, 3])
+        @test SeaPearl.required_values(a.domain) == Set{Int}([2])
+        @test length(x.domain) == 4
+
 
         # Bug in tsptw:
         trailer = SeaPearl.Trailer()
