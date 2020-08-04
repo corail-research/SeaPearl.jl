@@ -65,6 +65,23 @@
         @test SeaPearl.isbound(x)
         @test SeaPearl.assignedValue(x) == 2
 
+
+        # if x is assigned
+        trailer = SeaPearl.Trailer()
+        a = SeaPearl.IntSetVar(1, 2, "a", trailer)
+        b = SeaPearl.IntSetVar(1, 1, "b", trailer)
+        x = SeaPearl.IntVar(2, 2, "x", trailer)
+        constraint = SeaPearl.SetDiffSingleton(a, b, x, trailer)
+
+        @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
+
+        @test SeaPearl.possible_not_required_values(b.domain) == Set{Int}([1])
+        @test SeaPearl.required_values(b.domain) == Set{Int}()
+        @test SeaPearl.possible_not_required_values(a.domain) == Set{Int}([1])
+        @test SeaPearl.required_values(a.domain) == Set{Int}()
+        @test SeaPearl.isbound(x)
+        @test SeaPearl.assignedValue(x) == 2
+
         # Infeasibility
         trailer = SeaPearl.Trailer()
         a = SeaPearl.IntSetVar(1, 3, "a", trailer)
