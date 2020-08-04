@@ -65,6 +65,25 @@
         @test SeaPearl.isbound(x)
         @test SeaPearl.assignedValue(x) == 2
 
+        # more complex
+        trailer = SeaPearl.Trailer()
+        a = SeaPearl.IntSetVar(1, 5, "a", trailer)
+        b = SeaPearl.IntSetVar(1, 8, "b", trailer)
+        SeaPearl.exclude!(b.domain, 6)
+        SeaPearl.exclude!(b.domain, 2)
+        SeaPearl.exclude!(b.domain, 3)
+        SeaPearl.require!(b.domain, 1)
+        SeaPearl.require!(b.domain, 4)
+        x = SeaPearl.IntVar(4, 4, "x", trailer)
+        constraint = SeaPearl.SetDiffSingleton(a, b, x, trailer)
+
+        @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
+
+        @test SeaPearl.possible_not_required_values(b.domain) == Set{Int}([5])
+        @test SeaPearl.required_values(b.domain) == Set{Int}([1, 4])
+        @test SeaPearl.possible_not_required_values(a.domain) == Set{Int}([5])
+        @test SeaPearl.required_values(a.domain) == Set{Int}([1])
+
 
         # if x is assigned
         trailer = SeaPearl.Trailer()
