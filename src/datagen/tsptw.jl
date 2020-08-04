@@ -58,7 +58,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
         time_windows[cur_city, :] = [rand_tw_lb rand_tw_ub]
     end
 
-    max_upper_tw = Base.maximum(time_windows) + 10
+    max_upper_tw = Base.maximum(time_windows) * 2
 
 
     ### Filling the CPModel
