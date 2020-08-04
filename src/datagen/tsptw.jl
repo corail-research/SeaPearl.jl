@@ -66,23 +66,26 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
     m = [IntSetVar(1, gen.n_city, "m_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # Remaining cities to visit
     v = [IntVar(1, gen.n_city, "v_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # Last customer
     t = [IntVar(0, max_upper_tw, "t_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # Current time
-    a = [IntVar(1, gen.n_city, "a_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # Action: serving customer a_i at stage i
+    a = [IntVar(1, gen.n_city, "a_"*string(i), cpmodel.trailer) for i in 1:(gen.n_city-1)] # Action: serving customer a_i at stage i
     c = [IntVar(0, max_upper_tw, "c_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # Current cost
     for i in 1:gen.n_city
         addVariable!(cpmodel, m[i])
         addVariable!(cpmodel, v[i])
         addVariable!(cpmodel, t[i])
-        addVariable!(cpmodel, a[i])
+        if i != gen.n_city
+            addVariable!(cpmodel, a[i])
+        end
         addVariable!(cpmodel, c[i])
     end
     
 
     ## Intermediaries
-    d = [IntVar(1, gen.grid_size, "d_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # d[v_i, a_i]
-    lowers = [IntVar(0, max_upper_tw, "td_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # t + d[v_i, a_i]
-    lower_tw = [IntVar(time_windows[i, 1], time_windows[i, 1], "low_tw_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # time_windows[i, 1]
+    d = [IntVar(1, gen.grid_size, "d_"*string(i), cpmodel.trailer) for i in 1:(gen.n_city-1)] # d[v_i, a_i]
+    lowers = [IntVar(0, max_upper_tw, "td_"*string(i), cpmodel.trailer) for i in 1:(gen.n_city-1)] # t + d[v_i, a_i]
+    lower_ai = [IntVar(0, max_upper_tw, "lower_ai_"*string(i), cpmodel.trailer) for i in 1:(gen.n_city-1)] # time_windows[i, 1]
     upper_tw_minus_1 = [IntVar(time_windows[i, 2] - 1, time_windows[i, 2] - 1, "upper_tw_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # time_windows[i, 2] + 1
     one_var = IntVar(1, 1, "one", cpmodel.trailer)
+    upper_ai = [IntVar(0, max_upper_tw, "upper_ai_"*string(i), cpmodel.trailer) for i in 1:(gen.n_city-1)] # time_windows[a_i, 2]
     # j_index = [IntVarViewMul(one_var, j, "index_"*string(j)) for j in 1:gen.n_city]
 
     # still_time = Array{BoolVar, 2}(undef, (gen.n_city, gen.n_city))
@@ -96,9 +99,12 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
 
     addVariable!(cpmodel, one_var)
     for i in 1:gen.n_city
-        addVariable!(cpmodel, d[i])
-        addVariable!(cpmodel, lowers[i])
-        addVariable!(cpmodel, lower_tw[i])
+        if i != gen.n_city
+            addVariable!(cpmodel, d[i])
+            addVariable!(cpmodel, lower_ai[i])
+            addVariable!(cpmodel, upper_ai[i])
+            addVariable!(cpmodel, lowers[i])
+        end
         # addVariable!(cpmodel, upper_tw_minus_1[i])
         # addVariable!(cpmodel, j_index[i])
         # for j in 1:gen.n_city
@@ -122,18 +128,24 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
         # v[i+1] = a[i]
         push!(cpmodel.constraints, Equal(v[i+1], a[i], cpmodel.trailer))
 
-        # t[i+1] = max(lowers[i], lower_tw[i])
-        push!(cpmodel.constraints, BinaryMaximumBC(t[i+1], lowers[i], lower_tw[i], cpmodel.trailer))
+        # t[i+1] = max(lowers[i], lower_ai[i])
+        push!(cpmodel.constraints, BinaryMaximumBC(t[i+1], lowers[i], lower_ai[i], cpmodel.trailer))
 
         # c[i + 1] = c[i] + d[i]
         push!(cpmodel.constraints, SumToZero(AbstractIntVar[c[i], d[i], IntVarViewOpposite(c[i+1], "-c_"*string(i+1))], cpmodel.trailer))
-    end
-    for i in 1:gen.n_city
+
+        # upper_ai = time_windows[a_i, 2]
+        push!(cpmodel.constraints, Element1D(time_windows[:, 2], a[i], upper_ai[i], cpmodel.trailer))
+
+        # lower_ai = time_windows[a_i, 1]
+        push!(cpmodel.constraints, Element1D(time_windows[:, 1], a[i], lower_ai[i], cpmodel.trailer))
+
         # d[i] = dist[v[i], a[i]]
         push!(cpmodel.constraints, Element2D(dist, v[i], a[i], d[i], cpmodel.trailer))
-
         # lowers[i] = t[i] + d[i]
         push!(cpmodel.constraints, SumToZero(AbstractIntVar[t[i], d[i], IntVarViewOpposite(lowers[i], "-td_"*string(i))], cpmodel.trailer))
+    end
+    for i in 1:gen.n_city
     end
 
     # Validity constraints
@@ -141,8 +153,8 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
         # a[i] ∈ m[i]
         push!(cpmodel.constraints, InSet(a[i], m[i], cpmodel.trailer))
 
-        # lowers[i] <= lower_bound[a[i]]
-        push!(cpmodel.constraints, LessOrEqualConstant(lowers[i], 10000, cpmodel.trailer))
+        # lowers[i] <= upper_ai
+        push!(cpmodel.constraints, LessOrEqual(lowers[i], upper_ai[i], cpmodel.trailer))
     end
 
     # # Pruning constraints
