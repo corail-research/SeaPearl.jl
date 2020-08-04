@@ -22,41 +22,44 @@ https://arxiv.org/abs/2006.01610
 Basicaly finds positions with a uniform distributions, then sets the time windows by creating a feasible tour and adding
 some randomness by using uniform distributions with gap and the length of the time windows.
 """
-function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothing)
+function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothing, dist = nothing, time_windows=nothing)
     if !isnothing(seed)
         Random.seed!(seed)
     end
 
     ### Creating the TSPTW instance
-    pos_distribution = Uniform(0, gen.grid_size)
-    x_pos = rand(pos_distribution, gen.n_city)
-    y_pos = rand(pos_distribution, gen.n_city)
+    if isnothing(dist) && isnothing(time_windows)
+        pos_distribution = Uniform(0, gen.grid_size)
+        x_pos = rand(pos_distribution, gen.n_city)
+        y_pos = rand(pos_distribution, gen.n_city)
 
-    dist = zeros(Int64, gen.n_city, gen.n_city)
-    for i in 1:gen.n_city
-        for j in 1:gen.n_city
-            dist[i, j] = round(sqrt((x_pos[i] - x_pos[j])^2 + (y_pos[i] - y_pos[j])^2))
+        dist = zeros(Int64, gen.n_city, gen.n_city)
+        for i in 1:gen.n_city
+            for j in 1:gen.n_city
+                dist[i, j] = round(sqrt((x_pos[i] - x_pos[j])^2 + (y_pos[i] - y_pos[j])^2))
+            end
+        end
+
+        time_windows = zeros(Int64, gen.n_city, 2)
+        time_windows[1, :] = [0 10]
+
+        random_solution = [1, shuffle(Vector(2:gen.n_city))...]
+
+        for i in 2:gen.n_city
+            prev_city = random_solution[i-1]
+            cur_city = random_solution[i]
+
+            cur_dist = dist[prev_city, cur_city]
+
+            tw_lb_min = time_windows[prev_city, 1] + cur_dist
+
+            rand_tw_lb = rand(DiscreteUniform(tw_lb_min, tw_lb_min + gen.max_tw_gap))
+            rand_tw_ub = rand(DiscreteUniform(rand_tw_lb, rand_tw_lb + gen.max_tw))
+
+            time_windows[cur_city, :] = [rand_tw_lb rand_tw_ub]
         end
     end
 
-    time_windows = zeros(Int64, gen.n_city, 2)
-    time_windows[1, :] = [0 10]
-
-    random_solution = [1, shuffle(Vector(2:gen.n_city))...]
-
-    for i in 2:gen.n_city
-        prev_city = random_solution[i-1]
-        cur_city = random_solution[i]
-
-        cur_dist = dist[prev_city, cur_city]
-
-        tw_lb_min = time_windows[prev_city, 1] + cur_dist
-
-        rand_tw_lb = rand(DiscreteUniform(tw_lb_min, tw_lb_min + gen.max_tw_gap))
-        rand_tw_ub = rand(DiscreteUniform(rand_tw_lb, rand_tw_lb + gen.max_tw))
-
-        time_windows[cur_city, :] = [rand_tw_lb rand_tw_ub]
-    end
 
     max_upper_tw = Base.maximum(time_windows) * 2
 
@@ -180,5 +183,5 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
     # Objective function: min total_cost
     cpmodel.objective = total_cost
 
-    return dist, time_windows, x_pos, y_pos
+    return dist, time_windows
 end
