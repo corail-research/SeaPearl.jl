@@ -239,7 +239,9 @@ Helps providing insights about what is happening during a search.
 function domains_cartesian_product(model::CPModel)
     cart_pdt = 1
     for (id, x) in model.variables
-        cart_pdt *= length(x.domain)
+        if typeof(x) <: Union{AbstractIntVar, AbstractBoolVar}
+            cart_pdt *= length(x.domain)
+        end
     end
     return cart_pdt
 end
