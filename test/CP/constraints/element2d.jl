@@ -201,8 +201,26 @@
 
             @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
             @test prunedDomains == SeaPearl.CPModification("x" => [1], "y" => [1, 4])
+            @test constraint.active.value # Still active: m[3, 3] != 12
+        end
+
+        @testset "z assigned make x & y pruned, and deactivation" begin
+
+            trailer = SeaPearl.Trailer()
+            matrix = [3 2 3 4;
+                      5 12 12 8;
+                      9 12 12 10]
+            x = SeaPearl.IntVar(1, 3, "x", trailer)
+            y = SeaPearl.IntVar(1, 4, "y", trailer)
+            z = SeaPearl.IntVar(12, 12, "z", trailer)
+
+            constraint = SeaPearl.Element2D(matrix, x, y, z, trailer)
+            toPropagate = Set{SeaPearl.Constraint}()
+            prunedDomains = SeaPearl.CPModification()
+
+            @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
+            @test prunedDomains == SeaPearl.CPModification("x" => [1], "y" => [1, 4])
             @test !constraint.active.value
-            
         end
 
         @testset "Multiple assignment & propagation" begin
