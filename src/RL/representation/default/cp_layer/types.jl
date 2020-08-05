@@ -85,12 +85,12 @@ struct CPLayerGraph <: LightGraphs.AbstractGraph{Int}
         numberOfConstraints = length(cpmodel.constraints)
         numberOfValues = length(valuesOfVariables)
 
-        variableConnections = Tuple{AbstractIntVar, AbstractIntVar}[]
+        variableConnections = Tuple{AbstractVar, AbstractVar}[]
 
         # Take into account IntVarViews that are only declared in constraints
         for constraint in cpmodel.constraints
             for constraintVar in variablesArray(constraint)
-                while !isa(constraintVar, IntVar)
+                while typeof(constraintVar) <: Union{IntVarView, BoolVarView}
                     push!(variables, constraintVar)
 
                     # Storing variable connections
@@ -139,7 +139,9 @@ struct CPLayerGraph <: LightGraphs.AbstractGraph{Int}
             constraint = idToNode[id].constraint
             varArray = variablesArray(constraint)
             for x in varArray
-                add_edge!(fixedEdgesGraph, id, nodeToId[VariableVertex(x)])
+                if x.id != "SEAPEARL_one"
+                    add_edge!(fixedEdgesGraph, id, nodeToId[VariableVertex(x)])
+                end
             end
         end
 
