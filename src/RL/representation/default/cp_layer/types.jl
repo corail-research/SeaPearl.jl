@@ -42,7 +42,7 @@ and connected to a value only if that value is in the domain
 of the variable.
 """
 struct VariableVertex <: FixedEdgesVertex 
-    variable    ::AbstractIntVar
+    variable    ::AbstractVar
 end
 
 
@@ -80,7 +80,7 @@ struct CPLayerGraph <: LightGraphs.AbstractGraph{Int}
     The graph gets linked to `cpmodel` and does not need to get updated by anyone when domains are pruned.
     """
     function CPLayerGraph(cpmodel::CPModel)
-        variables = Set{AbstractIntVar}(values(cpmodel.variables))
+        variables = Set{AbstractVar}(values(cpmodel.variables))
         valuesOfVariables = branchable_values(cpmodel)
         numberOfConstraints = length(cpmodel.constraints)
         numberOfValues = length(valuesOfVariables)
