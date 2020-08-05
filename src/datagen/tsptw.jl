@@ -105,13 +105,13 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
     addVariable!(cpmodel, one_var)
     for i in 1:gen.n_city
         addVariable!(cpmodel, d[i])
-            if i != gen.n_city
+        addVariable!(cpmodel, upper_tw_minus_1[i])
+        addVariable!(cpmodel, j_index[i])
+        if i != gen.n_city
             addVariable!(cpmodel, lower_ai[i])
             addVariable!(cpmodel, upper_ai[i])
             addVariable!(cpmodel, lowers[i])
         end
-        addVariable!(cpmodel, upper_tw_minus_1[i])
-        addVariable!(cpmodel, j_index[i])
         for j in 1:gen.n_city
             addVariable!(cpmodel, j_in_m_i[i, j])
             addVariable!(cpmodel, still_time[i, j])
