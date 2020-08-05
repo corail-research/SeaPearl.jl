@@ -95,15 +95,27 @@ end
         # println("dist", dist)
         # println("time_windows", time_windows)
 
-
         @test length(model.solutions) >= 1
-        @test model.solutions[end]["total_cost"] == 382
 
         # println("nodes: ", model.statistics.numberOfNodes)
 
+        solution_found = Int[]
         for i in 1:(n_city-1)
-            println("a_"*string(i)*": ", model.solutions[end]["a_"*string(i)])
+            push!(solution_found, model.solutions[end]["a_"*string(i)])
         end
-        println("total_cost: ", model.solutions[end]["total_cost"])
+
+        # From: http://www.hakank.org/minizinc/tsptw.mzn
+        @test solution_found == [17,10,20,18,19,11,6,16,2,12,13,7,14,8,3,5,9,21,4,15]
+        @test model.solutions[end]["total_cost"] == 378
+
+        # for i in 1:(n_city-1)
+        #     println("a_"*string(i)*": ", model.solutions[end]["a_"*string(i)])
+        #     println("c_"*string(i)*": ", model.solutions[end]["c_"*string(i)])
+        #     println("d_"*string(i)*": ", model.solutions[end]["d_"*string(i)])
+        #     println("v_"*string(i)*": ", model.solutions[end]["v_"*string(i)])
+        #     println("dist[v[i], a[i]]: ", dist[model.solutions[end]["v_"*string(i)], model.solutions[end]["a_"*string(i)]])
+        # end
+        # println("total_cost: ", model.solutions[end]["total_cost"])
+        # println("c_21: ", model.solutions[end]["c_21"])
     end
 end
