@@ -152,4 +152,18 @@
         @test SeaPearl.action_to_value(lh, 2, obs.state, model) == 3
         @test_throws BoundsError SeaPearl.action_to_value(lh, 4, obs.state, model)
     end
+
+    @testset "branchable_values()" begin
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+
+        x = SeaPearl.IntVar(2, 3, "x", trailer)
+        y = SeaPearl.IntVar(3, 4, "y", trailer)
+        z = SeaPearl.IntSetVar(4, 5, "z", trailer)
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y; branchable=false)
+        SeaPearl.addVariable!(model, z; branchable=false)
+
+        @test SeaPearl.branchable_values(model) == [2, 3]
+    end
 end

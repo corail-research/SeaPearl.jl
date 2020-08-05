@@ -134,3 +134,18 @@ function action_to_value(vs::LearnedHeuristic{SR, R, FixedOutput}, action::Int64
 }
     return vs.action_space.span[action]
 end
+
+"""
+    function branchable_values(cpmodel::CPModel)
+
+Return an array of all possible values taken by the variables we can branch on.
+"""
+function branchable_values(cpmodel::CPModel)
+    setOfValues = Set{Int}()
+    for (k, x) in branchable_variables(cpmodel)
+        for value in x.domain
+            push!(setOfValues, value)
+        end
+    end
+    return collect(setOfValues)
+end
