@@ -26,10 +26,11 @@ end
         SeaPearl.fill_with_generator!(model, generator; seed=52)
 
         @test length(keys(model.variables)) == 2 * n_city^2 + 11 * n_city - 2
-        @test length(model.constraints) == 3*n_city^2 + 10 * n_city + 4
+        @test length(model.constraints) == 3*n_city^2 + 10 * n_city - 4
+        @test model.objective == model.variables["total_cost"]
         empty!(model)
     end
-    @testset "Search instance" begin
+    @testset "Search known instance" begin
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
 
@@ -117,5 +118,27 @@ end
         # end
         # println("total_cost: ", model.solutions[end]["total_cost"])
         # println("c_21: ", model.solutions[end]["c_21"])
+    end
+    @testset "Search known instance" begin
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+
+        n_city = 21
+        grid_size = 150
+        max_tw_gap = 3
+        max_tw = 8
+
+        generator = SeaPearl.TsptwGenerator(n_city, grid_size, max_tw_gap, max_tw)
+
+        dist, time_windows = SeaPearl.fill_with_generator!(model, generator; seed=42)
+
+        variableheuristic = TsptwVariableSelection{false}()
+        my_heuristic(x::SeaPearl.IntVar) = minimum(x.domain)
+        valueheuristic = SeaPearl.BasicHeuristic(my_heuristic)
+
+        SeaPearl.search!(model, SeaPearl.DFSearch, variableheuristic, valueheuristic)
+
+
+        @test length(model.solutions) >= 1
     end
 end
