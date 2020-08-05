@@ -67,12 +67,16 @@ is_branchable(model::CPModel, x::AbstractVar) = model.branchable[x.id]
 """
     function branchable_variables(model::CPModel)
 
-Return an array of all the branchable variables.
+Return a dict of all branchable variables.
 """
 function branchable_variables(model::CPModel)
-    filter(values(model.variables)) do x
-        is_branchable(model, x)
+    to_return = Dict{String, AbstractVar}()
+    for x in values(model.variables)
+        if is_branchable(model, x)
+            to_return[x.id] = x
+        end
     end
+    to_return
 end
 
 """
