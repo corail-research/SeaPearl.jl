@@ -10,10 +10,37 @@
         SeaPearl.addVariable!(model, y)
 
         @test length(model.variables) == 2
+        @test SeaPearl.branchable_variables(model) == [x, y]
 
         z = SeaPearl.IntVar(2, 6, "y", trailer)
 
         @test_throws AssertionError SeaPearl.addVariable!(model, z)
+
+        # Not branching
+        trailer = SeaPearl.Trailer()
+        x = SeaPearl.IntVar(2, 6, "x", trailer)
+        y = SeaPearl.IntVar(2, 6, "y", trailer)
+
+        model = SeaPearl.CPModel(trailer)
+
+        SeaPearl.addVariable!(model, x; branchable=false)
+        SeaPearl.addVariable!(model, y)
+
+        @test length(model.variables) == 2
+        @test SeaPearl.branchable_variables(model) == [y]
+
+        # Trying to branch on Set variable
+        trailer = SeaPearl.Trailer()
+        x = SeaPearl.IntVar(2, 6, "x", trailer)
+        y = SeaPearl.IntSetVar(2, 6, "y", trailer)
+
+        model = SeaPearl.CPModel(trailer)
+
+        SeaPearl.addVariable!(model, x; branchable=false)
+        @test_throws AssertionError SeaPearl.addVariable!(model, y)
+
+        @test length(model.variables) == 2
+        @test SeaPearl.branchable_variables(model) == [y]
     end
 
     @testset "merge!()" begin
