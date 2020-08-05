@@ -25,8 +25,8 @@ end
 
         SeaPearl.fill_with_generator!(model, generator; seed=52)
 
-        # @test length(keys(model.variables)) == 2 * n_city^2 + 10 * n_city + 1
-        # @test length(model.constraints) == 4 + 4*(n_city-1) + 4*n_city + 3*n_city^2
+        @test length(keys(model.variables)) == 2 * n_city^2 + 11 * n_city - 2
+        @test length(model.constraints) == 3*n_city^2 + 10 * n_city + 4
         empty!(model)
     end
     @testset "Search instance" begin
