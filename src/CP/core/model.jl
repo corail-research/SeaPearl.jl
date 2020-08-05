@@ -1,6 +1,6 @@
 using LightGraphs
 
-const Solution = Dict{String, Int}
+const Solution = Dict{String, Union{Int, Bool, Set{Int}}}
 
 mutable struct Statistics
     numberOfNodes       ::Int
@@ -25,7 +25,7 @@ or filled by an `AbstractModelGenerator`.
 
 """
 mutable struct CPModel
-    variables               ::Dict{String, AbstractIntVar}
+    variables               ::Dict{String, AbstractVar}
     constraints             ::Array{Constraint}
     trailer                 ::Trailer
     objective               ::Union{Nothing, AbstractIntVar}
@@ -33,7 +33,7 @@ mutable struct CPModel
     solutions               ::Array{Solution}
     statistics              ::Statistics
     limit                   ::Limit
-    CPModel(trailer) = new(Dict{String, AbstractIntVar}(), Constraint[], trailer, nothing, nothing, Solution[], Statistics(0, 0), Limit(nothing, nothing))
+    CPModel(trailer) = new(Dict{String, AbstractVar}(), Constraint[], trailer, nothing, nothing, Solution[], Statistics(0, 0), Limit(nothing, nothing))
 end
 
 CPModel() = CPModel(Trailer())
@@ -41,11 +41,11 @@ CPModel() = CPModel(Trailer())
 const CPModification = Dict{String, Array{Int}}
 
 """
-    addVariable!(model::CPModel, x::AbstractIntVar)
+    addVariable!(model::CPModel, x::AbstractVar)
 
 Add a variable to the model, throwing an error if `x`'s id is already in the model.
 """
-function addVariable!(model::CPModel, x::AbstractIntVar)
+function addVariable!(model::CPModel, x::AbstractVar)
     # Ensure the id is unique
     @assert !haskey(model.variables, x.id)
 
@@ -77,7 +77,7 @@ Update the `CPModification` by adding the pruned integers.
 - `x::IntVar`: the variable that had its domain pruned.
 - `pruned::Array{Int}`: the pruned integers.
 """
-function addToPrunedDomains!(prunedDomains::CPModification, x::Union{AbstractIntVar, BoolVar}, pruned::Union{Array{Int}, Array{Bool}, BitArray})
+function addToPrunedDomains!(prunedDomains::CPModification, x::Union{AbstractIntVar, AbstractBoolVar}, pruned::Union{Array{Int}, Array{Bool}, BitArray})
     if isempty(pruned)
         return
     end

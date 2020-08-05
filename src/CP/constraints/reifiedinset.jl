@@ -6,9 +6,9 @@ ReifiedInSet contrainst, states that b ⟺ x ∈ s
 struct ReifiedInSet <: Constraint
     x       ::AbstractIntVar
     s       ::IntSetVar
-    b       ::BoolVar
+    b       ::AbstractBoolVar
     active  ::StateObject{Bool}
-    function ReifiedInSet(x::AbstractIntVar, s::IntSetVar, b::BoolVar, trailer::Trailer)
+    function ReifiedInSet(x::AbstractIntVar, s::IntSetVar, b::AbstractBoolVar, trailer::Trailer)
         constraint = new(x, s, b, StateObject{Bool}(true, trailer))
         addOnDomainChange!(x, constraint)
         addOnDomainChange!(s, constraint)

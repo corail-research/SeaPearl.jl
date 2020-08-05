@@ -28,9 +28,9 @@ function propagate!(constraint::SetDiffSingleton, toPropagate::Set{Constraint}, 
     x = constraint.x
 
 
-    # For all b possible, exlucde if not possible in a and not in x domain
+    # For all b possible, exlucde if not possible in a and x not assigned to the value
     for v in possible_not_required_values(b.domain)
-        if !is_possible(a.domain, v) && !(isbound(x) && assignedValue(x) != v)
+        if !is_possible(a.domain, v) && !(isbound(x) && assignedValue(x) == v)
             if is_possible(b.domain, v)
                 if !is_required(b.domain, v)
                     exclude!(b.domain, v)
@@ -42,7 +42,7 @@ function propagate!(constraint::SetDiffSingleton, toPropagate::Set{Constraint}, 
         end
     end
 
-    # For all b required, require in a if not in x domain, remove from x domain if required in a
+    # For all b required, require in a if not in x domain, assign to x if not possible in a, remove from x domain if required in a
     for v in required_values(b.domain)
         if !(v in x.domain)
             if is_possible(a.domain, v)
@@ -102,7 +102,7 @@ function propagate!(constraint::SetDiffSingleton, toPropagate::Set{Constraint}, 
         end
     end
 
-    # If x is assigned v, exclude from a if not possible in b
+    # If x is assigned v, exclude from a
     if isbound(x)
         v = assignedValue(x)
         if is_possible(a.domain, v)

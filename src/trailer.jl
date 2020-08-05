@@ -21,6 +21,8 @@ mutable struct Trailer
     Trailer() = new(Stack{AbstractStateEntry}(), Stack{Stack{AbstractStateEntry}}())
 end
 
+Base.show(io::IO, tr::Trailer) = write(io, "Trailer")
+
 
 """
     StateObject{T}(value::T, trailer::Trailer)

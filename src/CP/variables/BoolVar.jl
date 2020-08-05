@@ -4,7 +4,7 @@
 A "simple" boolean variable.
 The constraints that affect this variable are stored in the `onDomainChange` array.
 """
-struct BoolVar <: AbstractVar
+struct BoolVar <: AbstractBoolVar
     onDomainChange      ::Array{Constraint}
     domain              ::SeaPearl.BoolDomain
     id                  ::String
@@ -28,11 +28,11 @@ function Base.show(io::IO, var::BoolVar)
 end
 
 """
-    isbound(x::BoolVar)
+    isbound(x::AbstractBoolVar)
 
 Check whether x has an assigned value.
 """
-isbound(x::BoolVar) = length(x.domain) == 1
+isbound(x::AbstractBoolVar) = length(x.domain) == 1
 
 
 

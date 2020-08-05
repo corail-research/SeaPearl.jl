@@ -1,12 +1,12 @@
 
 struct isLessOrEqual <: Constraint
-    b       ::BoolVar
+    b       ::AbstractBoolVar
     x       ::AbstractIntVar
     y       ::AbstractIntVar
     active  ::StateObject{Bool}
 
     """
-        isLessOrEqual(b::BoolVar, x::AbstractIntVar, y::AbstractIntVar, trailer::Trailer)
+        isLessOrEqual(b::AbstractBoolVar, x::AbstractIntVar, y::AbstractIntVar, trailer::Trailer)
 
     Equivalence between a boolean variable and the inequality between variables, states that `b <=> x <= y`
     """

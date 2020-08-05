@@ -1,15 +1,15 @@
 """
-    isBinaryOr(b::BoolVar, x::BoolVar, y::BoolVar)
+    isBinaryOr(b::AbstractBoolVar, x::AbstractBoolVar, y::AbstractBoolVar)
 
 Is Or constraint, states that `b <=> x or y`.
 """
 struct isBinaryOr <: Constraint
-    b::BoolVar
-    x::BoolVar
-    y::BoolVar
+    b::AbstractBoolVar
+    x::AbstractBoolVar
+    y::AbstractBoolVar
     active::StateObject{Bool}
 
-    function isBinaryOr(b::BoolVar, x::BoolVar, y::BoolVar, trailer)
+    function isBinaryOr(b::AbstractBoolVar, x::AbstractBoolVar, y::AbstractBoolVar, trailer)
         constraint = new(b, x, y, StateObject{Bool}(true, trailer))
         addOnDomainChange!(b, constraint)
         addOnDomainChange!(x, constraint)
