@@ -26,6 +26,7 @@ or filled by an `AbstractModelGenerator`.
 """
 mutable struct CPModel
     variables               ::Dict{String, AbstractVar}
+    branchable              ::Dict{String, Bool}
     constraints             ::Array{Constraint}
     trailer                 ::Trailer
     objective               ::Union{Nothing, AbstractIntVar}
@@ -33,7 +34,7 @@ mutable struct CPModel
     solutions               ::Array{Solution}
     statistics              ::Statistics
     limit                   ::Limit
-    CPModel(trailer) = new(Dict{String, AbstractVar}(), Constraint[], trailer, nothing, nothing, Solution[], Statistics(0, 0), Limit(nothing, nothing))
+    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Constraint[], trailer, nothing, nothing, Solution[], Statistics(0, 0), Limit(nothing, nothing))
 end
 
 CPModel() = CPModel(Trailer())
@@ -41,15 +42,37 @@ CPModel() = CPModel(Trailer())
 const CPModification = Dict{String, Array{Int}}
 
 """
-    addVariable!(model::CPModel, x::AbstractVar)
+    addVariable!(model::CPModel, x::AbstractVar; branchable=true)
 
 Add a variable to the model, throwing an error if `x`'s id is already in the model.
+The `branchable` argument allows you to tell if we will be able to branch on that variable.
 """
-function addVariable!(model::CPModel, x::AbstractVar)
+function addVariable!(model::CPModel, x::AbstractVar; branchable=true)
     # Ensure the id is unique
-    @assert !haskey(model.variables, x.id)
+    @assert !haskey(model.variables, x.id) "The id of the variable must be unique"
 
+    @assert !branchable || typeof(x) <: Union{AbstractIntVar, AbstractBoolVar} "You can only branch on Boolean and Integer variables"
+
+    model.branchable[x.id] = branchable
     model.variables[x.id] = x
+end
+
+"""
+    function is_branchable(model::CPModel, x::AbstractVar)
+
+Tell if the variable was set as branchable or not.
+"""
+is_branchable(model::CPModel, x::AbstractVar) = model.branchable[x.id]
+
+"""
+    function branchable_variables(model::CPModel)
+
+Return an array of all the branchable variables.
+"""
+function branchable_variables(model::CPModel)
+    filter(values(model.variables)) do x
+        is_branchable(model, x)
+    end
 end
 
 """
