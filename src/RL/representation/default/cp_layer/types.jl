@@ -81,7 +81,7 @@ struct CPLayerGraph <: LightGraphs.AbstractGraph{Int}
     """
     function CPLayerGraph(cpmodel::CPModel)
         variables = Set{AbstractIntVar}(values(cpmodel.variables))
-        valuesOfVariables = arrayOfEveryValue(collect(variables))
+        valuesOfVariables = branchable_values(cpmodel)
         numberOfConstraints = length(cpmodel.constraints)
         numberOfValues = length(valuesOfVariables)
 
