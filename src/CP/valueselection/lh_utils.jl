@@ -23,7 +23,6 @@ function update_with_cpmodel!(lh::LearnedHeuristic{SR, R, A}, model::CPModel) wh
 }
 
     # construct the action_space
-    variables = collect(AbstractIntVar, values(model.variables))
     valuesOfVariables = sort(branchable_values(model))
 
     lh.action_space = RL.DiscreteSpace(valuesOfVariables)
