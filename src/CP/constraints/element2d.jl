@@ -157,7 +157,10 @@ function propagate!(constraint::Element2D, toPropagate::Set{Constraint}, prunedD
     
     # deactivate the constraint if necessary
     if isbound(constraint.z)
-        setValue!(constraint.active, false)
+        zv = assignedValue(constraint.z)
+        if all(zv == constraint.matrix[vx, vy] for vx in constraint.x.domain for vy in constraint.y.domain)
+            setValue!(constraint.active, false)
+        end
     end
 
     # check feasibility
