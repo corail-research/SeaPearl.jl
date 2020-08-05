@@ -5,7 +5,7 @@ struct RandomVariableSelection{TakeObjective} <: AbstractVariableSelection{TakeO
 RandomVariableSelection(;take_objective=true) = RandomVariableSelection{take_objective}()
 
 function (::RandomVariableSelection{false})(cpmodel::CPModel; rng=nothing)
-    var_ids = keys(cpmodel.variables)
+    var_ids = keys(branchable_variables(cpmodel))
     acceptable_ids = String[]
     for id in var_ids
         x = cpmodel.variables[id]
@@ -25,7 +25,7 @@ function (::RandomVariableSelection{false})(cpmodel::CPModel; rng=nothing)
 end
 
 function (::RandomVariableSelection{true})(cpmodel::CPModel; rng=nothing)
-    var_ids = keys(cpmodel.variables)
+    var_ids = keys(branchable_variables(cpmodel))
     acceptable_ids = String[]
     for id in var_ids
         x = cpmodel.variables[id]
