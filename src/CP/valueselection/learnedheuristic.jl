@@ -54,7 +54,7 @@ Finally, makes the agent call the process of the RL pre_episode_stage (basically
 function (valueSelection::LearnedHeuristic)(::InitializingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
     # create the environment
     update_with_cpmodel!(valueSelection, model)
-    false_x = first(values(model.variables))
+    false_x = first(values(branchable_variables(model)))
     obs = get_observation!(valueSelection, model, false_x)
 
     # Reset the agent, useful for things like recurrent networks
@@ -114,7 +114,7 @@ Set the final reward, do last observation.
 function (valueSelection::LearnedHeuristic)(PHASE::EndingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
     # the RL EPISODE stops
     set_reward!(PHASE, valueSelection, model, current_status)
-    false_x = first(values(model.variables))
+    false_x = first(values(branchable_variables(model)))
     obs = get_observation!(valueSelection, model, false_x, true)
     if !wears_mask(valueSelection)
         obs = (reward = obs.reward, terminal = obs.terminal, state = obs.state)
