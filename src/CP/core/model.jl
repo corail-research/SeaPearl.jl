@@ -62,7 +62,7 @@ end
 
 Tell if the variable was set as branchable or not.
 """
-is_branchable(model::CPModel, x::AbstractVar) = model.branchable[x.id]
+is_branchable(model::CPModel, x::AbstractVar) = haskey(model.branchable, x.id) && model.branchable[x.id]
 
 """
     function branchable_variables(model::CPModel)
