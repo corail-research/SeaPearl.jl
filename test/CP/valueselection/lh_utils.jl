@@ -5,9 +5,11 @@
         model = SeaPearl.CPModel(trailer)
 
         x = SeaPearl.IntVar(2, 3, "x", trailer)
-        y = SeaPearl.IntVar(2, 3, "y", trailer)
+        y = SeaPearl.IntVar(3, 4, "y", trailer)
+        z = SeaPearl.IntVar(4, 5, "z", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
+        SeaPearl.addVariable!(model, z; branchable=false)
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
         push!(model.constraints, SeaPearl.NotEqual(x, y, trailer))
 
@@ -16,7 +18,7 @@
         SeaPearl.update_with_cpmodel!(lh, model)
 
         @test typeof(lh.action_space) == RL.DiscreteSpace{Array{Int64,1}}
-        @test lh.action_space.span == [2, 3]
+        @test lh.action_space.span == [2, 3, 4]
         @test typeof(lh.current_state) == SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization}
         @test lh.current_reward == 0
         @test isa(lh.search_metrics, SeaPearl.SearchMetrics)
@@ -151,5 +153,19 @@
         @test SeaPearl.action_to_value(lh, 1, obs.state, model) == 2
         @test SeaPearl.action_to_value(lh, 2, obs.state, model) == 3
         @test_throws BoundsError SeaPearl.action_to_value(lh, 4, obs.state, model)
+    end
+
+    @testset "branchable_values()" begin
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+
+        x = SeaPearl.IntVar(2, 3, "x", trailer)
+        y = SeaPearl.IntVar(3, 4, "y", trailer)
+        z = SeaPearl.IntSetVar(4, 5, "z", trailer)
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y; branchable=false)
+        SeaPearl.addVariable!(model, z; branchable=false)
+
+        @test SeaPearl.branchable_values(model) == [2, 3]
     end
 end

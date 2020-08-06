@@ -23,8 +23,7 @@ function update_with_cpmodel!(lh::LearnedHeuristic{SR, R, A}, model::CPModel) wh
 }
 
     # construct the action_space
-    variables = collect(AbstractIntVar, values(model.variables))
-    valuesOfVariables = sort(arrayOfEveryValue(variables))
+    valuesOfVariables = sort(branchable_values(model))
 
     lh.action_space = RL.DiscreteSpace(valuesOfVariables)
     # state rep construction
@@ -133,4 +132,19 @@ function action_to_value(vs::LearnedHeuristic{SR, R, FixedOutput}, action::Int64
     R <: AbstractReward
 }
     return vs.action_space.span[action]
+end
+
+"""
+    function branchable_values(cpmodel::CPModel)
+
+Return an array of all possible values taken by the variables we can branch on.
+"""
+function branchable_values(cpmodel::CPModel)
+    setOfValues = Set{Int}()
+    for (k, x) in branchable_variables(cpmodel)
+        for value in x.domain
+            push!(setOfValues, value)
+        end
+    end
+    return collect(setOfValues)
 end

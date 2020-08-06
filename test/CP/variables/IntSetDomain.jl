@@ -149,4 +149,22 @@
         @test SeaPearl.required_values(dom) == Set{Int}([11])
         @test SeaPearl.possible_not_required_values(dom) == Set{Int}([10, 13])
     end
+
+    @testset "reset_domain!()" begin
+        trailer = SeaPearl.Trailer()
+        x = SeaPearl.IntSetVar(5, 10, "x", trailer)
+        
+        SeaPearl.exclude!(x.domain, 6)
+        SeaPearl.require!(x.domain, 8)
+        
+        @test x.domain.values == [4, 6, 3, 1, 5, 2]
+        @test x.domain.indexes == [4, 6, 3, 1, 5, 2]
+        @test SeaPearl.length(SeaPearl.required_values(x.domain)) == 1
+        @test SeaPearl.length(SeaPearl.possible_not_required_values(x.domain)) == 4
+        SeaPearl.reset_domain!(x.domain)
+        @test x.domain.values == [1, 2, 3, 4, 5, 6]
+        @test x.domain.indexes == [1, 2, 3, 4, 5, 6]
+        @test SeaPearl.length(SeaPearl.required_values(x.domain)) == 0
+        @test SeaPearl.length(SeaPearl.possible_not_required_values(x.domain)) == 6
+    end
 end

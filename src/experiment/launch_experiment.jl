@@ -63,7 +63,7 @@ function launch_experiment!(
                 verbose && print(" vs ", model.statistics.numberOfNodes)
             end
 
-            bestsolutions[i, j] = model.objectiveBound + 1
+            # bestsolutions[i, j] = model.objectiveBound + 1
             nodevisited[i, j] = model.statistics.numberOfNodes
 
             if j == 2
@@ -76,7 +76,7 @@ function launch_experiment!(
             end
 
             timeneeded[i, j] = dt
-            metricsFun(;episode=i, heuristic=valueSelectionArray[j], nodeVisited=model.statistics.numberOfNodes, bestSolution=(model.objectiveBound + 1))
+            metricsFun(;episode=i, heuristic=valueSelectionArray[j], nodeVisited=model.statistics.numberOfNodes)
         end
         verbose && println()
 

@@ -23,6 +23,19 @@ function IntSetDomain(trailer::Trailer, min::Int, max::Int)
     return IntSetDomain(values, indexes, min, max, requiring_index, excluding_index, trailer)
 end
 
+"""
+    reset_domain!(dom::IntSetDomain)
+
+Used in `reset_model!`. 
+"""
+function reset_domain!(dom::IntSetDomain)
+    setValue!(dom.requiring_index, 1)
+    setValue!(dom.excluding_index, dom.max - dom.min + 1)
+    sort!(dom.values)
+    sort!(dom.indexes)
+    dom
+end
+
 function Base.show(io::IO, dom::IntSetDomain)
     write(io, "req=")
     show(io, required_values(dom))
