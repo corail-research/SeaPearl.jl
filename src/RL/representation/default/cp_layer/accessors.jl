@@ -61,8 +61,10 @@ function LightGraphs.edges(g::CPLayerGraph)
         xVertex = cpVertexFromIndex(g, id)
         @assert isa(xVertex, VariableVertex)
         x = xVertex.variable
-        for v in x.domain
-            push!(edgesSet, edgetype(g::CPLayerGraph)(id, g.nodeToId[ValueVertex(v)]))
+        if is_branchable(g.cpmodel, x)
+            for v in x.domain
+                push!(edgesSet, edgetype(g::CPLayerGraph)(id, g.nodeToId[ValueVertex(v)]))
+            end
         end
     end
 
@@ -80,7 +82,9 @@ function LightGraphs.ne(g::CPLayerGraph)
     numberOfEdges = LightGraphs.ne(g.fixedEdgesGraph)
     for id in (g.numberOfConstraints + 1):(g.numberOfConstraints + g.numberOfVariables)
         xVertex = cpVertexFromIndex(g, id)
-        numberOfEdges += length(xVertex.variable.domain)
+        if is_branchable(g.cpmodel, xVertex.variable)
+            numberOfEdges += length(xVertex.variable.domain)
+        end
     end
     return numberOfEdges
 end
@@ -101,6 +105,9 @@ LightGraphs.inneighbors(g::CPLayerGraph, v::ConstraintVertex) = LightGraphs.inne
 function LightGraphs.inneighbors(g::CPLayerGraph, vertex::VariableVertex)
     constraints = LightGraphs.inneighbors(g.fixedEdgesGraph, g.nodeToId[vertex])
     x = vertex.variable
+    if !is_branchable(g.cpmodel, x)
+        return constraints
+    end
     values = zeros(length(x.domain))
     i = 1
     for v in x.domain
@@ -115,8 +122,10 @@ function LightGraphs.inneighbors(g::CPLayerGraph, vertex::ValueVertex)
     for i in (g.numberOfConstraints + 1):(g.numberOfConstraints + g.numberOfVariables)
         xVertex = cpVertexFromIndex(g, i)
         x = xVertex.variable
-        if value in x.domain
-            push!(neigh, indexFromCpVertex(g, VariableVertex(x)))
+        if is_branchable(g.cpmodel, x)
+            if value in x.domain
+                push!(neigh, indexFromCpVertex(g, VariableVertex(x)))
+            end
         end
     end
     return neigh

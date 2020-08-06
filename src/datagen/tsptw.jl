@@ -72,15 +72,15 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
     a = [IntVar(1, gen.n_city, "a_"*string(i), cpmodel.trailer) for i in 1:(gen.n_city-1)] # Action: serving customer a_i at stage i
     c = [IntVar(0, max_upper_tw, "c_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # Current cost
     total_cost = IntVar(0, max_upper_tw, "total_cost", cpmodel.trailer)
-    addVariable!(cpmodel, total_cost)
+    addVariable!(cpmodel, total_cost; branchable=false)
     for i in 1:gen.n_city
-        addVariable!(cpmodel, m[i])
-        addVariable!(cpmodel, v[i])
-        addVariable!(cpmodel, t[i])
+        addVariable!(cpmodel, m[i]; branchable=false)
+        addVariable!(cpmodel, v[i]; branchable=false)
+        addVariable!(cpmodel, t[i]; branchable=false)
         if i != gen.n_city
-            addVariable!(cpmodel, a[i])
+            addVariable!(cpmodel, a[i]; branchable=true)
         end
-        addVariable!(cpmodel, c[i])
+        addVariable!(cpmodel, c[i]; branchable=false)
     end
     
 
@@ -102,19 +102,19 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
         end
     end
 
-    addVariable!(cpmodel, one_var)
+    addVariable!(cpmodel, one_var; branchable=false)
     for i in 1:gen.n_city
-        addVariable!(cpmodel, d[i])
-        addVariable!(cpmodel, upper_tw_minus_1[i])
-        addVariable!(cpmodel, j_index[i])
+        addVariable!(cpmodel, d[i]; branchable=false)
+        addVariable!(cpmodel, upper_tw_minus_1[i]; branchable=false)
+        addVariable!(cpmodel, j_index[i]; branchable=false)
         if i != gen.n_city
-            addVariable!(cpmodel, lower_ai[i])
-            addVariable!(cpmodel, upper_ai[i])
-            addVariable!(cpmodel, lowers[i])
+            addVariable!(cpmodel, lower_ai[i]; branchable=false)
+            addVariable!(cpmodel, upper_ai[i]; branchable=false)
+            addVariable!(cpmodel, lowers[i]; branchable=false)
         end
         for j in 1:gen.n_city
-            addVariable!(cpmodel, j_in_m_i[i, j])
-            addVariable!(cpmodel, still_time[i, j])
+            addVariable!(cpmodel, j_in_m_i[i, j]; branchable=false)
+            addVariable!(cpmodel, still_time[i, j]; branchable=false)
         end
     end
 

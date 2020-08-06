@@ -42,7 +42,7 @@ and connected to a value only if that value is in the domain
 of the variable.
 """
 struct VariableVertex <: FixedEdgesVertex 
-    variable    ::AbstractIntVar
+    variable    ::AbstractVar
 end
 
 
@@ -80,17 +80,17 @@ struct CPLayerGraph <: LightGraphs.AbstractGraph{Int}
     The graph gets linked to `cpmodel` and does not need to get updated by anyone when domains are pruned.
     """
     function CPLayerGraph(cpmodel::CPModel)
-        variables = Set{AbstractIntVar}(values(cpmodel.variables))
-        valuesOfVariables = arrayOfEveryValue(collect(variables))
+        variables = Set{AbstractVar}(values(cpmodel.variables))
+        valuesOfVariables = branchable_values(cpmodel)
         numberOfConstraints = length(cpmodel.constraints)
         numberOfValues = length(valuesOfVariables)
 
-        variableConnections = Tuple{AbstractIntVar, AbstractIntVar}[]
+        variableConnections = Tuple{AbstractVar, AbstractVar}[]
 
         # Take into account IntVarViews that are only declared in constraints
         for constraint in cpmodel.constraints
             for constraintVar in variablesArray(constraint)
-                while !isa(constraintVar, IntVar)
+                while typeof(constraintVar) <: Union{IntVarView, BoolVarView}
                     push!(variables, constraintVar)
 
                     # Storing variable connections
@@ -139,7 +139,9 @@ struct CPLayerGraph <: LightGraphs.AbstractGraph{Int}
             constraint = idToNode[id].constraint
             varArray = variablesArray(constraint)
             for x in varArray
-                add_edge!(fixedEdgesGraph, id, nodeToId[VariableVertex(x)])
+                if x.id != "SEAPEARL_one"
+                    add_edge!(fixedEdgesGraph, id, nodeToId[VariableVertex(x)])
+                end
             end
         end
 
