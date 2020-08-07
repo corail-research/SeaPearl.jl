@@ -8,17 +8,17 @@ This is the Tsptw representation used by Quentin Cappart in Combining Reinforcem
 for Combinatorial Optimization (https://arxiv.org/pdf/2006.01610.pdf).
 """
 mutable struct TsptwStateRepresentation{F} <: FeaturizedStateRepresentation{F}
+    dist::Matrix
+    time_windows::Matrix
     citiesgraph::SimpleWeightedGraphs.SimpleWeightedGraph
     features::Union{Nothing, Array{Float32, 2}}
-    variable_id::Union{Nothing, Int64}
+    current_city::Union{Nothing, Int64}
     possible_value_ids::Union{Nothing, Array{Int64}}
 end
 
 function TsptwStateRepresentation{F}(model::CPModel) where F
     ### build citiesgraph
-    # get the distance matrix from Element2D constraint 
-    cstr = filter(x -> typeof(x) == Element2D, model.constraint)
-    dist = cstr[1].matrix
+    dist, time_windows = get_dist_and_tw(model)
     citiesgraph = SimpleWeightedGraphs.SimpleWeightedGraph(dist)
 
     sr = TsptwStateRepresentation{F}(citiesgraph, nothing, nothing, nothing)
@@ -26,6 +26,34 @@ function TsptwStateRepresentation{F}(model::CPModel) where F
     features = featurize(sr)
     sr.features = transpose(features)
     sr
+end
+
+function get_dist_and_tw(model::CPModel)
+    dist = nothing
+    tw_up = nothing
+    tw_low = nothing
+    for constraint in model.constraints
+        if isnothing(dist) && isa(constraint, SeaPearl.Element2D) && size(constraint.matrix, 2) > 1
+            dist = constraint.matrix
+        end
+        if isnothing(tw_low) && isa(constraint, SeaPearl.Element2D) && constraint.z.id == "lower_ai_1"
+            tw_low = constraint.matrix
+        end
+        if isnothing(tw_up) && isa(constraint, SeaPearl.Element2D) && constraint.z.id == "upper_ai_1"
+            tw_up = constraint.matrix
+        end
+    end
+
+    max_d = maximum(dist)
+    max_low = maximum(tw_low)
+    max_up = maximum(tw_up)
+    max_all = max(max_d, max_low, max_up)
+
+    dist = dist ./ max_all
+    tw_low = tw_low ./ max_all
+    tw_up = tw_up ./ max_all
+
+    return dist, hcat(tw_low, tw_up)
 end
 
 TsptwStateRepresentation(m::CPModel) = TsptwStateRepresentation{TsptwFeaturization}(m::CPModel)
