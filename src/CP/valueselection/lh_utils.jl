@@ -35,8 +35,6 @@ function update_with_cpmodel!(lh::LearnedHeuristic{SR, R, A}, model::CPModel) wh
     lh
 end
 
-include("reward.jl")
-
 """
     sync!(lh::LearnedHeuristic, model::CPModel, x::AbstractIntVar)
 

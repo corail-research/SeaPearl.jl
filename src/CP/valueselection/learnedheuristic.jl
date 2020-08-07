@@ -2,7 +2,7 @@
 include("searchmetrics.jl")
 
 """
-    abstract type AbstractReward end
+abstract type AbstractReward end
 
 Used to customize the reward function. If you want to use your own reward, you have to create a struct
 (called `CustomReward` for example) and define the following methods:
@@ -42,6 +42,7 @@ end
 
 LearnedHeuristic(agent::RL.Agent, cpnodes_max=nothing) = LearnedHeuristic{DefaultStateRepresentation, DefaultReward, FixedOutput}(agent, cpnodes_max)
 
+include("rewards/rewards.jl")
 include("lh_utils.jl")
 
 """
