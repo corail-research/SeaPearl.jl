@@ -23,8 +23,8 @@ functor(::Type{FlexGNN}, c) = (c.graphChain, c.nodeChain, c.outputLayer), ls -> 
 function (nn::FlexGNN)(x::AbstractArray{Float32,2})
 
     # get informations from the CPGraph (input) 
-    variableId = branchingvariable_id(x)
-    fg = featuredgraph(x)
+    variableId = branchingvariable_id(x, DefaultStateRepresentation)
+    fg = featuredgraph(x, DefaultStateRepresentation)
 
     # chain working on the graph
     fg = nn.graphChain(fg)

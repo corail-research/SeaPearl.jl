@@ -46,8 +46,8 @@ functor(::Type{FixedOutputGAT}, c) = (c.firstGATHiddenLayer, c.secondGATHiddenLa
 
 function (nn::FixedOutputGAT)(x::AbstractArray{Float32,2})
     # get informations from the CPGraph (input) 
-    variableId = branchingvariable_id(x)
-    featuredGraph = featuredgraph(x)
+    variableId = branchingvariable_id(x, DefaultStateRepresentation)
+    featuredGraph = featuredgraph(x, DefaultStateRepresentation)
 
     # go through the GCNConvs
     featuredGraph = nn.firstGATHiddenLayer(featuredGraph)

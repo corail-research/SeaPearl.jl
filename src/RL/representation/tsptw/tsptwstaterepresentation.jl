@@ -60,8 +60,6 @@ function get_dist_and_tw(model::CPModel)
     return dist, hcat(tw_low, tw_up)
 end
 
-TsptwStateRepresentation(m::CPModel) = TsptwStateRepresentation{TsptwFeaturization}(m::CPModel)
-
 function update_representation!(sr::TsptwStateRepresentation, model::CPModel, x::AbstractIntVar)
     sr.possible_value_ids = collect(x.domain)
 
@@ -91,7 +89,7 @@ function to_arraybuffer(sr::TsptwStateRepresentation, rows=nothing::Union{Nothin
     return hcat(sr.dist, sr.features, vector_values, vector_current)
 end
 
-function featuredgraph(array::Array{Float32, 2})::GeometricFlux.FeaturedGraph    
+function featuredgraph(array::Array{Float32, 2}, ::Type{TsptwStateRepresentation})::GeometricFlux.FeaturedGraph    
     n = size(array, 1)
     dense_adj = array[:, 1:n]
     features = array[:, n+1:end-2]
@@ -99,7 +97,7 @@ function featuredgraph(array::Array{Float32, 2})::GeometricFlux.FeaturedGraph
     return GeometricFlux.FeaturedGraph(dense_adj, transpose(features))
 end
 
-function branchingvariable_id(array::Array{Float32, 2})::Int64
+function branchingvariable_id(array::Array{Float32, 2}, ::Type{TsptwStateRepresentation})::Int64
     findfirst(x -> x == 1, array[:, end])
 end
 
@@ -133,6 +131,6 @@ end
 
 Returns the ids of the ValueVertex that are in the domain of the variable we are branching on.
 """
-function possible_value_ids(array::Array{Float32, 2})
+function possible_value_ids(array::Array{Float32, 2}, ::Type{TsptwStateRepresentation})
     findall(x -> x == 1, array[:, end-1])
 end

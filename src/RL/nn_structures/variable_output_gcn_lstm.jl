@@ -62,8 +62,8 @@ end
 
 function (nn::VariableOutputGCNLSTM)(x::AbstractArray{Float32,2})
     # get informations from the CPGraph (input) 
-    variableId = branchingvariable_id(x)
-    featuredGraph = featuredgraph(x)
+    variableId = branchingvariable_id(x, DefaultStateRepresentation)
+    featuredGraph = featuredgraph(x, DefaultStateRepresentation)
 
     # go through the GCNConvs
     featuredGraph = nn.firstGCNHiddenLayer(featuredGraph)
@@ -72,7 +72,7 @@ function (nn::VariableOutputGCNLSTM)(x::AbstractArray{Float32,2})
     # extract the feature of the variable we're working on 
     variableFeatures = GeometricFlux.feature(featuredGraph)[:, variableId]
 
-    valueFeatures = view(GeometricFlux.feature(featuredGraph), :, possible_value_ids(x))
+    valueFeatures = view(GeometricFlux.feature(featuredGraph), :, possible_value_ids(x, DefaultStateRepresentation))
     
 
     # get through the dense layers 
