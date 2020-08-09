@@ -23,7 +23,7 @@ function TsptwStateRepresentation{F}(model::CPModel) where F
     dist, time_windows = get_dist_and_tw(model)
     citiesgraph = SimpleWeightedGraphs.SimpleWeightedGraph(dist)
 
-    sr = TsptwStateRepresentation{F}(dist, time_windpws, citiesgraph, nothing, nothing, nothing)
+    sr = TsptwStateRepresentation{F}(dist, time_windows, citiesgraph, nothing, nothing, nothing)
 
     features = featurize(sr)
     sr.features = transpose(features)
@@ -48,10 +48,10 @@ function get_dist_and_tw(model::CPModel)
         end
     end
 
-    max_d = maximum(dist)
-    max_low = maximum(tw_low)
-    max_up = maximum(tw_up)
-    max_all = max(max_d, max_low, max_up)
+    max_d = Base.maximum(dist)
+    max_low = Base.maximum(tw_low)
+    max_up = Base.maximum(tw_up)
+    max_all = Base.max(max_d, max_low, max_up)
 
     dist = dist ./ max_all
     tw_low = tw_low ./ max_all
@@ -114,7 +114,7 @@ function featurize(sr::TsptwStateRepresentation{TsptwFeaturization})
     for i in 1:n
         features[i, 1] = 0.
         features[i, 2] = 0.
-        if !(i in sr.possible_value_ids)
+        if !isnothing(sr.possible_value_ids) && !(i in sr.possible_value_ids)
             features[i , 5] = 1.
         end
         if i == sr.current_city
