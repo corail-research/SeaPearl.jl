@@ -1,3 +1,5 @@
+using SimpleWeightedGraphs
+
 
 struct TsptwFeaturization <: AbstractFeaturization end
 
