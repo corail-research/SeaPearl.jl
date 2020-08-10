@@ -13,7 +13,19 @@ mutable struct TsptwReward <: AbstractReward
 end
 
 function TsptwReward(model::CPModel)
-    TsptwReward(0, 0, 1)
+    dist = nothing
+    for constraint in model.constraints
+        if isnothing(dist) && isa(constraint, Element2D) && size(constraint.matrix, 2) > 1
+            dist = constraint.matrix
+        end
+    end
+    n = size(dist, 1)
+    positiver = Float32(1 + (2^0.5) * n * Base.maximum(dist))
+    #= n_biggest = partialsort(vec(dist), 1:n, rev = true)
+    n_minus_one_smallest = partialsort(vec(dist), 1:n-1)
+    positiver = sum(n_biggest) - sum(n_minus_one_smallest) =#
+    normalizer = positiver ^ (-1)
+    TsptwReward(0, positiver, normalizer)
 end
 
 """
@@ -39,8 +51,9 @@ function set_reward!(::DecisionPhase, lh::LearnedHeuristic{SR, TsptwReward, A}, 
     A <: ActionOutput
 }   
     dist_id = "d_"*string(lh.search_metrics.total_decisions)
-    last_dist = assignedValue(model.variables[dist_id])
-    lh.reward.value += R.normalizer * (R.positiver + last_dist)
+    var = model.variables[dist_id]
+    last_dist = assignedValue(var)
+    lh.reward.value += lh.reward.normalizer * (lh.reward.positiver - last_dist)
 end
 
 
