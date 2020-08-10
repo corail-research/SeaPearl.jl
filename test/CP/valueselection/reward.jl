@@ -29,9 +29,9 @@ end
             lh = SeaPearl.LearnedHeuristic(agent)
             SeaPearl.update_with_cpmodel!(lh, model)
 
-            lh.current_reward = 0
+            lh.reward.value = 0
             SeaPearl.set_reward!(SeaPearl.DecisionPhase(), lh, model)
-            @test lh.reward.value == -1/40
+            @test lh.reward.value == -0.025f0
         end
 
         @testset "set_reward!(EndingPhase)" begin

@@ -70,7 +70,7 @@ agent = RL.Agent(
         @test isnothing(learnedheuristic.fitted_strategy)
         @test isnothing(learnedheuristic.action_space)
         @test isnothing(learnedheuristic.current_state)
-        @test isnothing(learnedheuristic.current_reward)
+        @test isnothing(learnedheuristic.reward)
         @test isnothing(learnedheuristic.search_metrics)
 
         learnedheuristic.fitted_problem = SeaPearl.LegacyGraphColoringGenerator
