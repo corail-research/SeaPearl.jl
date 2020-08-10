@@ -3,7 +3,11 @@
 
 This is the default reward, that will be used if no custom reward is specified when constructing the `LearnedHeuristic`.
 """
-struct DefaultReward <: AbstractReward end
+mutable struct DefaultReward <: AbstractReward 
+    value::Float32
+end
+
+DefaultReward(model::CPModel) = DefaultReward(0)
 
 """
     set_reward!(::StepPhase, lh::LearnedHeuristic{DefaultReward, A}, model::CPModel, symbol::Union{Nothing, Symbol})
@@ -27,7 +31,7 @@ function set_reward!(::DecisionPhase, lh::LearnedHeuristic{SR, DefaultReward, A}
     SR <: AbstractStateRepresentation,
     A <: ActionOutput
 }
-    lh.current_reward += -1/40
+    lh.reward.value += -1/40
     nothing
 end
 
@@ -42,6 +46,6 @@ function set_reward!(::EndingPhase, lh::LearnedHeuristic{SR, DefaultReward, A}, 
     SR <: AbstractStateRepresentation, 
     A <: ActionOutput
 }
-    lh.current_reward += 30/(model.statistics.numberOfNodes)
+    lh.reward.value += 30/(model.statistics.numberOfNodes)
     nothing
 end

@@ -33,7 +33,7 @@ mutable struct LearnedHeuristic{SR<:AbstractStateRepresentation, R<:AbstractRewa
     fitted_strategy::Union{Nothing, Type{S}} where S <: SearchStrategy
     action_space::Union{Nothing, RL.DiscreteSpace{Array{Int64,1}}}
     current_state::Union{Nothing, SR}
-    current_reward::Union{Nothing, Float64}
+    reward::Union{Nothing, R}
     cpnodes_max::Union{Nothing, Int64}
     search_metrics::Union{Nothing, SearchMetrics}
 
