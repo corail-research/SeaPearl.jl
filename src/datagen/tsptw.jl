@@ -12,7 +12,7 @@ end
     fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator)::CPModel    
 
 Fill a CPModel with the variables and constraints generated. We fill it directly instead of 
-creating temporary files for efficiency purpose ! Density should be more than 1.
+creating temporary files for efficiency purpose !
 
 It is the same generator as used in 
 "Combining Reinforcement Learning and Constraint Programming for Combinatorial Optimization":
