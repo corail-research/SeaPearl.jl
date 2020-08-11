@@ -26,8 +26,7 @@ function TsptwStateRepresentation{F}(model::CPModel) where F
 
     sr = TsptwStateRepresentation{F}(dist, time_windows, pos, citiesgraph, nothing, nothing, nothing)
 
-    features = featurize(sr)
-    sr.features = transpose(features)
+    sr.features = featurize(sr)
     sr
 end
 
@@ -64,14 +63,16 @@ function to_arraybuffer(sr::TsptwStateRepresentation, rows=nothing::Union{Nothin
     dist = sr.dist
 
     vector_values = zeros(Float32, size(dist, 1))
-    for i in sr.possible_value_ids
-        vector_values[i] = 1.
+    if !isnothing(sr.possible_value_ids)
+        for i in sr.possible_value_ids
+            vector_values[i] = 1.
+        end
     end
     vector_current = zeros(Float32, size(dist, 1))
     if !isnothing(sr.current_city)
         vector_current[sr.current_city] = 1.
     end
-    
+
     return hcat(sr.dist, sr.features, vector_values, vector_current)
 end
 
