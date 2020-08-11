@@ -27,17 +27,19 @@ end
 
         foundDist, foundTW, foundPos, foundgrid_size = model.adhocInfo
 
-        @test foundDist == [0 4 2 3 3 3 3 3 2 4; 
-                            4 0 2 1 3 3 1 3 4 2; 
-                            2 2 0 0 3 3 1 3 3 3; 
-                            3 1 0 0 3 3 1 3 3 3; 
-                            3 3 3 3 0 1 3 0 1 3; 
-                            3 3 3 3 1 0 3 1 2 2; 
-                            3 1 1 1 3 3 0 3 3 2; 
-                            3 3 3 3 0 1 3 0 1 3; 
-                            2 4 3 3 1 2 3 1 0 4; 
-                            4 2 3 3 3 2 2 3 4 0]
-        @test foundTW == [0 10; 20 20; 23 23; 14 14; 9 9; 17 17; 12 13; 26 26; 8 9; 4 4]
+        if VERSION >= v"1.5.0"
+            @test foundDist == [0 4 2 3 3 3 3 3 2 4; 
+                                4 0 2 1 3 3 1 3 4 2; 
+                                2 2 0 0 3 3 1 3 3 3; 
+                                3 1 0 0 3 3 1 3 3 3; 
+                                3 3 3 3 0 1 3 0 1 3; 
+                                3 3 3 3 1 0 3 1 2 2; 
+                                3 1 1 1 3 3 0 3 3 2; 
+                                3 3 3 3 0 1 3 0 1 3; 
+                                2 4 3 3 1 2 3 1 0 4; 
+                                4 2 3 3 3 2 2 3 4 0]
+            @test foundTW == [0 10; 20 20; 23 23; 14 14; 9 9; 17 17; 12 13; 26 26; 8 9; 4 4]
+        end
         @test foundgrid_size == grid_size
 
         @test length(keys(model.variables)) == 2 * n_city^2 + 11 * n_city - 2
