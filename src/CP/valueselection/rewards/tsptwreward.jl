@@ -1,7 +1,7 @@
 """
     struct TsptwReward <: AbstractReward end
 
-Tsptw is one of the already implemented rewards of SeaPearl.jl. A user can use it directly. 
+TsptwReward is one of the already implemented rewards of SeaPearl.jl. A user can use it directly. 
 This reward is adapted to the tsptw problem and is inspired from the one used by Quentin Cappart in 
 his recent paper: Combining RL & CP for Combinatorial Optimization, https://arxiv.org/pdf/2006.01610.pdf.
 """
@@ -12,6 +12,18 @@ mutable struct TsptwReward <: AbstractReward
 
 end
 
+"""
+    TsptwReward(model::CPModel)
+
+Initialize a TsptwReward instance from a CPModel. The value is set to 0. 
+The positiver and normalizer are inspired from Quentin's paper.
+
+Suggestions for the positiver:
+    Mathematically exact and tighter than n * max(dist) :
+n_biggest = partialsort(vec(dist), 1:n, rev = true)
+n_minus_one_smallest = partialsort(vec(dist), 1:n-1)
+positiver = sum(n_biggest) - sum(n_minus_one_smallest)
+"""
 function TsptwReward(model::CPModel)
     dist = nothing
     for constraint in model.constraints
@@ -21,9 +33,6 @@ function TsptwReward(model::CPModel)
     end
     n = size(dist, 1)
     positiver = Float32(1 + (2^0.5) * n * Base.maximum(dist))
-    #= n_biggest = partialsort(vec(dist), 1:n, rev = true)
-    n_minus_one_smallest = partialsort(vec(dist), 1:n-1)
-    positiver = sum(n_biggest) - sum(n_minus_one_smallest) =#
     normalizer = positiver ^ (-1)
     TsptwReward(0, positiver, normalizer)
 end
