@@ -1,3 +1,5 @@
+using GeometricFlux
+
 @testset "tsptwstaterepresentation.jl" begin
     @testset "Constructor" begin
         trailer = SeaPearl.Trailer()
@@ -73,5 +75,30 @@
                                                                             0.8 0.0 0.4 0.45 0.95 0.38 0.66 1.0 1.0 0.0 1.0; 
                                                                             1.0 0.4 0.0 0.01 0.97 0.61 1.0  0.0 0.0 1.0 0.0]
         end
+    end
+
+    @testset "featuredgraph()" begin
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+
+        n_city = 3
+        grid_size = 10
+        max_tw_gap = 3
+        max_tw = 8
+
+        generator = SeaPearl.TsptwGenerator(n_city, grid_size, max_tw_gap, max_tw)
+
+        SeaPearl.fill_with_generator!(model, generator; seed=42)
+
+        dist, time_windows, pos = model.adhocInfo
+
+        features = Float32[ 0.0 0.8 1.0 0.53 0.17 0.0  0.47 1.0 0.0 0.0 0.0; 
+                            0.8 0.0 0.4 0.45 0.95 0.38 0.66 1.0 1.0 0.0 1.0; 
+                            1.0 0.4 0.0 0.01 0.97 0.61 1.0  0.0 0.0 1.0 0.0]
+
+        fg = SeaPearl.featuredgraph(features, SeaPearl.TsptwStateRepresentation)
+
+
+        @test GeometricFlux.feature(fg) == Float32[0.53 0.45 0.01; 0.17 0.95 0.97; 0.0 0.38 0.61; 0.47 0.66 1.0; 1.0 1.0 0.0; 0.0 1.0 0.0]
     end
 end
