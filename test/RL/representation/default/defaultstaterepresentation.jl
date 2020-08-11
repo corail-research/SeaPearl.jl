@@ -109,7 +109,7 @@ adj = [0 1 0 1;
                             0 0 0 0 0 0 0 0 0 0 0 0 0 0
                             0 0 0 0 0 0 0 0 0 0 0 0 0 0]
 
-        fg = SeaPearl.featuredgraph(array)
+        fg = SeaPearl.featuredgraph(array, SeaPearl.DefaultStateRepresentation)
 
         @test Matrix(fg.graph[]) == Float32[ 0 0 1 1 0 0
                                                             0 0 1 1 0 0
@@ -135,7 +135,7 @@ adj = [0 1 0 1;
                             0 0 0 0 0 0 0 0 0 0 0 0 0 0
                             0 0 0 0 0 0 0 0 0 0 0 0 0 0]
 
-        var_id = SeaPearl.branchingvariable_id(array)
+        var_id = SeaPearl.branchingvariable_id(array, SeaPearl.DefaultStateRepresentation)
 
         @test var_id == 3
 
@@ -150,7 +150,7 @@ adj = [0 1 0 1;
                         1 0 0 1 1 0 0 0 0 0 0 1 0 1
                         0 0 0 0 0 0 0 0 0 0 0 0 0 0
                         0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-        @test SeaPearl.possible_value_ids(array) == [1, 6]
+        @test SeaPearl.possible_value_ids(array, SeaPearl.DefaultStateRepresentation) == [1, 6]
     end
 
     @testset "to_arraybuffer()" begin

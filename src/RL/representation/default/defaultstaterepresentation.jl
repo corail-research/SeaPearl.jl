@@ -58,7 +58,7 @@ function to_arraybuffer(sr::DefaultStateRepresentation, rows=nothing::Union{Noth
     return vcat(cp_graph_array, filler)
 end
 
-function featuredgraph(array::Array{Float32, 2})::GeometricFlux.FeaturedGraph
+function featuredgraph(array::Array{Float32, 2}, ::Type{DefaultStateRepresentation})::GeometricFlux.FeaturedGraph
     # Here we only take what's interesting, removing all null values that are there only to accept bigger graphs
     row_indexes = findall(x -> x == 1, array[:, 1])
     col_indexes = vcat(1 .+ row_indexes, (size(array, 1)+2):size(array, 2))
@@ -71,7 +71,7 @@ function featuredgraph(array::Array{Float32, 2})::GeometricFlux.FeaturedGraph
     return GeometricFlux.FeaturedGraph(dense_adj, transpose(features))
 end
 
-function branchingvariable_id(array::Array{Float32, 2})::Int64
+function branchingvariable_id(array::Array{Float32, 2}, ::Type{DefaultStateRepresentation})::Int64
     findfirst(x -> x == 1, array[:, end-1])
 end
 
@@ -118,6 +118,6 @@ end
 
 Returns the ids of the ValueVertex that are in the domain of the variable we are branching on.
 """
-function possible_value_ids(array::Array{Float32, 2})
+function possible_value_ids(array::Array{Float32, 2}, ::Type{DefaultStateRepresentation})
     findall(x -> x == 1, array[:, end])
 end

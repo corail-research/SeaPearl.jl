@@ -27,8 +27,11 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
         Random.seed!(seed)
     end
 
+    x_pos = zeros(gen.n_city)
+    y_pos = zeros(gen.n_city)
+
     ### Creating the TSPTW instance
-    if isnothing(dist) && isnothing(time_windows)
+    if isnothing(dist) || isnothing(time_windows)
         pos_distribution = Uniform(0, gen.grid_size)
         x_pos = rand(pos_distribution, gen.n_city)
         y_pos = rand(pos_distribution, gen.n_city)
@@ -59,6 +62,8 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
             time_windows[cur_city, :] = [rand_tw_lb rand_tw_ub]
         end
     end
+
+    cpmodel.adhocInfo = dist, time_windows, hcat(x_pos, y_pos), gen.grid_size
 
 
     max_upper_tw = Base.maximum(time_windows) * 2
