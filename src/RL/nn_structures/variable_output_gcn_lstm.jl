@@ -37,11 +37,11 @@ wears_mask(s::VariableOutputGCN) = false
 Build a model thanks to the args.
 """
 function build_model(::Type{VariableOutputGCN}, args::ArgsVariableOutputGCN)
-    return VariableOutputGCNLSTM(
+    return VariableOutputGCN(
         firstGCNHiddenLayer = GeometricFlux.GCNConv(args.numInFeatures=>args.firstHiddenGCN, Flux.relu),
         secondGCNHiddenLayer = GeometricFlux.GCNConv(args.firstHiddenGCN=>args.secondHiddenGCN, Flux.relu),
         denseLayer = Flux.Dense(args.secondHiddenGCN, args.hiddenDense, Flux.relu),
-        lastLayer = Flux.Dense(args.lstmSize, args.lastLayer),
+        lastLayer = Flux.Dense(args.hiddenDense, args.lastLayer),
         outputLayer = Flux.Dense(args.secondHiddenGCN+args.lastLayer, 1),
         numInFeatures = args.numInFeatures
     )
@@ -54,7 +54,7 @@ functor(::Type{VariableOutputGCN}, c) = (c.firstGCNHiddenLayer, c.secondGCNHidde
 
 # Resetting the reccurent part
 function Flux.reset!(nn::VariableOutputGCN)
-    Flux.reset!(nn.LSTMLayer)
+    nothing
 end
 
 function (nn::VariableOutputGCN)(x::AbstractArray{Float32,2})
