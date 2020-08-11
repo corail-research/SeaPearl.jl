@@ -3,6 +3,6 @@
 
 
 """
-function solve!(model::CPModel, strategy::Type{T}=DFSearch; variableHeuristic=MinDomainVariableSelection, valueSelection=BasicHeuristic()) where T <: SearchStrategy
-    return search!(model, strategy, variableHeuristic, valueSelection)
+function solve!(model::CPModel, strategy::Type{T}=DFSearch; variableHeuristic=MinDomainVariableSelection, valueSelection=BasicHeuristic(); out_solver::Bool=false) where T <: SearchStrategy
+    return search!(model, strategy, variableHeuristic, valueSelection; out_solver=out_solver)
 end

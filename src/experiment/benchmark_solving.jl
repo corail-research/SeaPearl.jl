@@ -22,6 +22,7 @@ function benchmark_solving(;
         nb_episodes::Int64=10,
         strategy::Type{DFSearch}=DFSearch,
         variableHeuristic::AbstractVariableSelection=MinDomainVariableSelection(),
+        out_solver::Bool=false, 
         metricsFun=((;kwargs...) -> nothing),
         verbose::Bool=true
     ) where T <: ValueSelection
@@ -52,7 +53,8 @@ function benchmark_solving(;
         generator, 
         nb_episodes, 
         strategy, 
-        variableHeuristic, 
+        variableHeuristic,
+        out_solver,
         metricsFun, 
         verbose
     )

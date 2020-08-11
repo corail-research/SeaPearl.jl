@@ -6,7 +6,7 @@ Perform a Depth-First search in the `model` using `variableHeuristic` to choose 
 at each branching and using `valueSelection` to choose how the branching will be done. 
 This strategy, starting at the root node, will explore as deep as possible before backtracking.
 """
-function search!(model::CPModel, ::Type{DFSearch}, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection=BasicHeuristic())
+function search!(model::CPModel, ::Type{DFSearch}, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection=BasicHeuristic(); out_solver::Bool=false)
 
     # create env and get first observation
     valueSelection(InitializingPhase(), model, nothing, nothing)
@@ -18,7 +18,7 @@ function search!(model::CPModel, ::Type{DFSearch}, variableHeuristic::AbstractVa
     
     while !isempty(toCall)
         # Stop right away if reached a limit
-        if currentStatus == :NodeLimitStop || currentStatus == :SolutionLimitStop
+        if currentStatus == :NodeLimitStop || currentStatus == :SolutionLimitStop || (out_solver && (currentStatus in [:Infeasible, :FoundSolution]))
             break
         end
 
@@ -34,7 +34,7 @@ function search!(model::CPModel, ::Type{DFSearch}, variableHeuristic::AbstractVa
     # set final reward and last observation
     valueSelection(EndingPhase(), model, nothing, nothing)
 
-    if currentStatus == :NodeLimitStop || currentStatus == :SolutionLimitStop
+    if currentStatus == :NodeLimitStop || currentStatus == :SolutionLimitStop || (out_solver & (currentStatus in [:Infeasible, :FoundSolution]))
         return currentStatus
     end
     
