@@ -185,7 +185,7 @@ using DataStructures
         SeaPearl.addVariable!(model, y)
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
-        @test SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(), true) == :FoundSolution
+        @test SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(); out_solver=true) == :FoundSolution
         @test length(model.solutions) == 1
         @test model.solutions[1] == Dict("x" => 3,"y" => 3)
 
@@ -198,7 +198,7 @@ using DataStructures
         push!(model.constraints, SeaPearl.Equal(x, y, model.trailer))
 
         my_heuristic(x::SeaPearl.IntVar) = minimum(x.domain)
-        @test SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(my_heuristic), true) == :FoundSolution
+        @test SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(my_heuristic); out_solver=true) == :FoundSolution
         @test length(model.solutions) == 1
         @test model.solutions[1] == Dict("x" => 2,"y" => 2)
 
@@ -390,7 +390,7 @@ using DataStructures
         variableSelection = SeaPearl.MinDomainVariableSelection()
 
         # launch the search 
-        SeaPearl.search!(model, SeaPearl.DFSearch, variableSelection, valueSelection, true)
+        SeaPearl.search!(model, SeaPearl.DFSearch, variableSelection, valueSelection; out_solver=true)
 
         possible_solutions = [
             Dict("x1" => 1, "x2" => 2, "x3" => 3, "x4" => 1),
