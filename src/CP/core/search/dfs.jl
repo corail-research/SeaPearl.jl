@@ -6,7 +6,7 @@ Perform a Depth-First search in the `model` using `variableHeuristic` to choose 
 at each branching and using `valueSelection` to choose how the branching will be done. 
 This strategy, starting at the root node, will explore as deep as possible before backtracking.
 """
-function search!(model::CPModel, ::Type{DFSearch}, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection=BasicHeuristic(), out_solver::Bool=false)
+function search!(model::CPModel, ::Type{DFSearch}, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection=BasicHeuristic(); out_solver::Bool=false)
 
     # create env and get first observation
     valueSelection(InitializingPhase(), model, nothing, nothing)
