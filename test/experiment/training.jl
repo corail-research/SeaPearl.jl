@@ -99,7 +99,7 @@ end
 
 @testset "training.jl outside the solver (without backtracking)" begin
 
-    generator = SeaPearl.HomogenousGraphColoringGenerator(10, 0.1)
+    generator = SeaPearl.HomogenousGraphColoringGenerator(10, 0.5)
 
     numInFeatures = 3
 

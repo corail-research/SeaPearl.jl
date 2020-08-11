@@ -52,7 +52,6 @@ function launch_experiment!(
 
         fill_with_generator!(model, generator)
 
-
         for j in 1:nb_heuristics
             reset_model!(model)
             
