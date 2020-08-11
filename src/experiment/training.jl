@@ -16,9 +16,10 @@ function train!(;
         nb_episodes::Int64=10,
         strategy::Type{DFSearch}=DFSearch,
         variableHeuristic::AbstractVariableSelection=MinDomainVariableSelection(),
+        out_solver::Bool=false,
         metricsFun=((;kwargs...) -> nothing),
         verbose::Bool=true,
-        evaluator=SameInstancesEvaluator()
+        evaluator=SameInstancesEvaluator(),
     ) where T <: ValueSelection
 
     if isa(valueSelectionArray, T)
@@ -42,6 +43,7 @@ function train!(;
         nb_episodes,
         strategy,
         variableHeuristic,
+        out_solver,
         metricsFun, 
         verbose;
         evaluator=SameInstancesEvaluator()
@@ -55,7 +57,9 @@ function train!(;
             if verbose 
                 print("Has been trained on : ", typeof(generator))
                 print(" ... with strategy : ", strategy)
-                println(" ... during ", nb_episodes, " episodes.")
+                print(" ... during ", nb_episodes, " episodes ")
+                out_solver && println("   out of the solver.")
+                !out_solver && println("   in the solver.")
                 println("Training mode now desactivated !")
             end
         end

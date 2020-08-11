@@ -23,6 +23,7 @@ function launch_experiment!(
         nb_episodes::Int64,
         strategy::Type{DFSearch},
         variableHeuristic::AbstractVariableSelection,
+        out_solver::Bool,
         metricsFun,
         verbose::Bool;
         evaluator=SameInstancesEvaluator()
@@ -55,7 +56,7 @@ function launch_experiment!(
         for j in 1:nb_heuristics
             reset_model!(model)
             
-            dt = @elapsed search!(model, strategy, variableHeuristic, valueSelectionArray[j])
+            dt = @elapsed search!(model, strategy, variableHeuristic, valueSelectionArray[j], out_solver)
 
             if isa(valueSelectionArray[j], LearnedHeuristic)
                 verbose && print(", Visited nodes: ", model.statistics.numberOfNodes)
