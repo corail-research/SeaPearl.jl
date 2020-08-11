@@ -58,7 +58,7 @@ agent = RL.Agent(
 @testset "learnedheuristic.jl" begin
 
     include("searchmetrics.jl")
-    include("reward.jl")
+    include("rewards/rewards.jl")
     include("lh_utils.jl")
 
     @testset "LearnedHeuristic" begin 
@@ -70,7 +70,7 @@ agent = RL.Agent(
         @test isnothing(learnedheuristic.fitted_strategy)
         @test isnothing(learnedheuristic.action_space)
         @test isnothing(learnedheuristic.current_state)
-        @test isnothing(learnedheuristic.current_reward)
+        @test isnothing(learnedheuristic.reward)
         @test isnothing(learnedheuristic.search_metrics)
 
         learnedheuristic.fitted_problem = SeaPearl.LegacyGraphColoringGenerator
@@ -103,10 +103,12 @@ agent = RL.Agent(
         lh = SeaPearl.LearnedHeuristic(agent)
         SeaPearl.update_with_cpmodel!(lh, model)
 
+
         false_x = first(values(model.variables))
         obs = SeaPearl.get_observation!(lh, model, false_x)
         lh.agent(RL.PRE_EPISODE_STAGE, obs)
 
+        _, _ = SeaPearl.fixPoint!(model)
 
         obs = SeaPearl.get_observation!(lh, model, x1)
         v1 = lh.agent(RL.PRE_ACT_STAGE, obs)

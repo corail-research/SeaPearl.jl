@@ -20,7 +20,7 @@
         @test typeof(lh.action_space) == RL.DiscreteSpace{Array{Int64,1}}
         @test lh.action_space.span == [2, 3, 4]
         @test typeof(lh.current_state) == SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization}
-        @test lh.current_reward == 0
+        @test lh.reward.value == 0
         @test isa(lh.search_metrics, SeaPearl.SearchMetrics)
     end 
 

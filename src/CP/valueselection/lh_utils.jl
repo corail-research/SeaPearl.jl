@@ -29,13 +29,13 @@ function update_with_cpmodel!(lh::LearnedHeuristic{SR, R, A}, model::CPModel) wh
     # state rep construction
     lh.current_state = SR(model)
 
-    lh.current_reward = 0
+    # create and initialize the reward
+    lh.reward = R(model)
+
     lh.search_metrics = SearchMetrics(model)
 
     lh
 end
-
-include("reward.jl")
 
 """
     sync!(lh::LearnedHeuristic, model::CPModel, x::AbstractIntVar)
@@ -67,9 +67,9 @@ function get_observation!(lh::LearnedHeuristic, model::CPModel, x::AbstractIntVa
     # compute legal actions
     legal_actions = lh.action_space.span[legal_actions_mask]
 
-    reward = lh.current_reward
+    reward = lh.reward.value
     # Initialize reward for the next state: not compulsory with DefaultReward, but maybe useful in case the user forgets it
-    lh.current_reward = 0
+    lh.reward.value = 0
 
     # synchronize state: we could delete env.state, we do not need it 
     sync_state!(lh, model, x)

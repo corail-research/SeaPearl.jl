@@ -2,7 +2,7 @@
 include("searchmetrics.jl")
 
 """
-    abstract type AbstractReward end
+abstract type AbstractReward end
 
 Used to customize the reward function. If you want to use your own reward, you have to create a struct
 (called `CustomReward` for example) and define the following methods:
@@ -33,7 +33,7 @@ mutable struct LearnedHeuristic{SR<:AbstractStateRepresentation, R<:AbstractRewa
     fitted_strategy::Union{Nothing, Type{S}} where S <: SearchStrategy
     action_space::Union{Nothing, RL.DiscreteSpace{Array{Int64,1}}}
     current_state::Union{Nothing, SR}
-    current_reward::Union{Nothing, Float64}
+    reward::Union{Nothing, R}
     cpnodes_max::Union{Nothing, Int64}
     search_metrics::Union{Nothing, SearchMetrics}
 
@@ -42,6 +42,7 @@ end
 
 LearnedHeuristic(agent::RL.Agent, cpnodes_max=nothing) = LearnedHeuristic{DefaultStateRepresentation, DefaultReward, FixedOutput}(agent, cpnodes_max)
 
+include("rewards/rewards.jl")
 include("lh_utils.jl")
 
 """
