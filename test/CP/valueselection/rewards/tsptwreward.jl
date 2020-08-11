@@ -53,7 +53,7 @@ time_windows = [0         408;
         275       300]
 
 dist, time_windows = SeaPearl.fill_with_generator!(model, generator; dist=dist, time_windows=time_windows)
-lh = SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization}, SeaPearl.TsptwReward, SeaPearl.FixedOutput}(agent)
+lh = SeaPearl.LearnedHeuristic{SeaPearl.TsptwStateRepresentation{SeaPearl.TsptwFeaturization}, SeaPearl.TsptwReward, SeaPearl.FixedOutput}(agent)
 
 @testset "TsptwReward" begin
     @testset "set_reward!(DecisionPhase)" begin

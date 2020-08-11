@@ -9,6 +9,7 @@ mutable struct TsptwReward <: AbstractReward
     value::Float32
     positiver::Float32
     normalizer::Float32
+    max_dist::Float32
 
 end
 
@@ -32,9 +33,10 @@ function TsptwReward(model::CPModel)
         end
     end
     n = size(dist, 1)
-    positiver = Float32(1 + (2^0.5) * n * Base.maximum(dist))
+    max_dist = Float32(Base.maximum(dist))
+    positiver = Float32(1 + (2^0.5) * n * max_dist)
     normalizer = positiver ^ (-1)
-    TsptwReward(0, positiver, normalizer)
+    TsptwReward(0, positiver, normalizer, max_dist)
 end
 
 """
@@ -59,9 +61,18 @@ function set_reward!(::DecisionPhase, lh::LearnedHeuristic{SR, TsptwReward, A}, 
     SR <: AbstractStateRepresentation,
     A <: ActionOutput
 }   
-    dist_id = "d_"*string(lh.search_metrics.total_decisions)
+    #= dist_id = "d_"*string(lh.search_metrics.total_decisions)
     var = model.variables[dist_id]
-    last_dist = assignedValue(var)
+    last_dist = assignedValue(var) =#
+    a_i = assignedValue(model.variables["a_"*string(lh.search_metrics.total_decisions)])
+    if lh.search_metrics.total_decisions > 0
+        v_i = 1
+    else
+        v_i = assignedValue(model.variables["v_"*string(lh.search_metrics.total_decisions - 1)])
+    end
+    
+    last_dist = lh.current_state.dist[v_i, a_i] * lh.reward.max_dist
+    println(v_i, a_i, last_dist)
     lh.reward.value += lh.reward.normalizer * (lh.reward.positiver - last_dist)
 end
 
