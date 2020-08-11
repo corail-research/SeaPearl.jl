@@ -25,6 +25,21 @@ end
 
         SeaPearl.fill_with_generator!(model, generator; seed=52)
 
+        foundDist, foundTW, foundPos, foundgrid_size = model.adhocInfo
+
+        @test foundDist == [0 4 2 3 3 3 3 3 2 4; 
+                            4 0 2 1 3 3 1 3 4 2; 
+                            2 2 0 0 3 3 1 3 3 3; 
+                            3 1 0 0 3 3 1 3 3 3; 
+                            3 3 3 3 0 1 3 0 1 3; 
+                            3 3 3 3 1 0 3 1 2 2; 
+                            3 1 1 1 3 3 0 3 3 2; 
+                            3 3 3 3 0 1 3 0 1 3; 
+                            2 4 3 3 1 2 3 1 0 4; 
+                            4 2 3 3 3 2 2 3 4 0]
+        @test foundTW == [0 10; 20 20; 23 23; 14 14; 9 9; 17 17; 12 13; 26 26; 8 9; 4 4]
+        @test foundgrid_size == grid_size
+
         @test length(keys(model.variables)) == 2 * n_city^2 + 11 * n_city - 2
         @test length(model.constraints) == 3*n_city^2 + 10 * n_city - 4
         @test model.objective == model.variables["total_cost"]
@@ -86,6 +101,12 @@ end
         275       300]
 
         dist, time_windows = SeaPearl.fill_with_generator!(model, generator; dist=dist, time_windows=time_windows)
+
+        foundDist, foundTW, foundPos, foundgrid_size = model.adhocInfo
+
+        @test foundDist == dist
+        @test foundTW == time_windows
+        @test foundgrid_size == grid_size
 
         variableheuristic = TsptwVariableSelection{false}()
         my_heuristic(x::SeaPearl.IntVar) = minimum(x.domain)

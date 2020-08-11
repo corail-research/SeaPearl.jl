@@ -12,6 +12,7 @@ for Combinatorial Optimization (https://arxiv.org/pdf/2006.01610.pdf).
 mutable struct TsptwStateRepresentation{F} <: FeaturizedStateRepresentation{F}
     dist::Matrix
     time_windows::Matrix
+    pos::Matrix
     citiesgraph::SimpleWeightedGraphs.SimpleWeightedGraph
     features::Union{Nothing, Array{Float32, 2}}
     current_city::Union{Nothing, Int64}
@@ -20,10 +21,10 @@ end
 
 function TsptwStateRepresentation{F}(model::CPModel) where F
     ### build citiesgraph
-    dist, time_windows = get_dist_and_tw(model)
+    dist, time_windows, pos = get_tsptw_info(model)
     citiesgraph = SimpleWeightedGraphs.SimpleWeightedGraph(dist)
 
-    sr = TsptwStateRepresentation{F}(dist, time_windows, citiesgraph, nothing, nothing, nothing)
+    sr = TsptwStateRepresentation{F}(dist, time_windows, pos, citiesgraph, nothing, nothing, nothing)
 
     features = featurize(sr)
     sr.features = transpose(features)
@@ -32,32 +33,17 @@ end
 
 TsptwStateRepresentation(model::CPModel) = TsptwStateRepresentation{TsptwFeaturization}(model)
 
-function get_dist_and_tw(model::CPModel)
-    dist = nothing
-    tw_up = nothing
-    tw_low = nothing
-    for constraint in model.constraints
-        if isnothing(dist) && isa(constraint, SeaPearl.Element2D) && size(constraint.matrix, 2) > 1
-            dist = constraint.matrix
-        end
-        if isnothing(tw_low) && isa(constraint, SeaPearl.Element2D) && constraint.z.id == "lower_ai_1"
-            tw_low = constraint.matrix
-        end
-        if isnothing(tw_up) && isa(constraint, SeaPearl.Element2D) && constraint.z.id == "upper_ai_1"
-            tw_up = constraint.matrix
-        end
-    end
+function get_tsptw_info(model::CPModel)
+    dist, time_windows, pos, grid_size = model.adhocInfo
 
     max_d = Base.maximum(dist)
-    max_low = Base.maximum(tw_low)
-    max_up = Base.maximum(tw_up)
-    max_all = Base.max(max_d, max_low, max_up)
+    max_tw = Base.maximum(time_windows)
 
-    dist = dist ./ max_all
-    tw_low = tw_low ./ max_all
-    tw_up = tw_up ./ max_all
+    dist = dist ./ max_d
+    time_windows = time_windows ./ max_tw
+    pos = pos ./ grid_size
 
-    return dist, hcat(tw_low, tw_up)
+    return dist, time_windows, pos
 end
 
 function update_representation!(sr::TsptwStateRepresentation, model::CPModel, x::AbstractIntVar)
@@ -112,8 +98,6 @@ function featurize(sr::TsptwStateRepresentation{TsptwFeaturization})
     n = size(sr.dist, 1)
     features = zeros(Float32, n, 6)
     for i in 1:n
-        features[i, 1] = 0.
-        features[i, 2] = 0.
         if !isnothing(sr.possible_value_ids) && !(i in sr.possible_value_ids)
             features[i , 5] = 1.
         end
@@ -122,6 +106,7 @@ function featurize(sr::TsptwStateRepresentation{TsptwFeaturization})
         end
     end
 
+    features[:, 1:2] = sr.pos
     features[:, 3:4] = sr.time_windows
     features
 end

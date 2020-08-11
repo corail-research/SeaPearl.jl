@@ -34,6 +34,7 @@ mutable struct CPModel
     solutions               ::Array{Solution}
     statistics              ::Statistics
     limit                   ::Limit
+    adhocInfo               ::Any
     CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Constraint[], trailer, nothing, nothing, Solution[], Statistics(0, 0), Limit(nothing, nothing))
 end
 
