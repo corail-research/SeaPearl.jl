@@ -101,7 +101,7 @@ wears_mask(valueSelection::LearnedHeuristic) = wears_mask(valueSelection.agent.p
 Return the ids of the valid indexes from the Array representation of the AbstractStateRepresentation. Used to be able to work with 
 ActionOutput of variable size (VariableOutput).
 """
-function from_order_to_id(state::AbstractArray, value_order::Int64)
+function from_order_to_id(state::AbstractArray, value_order::Int64, SR::Type{<:AbstractStateRepresentation})
     value_vector = state[:, end]
     valid_indexes = findall((x) -> x == 1, value_vector)
     return valid_indexes[value_order]
@@ -113,13 +113,20 @@ end
 Mapping action taken to corresponding value when handling VariableOutput type of ActionOutput.
 """
 function action_to_value(vs::LearnedHeuristic{SR, R, VariableOutput}, action::Int64, state::AbstractArray, model::CPModel) where {
-    SR <: AbstractStateRepresentation,
+    SR <: DefaultStateRepresentation,
     R <: AbstractReward
 }
-    value_id = from_order_to_id(state, action)
+    value_id = from_order_to_id(state, action, SR)
     cp_vertex = cpVertexFromIndex(vs.current_state.cplayergraph, value_id)
     @assert isa(cp_vertex, ValueVertex)
     return cp_vertex.value
+end
+
+function action_to_value(vs::LearnedHeuristic{SR, R, VariableOutput}, action::Int64, state::AbstractArray, model::CPModel) where {
+    SR <: TsptwStateRepresentation,
+    R <: AbstractReward
+}
+    return from_order_to_id(state, action, SR)
 end
 
 """
