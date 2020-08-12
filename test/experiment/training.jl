@@ -2,6 +2,8 @@
 
 @testset "training.jl inside the solver (with backtracking)" begin
     
+    println("Training inside the solver -------- ")
+
     generator = SeaPearl.HomogenousGraphColoringGenerator(10, 0.1)
 
     numInFeatures = 3
@@ -82,10 +84,11 @@
     bestsolutions, nodevisited, timeneeded = SeaPearl.train!(
         valueSelectionArray=learnedHeuristic, 
         generator=generator,
-        nb_episodes=3,
+        nb_episodes= 3, #3,
         strategy=SeaPearl.DFSearch,
         variableHeuristic=SeaPearl.MinDomainVariableSelection{true}(),
-        out_solver = false
+        out_solver = false,
+        evaluator=SeaPearl.SameInstancesEvaluator()
     )
 
     final_params = params(learnedHeuristic.agent.policy.learner.approximator.model)
@@ -99,7 +102,9 @@ end
 
 @testset "training.jl outside the solver (without backtracking)" begin
 
-    generator = SeaPearl.HomogenousGraphColoringGenerator(10, 0.5)
+    println("Let's try without backtracking   :   ------------")
+
+    generator = SeaPearl.HomogenousGraphColoringGenerator(10, 0.1)
 
     numInFeatures = 3
 
@@ -186,7 +191,8 @@ end
         nb_episodes=3,
         strategy=SeaPearl.DFSearch,
         variableHeuristic=SeaPearl.MinDomainVariableSelection{true}(),
-        out_solver = true
+        out_solver = true,
+        evaluator=nothing #SeaPearl.SameInstancesEvaluator(eval_freq = 100000, nb_instances = 5)
     )
 
     final_params = params(learnedHeuristic.agent.policy.learner.approximator.model)
