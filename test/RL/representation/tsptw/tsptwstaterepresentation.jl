@@ -72,8 +72,8 @@ using GeometricFlux
             SeaPearl.remove!(model.variables["a_2"].domain, 1)
             SeaPearl.update_representation!(sr, model, model.variables["a_2"])
             @test trunc.(SeaPearl.to_arraybuffer(sr); digits=2) == Float32[ 0.0 0.8 1.0 0.53 0.17 0.0  0.47 1.0 0.0 0.0 0.0; 
-                                                                            0.8 0.0 0.4 0.45 0.95 0.38 0.66 1.0 1.0 0.0 1.0; 
-                                                                            1.0 0.4 0.0 0.01 0.97 0.61 1.0  0.0 0.0 1.0 0.0]
+                                                                            0.8 0.0 0.4 0.45 0.95 0.38 0.66 1.0 1.0 1.0 0.0; 
+                                                                            1.0 0.4 0.0 0.01 0.97 0.61 1.0  0.0 0.0 0.0 1.0]
         end
     end
 
