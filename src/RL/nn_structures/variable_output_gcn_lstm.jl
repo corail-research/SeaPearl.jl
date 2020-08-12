@@ -13,6 +13,7 @@ Base.@kwdef mutable struct ArgsVariableOutputGCN <: NNArgs
     firstHiddenGCN      ::Int = 20
     secondHiddenGCN     ::Int = 20
     hiddenDense         ::Int = 20
+    state_rep::Type{<:AbstractStateRepresentation} = DefaultStateRepresentation
 end
 
 """
@@ -27,6 +28,7 @@ Base.@kwdef struct VariableOutputGCN <: NNStructure
     lastLayer::Flux.Dense
     outputLayer             ::Flux.Dense
     numInFeatures::Int
+    state_rep::Type{<:AbstractStateRepresentation}
 end
 
 wears_mask(s::VariableOutputGCN) = false
@@ -43,7 +45,8 @@ function build_model(::Type{VariableOutputGCN}, args::ArgsVariableOutputGCN)
         denseLayer = Flux.Dense(args.secondHiddenGCN, args.hiddenDense, Flux.relu),
         lastLayer = Flux.Dense(args.hiddenDense, args.lastLayer),
         outputLayer = Flux.Dense(args.secondHiddenGCN+args.lastLayer, 1),
-        numInFeatures = args.numInFeatures
+        numInFeatures = args.numInFeatures,
+        state_rep = args.state_rep
     )
 end
 
@@ -59,8 +62,8 @@ end
 
 function (nn::VariableOutputGCN)(x::AbstractArray{Float32,2})
     # get informations from the CPGraph (input) 
-    variableId = branchingvariable_id(x, DefaultStateRepresentation)
-    featuredGraph = featuredgraph(x, DefaultStateRepresentation)
+    variableId = branchingvariable_id(x, nn.state_rep)
+    featuredGraph = featuredgraph(x, nn.state_rep)
 
     # go through the GCNConvs
     featuredGraph = nn.firstGCNHiddenLayer(featuredGraph)
@@ -69,7 +72,7 @@ function (nn::VariableOutputGCN)(x::AbstractArray{Float32,2})
     # extract the feature of the variable we're working on 
     variableFeatures = GeometricFlux.feature(featuredGraph)[:, variableId]
 
-    valueFeatures = view(GeometricFlux.feature(featuredGraph), :, possible_value_ids(x, DefaultStateRepresentation))
+    valueFeatures = view(GeometricFlux.feature(featuredGraph), :, possible_value_ids(x, nn.state_rep))
     
 
     # get through the dense layers 
