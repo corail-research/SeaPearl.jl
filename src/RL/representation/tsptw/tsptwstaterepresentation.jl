@@ -73,7 +73,7 @@ function to_arraybuffer(sr::TsptwStateRepresentation, rows=nothing::Union{Nothin
         vector_current[sr.current_city] = 1.
     end
 
-    return hcat(sr.dist, sr.features, vector_values, vector_current)
+    return hcat(sr.dist, sr.features, vector_current, vector_values)
 end
 
 function featuredgraph(array::Array{Float32, 2}, ::Type{TsptwStateRepresentation})::GeometricFlux.FeaturedGraph    
@@ -85,7 +85,7 @@ function featuredgraph(array::Array{Float32, 2}, ::Type{TsptwStateRepresentation
 end
 
 function branchingvariable_id(array::Array{Float32, 2}, ::Type{TsptwStateRepresentation})::Int64
-    findfirst(x -> x == 1, array[:, end])
+    findfirst(x -> x == 1, array[:, end-1])
 end
 
 
@@ -118,5 +118,5 @@ end
 Returns the ids of the ValueVertex that are in the domain of the variable we are branching on.
 """
 function possible_value_ids(array::Array{Float32, 2}, ::Type{TsptwStateRepresentation})
-    findall(x -> x == 1, array[:, end-1])
+    findall(x -> x == 1, array[:, end])
 end
