@@ -52,7 +52,7 @@ function launch_experiment!(
     iter = ProgressBar(1:nb_episodes)
     for i in iter
     #for i in 1:nb_episodes
-        verbose && print(" --- EPISODE: ", i)
+        verbose && println(" --- EPISODE: ", i)
 
         empty!(model)
 

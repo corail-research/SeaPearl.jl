@@ -95,7 +95,7 @@
 
     @test final_params != initial_params
 
-    println(bestsolutions)
+    # println(bestsolutions)
     println(nodevisited)
 
 end
@@ -190,7 +190,7 @@ end
         generator=generator,
         nb_episodes=3,
         strategy=SeaPearl.DFSearch,
-        variableHeuristic=SeaPearl.MinDomainVariableSelection{true}(),
+        variableHeuristic=SeaPearl.MinDomainVariableSelection{false}(),
         out_solver = true,
         evaluator=nothing #SeaPearl.SameInstancesEvaluator(eval_freq = 100000, nb_instances = 5)
     )
