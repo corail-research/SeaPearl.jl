@@ -19,7 +19,7 @@ function train!(;
         out_solver::Bool=false,
         metricsFun=((;kwargs...) -> nothing),
         verbose::Bool=true,
-        evaluator=SameInstancesEvaluator(),
+        evaluator::Union{Nothing, AbstractEvaluator}=SameInstancesEvaluator(),
     ) where T <: ValueSelection
 
     if isa(valueSelectionArray, T)
@@ -45,8 +45,8 @@ function train!(;
         variableHeuristic,
         out_solver,
         metricsFun, 
-        verbose;
-        evaluator=SameInstancesEvaluator()
+        verbose,
+        evaluator=evaluator
     )
 
     for valueSelection in valueSelectionArray

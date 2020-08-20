@@ -26,19 +26,25 @@ function launch_experiment!(
         out_solver::Bool,
         metricsFun,
         verbose::Bool;
-        evaluator=SameInstancesEvaluator()
+        evaluator::Union{Nothing, AbstractEvaluator}=SameInstancesEvaluator()
     ) where T <: ValueSelection
-    eval_freq = evaluator.eval_freq
 
     nb_heuristics = length(valueSelectionArray)
 
-    init_evaluator!(evaluator, generator)
+    eval_nodevisited = nothing
+    eval_timeneeded = nothing
+    if !isnothing(evaluator)
+        eval_freq = evaluator.eval_freq
+        init_evaluator!(evaluator, generator)
+
+        eval_nodevisited = zeros(Float64, (floor(Int64, nb_episodes/eval_freq) + 1, nb_heuristics))
+        eval_timeneeded = zeros(Float64, (floor(Int64, nb_episodes/eval_freq) + 1, nb_heuristics))
+    end
 
     bestsolutions = zeros(Int64, (nb_episodes, nb_heuristics))
     nodevisited = zeros(Int64, (nb_episodes, nb_heuristics))
-    eval_nodevisited = zeros(Float64, (floor(Int64, nb_episodes/eval_freq) + 1, nb_heuristics))
     timeneeded = zeros(Float64, (nb_episodes, nb_heuristics))
-    eval_timeneeded = zeros(Float64, (floor(Int64, nb_episodes/eval_freq) + 1, nb_heuristics))
+    
 
     trailer = Trailer()
     model = CPModel(trailer)
@@ -46,7 +52,7 @@ function launch_experiment!(
     iter = ProgressBar(1:nb_episodes)
     for i in iter
     #for i in 1:nb_episodes
-        verbose && print(" --- EPISODE: ", i)
+        verbose && println(" --- EPISODE: ", i)
 
         empty!(model)
 
@@ -55,7 +61,7 @@ function launch_experiment!(
         for j in 1:nb_heuristics
             reset_model!(model)
             
-            dt = @elapsed search!(model, strategy, variableHeuristic, valueSelectionArray[j]; out_solver=out_solver)
+            dt = @elapsed search!(model, strategy, variableHeuristic, valueSelectionArray[j], out_solver=out_solver)
 
             if isa(valueSelectionArray[j], LearnedHeuristic)
                 verbose && print(", Visited nodes: ", model.statistics.numberOfNodes)
@@ -71,7 +77,7 @@ function launch_experiment!(
             end
 
             # eval_nodevisited[i, j], eval_timeneeded[i, j] = 0., 0.
-            if i % eval_freq == 1
+            if !isnothing(evaluator) && (i % eval_freq == 1)
                 eval_nodevisited[floor(Int64, (i-1)/eval_freq + 1), j], eval_timeneeded[floor(Int64, (i-1)/eval_freq + 1), j] = evaluate(evaluator, variableHeuristic, valueSelectionArray[j], strategy)
             end
 
