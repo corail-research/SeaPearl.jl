@@ -7,6 +7,9 @@ using Zygote
 using Random
 using Flux
 
+using ReinforcementLearningBase
+const RLBase = ReinforcementLearningBase
+
 """
     DQNLearner(;kwargs...)
 See paper: [Human-level control through deep reinforcement learning](https://www.nature.com/articles/nature14236)
@@ -137,13 +140,13 @@ function RLBase.update!(learner::CPDQNLearner, t::AbstractTrajectory)
         target_q .+= send_to_device(D, masked_value)
     end
 
-    q′ = dropdims(maximum(target_q; dims = 1), dims = 1)
+    q′ = dropdims(Base.maximum(target_q; dims = 1), dims = 1)
     G = rewards .+ γ^update_horizon .* (1 .- terminals) .* q′
 
-    gs = gradient(params(Q)) do
+    gs = gradient(Flux.params(Q)) do
         q = Q(states)[actions]
         loss = loss_func(G, q)
-        ignore() do
+        Zygote.ignore() do
             learner.loss = loss
         end
         loss
