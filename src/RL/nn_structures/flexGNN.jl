@@ -1,3 +1,5 @@
+using GraphSignals
+
 """
     FlexGNN(;
         graphChain::Flux.Chain
@@ -30,7 +32,7 @@ function (nn::FlexGNN)(x::AbstractArray{Float32,2})
     fg = nn.graphChain(fg)
 
     # extract the feature of the variable we're working on 
-    var_feature = GeometricFlux.feature(fg)[:, variableId]
+    var_feature = GraphSignals.node_feature(fg)[:, variableId]
 
     # chain working on the node feature (array)
     var_feature = nn.nodeChain(var_feature)
