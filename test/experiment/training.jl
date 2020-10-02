@@ -49,7 +49,6 @@
                 min_replay_history = 1,
                 update_freq = 1,
                 target_update_freq = 100,
-                seed = 22,
             ), 
             explorer = SeaPearl.CPEpsilonGreedyExplorer(
                 ϵ_stable = 0.01,
@@ -149,7 +148,6 @@ end
                 min_replay_history = 1,
                 update_freq = 1,
                 target_update_freq = 100,
-                seed = 22,
             ), 
             explorer = SeaPearl.CPEpsilonGreedyExplorer(
                 ϵ_stable = 0.01,
