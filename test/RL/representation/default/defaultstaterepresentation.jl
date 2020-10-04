@@ -1,3 +1,5 @@
+using GraphSignals
+
 adj = [0 1 0 1;
        1 0 1 0;
        0 1 0 1;
@@ -111,14 +113,14 @@ adj = [0 1 0 1;
 
         fg = SeaPearl.featuredgraph(array, SeaPearl.DefaultStateRepresentation)
 
-        @test Matrix(fg.graph[]) == Float32[ 0 0 1 1 0 0
+        @test Matrix(GraphSignals.graph(fg)) == Float32[ 0 0 1 1 0 0
                                                             0 0 1 1 0 0
                                                             1 1 0 0 1 1
                                                             1 1 0 0 1 1
                                                             0 0 1 1 0 0
                                                             0 0 1 1 0 0]
 
-        @test fg.feature[] == Float32[   1 1 0 0 0 0
+        @test GraphSignals.node_feature(fg) == Float32[   1 1 0 0 0 0
                                                         0 0 1 1 0 0
                                                         0 0 0 0 1 1]
 
