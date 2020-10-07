@@ -152,7 +152,7 @@ function RLBase.update!(learner::CPDQNLearner, t::AbstractTrajectory)
         loss
     end
 
-    update!(Q, gs)
+    RLBase.update!(Q, gs)
 end
 
 function extract_experience(t::AbstractTrajectory, learner::CPDQNLearner)
