@@ -303,7 +303,7 @@ using DataStructures
             @test solution in possible_solutions
         end
 
-        @test length(valueSelection.agent.trajectory) == 8
+        @test length(keys(valueSelection.agent.trajectory)) == 8
 
     end
 
