@@ -81,7 +81,7 @@ function CPDQNLearner(;
 end
 
 
-Flux.functor(x::DQNLearner) = (Q = x.approximator, Qₜ = x.target_approximator),
+Flux.functor(x::CPDQNLearner) = (Q = x.approximator, Qₜ = x.target_approximator),
 y -> begin
     x = @set x.approximator = y.Q
     x = @set x.target_approximator = y.Qₜ
