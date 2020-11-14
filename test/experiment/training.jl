@@ -62,7 +62,7 @@
                 seed = 33
             )
         ),
-        trajectory = RL.CircularCompactSARTSATrajectory(
+        trajectory = RL.CircularCompactSALRTSALTrajectory(
             capacity = 500, 
             state_type = Float32, 
             state_size = state_size,
@@ -71,7 +71,10 @@
             reward_type = Float32,
             reward_size = (),
             terminal_type = Bool,
-            terminal_size = ()
+            terminal_size = (),
+            legal_actions_mask_size = (generator.nb_nodes, ),
+            legal_actions_mask_type = Bool,
+
         ),
         role = :DEFAULT_PLAYER
     )
@@ -161,7 +164,7 @@ end
                 seed = 33
             )
         ),
-        trajectory = RL.CircularCompactSARTSATrajectory(
+        trajectory = RL.CircularCompactSALRTSALTrajectory(
             capacity = 500, 
             state_type = Float32, 
             state_size = state_size,
@@ -170,7 +173,9 @@ end
             reward_type = Float32,
             reward_size = (),
             terminal_type = Bool,
-            terminal_size = ()
+            terminal_size = (),
+            legal_actions_mask_size = (generator.nb_nodes, ),
+            legal_actions_mask_type = Bool,
         ),
         role = :DEFAULT_PLAYER
     )

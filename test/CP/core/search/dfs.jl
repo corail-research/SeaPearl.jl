@@ -248,8 +248,8 @@ using DataStructures
                     seed = 33
                 )
             ),
-            trajectory = RL.CircularCompactSARTSATrajectory(
-                capacity = 1000, 
+            trajectory = RL.CircularCompactSALRTSALTrajectory(
+                capacity = 500, 
                 state_type = Float32, 
                 state_size = (11, 17, 1),
                 action_type = Int,
@@ -257,7 +257,9 @@ using DataStructures
                 reward_type = Float32,
                 reward_size = (),
                 terminal_type = Bool,
-                terminal_size = ()
+                terminal_size = (),
+                legal_actions_mask_size = (4, ),
+                legal_actions_mask_type = Bool,
             ),
             role = :DEFAULT_PLAYER
         )
@@ -303,7 +305,7 @@ using DataStructures
             @test solution in possible_solutions
         end
 
-        @test length(keys(valueSelection.agent.trajectory)) == 8
+        @test length(keys(valueSelection.agent.trajectory)) == 11
 
     end
 
@@ -351,8 +353,8 @@ using DataStructures
                     seed = 33
                 )
             ),
-            trajectory = RL.CircularCompactSARTSATrajectory(
-                capacity = 1000, 
+            trajectory = RL.CircularCompactSALRTSALTrajectory(
+                capacity = 500, 
                 state_type = Float32, 
                 state_size = (11, 17, 1),
                 action_type = Int,
@@ -360,7 +362,9 @@ using DataStructures
                 reward_type = Float32,
                 reward_size = (),
                 terminal_type = Bool,
-                terminal_size = ()
+                terminal_size = (),
+                legal_actions_mask_size = (4, ),
+                legal_actions_mask_type = Bool,
             ),
             role = :DEFAULT_PLAYER
         )
