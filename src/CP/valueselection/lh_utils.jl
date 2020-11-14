@@ -97,6 +97,21 @@ RLBase.get_reward(env::CPEnv) = env.reward
 RLBase.get_terminal(env::CPEnv) = env.terminal
 RLBase.get_state(env::CPEnv) = env.state
 RLBase.ActionStyle(::CPEnv) = FULL_ACTION_SET
+
+
+struct unmaskedCPEnv <: AbstractEnv
+    reward
+    terminal
+    state
+    actions
+end
+
+RLBase.get_actions(env::unmaskedCPEnv) = env.actions
+RLBase.get_reward(env::unmaskedCPEnv) = env.reward
+RLBase.get_terminal(env::unmaskedCPEnv) = env.terminal
+RLBase.get_state(env::unmaskedCPEnv) = env.state
+RLBase.ActionStyle(::unmaskedCPEnv) = MINIMAL_ACTION_SET
+
 """
     set_metrics!(PHASE::T, lh::LearnedHeuristic, model::CPModel, symbol::Union{Nothing, Symbol}, x::Union{Nothing, AbstractIntVar}) where T <: LearningPhase 
 
