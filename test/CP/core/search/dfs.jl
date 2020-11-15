@@ -235,7 +235,6 @@ using DataStructures
                     min_replay_history = 1,
                     update_freq = 1,
                     target_update_freq = 100,
-                    seed = 22,
                 ), 
                 explorer = SeaPearl.CPEpsilonGreedyExplorer(
                     ϵ_stable = 0.01,
@@ -249,8 +248,8 @@ using DataStructures
                     seed = 33
                 )
             ),
-            trajectory = RL.CircularCompactSARTSATrajectory(
-                capacity = 1000, 
+            trajectory = RL.CircularCompactSALRTSALTrajectory(
+                capacity = 500, 
                 state_type = Float32, 
                 state_size = (11, 17, 1),
                 action_type = Int,
@@ -258,7 +257,9 @@ using DataStructures
                 reward_type = Float32,
                 reward_size = (),
                 terminal_type = Bool,
-                terminal_size = ()
+                terminal_size = (),
+                legal_actions_mask_size = (4, ),
+                legal_actions_mask_type = Bool,
             ),
             role = :DEFAULT_PLAYER
         )
@@ -304,7 +305,7 @@ using DataStructures
             @test solution in possible_solutions
         end
 
-        @test length(valueSelection.agent.trajectory) == 8
+        @test length(keys(valueSelection.agent.trajectory)) == 11
 
     end
 
@@ -338,8 +339,7 @@ using DataStructures
                     update_horizon = 1,
                     min_replay_history = 1,
                     update_freq = 1,
-                    target_update_freq = 100,
-                    seed = 22,
+                    target_update_freq = 100
                 ), 
                 explorer = SeaPearl.CPEpsilonGreedyExplorer(
                     ϵ_stable = 0.01,
@@ -353,8 +353,8 @@ using DataStructures
                     seed = 33
                 )
             ),
-            trajectory = RL.CircularCompactSARTSATrajectory(
-                capacity = 1000, 
+            trajectory = RL.CircularCompactSALRTSALTrajectory(
+                capacity = 500, 
                 state_type = Float32, 
                 state_size = (11, 17, 1),
                 action_type = Int,
@@ -362,7 +362,9 @@ using DataStructures
                 reward_type = Float32,
                 reward_size = (),
                 terminal_type = Bool,
-                terminal_size = ()
+                terminal_size = (),
+                legal_actions_mask_size = (4, ),
+                legal_actions_mask_type = Bool,
             ),
             role = :DEFAULT_PLAYER
         )

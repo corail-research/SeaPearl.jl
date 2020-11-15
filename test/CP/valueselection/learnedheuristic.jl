@@ -27,7 +27,6 @@ agent = RL.Agent(
             min_replay_history = 1,
             update_freq = 1,
             target_update_freq = 100,
-            seed = 22,
         ), 
         explorer = SeaPearl.CPEpsilonGreedyExplorer(
             ϵ_stable = 0.01,
@@ -41,8 +40,8 @@ agent = RL.Agent(
             seed = 33
         )
     ),
-    trajectory = RL.CircularCompactSARTSATrajectory(
-        capacity = 1000, 
+    trajectory = RL.CircularCompactSALRTSALTrajectory(
+        capacity = 500, 
         state_type = Float32, 
         state_size = (11, 17, 1),
         action_type = Int,
@@ -50,7 +49,9 @@ agent = RL.Agent(
         reward_type = Float32,
         reward_size = (),
         terminal_type = Bool,
-        terminal_size = ()
+        terminal_size = (),
+        legal_actions_mask_size = (4, ),
+        legal_actions_mask_type = Bool,
     ),
     role = :DEFAULT_PLAYER
 )

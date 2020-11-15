@@ -68,7 +68,7 @@ function featuredgraph(array::Array{Float32, 2}, ::Type{DefaultStateRepresentati
     dense_adj = array[:, 1:n]
     features = array[:, n+1:end-2]
 
-    return GeometricFlux.FeaturedGraph(dense_adj, transpose(features))
+    return GraphSignals.FeaturedGraph(dense_adj, permutedims(features, [2, 1])) # Cannot use `transpose` to transpose here, see https://github.com/yuehhua/GraphSignals.jl/pull/19
 end
 
 function branchingvariable_id(array::Array{Float32, 2}, ::Type{DefaultStateRepresentation})::Int64

@@ -78,8 +78,39 @@ function get_observation!(lh::LearnedHeuristic, model::CPModel, x::AbstractIntVa
     # println("reward", reward)
     
     # return the observation as a named tuple (useful for interface understanding)
-    return (reward = reward, terminal = done, state = state, legal_actions = legal_actions, legal_actions_mask = legal_actions_mask)
+    return CPEnv(reward, done, state, lh.action_space, legal_actions, legal_actions_mask)
 end
+
+struct CPEnv <: AbstractEnv
+    reward
+    terminal
+    state
+    actions
+    legal_actions
+    legal_actions_mask
+end
+
+RLBase.get_actions(env::CPEnv) = env.actions
+RLBase.get_legal_actions(env::CPEnv) = env.legal_actions
+RLBase.get_legal_actions_mask(env::CPEnv) = env.legal_actions_mask
+RLBase.get_reward(env::CPEnv) = env.reward
+RLBase.get_terminal(env::CPEnv) = env.terminal
+RLBase.get_state(env::CPEnv) = env.state
+RLBase.ActionStyle(::CPEnv) = FULL_ACTION_SET
+
+
+struct unmaskedCPEnv <: AbstractEnv
+    reward
+    terminal
+    state
+    actions
+end
+
+RLBase.get_actions(env::unmaskedCPEnv) = env.actions
+RLBase.get_reward(env::unmaskedCPEnv) = env.reward
+RLBase.get_terminal(env::unmaskedCPEnv) = env.terminal
+RLBase.get_state(env::unmaskedCPEnv) = env.state
+RLBase.ActionStyle(::unmaskedCPEnv) = MINIMAL_ACTION_SET
 
 """
     set_metrics!(PHASE::T, lh::LearnedHeuristic, model::CPModel, symbol::Union{Nothing, Symbol}, x::Union{Nothing, AbstractIntVar}) where T <: LearningPhase 

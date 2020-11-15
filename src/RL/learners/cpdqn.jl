@@ -4,8 +4,12 @@ using Flux
 using Setfield: @set
 using Zygote
 
+using Random
+using Flux
+
 using ReinforcementLearningBase
 const RLBase = ReinforcementLearningBase
+
 """
     DQNLearner(;kwargs...)
 See paper: [Human-level control through deep reinforcement learning](https://www.nature.com/articles/nature14236)
@@ -20,7 +24,7 @@ See paper: [Human-level control through deep reinforcement learning](https://www
 - `update_freq::Int=4`: the frequency of updating the `approximator`.
 - `target_update_freq::Int=100`: the frequency of syncing `target_approximator`.
 - `stack_size::Union{Int, Nothing}=4`: use the recent `stack_size` frames to form a stacked state.
-- `seed = nothing`
+- `rng = Random.GLOBAL_RNG`
 """
 mutable struct CPDQNLearner{
     Tq<:AbstractApproximator,
@@ -56,10 +60,9 @@ function CPDQNLearner(;
     update_freq::Int = 1,
     target_update_freq::Int = 100,
     update_step::Int = 0,
-    seed = nothing,
+    rng = Random.GLOBAL_RNG,
 ) where {Tq,Tt,Tf}
     copyto!(approximator, target_approximator)
-    rng = MersenneTwister(seed)
     CPDQNLearner(
         approximator,
         target_approximator,
@@ -73,7 +76,7 @@ function CPDQNLearner(;
         target_update_freq,
         update_step,
         rng,
-        0.f0,
+        0.0f0,
     )
 end
 
@@ -91,19 +94,21 @@ end
     The state of the observation is assumed to have been stacked,
     if `!isnothing(stack_size)`.
 """
-(learner::CPDQNLearner)(obs) =
-    obs |>
+function (learner::CPDQNLearner)(env)
+    env |>
     get_state |>
     x ->
         Flux.unsqueeze(x, ndims(x) + 1) |>
         x ->
             send_to_device(device(learner.approximator), x) |>
             learner.approximator |>
-            send_to_host |>
-            Flux.squeezebatch
+            vec |>
+            send_to_host
+end
 
 function RLBase.update!(learner::CPDQNLearner, t::AbstractTrajectory)
-    length(t) - learner.update_horizon <= learner.min_replay_history && return
+    # length(t[:terminal]) < learner.min_replay_history && return
+    length(t[:terminal]) - learner.update_horizon <= learner.min_replay_history && return
 
     learner.update_step += 1
 
@@ -128,10 +133,18 @@ function RLBase.update!(learner::CPDQNLearner, t::AbstractTrajectory)
     terminals = send_to_device(D, experience.terminals)
     next_states = send_to_device(D, experience.next_states)
 
+    target_q = Qₜ(next_states)
+    if haskey(t, :next_legal_actions_mask)
+        masked_value = fill(typemin(Float32), size(experience.next_legal_actions_mask))
+        masked_value[experience.next_legal_actions_mask] .= 0
+        target_q .+= send_to_device(D, masked_value)
+    end
+
+    q′ = dropdims(Base.maximum(target_q; dims = 1), dims = 1)
+    G = rewards .+ γ^update_horizon .* (1 .- terminals) .* q′
+
     gs = gradient(Flux.params(Q)) do
         q = Q(states)[actions]
-        q′ = dropdims(Base.maximum(Qₜ(next_states); dims = 1), dims = 1)
-        G = rewards .+ γ^update_horizon .* (1 .- terminals) .* q′
         loss = loss_func(G, q)
         Zygote.ignore() do
             learner.loss = loss
@@ -148,16 +161,28 @@ function extract_experience(t::AbstractTrajectory, learner::CPDQNLearner)
     n = learner.batch_size
     γ = learner.γ
 
-    valid_ind_range = isnothing(s) ? (1:(length(t)-h)) : (s:(length(t)-h))
-    if length(t) - h <= learner.min_replay_history
+    valid_ind_range =
+        isnothing(s) ? (1:(length(t[:terminal])-h)) : (s:(length(t[:terminal])-h))
+    if length(t[:terminal]) - h <= learner.min_replay_history
         return nothing
     end
     inds = rand(learner.rng, valid_ind_range, n)
-    states = consecutive_view(get_trace(t, :state), inds; n_stack = s)
-    actions = consecutive_view(get_trace(t, :action), inds)
-    next_states = consecutive_view(get_trace(t, :state), inds .+ h; n_stack = s)
-    consecutive_rewards = consecutive_view(get_trace(t, :reward), inds; n_horizon = h)
-    consecutive_terminals = consecutive_view(get_trace(t, :terminal), inds; n_horizon = h)
+    next_inds = inds .+ h
+
+    states = consecutive_view(t[:state], inds; n_stack = s)
+    actions = consecutive_view(t[:action], inds)
+    next_states = consecutive_view(t[:state], next_inds; n_stack = s)
+
+    if haskey(t, :legal_actions_mask)
+        legal_actions_mask = consecutive_view(t[:legal_actions_mask], inds)
+        next_legal_actions_mask = consecutive_view(t[:next_legal_actions_mask], next_inds)
+    else
+        legal_actions_mask = nothing
+        next_legal_actions_mask = nothing
+    end
+
+    consecutive_rewards = consecutive_view(t[:reward], inds; n_horizon = h)
+    consecutive_terminals = consecutive_view(t[:terminal], inds; n_horizon = h)
     rewards, terminals = zeros(Float32, n), fill(false, n)
 
     # make sure that we only consider experiences in current episode
@@ -173,9 +198,11 @@ function extract_experience(t::AbstractTrajectory, learner::CPDQNLearner)
     end
     (
         states = states,
+        legal_actions_mask = legal_actions_mask,
         actions = actions,
         rewards = rewards,
         terminals = terminals,
         next_states = next_states,
+        next_legal_actions_mask = next_legal_actions_mask,
     )
 end

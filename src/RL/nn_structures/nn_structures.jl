@@ -14,6 +14,7 @@ function (nn::NNStructure)(x::AbstractArray{Float32,3})
 end
 
 include("flexGNN.jl")
+include("flex_variable_output_gnn.jl")
 
 abstract type NNArgs end
 

@@ -95,7 +95,7 @@ function (valueSelection::LearnedHeuristic)(PHASE::DecisionPhase, model::CPModel
     obs = get_observation!(valueSelection, model, x)
 
     if !wears_mask(valueSelection)
-        obs = (reward = obs.reward, terminal = obs.terminal, state = obs.state)
+        obs = unmaskedCPEnv(obs.reward, obs.terminal, obs.state, obs.actions)
     end
 
     #println("Decision  ", obs.reward, " ", obs.terminal, " ", obs.legal_actions, " ", obs.legal_actions_mask)
@@ -118,7 +118,7 @@ function (valueSelection::LearnedHeuristic)(PHASE::EndingPhase, model::CPModel, 
     false_x = first(values(branchable_variables(model)))
     obs = get_observation!(valueSelection, model, false_x, true)
     if !wears_mask(valueSelection)
-        obs = (reward = obs.reward, terminal = obs.terminal, state = obs.state)
+        obs = unmaskedCPEnv(obs.reward, true, obs.state, obs.actions)
     end
     #println("EndingPhase  ", obs.reward, " ", obs.terminal, " ", obs.legal_actions, " ", obs.legal_actions_mask)
 
