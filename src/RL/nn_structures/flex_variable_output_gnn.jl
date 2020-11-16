@@ -40,6 +40,6 @@ function (nn::FlexVariableOutputGNN)(x::AbstractArray{Float32,2})
     val_feature = view(GraphSignals.node_feature(fg), :, possible_value_ids(x, nn.state_rep))
     # println("possible_value_ids(x, nn.state_rep)", possible_value_ids(x, nn.state_rep))
 
-    toReturn = [nn.outputLayer(vcat(valf, var_feature))[1] for valf in [val_feature[:, i] for i in 1:size(val_feature, 2)]]
+    toReturn = [nn.outputLayer(vcat(nn.nodeChain(valf), var_feature))[1] for valf in [val_feature[:, i] for i in 1:size(val_feature, 2)]]
     return toReturn
 end
