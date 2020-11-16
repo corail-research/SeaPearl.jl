@@ -94,10 +94,6 @@ function (valueSelection::LearnedHeuristic)(PHASE::DecisionPhase, model::CPModel
 
     obs = get_observation!(valueSelection, model, x)
 
-    if !wears_mask(valueSelection)
-        obs = unmaskedCPEnv(obs.reward, obs.terminal, obs.state, obs.actions)
-    end
-
     #println("Decision  ", obs.reward, " ", obs.terminal, " ", obs.legal_actions, " ", obs.legal_actions_mask)
     if model.statistics.numberOfNodes > 1
         valueSelection.agent(RL.POST_ACT_STAGE, obs) # get terminal and reward
@@ -117,9 +113,6 @@ function (valueSelection::LearnedHeuristic)(PHASE::EndingPhase, model::CPModel, 
     set_reward!(PHASE, valueSelection, model, current_status)
     false_x = first(values(branchable_variables(model)))
     obs = get_observation!(valueSelection, model, false_x, true)
-    if !wears_mask(valueSelection)
-        obs = unmaskedCPEnv(obs.reward, true, obs.state, obs.actions)
-    end
     #println("EndingPhase  ", obs.reward, " ", obs.terminal, " ", obs.legal_actions, " ", obs.legal_actions_mask)
 
     valueSelection.agent(RL.POST_ACT_STAGE, obs) # get terminal and reward

@@ -64,18 +64,33 @@ function set_reward!(::DecisionPhase, lh::LearnedHeuristic{SR, TsptwReward, A}, 
     #= dist_id = "d_"*string(lh.search_metrics.total_decisions)
     var = model.variables[dist_id]
     last_dist = assignedValue(var) =#
-    if haskey(model.variables, "a_"*string(lh.search_metrics.total_decisions)) && isbound(model.variables["a_"*string(lh.search_metrics.total_decisions)])
-        a_i = assignedValue(model.variables["a_"*string(lh.search_metrics.total_decisions)])
-        if lh.search_metrics.total_decisions > 0
-            v_i = 1
-        else
-            v_i = assignedValue(model.variables["v_"*string(lh.search_metrics.total_decisions - 1)])
+    # println("lh.search_metrics.total_decisions", lh.search_metrics.total_decisions-1)
+    # for i in 0:10
+    #     if haskey(model.variables, "v_"*string(i))
+    #         println("var: ", model.variables["v_"*string(i)])
+    #     end
+    # end
+    # println("var: ", model.variables)
+
+    current_turn = lh.search_metrics.total_decisions-1
+    for i in 1:length(keys(model.variables))
+        if haskey(model.variables, "a_"*string(current_turn)) && isbound(model.variables["a_"*string(current_turn)])
+            # println("lh.reward.value", lh.reward.value)
+            a_i = assignedValue(model.variables["a_"*string(current_turn)])
+            if lh.search_metrics.total_decisions > 0
+                v_i = 1
+            else
+                v_i = assignedValue(model.variables["v_"*string(current_turn - 1)])
+            end
+            
+            last_dist = lh.current_state.dist[v_i, a_i] * lh.reward.max_dist
+            # println(v_i, a_i, last_dist)
+            lh.reward.value += lh.reward.normalizer * (lh.reward.positiver - last_dist)
+            break
         end
-        
-        last_dist = lh.current_state.dist[v_i, a_i] * lh.reward.max_dist
-        # println(v_i, a_i, last_dist)
-        lh.reward.value += lh.reward.normalizer * (lh.reward.positiver - last_dist)
     end
+    # lh.reward.value += lh.reward.normalizer * (lh.reward.positiver)
+
 end
 
 
@@ -89,5 +104,6 @@ function set_reward!(::EndingPhase, lh::LearnedHeuristic{SR, TsptwReward, A}, mo
     SR <: AbstractStateRepresentation, 
     A <: ActionOutput
 }
+    # lh.reward.value += 1.
     nothing
 end
