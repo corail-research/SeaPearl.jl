@@ -84,7 +84,7 @@ function featuredgraph(array::Array{Float32, 2}, ::Type{TsptwStateRepresentation
     adj = round.(dense_adj)
     # println("adj", adj)
 
-    toReturn = GraphSignals.FeaturedGraph(adj, permutedims(features, [2, 1]))
+    toReturn = GraphSignals.FeaturedGraph(adj; nf=permutedims(features, [2, 1]))
     # # println("typeof(toReturn)", typeof(toReturn))
     # edge_idx = GeometricFlux.edge_index_table(adjacency_list(toReturn))
     # ef = zeros((1, length(edge_idx)))
