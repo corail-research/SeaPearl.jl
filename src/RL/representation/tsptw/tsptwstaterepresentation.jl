@@ -81,11 +81,9 @@ function featuredgraph(array::Array{Float32, 2}, ::Type{TsptwStateRepresentation
     dense_adj = array[:, 1:n]
     features = array[:, n+1:end-2]
 
-    adj = round.(dense_adj)
+    adj = round.(dense_adj) # Does not support weighted edges
 
-    toReturn = GraphSignals.FeaturedGraph(adj; nf=permutedims(features, [2, 1]))
-
-    return toReturn
+    return GraphSignals.FeaturedGraph(adj; nf=permutedims(features, [2, 1]))
 end
 
 function branchingvariable_id(array::Array{Float32, 2}, ::Type{TsptwStateRepresentation})::Int64
