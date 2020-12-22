@@ -61,21 +61,9 @@ function set_reward!(::DecisionPhase, lh::LearnedHeuristic{SR, TsptwReward, A}, 
     SR <: AbstractStateRepresentation,
     A <: ActionOutput
 }   
-    #= dist_id = "d_"*string(lh.search_metrics.total_decisions)
-    var = model.variables[dist_id]
-    last_dist = assignedValue(var) =#
-    # println("lh.search_metrics.total_decisions", lh.search_metrics.total_decisions-1)
-    # for i in 0:10
-    #     if haskey(model.variables, "v_"*string(i))
-    #         println("var: ", model.variables["v_"*string(i)])
-    #     end
-    # end
-    # println("var: ", model.variables)
-
-    current_turn = lh.search_metrics.total_decisions-1
+    current_turn = lh.search_metrics.total_decisions
     for i in 1:length(keys(model.variables))
         if haskey(model.variables, "a_"*string(current_turn)) && isbound(model.variables["a_"*string(current_turn)])
-            # println("lh.reward.value", lh.reward.value)
             a_i = assignedValue(model.variables["a_"*string(current_turn)])
             if lh.search_metrics.total_decisions > 0
                 v_i = 1
@@ -84,7 +72,6 @@ function set_reward!(::DecisionPhase, lh::LearnedHeuristic{SR, TsptwReward, A}, 
             end
             
             last_dist = lh.current_state.dist[v_i, a_i] * lh.reward.max_dist
-            # println(v_i, a_i, last_dist)
             lh.reward.value += lh.reward.normalizer * (lh.reward.positiver - last_dist)
             break
         end
