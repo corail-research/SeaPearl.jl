@@ -6,7 +6,10 @@ struct TsptwGenerator <: AbstractModelGenerator
     grid_size::Int # Maximum of positions
     max_tw_gap::Int # Maximum time windows gap allowed between the cities constituing the feasible tour
     max_tw::Int # Maximum time windows upper bound
+    pruning::Bool
 end
+
+TsptwGenerator(n_city::Int, grid_size::Int, max_tw_gap::Int, max_tw::Int) = TsptwGenerator(n_city, grid_size, max_tw_gap, max_tw, true)
 
 """
     fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator)::CPModel    
@@ -111,15 +114,19 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
     for i in 1:gen.n_city
         addVariable!(cpmodel, d[i]; branchable=false)
         addVariable!(cpmodel, upper_tw_minus_1[i]; branchable=false)
-        addVariable!(cpmodel, j_index[i]; branchable=false)
+        if gen.pruning
+            addVariable!(cpmodel, j_index[i]; branchable=false)
+        end
         if i != gen.n_city
             addVariable!(cpmodel, lower_ai[i]; branchable=false)
             addVariable!(cpmodel, upper_ai[i]; branchable=false)
             addVariable!(cpmodel, lowers[i]; branchable=false)
         end
         for j in 1:gen.n_city
-            addVariable!(cpmodel, j_in_m_i[i, j]; branchable=false)
-            addVariable!(cpmodel, still_time[i, j]; branchable=false)
+            if gen.pruning
+                addVariable!(cpmodel, j_in_m_i[i, j]; branchable=false)
+                addVariable!(cpmodel, still_time[i, j]; branchable=false)
+            end
         end
     end
 
@@ -170,18 +177,20 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
     end
 
     # Pruning constraints
-    for i in 1:gen.n_city
-        for j in 1:gen.n_city
-            # still_time[i, j] = t[i] < upper_tw[j]
-            push!(cpmodel.constraints, isLessOrEqual(still_time[i, j], t[i], upper_tw_minus_1[j], cpmodel.trailer))
+    if gen.pruning
+        for i in 1:gen.n_city
+            for j in 1:gen.n_city
+                # still_time[i, j] = t[i] < upper_tw[j]
+                push!(cpmodel.constraints, isLessOrEqual(still_time[i, j], t[i], upper_tw_minus_1[j], cpmodel.trailer))
 
-            # j_in_m_i[i, j] = j_index[j] ∈ m[i]
-            push!(cpmodel.constraints, ReifiedInSet(j_index[j], m[i], j_in_m_i[i, j], cpmodel.trailer))
+                # j_in_m_i[i, j] = j_index[j] ∈ m[i]
+                push!(cpmodel.constraints, ReifiedInSet(j_index[j], m[i], j_in_m_i[i, j], cpmodel.trailer))
 
-            # t[i] >= upper[j] ⟹ j ∉ m[i]
-            # ≡ t[i] < upper[j] ⋁ j ∉ m[i]
-            # ≡ still_time[i, j] ⋁ ¬j_in_m_i[i, j]
-            push!(cpmodel.constraints, BinaryOr(still_time[i, j], BoolVarViewNot(j_in_m_i[i, j], "¬"*string(j)*"_in_m_"*string(i)), cpmodel.trailer))
+                # t[i] >= upper[j] ⟹ j ∉ m[i]
+                # ≡ t[i] < upper[j] ⋁ j ∉ m[i]
+                # ≡ still_time[i, j] ⋁ ¬j_in_m_i[i, j]
+                push!(cpmodel.constraints, BinaryOr(still_time[i, j], BoolVarViewNot(j_in_m_i[i, j], "¬"*string(j)*"_in_m_"*string(i)), cpmodel.trailer))
+            end
         end
     end
 

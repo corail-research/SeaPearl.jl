@@ -76,7 +76,10 @@ function get_observation!(lh::LearnedHeuristic, model::CPModel, x::AbstractIntVa
 
     state = to_arraybuffer(lh.current_state, lh.cpnodes_max)
     # println("reward", reward)
-    
+
+    if !wears_mask(lh)
+        return unmaskedCPEnv(reward, done, state, lh.action_space)
+    end
     # return the observation as a named tuple (useful for interface understanding)
     return CPEnv(reward, done, state, lh.action_space, legal_actions, legal_actions_mask)
 end

@@ -82,7 +82,14 @@ function launch_experiment!(
             end
 
             timeneeded[i, j] = dt
-            metricsFun(;episode=i, heuristic=valueSelectionArray[j], nodeVisited=model.statistics.numberOfNodes)
+
+            total_reward = 0
+            loss = 0
+            if isa(valueSelectionArray[j], LearnedHeuristic)
+                total_reward = last_episode_total_reward(valueSelectionArray[j].agent.trajectory)
+                loss = valueSelectionArray[j].agent.policy.learner.loss
+            end
+            metricsFun(;episode=i, heuristic=valueSelectionArray[j], nodeVisited=model.statistics.numberOfNodes, loss=loss, total_reward=total_reward)
         end
         verbose && println()
 
