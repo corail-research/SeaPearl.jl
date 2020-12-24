@@ -101,5 +101,6 @@ using GraphSignals
 
 
         @test GraphSignals.node_feature(fg) == Float32[0.53 0.45 0.01; 0.17 0.95 0.97; 0.0 0.38 0.61; 0.47 0.66 1.0; 1.0 1.0 0.0; 0.0 1.0 0.0]
+        @test GraphSignals.edge_feature(fg) == Float32[0.8 1.0 0.8 0.4 1.0 0.4]
     end
 end
