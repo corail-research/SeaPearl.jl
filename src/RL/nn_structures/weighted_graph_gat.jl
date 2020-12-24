@@ -52,6 +52,14 @@ function (g::EdgeFtLayer)(fg::FeaturedGraph)
     propagate(g, fg, :add)
 end
 
+function GeometricFlux.message(l::EdgeFtLayer, x_i::AbstractVector, x_j::AbstractVector, e_ij::AbstractVector)
+    x = vcat(x_i, e_ij, x_j)
+    attention_logits = prelu.(l.W_a*x, l.prelu_α)
+    unattended_node_features = l.W_T*x
+
+    return vcat(attention_logits, unattended_node_features)
+end
+
 
 function Base.show(io::IO, l::EdgeFtLayer)
     in_channel_v = size(l.W_e, 2)

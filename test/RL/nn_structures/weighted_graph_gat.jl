@@ -44,4 +44,14 @@ adj_single_vertex =   T[0. 0. 0. 1.;
         g = Zygote.gradient(x -> sum(node_feature(ft_layer(x))), fg)[1]
         @test size(g[].nf) == size(nf)
     end
+
+    @testset "message()" begin
+        ft_layer = SeaPearl.EdgeFtLayer(;v_dim = in_channel_v=>out_channel_v, e_dim = in_channel_e=>out_channel_e)
+        
+        nf = rand(Float32, in_channel_v, N)
+        ef = rand(Float32, in_channel_e, 4)
+        message_vec = GeometricFlux.message(ft_layer, nf[:, 1], nf[:, 2], ef[:, 1])
+
+        @test size(message_vec) == (out_channel_v*2,)
+    end
 end
