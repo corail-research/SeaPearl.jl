@@ -25,9 +25,7 @@ struct EdgeFtLayer{T <: Real} <: MessagePassing
     prelu_α::T
 end
 
-function EdgeFtLayer(;v_dim::Pair{<:Integer,<:Integer}, e_dim::Pair{<:Integer,<:Integer}, heads::Integer=1,
-                 concat::Bool=true, negative_slope::Real=0.2, init=glorot_uniform,
-                 bias::Bool=true, T::DataType=Float32)
+function EdgeFtLayer(;v_dim::Pair{<:Integer,<:Integer}, e_dim::Pair{<:Integer,<:Integer}, init=glorot_uniform, T::DataType=Float32, bias::Bool=true)
 
     # Used to compute node features
     W_a = T.(init(v_dim[2], 2 * v_dim[1] + e_dim[1]))
