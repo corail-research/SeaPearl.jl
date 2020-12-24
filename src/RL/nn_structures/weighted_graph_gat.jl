@@ -79,7 +79,7 @@ function GeometricFlux.update_batch_edge(g::EdgeFtLayer, adj, E::AbstractMatrix,
     hcat([GeometricFlux.apply_batch_message(g, i, adj[i], edge_idx, E, X) for i in 1:n]...)
 end
 
-update_batch_edge(g::EdgeFtLayer, adj, E::AbstractMatrix, X::AbstractMatrix, u) = update_batch_edge(g, adj, E, X)
+GeometricFlux.update_batch_edge(g::EdgeFtLayer, adj, E::AbstractMatrix, X::AbstractMatrix, u) = GeometricFlux.update_batch_edge(g, adj, E, X)
 
 function GeometricFlux.apply_batch_message(g::EdgeFtLayer, i, js, edge_idx, E::AbstractMatrix, X::AbstractMatrix)
     mailbox = hcat([GeometricFlux.message(g, GeometricFlux.get_feature(X, i), GeometricFlux.get_feature(X, j), E[:, edge_idx[(i, j)]]) for j = js]...)
