@@ -49,9 +49,35 @@ adj_single_vertex =   T[0. 0. 0. 1.;
         ft_layer = SeaPearl.EdgeFtLayer(;v_dim = in_channel_v=>out_channel_v, e_dim = in_channel_e=>out_channel_e)
         
         nf = rand(Float32, in_channel_v, N)
-        ef = rand(Float32, in_channel_e, 4)
+        ef = rand(Float32, in_channel_e, 8)
         message_vec = GeometricFlux.message(ft_layer, nf[:, 1], nf[:, 2], ef[:, 1])
 
         @test size(message_vec) == (out_channel_v*2,)
+    end
+
+    @testset "apply_batch_message()" begin
+        ft_layer = SeaPearl.EdgeFtLayer(;v_dim = in_channel_v=>out_channel_v, e_dim = in_channel_e=>out_channel_e)
+        nf = rand(Float32, in_channel_v, N)
+        ef = rand(Float32, in_channel_e, 8)
+        fg = GraphSignals.FeaturedGraph(adj; nf=nf, ef=ef)
+
+        adj_list = GeometricFlux.adjacency_list(fg)
+
+        batch_message = GeometricFlux.apply_batch_message(ft_layer, 2, adj_list[2], GeometricFlux.edge_index_table(adj_list), ef, nf)
+
+        @test size(batch_message) == (out_channel_v, 2)
+    end
+
+    @testset "update_batch_edge()" begin
+        ft_layer = SeaPearl.EdgeFtLayer(;v_dim = in_channel_v=>out_channel_v, e_dim = in_channel_e=>out_channel_e)
+        nf = rand(Float32, in_channel_v, N)
+        ef = rand(Float32, in_channel_e, 8)
+        fg = GraphSignals.FeaturedGraph(adj; nf=nf, ef=ef)
+
+        adj_list = GeometricFlux.adjacency_list(fg)
+
+        every_messages = GeometricFlux.update_batch_edge(ft_layer, adj_list, ef, nf)
+
+        @test size(every_messages) == (out_channel_v, 8)
     end
 end
