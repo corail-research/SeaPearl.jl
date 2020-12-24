@@ -32,7 +32,7 @@ function EdgeFtLayer(;v_dim::Pair{<:Integer,<:Integer}, e_dim::Pair{<:Integer,<:
     # Used to compute node features
     W_a = T.(init(v_dim[2], 2 * v_dim[1] + e_dim[1]))
     W_T = T.(init(v_dim[2], 2 * v_dim[1] + e_dim[1]))
-    b_T = bias ? T.(init(v_dim[2])) : zeros(T, ch[2]*heads)
+    b_T = bias ? T.(init(v_dim[2])) : zeros(T, v_dim[2])
 
     # Used to compute edge features
     W_e = T.(init(e_dim[2], v_dim[1]))
