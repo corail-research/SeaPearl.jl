@@ -1,9 +1,9 @@
 using Zygote
 
-in_channel_v = 3
-out_channel_v = 5
-in_channel_e = 4
-out_channel_e = 2
+in_channel_v = 6
+out_channel_v = 30
+in_channel_e = 1
+out_channel_e = 4
 N = 4
 T = Float32
 adj = T[0. 1. 0. 1.;
