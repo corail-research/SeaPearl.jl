@@ -45,6 +45,13 @@ end
 @functor EdgeFtLayer
 
 
+function (g::EdgeFtLayer)(fg::FeaturedGraph)
+    Zygote.ignore() do
+        GraphSignals.check_num_node(graph(fg), node_feature(fg))
+    end
+    propagate(g, fg, :add)
+end
+
 
 function Base.show(io::IO, l::EdgeFtLayer)
     in_channel_v = size(l.W_e, 1)
