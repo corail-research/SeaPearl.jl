@@ -33,7 +33,7 @@ adj_single_vertex =   T[0. 0. 0. 1.;
         ft_layer = SeaPearl.EdgeFtLayer(;v_dim = in_channel_v=>out_channel_v, e_dim = in_channel_e=>out_channel_e)
         
         nf = rand(Float32, in_channel_v, N)
-        ef = rand(Float32, in_channel_e, 4)
+        ef = rand(Float32, in_channel_e, 8)
         fg = GraphSignals.FeaturedGraph(adj; nf=nf, ef=ef)
 
         fg_ = ft_layer(fg)
