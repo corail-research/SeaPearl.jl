@@ -30,13 +30,13 @@ function EdgeFtLayer(;v_dim::Pair{<:Integer,<:Integer}, e_dim::Pair{<:Integer,<:
                  bias::Bool=true, T::DataType=Float32)
 
     # Used to compute node features
-    W_a = T.(init(2 * v_dim[1] + e_dim[1], v_dim[2]))
-    W_T = T.(init(2 * v_dim[1] + e_dim[1], v_dim[2]))
+    W_a = T.(init(v_dim[2], 2 * v_dim[1] + e_dim[1]))
+    W_T = T.(init(v_dim[2], 2 * v_dim[1] + e_dim[1]))
     b_T = bias ? T.(init(v_dim[2])) : zeros(T, ch[2]*heads)
 
     # Used to compute edge features
-    W_e = T.(init(v_dim[1], e_dim[2]))
-    W_ee = T.(init(e_dim[1], e_dim[2]))
+    W_e = T.(init(e_dim[2], v_dim[1]))
+    W_ee = T.(init(e_dim[2], e_dim[1]))
 
 
     EdgeFtLayer(W_a, W_T, b_T, W_e, W_ee, init(1)[1])
@@ -54,10 +54,10 @@ end
 
 
 function Base.show(io::IO, l::EdgeFtLayer)
-    in_channel_v = size(l.W_e, 1)
-    out_channel_v = size(l.W_a, 2)
-    in_channel_e = size(l.W_ee, 1)
-    out_channel_e = size(l.W_ee, 2)
+    in_channel_v = size(l.W_e, 2)
+    out_channel_v = size(l.W_a, 1)
+    in_channel_e = size(l.W_ee, 2)
+    out_channel_e = size(l.W_ee, 1)
     print(io, "EdgeFtLayer(")
     print(io, "), v_dim=", in_channel, "=>", out_channel)
     print(io, ", PReLU(α=", l.prelu_α)
