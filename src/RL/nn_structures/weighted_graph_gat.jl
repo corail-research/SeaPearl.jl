@@ -25,7 +25,9 @@ struct EdgeFtLayer{T <: Real} <: MessagePassing
     prelu_α::T
 end
 
-function EdgeFtLayer(;v_dim::Pair{<:Integer,<:Integer}, e_dim::Pair{<:Integer,<:Integer}, init=glorot_uniform, T::DataType=Float32)
+function EdgeFtLayer(;v_dim::Pair{<:Integer,<:Integer}, e_dim::Pair{<:Integer,<:Integer}, heads::Integer=1,
+                 concat::Bool=true, negative_slope::Real=0.2, init=glorot_uniform,
+                 bias::Bool=true, T::DataType=Float32)
 
     # Used to compute node features
     W_a = T.(init(v_dim[2], 2 * v_dim[1] + e_dim[1]))
@@ -94,15 +96,11 @@ function GeometricFlux.apply_batch_message(g::EdgeFtLayer, i, js, edge_idx, E::A
     attention = Flux.softmax(attention_logits, dims=2)
     final_messages = attention .* unattended_node_features
 
+    # Copy the bias over each neighbor
+    bias_cloned = hcat([g.b_T/length(js) for j = js]...)
+
     # The new features are transmitted without any manipulation
-    vcat(final_messages, new_edge_features)
-end
-
-# The same as update function in batch manner
-GeometricFlux.update_batch_vertex(g::EdgeFtLayer, M::AbstractMatrix, X::AbstractMatrix, u) = update_batch_vertex(g, M)
-
-function GeometricFlux.update_batch_vertex(g::EdgeFtLayer, M::AbstractMatrix)
-    M .+ g.b_T
+    vcat(final_messages + bias_cloned, new_edge_features)
 end
 
 
