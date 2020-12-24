@@ -43,6 +43,12 @@ adj_single_vertex =   T[0. 0. 0. 1.;
 
         g = Zygote.gradient(x -> sum(node_feature(ft_layer(x))), fg)[1]
         @test size(g[].nf) == size(nf)
+
+        ft_layer2 = SeaPearl.EdgeFtLayer(;v_dim = out_channel_v=>10, e_dim = out_channel_e=>4)
+        fg2_ = ft_layer2(fg_)
+
+        @test size(GraphSignals.node_feature(fg2_)) == (10, N)
+        @test size(GraphSignals.edge_feature(fg2_)) == (4, 8)
     end
 
     @testset "message()" begin
