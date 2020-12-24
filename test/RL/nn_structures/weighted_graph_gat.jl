@@ -39,7 +39,7 @@ adj_single_vertex =   T[0. 0. 0. 1.;
         fg_ = ft_layer(fg)
 
         @test size(GraphSignals.node_feature(fg_)) == (out_channel_v, N)
-        @test size(GraphSignals.edge_feature(fg_)) == (out_channel_e, 4)
+        @test size(GraphSignals.edge_feature(fg_)) == (out_channel_e, 8)
 
         g = Zygote.gradient(x -> sum(node_feature(ft_layer(x))), fg)[1]
         @test size(g[].nf) == size(nf)
@@ -52,7 +52,7 @@ adj_single_vertex =   T[0. 0. 0. 1.;
         ef = rand(Float32, in_channel_e, 8)
         message_vec = GeometricFlux.message(ft_layer, nf[:, 1], nf[:, 2], ef[:, 1])
 
-        @test size(message_vec) == (out_channel_v*2,)
+        @test size(message_vec) == (out_channel_v*2 + out_channel_e,)
     end
 
     @testset "apply_batch_message()" begin
@@ -65,7 +65,7 @@ adj_single_vertex =   T[0. 0. 0. 1.;
 
         batch_message = GeometricFlux.apply_batch_message(ft_layer, 2, adj_list[2], GeometricFlux.edge_index_table(adj_list), ef, nf)
 
-        @test size(batch_message) == (out_channel_v, 2)
+        @test size(batch_message) == (out_channel_v + out_channel_e, 2)
     end
 
     @testset "update_batch_edge()" begin
@@ -78,6 +78,6 @@ adj_single_vertex =   T[0. 0. 0. 1.;
 
         every_messages = GeometricFlux.update_batch_edge(ft_layer, adj_list, ef, nf)
 
-        @test size(every_messages) == (out_channel_v, 8)
+        @test size(every_messages) == (out_channel_v + out_channel_e, 8)
     end
 end

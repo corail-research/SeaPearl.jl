@@ -49,7 +49,20 @@ function (g::EdgeFtLayer)(fg::FeaturedGraph)
     Zygote.ignore() do
         GraphSignals.check_num_node(graph(fg), node_feature(fg))
     end
-    GeometricFlux.propagate(g, fg, :add)
+    fg_ = GeometricFlux.propagate(g, fg, :add)
+end
+
+function GeometricFlux.propagate(g::EdgeFtLayer, fg::FeaturedGraph, aggr::Symbol=:add)
+    E, X, u = GeometricFlux.propagate(g, adjacency_list(fg), fg.ef, fg.nf, fg.gf, aggr)
+    out_channel_v = size(g.W_a, 1)
+
+    # The edge features transmitted are not useful for the node features
+    nf = X[1:out_channel_v, :]
+
+    # For the edge features, we only take what is necessary
+    ef = E[out_channel_v+1:end, :]
+
+    GraphSignals.FeaturedGraph(graph(fg), nf=nf, ef=ef)
 end
 
 function GeometricFlux.message(l::EdgeFtLayer, x_i::AbstractVector, x_j::AbstractVector, e_ij::AbstractVector)
@@ -57,7 +70,9 @@ function GeometricFlux.message(l::EdgeFtLayer, x_i::AbstractVector, x_j::Abstrac
     attention_logits = prelu.(l.W_a*x, l.prelu_α)
     unattended_node_features = l.W_T*x
 
-    return vcat(attention_logits, unattended_node_features)
+    new_edge_features = l.W_e * (x_i + x_j) + l.W_ee * e_ij
+
+    return vcat(attention_logits, unattended_node_features, new_edge_features)
 end
 
 function GeometricFlux.update_batch_edge(g::EdgeFtLayer, adj, E::AbstractMatrix, X::AbstractMatrix)
@@ -74,7 +89,8 @@ function GeometricFlux.apply_batch_message(g::EdgeFtLayer, i, js, edge_idx, E::A
     # Get each part of the message separately
     out_channel_v = size(g.W_a, 1)
     attention_logits = mailbox[1:out_channel_v, :]
-    unattended_node_features = mailbox[out_channel_v+1:end, :]
+    unattended_node_features = mailbox[out_channel_v+1:out_channel_v*2, :]
+    new_edge_features = mailbox[out_channel_v*2+1:end, :]
 
     # Apply the attention mechanism
     attention = Flux.softmax(attention_logits, dims=2)
@@ -83,7 +99,8 @@ function GeometricFlux.apply_batch_message(g::EdgeFtLayer, i, js, edge_idx, E::A
     # Copy the bias over each neighbor
     bias_cloned = hcat([g.b_T/length(js) for j = js]...)
 
-    final_messages + bias_cloned
+    # The new features are transmitted without any manipulation
+    vcat(final_messages + bias_cloned, new_edge_features)
 end
 
 
