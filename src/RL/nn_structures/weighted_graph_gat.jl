@@ -108,7 +108,7 @@ function Base.show(io::IO, l::EdgeFtLayer)
     in_channel_e = size(l.W_ee, 2)
     out_channel_e = size(l.W_ee, 1)
     print(io, "EdgeFtLayer(")
-    print(io, "), v_dim=", in_channel, "=>", out_channel)
+    print(io, "), v_dim=", in_channel_v, "=>", out_channel_v, ", e_dim=", in_channel_e, "=>", out_channel_e)
     print(io, ", PReLU(α=", l.prelu_α)
     print(io, "))")
 end
