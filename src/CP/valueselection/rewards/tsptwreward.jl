@@ -61,7 +61,7 @@ function set_reward!(::DecisionPhase, lh::LearnedHeuristic{SR, TsptwReward, A}, 
     SR <: AbstractStateRepresentation,
     A <: ActionOutput
 }   
-    current_turn = lh.search_metrics.total_decisions
+    current_turn = lh.search_metrics.total_decisions-1
     for i in 1:length(keys(model.variables))
         if haskey(model.variables, "a_"*string(current_turn)) && isbound(model.variables["a_"*string(current_turn)])
             a_i = assignedValue(model.variables["a_"*string(current_turn)])
