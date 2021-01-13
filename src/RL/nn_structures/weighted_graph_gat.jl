@@ -1,105 +1,115 @@
-"""
-    GATConv([graph, ]in=>out)
+using Flux: @functor
 
-Graph attentional layer.
+prelu(x, α) = x > 0 ? x : α*x
+
+
+"""
+    EdgeFtLayer(v_in=>v_out, e_in=>e_out)
+
+Edge Features Layers. This is used in [this article] to compute a state representation of the TSPTW.
+
+[this article]: https://arxiv.org/abs/2006.01610
 
 # Arguments
-- `graph`: should be a adjacency matrix, `SimpleGraph`, `SimpleDiGraph` (from LightGraphs) or `SimpleWeightedGraph`,
-`SimpleWeightedDiGraph` (from SimpleWeightedGraphs). Is optionnal so you can give a `FeaturedGraph` to
-the layer instead of only the features.
-- `in`: the dimension of input features.
-- `out`: the dimension of output features.
-- `bias::Bool=true`: keyword argument, whether to learn the additive bias.
-- `negative_slope::Real=0.2`: keyword argument, the parameter of LeakyReLU.
+- `v_in`: the dimension of input features for vertices.
+- `v_out`: the dimension of output features for vertices.
+- `e_in`: the dimension of input features for edges.
+- `e_out`: the dimension of output features for edges.
 """
-struct WeightedGATConv{V<:AbstractFeaturedGraph, T <: Real} <: MessagePassing
-    fg::V
-    weight::AbstractMatrix{T}
-    bias::AbstractVector{T}
-    a::AbstractMatrix{T}
-    negative_slope::Real
-    channel::Pair{<:Integer,<:Integer}
-    heads::Integer
-    concat::Bool
+struct EdgeFtLayer{T <: Real} <: MessagePassing
+    W_a::AbstractMatrix{T}
+    W_T::AbstractMatrix{T}
+    b_T::AbstractVector{T}
+    W_e::AbstractMatrix{T}
+    W_ee::AbstractMatrix{T}
+    prelu_α::T
 end
 
-function WeightedGATConv(adj::AbstractMatrix, ch::Pair{<:Integer,<:Integer}; heads::Integer=1,
-                 concat::Bool=true, negative_slope::Real=0.2, init=glorot_uniform,
-                 bias::Bool=true, T::DataType=Float32)
-    w = T.(init(ch[2]*heads, ch[1]))
-    b = bias ? T.(init(ch[2]*heads)) : zeros(T, ch[2]*heads)
-    a = T.(init(2*ch[2], heads))
-    fg = FeaturedGraph(adjacency_list(adj))
-    WeightedGATConv(fg, w, b, a, negative_slope, ch, heads, concat)
+function EdgeFtLayer(;v_dim::Pair{<:Integer,<:Integer}, e_dim::Pair{<:Integer,<:Integer}, init=glorot_uniform, T::DataType=Float32, bias::Bool=true)
+
+    # Used to compute node features
+    W_a = T.(init(v_dim[2], 2 * v_dim[1] + e_dim[1]))
+    W_T = T.(init(v_dim[2], 2 * v_dim[1] + e_dim[1]))
+    b_T = bias ? T.(init(v_dim[2])) : zeros(T, v_dim[2])
+
+    # Used to compute edge features
+    W_e = T.(init(e_dim[2], v_dim[1]))
+    W_ee = T.(init(e_dim[2], e_dim[1]))
+
+
+    EdgeFtLayer(W_a, W_T, b_T, W_e, W_ee, init(1)[1])
 end
 
-function WeightedGATConv(ch::Pair{<:Integer,<:Integer}; heads::Integer=1,
-                 concat::Bool=true, negative_slope::Real=0.2, init=glorot_uniform,
-                 bias::Bool=true, T::DataType=Float32)
-    w = T.(init(ch[2]*heads, ch[1]))
-    b = bias ? T.(init(ch[2]*heads)) : zeros(T, ch[2]*heads)
-    a = T.(init(2*ch[2], heads))
-    GATConv(NullGraph(), w, b, a, negative_slope, ch, heads, concat)
-end
+@functor EdgeFtLayer
 
-@functor WeightedGATConv
 
-# Here the α that has not been softmaxed is the first number of the output message
-function message(g::WeightedGATConv, x_i::AbstractVector, x_j::AbstractVector, e_ij)
-    x_i = reshape(g.weight*x_i, :, g.heads)
-    x_j = reshape(g.weight*x_j, :, g.heads)
-    n = size(x_i, 1)
-    e = vcat(x_i, x_j+zero(x_j))
-    e = sum(e .* g.a, dims=1)  # inner product for each head, output shape: (1, g.heads)
-    e = leakyrelu.(e, g.negative_slope)
-    vcat(e, x_j)  # shape: (n+1, g.heads)
-end
-
-# After some reshaping due to the multihead, we get the α from each message, 
-# then get the softmax over every α, and eventually multiply the message by α
-function apply_batch_message(g::WeightedGATConv, i, js, edge_idx, E::AbstractMatrix, X::AbstractMatrix, u)
-    e_ij = hcat([message(g, get_feature(X, i), get_feature(X, j), get_feature(E, edge_idx[(i,j)])) for j = js]...)
-    n = size(e_ij, 1)
-    alphas = Flux.softmax(reshape(view(e_ij, 1, :), g.heads, :), dims=2)
-    msgs = view(e_ij, 2:n, :) .* reshape(alphas, 1, :)
-    reshape(msgs, (n-1)*g.heads, :)
-end
-
-function update_batch_edge(g::WeightedGATConv, adj, E::AbstractMatrix, X::AbstractMatrix, u)
-    n = size(adj, 1)
-    # In GATConv, a vertex must always receive a message from itself
+function (g::EdgeFtLayer)(fg::FeaturedGraph)
     Zygote.ignore() do
-        GeometricFlux.add_self_loop!(adj, n)
+        GraphSignals.check_num_node(graph(fg), node_feature(fg))
     end
-
-    edge_idx = edge_index_table(adj)
-    hcat([apply_batch_message(g, i, adj[i], edge_idx, E, X, u) for i in 1:n]...)
+    fg_ = GeometricFlux.propagate(g, fg, :add)
 end
 
-# The same as update function in batch manner
-function update_batch_vertex(g::WeightedGATConv, M::AbstractMatrix, X::AbstractMatrix, u)
-    M = M .+ g.bias
-    if !g.concat
-        N = size(M, 2)
-        M = reshape(mean(reshape(M, :, g.heads, N), dims=2), :, N)
-    end
-    return M
+function GeometricFlux.propagate(g::EdgeFtLayer, fg::FeaturedGraph, aggr::Symbol=:add)
+    E, X, u = GeometricFlux.propagate(g, adjacency_list(fg), fg.ef, fg.nf, fg.gf, aggr)
+    out_channel_v = size(g.W_a, 1)
+
+    # The edge features transmitted are not useful for the node features
+    nf = X[1:out_channel_v, :]
+
+    # For the edge features, we only take what is necessary
+    ef = E[out_channel_v+1:end, :]
+
+    GraphSignals.FeaturedGraph(graph(fg), nf=nf, ef=ef)
 end
 
-function (gat::WeightedGATConv)(X::AbstractMatrix)
-    @assert has_graph(gat.fg) "A WeightedGATConv created without a graph must be given a FeaturedGraph as an input."
-    g = graph(gat.fg)
-    _, X = propagate(gat, adjacency_list(g), Fill(0.f0, 0, ne(g)), X, :add)
-    X
-end
-(g::WeightedGATConv)(fg::FeaturedGraph) = propagate(g, fg, :add)
+function GeometricFlux.message(l::EdgeFtLayer, x_i::AbstractVector, x_j::AbstractVector, e_ij::AbstractVector)
+    x = vcat(x_i, e_ij, x_j)
+    attention_logits = prelu.(l.W_a*x, l.prelu_α)
+    unattended_node_features = l.W_T*x
 
-function Base.show(io::IO, l::WeightedGATConv)
-    in_channel = size(l.weight, ndims(l.weight))
-    out_channel = size(l.weight, ndims(l.weight)-1)
-    print(io, "WeightedGATConv(G(V=", nv(l.fg), ", E=", ne(l.fg))
-    print(io, "), ", in_channel, "=>", out_channel)
-    print(io, ", LeakyReLU(λ=", l.negative_slope)
+    new_edge_features = l.W_e * (x_i + x_j) + l.W_ee * e_ij
+
+    return vcat(attention_logits, unattended_node_features, new_edge_features)
+end
+
+function GeometricFlux.update_batch_edge(g::EdgeFtLayer, adj, E::AbstractMatrix, X::AbstractMatrix)
+    n = size(adj, 1)
+    edge_idx = GeometricFlux.edge_index_table(adj)
+    hcat([GeometricFlux.apply_batch_message(g, i, adj[i], edge_idx, E, X) for i in 1:n]...)
+end
+
+GeometricFlux.update_batch_edge(g::EdgeFtLayer, adj, E::AbstractMatrix, X::AbstractMatrix, u) = GeometricFlux.update_batch_edge(g, adj, E, X)
+
+function GeometricFlux.apply_batch_message(g::EdgeFtLayer, i, js, edge_idx, E::AbstractMatrix, X::AbstractMatrix)
+    mailbox = hcat([GeometricFlux.message(g, GeometricFlux.get_feature(X, i), GeometricFlux.get_feature(X, j), E[:, edge_idx[(i, j)]]) for j = js]...)
+
+    # Get each part of the message separately
+    out_channel_v = size(g.W_a, 1)
+    attention_logits = mailbox[1:out_channel_v, :]
+    unattended_node_features = mailbox[out_channel_v+1:out_channel_v*2, :]
+    new_edge_features = mailbox[out_channel_v*2+1:end, :]
+
+    # Apply the attention mechanism
+    attention = Flux.softmax(attention_logits, dims=2)
+    final_messages = attention .* unattended_node_features
+
+    # Copy the bias over each neighbor
+    bias_cloned = hcat([g.b_T/length(js) for j = js]...)
+
+    # The new features are transmitted without any manipulation
+    vcat(final_messages + bias_cloned, new_edge_features)
+end
+
+
+function Base.show(io::IO, l::EdgeFtLayer)
+    in_channel_v = size(l.W_e, 2)
+    out_channel_v = size(l.W_a, 1)
+    in_channel_e = size(l.W_ee, 2)
+    out_channel_e = size(l.W_ee, 1)
+    print(io, "EdgeFtLayer(")
+    print(io, "), v_dim=", in_channel_v, "=>", out_channel_v, ", e_dim=", in_channel_e, "=>", out_channel_e)
+    print(io, ", PReLU(α=", l.prelu_α)
     print(io, "))")
 end
 

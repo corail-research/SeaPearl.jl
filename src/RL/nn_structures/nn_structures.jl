@@ -35,3 +35,5 @@ wears_mask(structure) = true # For simpler structures like Flux.Chain
 include("fixed_output_gcn.jl")
 include("fixed_output_gat.jl")
 include("variable_output_gcn_lstm.jl")
+
+include("weighted_graph_gat.jl")

@@ -1,5 +1,5 @@
 using SimpleWeightedGraphs
-
+using LinearAlgebra
 
 struct TsptwFeaturization <: AbstractFeaturization end
 
@@ -78,12 +78,24 @@ end
 
 function featuredgraph(array::Array{Float32, 2}, ::Type{TsptwStateRepresentation})::GeometricFlux.FeaturedGraph    
     n = size(array, 1)
-    dense_adj = array[:, 1:n]
+    weighted_adj = array[:, 1:n]
     features = array[:, n+1:end-2]
 
-    adj = round.(dense_adj) # Does not support weighted edges
+    adj = ones(n, n) - I
 
-    return GraphSignals.FeaturedGraph(adj; nf=permutedims(features, [2, 1]))
+    ef = build_edge_feature(adj, weighted_adj)
+
+    return GraphSignals.FeaturedGraph(adj; nf=permutedims(features, [2, 1]), ef=ef)
+end
+
+function build_edge_feature(adj::AbstractMatrix, weighted_adj::AbstractMatrix)
+    adj_list = GeometricFlux.adjacency_list(adj)
+    n = length(adj_list)
+    return hcat([build_edge_feature_aux(i, adj_list[i], weighted_adj) for i in 1:n]...)
+end
+
+function build_edge_feature_aux(i, js, weighted_adj::AbstractMatrix)
+    hcat([weighted_adj[i, j] for j = js]...)
 end
 
 function branchingvariable_id(array::Array{Float32, 2}, ::Type{TsptwStateRepresentation})::Int64
