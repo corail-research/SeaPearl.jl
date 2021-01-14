@@ -27,8 +27,12 @@ function evaluate(eval::SameInstancesEvaluator, variableHeuristic::AbstractVaria
     for model in eval.instances
         reset_model!(model)
 
-        dt += @elapsed search!(model, strategy, variableHeuristic, valueSelection)
+        cur_dt = @elapsed search!(model, strategy, variableHeuristic, valueSelection)
+
+        dt += cur_dt
         n_nodes += model.statistics.numberOfNodes
+        println(typeof(valueSelection), " evaluated with: ", model.statistics.numberOfNodes, " nodes, taken ", cur_dt, "s")
+
     end
     testmode!(valueSelection, false)
     return n_nodes/n, dt/n
