@@ -17,7 +17,7 @@ end
     
 Create the default `BasicHeuristic` that selects the maximum value of the domain
 """
-BasicHeuristic() = BasicHeuristic(x -> maximum(x.domain))
+BasicHeuristic() = BasicHeuristic((x; cpmodel=nothing) -> maximum(x.domain))
 
 """
     (valueSelection::BasicHeuristic)(::LearningPhase, model, x, current_status)
@@ -28,7 +28,7 @@ to choose the value assigned.
 """
 (valueSelection::BasicHeuristic)(::InitializingPhase, model::Union{Nothing, CPModel}=nothing, x::Union{Nothing, AbstractIntVar}=nothing, current_status::Union{Nothing, Symbol}=nothing) = nothing
 (valueSelection::BasicHeuristic)(::StepPhase, model::Union{Nothing, CPModel}=nothing, x::Union{Nothing, AbstractIntVar}=nothing, current_status::Union{Nothing, Symbol}=nothing) = nothing
-(valueSelection::BasicHeuristic)(::DecisionPhase, model::Union{Nothing, CPModel}=nothing, x::Union{Nothing, AbstractIntVar}=nothing, current_status::Union{Nothing, Symbol}=nothing) = valueSelection.selectValue(x)
+(valueSelection::BasicHeuristic)(::DecisionPhase, model::Union{Nothing, CPModel}=nothing, x::Union{Nothing, AbstractIntVar}=nothing, current_status::Union{Nothing, Symbol}=nothing) = valueSelection.selectValue(x; cpmodel=model)
 (valueSelection::BasicHeuristic)(::EndingPhase, model::Union{Nothing, CPModel}=nothing, x::Union{Nothing, AbstractIntVar}=nothing, current_status::Union{Nothing, Symbol}=nothing) = nothing
 
 wears_mask(valueSelection::BasicHeuristic) = true

@@ -76,7 +76,7 @@ end
 
         # Define the heuristic used for value selection
         numberOfSteps = 0
-        valueheuristic = SeaPearl.BasicHeuristic((x) -> (numberOfSteps += 1; minimum(x.domain)))
+        valueheuristic = SeaPearl.BasicHeuristic((x; cpmodel=nothing) -> (numberOfSteps += 1; minimum(x.domain)))
         MOI.set(model, SeaPearl.MOIValueSelectionAttribute(), valueheuristic)
 
 
@@ -112,7 +112,7 @@ end
 
         # Define the heuristic used for value selection
         numberOfSteps = 0
-        valueheuristic = SeaPearl.BasicHeuristic((x) -> (numberOfSteps += 1; maximum(x.domain)))
+        valueheuristic = SeaPearl.BasicHeuristic((x; cpmodel=nothing) -> (numberOfSteps += 1; maximum(x.domain)))
         MOI.set(model, SeaPearl.MOIValueSelectionAttribute(), valueheuristic)
 
         optimize!(model)

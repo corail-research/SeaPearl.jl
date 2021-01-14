@@ -26,7 +26,7 @@
         SeaPearl.init_evaluator!(eval, generator; seed=8)
 
         variableheuristic = SeaPearl.MinDomainVariableSelection{false}()
-        my_heuristic(x::SeaPearl.IntVar) = minimum(x.domain)
+        my_heuristic(x::SeaPearl.IntVar; cpmodel=nothing) = minimum(x.domain)
         valueheuristic = SeaPearl.BasicHeuristic(my_heuristic)
 
         nodes, dtime = SeaPearl.evaluate(eval, variableheuristic, valueheuristic, SeaPearl.DFSearch)

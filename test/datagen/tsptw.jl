@@ -111,7 +111,7 @@ end
         @test foundgrid_size == grid_size
 
         variableheuristic = TsptwVariableSelection{false}()
-        my_heuristic(x::SeaPearl.IntVar) = minimum(x.domain)
+        my_heuristic(x::SeaPearl.IntVar; cpmodel=nothing) = minimum(x.domain)
         valueheuristic = SeaPearl.BasicHeuristic(my_heuristic)
 
         SeaPearl.search!(model, SeaPearl.DFSearch, variableheuristic, valueheuristic)
@@ -156,7 +156,7 @@ end
         dist, time_windows = SeaPearl.fill_with_generator!(model, generator; seed=42)
 
         variableheuristic = TsptwVariableSelection{false}()
-        my_heuristic(x::SeaPearl.IntVar) = minimum(x.domain)
+        my_heuristic(x::SeaPearl.IntVar; cpmodel=nothing) = minimum(x.domain)
         valueheuristic = SeaPearl.BasicHeuristic(my_heuristic)
 
         SeaPearl.search!(model, SeaPearl.DFSearch, variableheuristic, valueheuristic)

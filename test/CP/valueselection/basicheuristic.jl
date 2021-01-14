@@ -11,7 +11,7 @@
 
     @testset "BasicHeuristic" begin 
         valueselection = SeaPearl.BasicHeuristic()
-        my_heuristic(x::SeaPearl.IntVar) = minimum(x.domain)
+        my_heuristic(x::SeaPearl.IntVar; cpmodel=nothing) = minimum(x.domain)
         new_valueselection = SeaPearl.BasicHeuristic(my_heuristic)
 
         @test new_valueselection.selectValue == my_heuristic
