@@ -167,7 +167,7 @@ using DataStructures
         SeaPearl.addVariable!(model, y)
         push!(model.constraints, SeaPearl.Equal(x, y, model.trailer))
 
-        my_heuristic(x::SeaPearl.IntVar) = minimum(x.domain)
+        my_heuristic(x::SeaPearl.IntVar; cpmodel=nothing) = minimum(x.domain)
         @test SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(my_heuristic)) == :Optimal
         @test model.solutions[1] == Dict("x" => 2,"y" => 2)
         @test model.solutions[2] == Dict("x" => 3,"y" => 3)
@@ -197,7 +197,7 @@ using DataStructures
         SeaPearl.addVariable!(model, y)
         push!(model.constraints, SeaPearl.Equal(x, y, model.trailer))
 
-        my_heuristic(x::SeaPearl.IntVar) = minimum(x.domain)
+        my_heuristic(x::SeaPearl.IntVar; cpmodel=nothing) = minimum(x.domain)
         @test SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(my_heuristic); out_solver=true) == :FoundSolution
         @test length(model.solutions) == 1
         @test model.solutions[1] == Dict("x" => 2,"y" => 2)
