@@ -35,10 +35,11 @@ function launch_experiment!(
     eval_timeneeded = nothing
     if !isnothing(evaluator)
         eval_freq = evaluator.eval_freq
+        nb_instances = evaluator.nb_instances
         init_evaluator!(evaluator, generator)
 
-        eval_nodevisited = zeros(Float64, (floor(Int64, nb_episodes/eval_freq) + 1, nb_heuristics))
-        eval_timeneeded = zeros(Float64, (floor(Int64, nb_episodes/eval_freq) + 1, nb_heuristics))
+        eval_nodevisited = zeros(Float64, (floor(Int64, nb_episodes/eval_freq), nb_heuristics, nb_instances))
+        eval_timeneeded = zeros(Float64, (floor(Int64, nb_episodes/eval_freq), nb_heuristics, nb_instances))
     end
 
     bestsolutions = zeros(Int64, (nb_episodes, nb_heuristics))
@@ -78,7 +79,7 @@ function launch_experiment!(
 
             # eval_nodevisited[i, j], eval_timeneeded[i, j] = 0., 0.
             if !isnothing(evaluator) && (i % eval_freq == 1)
-                eval_nodevisited[floor(Int64, (i-1)/eval_freq + 1), j], eval_timeneeded[floor(Int64, (i-1)/eval_freq + 1), j] = evaluate(evaluator, variableHeuristic, valueSelectionArray[j], strategy)
+                eval_nodevisited[floor(Int64, (i-1)/eval_freq + 1), j, :], eval_timeneeded[floor(Int64, (i-1)/eval_freq + 1), j, :] = evaluate(evaluator, variableHeuristic, valueSelectionArray[j], strategy)
             end
 
             timeneeded[i, j] = dt

@@ -22,21 +22,22 @@ end
 function evaluate(eval::SameInstancesEvaluator, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, strategy::Type{<:SearchStrategy})
     testmode!(valueSelection, true)
     n = length(eval.instances)
-    dt = 0.
-    n_nodes = 0.
-    for model in eval.instances
+    dt = zeros(Float64, eval.nb_instances)
+    n_nodes = zeros(Int64, eval.nb_instances)
+
+    for i in 1:eval.nb_instances
+        model = eval.instances[i]
         reset_model!(model)
 
         cur_dt = @elapsed search!(model, strategy, variableHeuristic, valueSelection)
 
-        dt += cur_dt
-        n_nodes += model.statistics.numberOfNodes
+        dt[i] = cur_dt
+        n_nodes[i] = model.statistics.numberOfNodes
         println(typeof(valueSelection), " evaluated with: ", model.statistics.numberOfNodes, " nodes, taken ", cur_dt, "s")
 
     end
     testmode!(valueSelection, false)
-    return n_nodes/n, dt/n
-    # return 0., 0.
+    return n_nodes, dt
 end
 
 
