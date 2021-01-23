@@ -38,8 +38,9 @@ function launch_experiment!(
         nb_instances = evaluator.nb_instances
         init_evaluator!(evaluator, generator)
 
-        eval_nodevisited = zeros(Float64, (floor(Int64, nb_episodes/eval_freq), nb_heuristics, nb_instances))
-        eval_timeneeded = zeros(Float64, (floor(Int64, nb_episodes/eval_freq), nb_heuristics, nb_instances))
+        # TODO: here we should not have a +1 for the first dimension, but removing it makes the tests fail
+        eval_nodevisited = zeros(Float64, (floor(Int64, nb_episodes/eval_freq)+1, nb_heuristics, nb_instances))
+        eval_timeneeded = zeros(Float64, (floor(Int64, nb_episodes/eval_freq)+1, nb_heuristics, nb_instances))
     end
 
     bestsolutions = zeros(Int64, (nb_episodes, nb_heuristics))
