@@ -26,7 +26,7 @@ function benchmark_solving(;
         verbose::Bool=true,
         evaluator::Union{Nothing, AbstractEvaluator}=SameInstancesEvaluator()
     ) where T <: ValueSelection
-
+    println("Benchmarking...")
     if isa(valueSelectionArray, T)
         valueSelectionArray = [valueSelectionArray]
     end
