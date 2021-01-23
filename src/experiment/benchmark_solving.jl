@@ -19,12 +19,12 @@ This function might evolve for a more precise one which will provide better anal
 function benchmark_solving(;
         valueSelectionArray::Union{T, Array{T, 1}}, 
         generator::AbstractModelGenerator,
-        nb_episodes::Int64=10,
         strategy::Type{DFSearch}=DFSearch,
         variableHeuristic::AbstractVariableSelection=MinDomainVariableSelection(),
         out_solver::Bool=false, 
         metricsFun=((;kwargs...) -> nothing),
-        verbose::Bool=true
+        verbose::Bool=true,
+        evaluator::Union{Nothing, AbstractEvaluator}=SameInstancesEvaluator()
     ) where T <: ValueSelection
 
     if isa(valueSelectionArray, T)
@@ -47,17 +47,15 @@ function benchmark_solving(;
         end
     end
 
-    # launch the experiment
-    bestsolutions, nodevisited, timeneeded, eval_nodevisited, eval_timeneeded = launch_experiment!(
-        valueSelectionArray, 
-        generator, 
-        nb_episodes, 
-        strategy, 
-        variableHeuristic,
-        out_solver,
-        metricsFun, 
-        verbose
-    )
+    nb_heuristics = length(valueSelectionArray)
+    nb_instances = evaluator.nb_instances
+    init_evaluator!(evaluator, generator)
+    eval_nodevisited = zeros(Float64, (nb_heuristics, nb_instances))
+    eval_timeneeded = zeros(Float64, (nb_heuristics, nb_instances))
 
-    bestsolutions, nodevisited, timeneeded, eval_nodevisited, eval_timeneeded
+    for j in 1:nb_heuristics
+        eval_nodevisited[j, :], eval_timeneeded[j, :] = evaluate(evaluator, variableHeuristic, valueSelectionArray[j], strategy)
+    end
+
+    eval_nodevisited, eval_timeneeded
 end
