@@ -61,8 +61,8 @@ function (valueSelection::LearnedHeuristic)(::InitializingPhase, model::CPModel,
     # Reset the agent, useful for things like recurrent networks
     Flux.reset!(valueSelection.agent)
 
-    # just empty the buffer
-    valueSelection.agent(RL.PRE_EPISODE_STAGE, obs)
+    ###TODO: We should investigate why this line must be removed
+    # valueSelection.agent(RL.PRE_EPISODE_STAGE, obs)
 end
 
 """
@@ -117,6 +117,7 @@ function (valueSelection::LearnedHeuristic)(PHASE::EndingPhase, model::CPModel, 
 
     valueSelection.agent(RL.POST_ACT_STAGE, obs) # get terminal and reward
 
-    valueSelection.agent(RL.POST_EPISODE_STAGE, obs)  # let the agent see the last observation
+    ###TODO: We should investigate why this line must be removed
+    # valueSelection.agent(RL.POST_EPISODE_STAGE, obs)  # let the agent see the last observation
 end
 
