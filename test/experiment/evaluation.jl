@@ -30,6 +30,7 @@
         valueheuristic = SeaPearl.BasicHeuristic(my_heuristic)
 
         nodes, dtime = SeaPearl.evaluate(eval, variableheuristic, valueheuristic, SeaPearl.DFSearch)
-        @test nodes == 23.
+        @test nodes == [23, 23]
+        @test size(dtime) == (2,)
     end
 end
