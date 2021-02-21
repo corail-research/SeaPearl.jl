@@ -65,7 +65,7 @@ function get_observation!(lh::LearnedHeuristic, model::CPModel, x::AbstractIntVa
     legal_actions_mask = [value in x.domain for value in lh.action_space]
 
     # compute legal actions
-    legal_actions = lh.action_space.span[legal_actions_mask]
+    legal_actions = lh.action_space[legal_actions_mask]
 
     reward = lh.reward.value
     # Initialize reward for the next state: not compulsory with DefaultReward, but maybe useful in case the user forgets it
@@ -93,12 +93,12 @@ struct CPEnv <: AbstractEnv
     legal_actions_mask
 end
 
-RLBase.get_actions(env::CPEnv) = env.actions
-RLBase.get_legal_actions(env::CPEnv) = env.legal_actions
-RLBase.get_legal_actions_mask(env::CPEnv) = env.legal_actions_mask
-RLBase.get_reward(env::CPEnv) = env.reward
-RLBase.get_terminal(env::CPEnv) = env.terminal
-RLBase.get_state(env::CPEnv) = env.state
+RLBase.action_space(env::CPEnv) = env.actions
+RLBase.legal_action_space(env::CPEnv) = env.legal_actions
+RLBase.legal_action_space_mask(env::CPEnv) = env.legal_actions_mask
+RLBase.reward(env::CPEnv) = env.reward
+RLBase.is_terminated(env::CPEnv) = env.terminal
+RLBase.state(env::CPEnv) = env.state
 RLBase.ActionStyle(::CPEnv) = FULL_ACTION_SET
 
 
@@ -109,10 +109,10 @@ struct unmaskedCPEnv <: AbstractEnv
     actions
 end
 
-RLBase.get_actions(env::unmaskedCPEnv) = env.actions
-RLBase.get_reward(env::unmaskedCPEnv) = env.reward
-RLBase.get_terminal(env::unmaskedCPEnv) = env.terminal
-RLBase.get_state(env::unmaskedCPEnv) = env.state
+RLBase.action_space(env::unmaskedCPEnv) = env.actions
+RLBase.reward(env::unmaskedCPEnv) = env.reward
+RLBase.is_terminated(env::unmaskedCPEnv) = env.terminal
+RLBase.state(env::unmaskedCPEnv) = env.state
 RLBase.ActionStyle(::unmaskedCPEnv) = MINIMAL_ACTION_SET
 
 """
