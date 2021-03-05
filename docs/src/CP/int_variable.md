@@ -5,9 +5,7 @@
 The implementation of integer variables in SeaPearl is heavily inspired on [MiniCP](https://minicp.readthedocs.io/en/latest/learning_minicp/part_2.html). If you have some troubles understanding how it works, you can get more visual explanations by reading their [slides](https://inginious.org/course/minicp/domains).
 
 The variables are all a subset of `AbstractIntVar`.
-```@docs
-SeaPearl.AbstractIntVar
-```
+
 
 Every `AbstractIntVar` must have a unique `id` that you can retrieve with `id`.
 ```@docs
