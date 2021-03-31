@@ -91,7 +91,7 @@ using Distributions: Categorical
             step = 1,
             is_break_tie = false, 
             is_training = true,
-            rng = 5
+            rng = MersenneTwister(33)
         )
 
         explorer = SeaPearl.DirectedExplorer(;
@@ -135,7 +135,7 @@ using Distributions: Categorical
             step = 1,
             is_break_tie = false, 
             is_training = true,
-            rng = 5
+            rng = MersenneTwister(33)
         )
 
         explorer = SeaPearl.DirectedExplorer(;
@@ -180,7 +180,7 @@ using Distributions: Categorical
             step = 1,
             is_break_tie = false, 
             is_training = false,
-            rng = 5
+            rng = MersenneTwister(33)
         )
 
         explorer = SeaPearl.DirectedExplorer(;
@@ -214,7 +214,7 @@ using Distributions: Categorical
             step = 1,
             is_break_tie = false, 
             is_training = false,
-            rng = 5
+            rng = MersenneTwister(33)
         )
 
         explorer = SeaPearl.DirectedExplorer(;
@@ -248,7 +248,7 @@ using Distributions: Categorical
             step = 1,
             is_break_tie = false, 
             is_training = false,
-            rng = 5
+            rng = MersenneTwister(33)
         )
 
         explorer = SeaPearl.DirectedExplorer(;

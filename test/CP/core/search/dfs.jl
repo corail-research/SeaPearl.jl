@@ -245,7 +245,7 @@ using DataStructures
                     step = 1,
                     is_break_tie = false, 
                     #is_training = true,
-                    rng = 33
+                    rng = MersenneTwister(33)
                 )
             ),
             trajectory = RL.CircularArraySLARTTrajectory(
@@ -341,7 +341,7 @@ using DataStructures
                     step = 1,
                     is_break_tie = false, 
                     #is_training = true,
-                    rng = 33
+                    rng = MersenneTwister(33)
                 )
             ),
             trajectory = RL.CircularArraySLARTTrajectory(
