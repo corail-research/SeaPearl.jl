@@ -41,7 +41,7 @@
                     ),
                     optimizer = ADAM(0.001f0)
                 ),
-                loss_func = huber_loss,
+                loss_func = typeof(Flux.Losses.huber_loss),
                 stack_size = nothing,
                 γ = 0.99f0,
                 batch_size = 2,
@@ -50,7 +50,7 @@
                 update_freq = 1,
                 target_update_freq = 100,
             ), 
-            explorer = SeaPearl.CPEpsilonGreedyExplorer(
+            explorer = RL.EpsilonGreedyExplorer(
                 ϵ_stable = 0.01,
                 kind = :exp,
                 ϵ_init = 1.0,
@@ -59,10 +59,10 @@
                 step = 1,
                 is_break_tie = false, 
                 #is_training = true,
-                seed = 33
+                rng = 33
             )
         ),
-        trajectory = RL.CircularCompactSALRTSALTrajectory(
+        trajectory = RL.CircularArraySLARTTrajectory(
             capacity = 500, 
             state_type = Float32, 
             state_size = state_size,
@@ -143,7 +143,7 @@ end
                     ),
                     optimizer = ADAM(0.001f0)
                 ),
-                loss_func = huber_loss,
+                loss_func = typeof(Flux.Losses.huber_loss),
                 stack_size = nothing,
                 γ = 0.99f0,
                 batch_size = 2,
@@ -152,7 +152,7 @@ end
                 update_freq = 1,
                 target_update_freq = 100,
             ), 
-            explorer = SeaPearl.CPEpsilonGreedyExplorer(
+            explorer = RL.EpsilonGreedyExplorer(
                 ϵ_stable = 0.01,
                 kind = :exp,
                 ϵ_init = 1.0,
@@ -161,10 +161,10 @@ end
                 step = 1,
                 is_break_tie = false, 
                 #is_training = true,
-                seed = 33
+                rng = 33
             )
         ),
-        trajectory = RL.CircularCompactSALRTSALTrajectory(
+        trajectory = RL.CircularArraySLARTTrajectory(
             capacity = 500, 
             state_type = Float32, 
             state_size = state_size,

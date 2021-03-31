@@ -1,3 +1,5 @@
+using Flux
+
 agent = RL.Agent(
     policy = RL.QBasedPolicy(
         learner = SeaPearl.CPDQNLearner(
@@ -19,7 +21,7 @@ agent = RL.Agent(
                 ),
                 optimizer = ADAM(0.001f0)
             ),
-            loss_func = huber_loss,
+            loss_func = typeof(Flux.Losses.huber_loss),
             stack_size = nothing,
             γ = 0.99f0,
             batch_size = 32,
@@ -28,7 +30,7 @@ agent = RL.Agent(
             update_freq = 1,
             target_update_freq = 100,
         ), 
-        explorer = SeaPearl.CPEpsilonGreedyExplorer(
+        explorer = RL.EpsilonGreedyExplorer(
             ϵ_stable = 0.01,
             kind = :exp,
             ϵ_init = 1.0,
@@ -37,23 +39,14 @@ agent = RL.Agent(
             step = 1,
             is_break_tie = false, 
             #is_training = true,
-            seed = 33
+            rng = 33
         )
     ),
-    trajectory = RL.CircularCompactSALRTSALTrajectory(
-        capacity = 500, 
-        state_type = Float32, 
-        state_size = (11, 17, 1),
-        action_type = Int,
-        action_size = (),
-        reward_type = Float32,
-        reward_size = (),
-        terminal_type = Bool,
-        terminal_size = (),
-        legal_actions_mask_size = (4, ),
-        legal_actions_mask_type = Bool,
-    ),
-    role = :DEFAULT_PLAYER
+    trajectory = RL.CircularArraySLARTTrajectory(
+        capacity = 500,
+        state = Matrix{Float32} => (11, 17, 1),
+        legal_actions_mask = Vector{Bool} => (4, ),
+    )
 )
 
 @testset "learnedheuristic.jl" begin
