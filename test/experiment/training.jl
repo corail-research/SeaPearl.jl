@@ -63,18 +63,9 @@
             )
         ),
         trajectory = RL.CircularArraySLARTTrajectory(
-            capacity = 500, 
-            state_type = Float32, 
-            state_size = state_size,
-            action_type = Int,
-            action_size = (),
-            reward_type = Float32,
-            reward_size = (),
-            terminal_type = Bool,
-            terminal_size = (),
-            legal_actions_mask_size = (generator.nb_nodes, ),
-            legal_actions_mask_type = Bool,
-
+            capacity = 500,
+            state = Matrix{Float32} => state_size,
+            legal_actions_mask = Vector{Bool} => (generator.nb_nodes, ),
         ),
         role = :DEFAULT_PLAYER
     )
@@ -165,17 +156,9 @@ end
             )
         ),
         trajectory = RL.CircularArraySLARTTrajectory(
-            capacity = 500, 
-            state_type = Float32, 
-            state_size = state_size,
-            action_type = Int,
-            action_size = (),
-            reward_type = Float32,
-            reward_size = (),
-            terminal_type = Bool,
-            terminal_size = (),
-            legal_actions_mask_size = (generator.nb_nodes, ),
-            legal_actions_mask_type = Bool,
+            capacity = 500,
+            state = Matrix{Float32} => state_size,
+            legal_actions_mask = Vector{Bool} => (generator.nb_nodes, ),
         ),
         role = :DEFAULT_PLAYER
     )

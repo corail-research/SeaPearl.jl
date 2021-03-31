@@ -249,17 +249,9 @@ using DataStructures
                 )
             ),
             trajectory = RL.CircularArraySLARTTrajectory(
-                capacity = 500, 
-                state_type = Float32, 
-                state_size = (11, 17, 1),
-                action_type = Int,
-                action_size = (),
-                reward_type = Float32,
-                reward_size = (),
-                terminal_type = Bool,
-                terminal_size = (),
-                legal_actions_mask_size = (4, ),
-                legal_actions_mask_type = Bool,
+                capacity = 500,
+                state = Matrix{Float32} => (11, 17, 1),
+                legal_actions_mask = Vector{Bool} => (4, ),
             ),
             role = :DEFAULT_PLAYER
         )
@@ -354,17 +346,9 @@ using DataStructures
                 )
             ),
             trajectory = RL.CircularArraySLARTTrajectory(
-                capacity = 500, 
-                state_type = Float32, 
-                state_size = (11, 17, 1),
-                action_type = Int,
-                action_size = (),
-                reward_type = Float32,
-                reward_size = (),
-                terminal_type = Bool,
-                terminal_size = (),
-                legal_actions_mask_size = (4, ),
-                legal_actions_mask_type = Bool,
+                capacity = 500,
+                state = Matrix{Float32} => (11, 17, 1),
+                legal_actions_mask = Vector{Bool} => (4, ),
             ),
             role = :DEFAULT_PLAYER
         )

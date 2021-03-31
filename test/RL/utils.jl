@@ -1,15 +1,8 @@
 @testset "utils.jl" begin
     @testset "last_episode_total_reward()" begin
-        trajectory = RL.CircularVectorSARTSATrajectory(
-            capacity = 1000, 
-            state_type = Float32, 
-            state_size = (2, 2, 1),
-            action_type = Int,
-            action_size = (),
-            reward_type = Float32,
-            reward_size = (),
-            terminal_type = Bool,
-            terminal_size = ()
+        trajectory = RL.CircularArraySARTTrajectory(
+            capacity = 1000,
+            state = Matrix{Float32} => (2, 2, 1),
         )
 
         
