@@ -106,7 +106,7 @@ end
 
     agent = RL.Agent(
         policy = RL.QBasedPolicy(
-            learner = SeaPearl.CPDQNLearner(
+            learner = RL.DQNLearner(
                 approximator = RL.NeuralNetworkApproximator(
                     model = SeaPearl.FlexGNN(
                         graphChain = Flux.Chain(
@@ -160,6 +160,19 @@ end
             legal_actions_mask = Vector{Bool} => (generator.nb_nodes, ),
         )
     )
+
+    trajectory = RL.CircularArraySLARTTrajectory(
+        capacity = 500,
+        state = Matrix{Float32} => (2, 2),
+        legal_actions_mask = Vector{Bool} => (2, ),
+    )
+    trajectory2 = RL.CircularArraySARTTrajectory(
+        capacity = 500,
+        state = Matrix{Float32} => state_size,
+    )
+    println(typeof(trajectory))
+    println("length: ", RL.custom_length(trajectory))
+
 
     maxNumberOfCPNodes = 150
 
