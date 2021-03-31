@@ -252,8 +252,7 @@ using DataStructures
                 capacity = 500,
                 state = Matrix{Float32} => (11, 17, 1),
                 legal_actions_mask = Vector{Bool} => (4, ),
-            ),
-            role = :DEFAULT_PLAYER
+            )
         )
 
         # define the value selection
@@ -349,8 +348,7 @@ using DataStructures
                 capacity = 500,
                 state = Matrix{Float32} => (11, 17, 1),
                 legal_actions_mask = Vector{Bool} => (4, ),
-            ),
-            role = :DEFAULT_PLAYER
+            )
         )
 
         # define the value selection

@@ -66,8 +66,7 @@
             capacity = 500,
             state = Matrix{Float32} => state_size,
             legal_actions_mask = Vector{Bool} => (generator.nb_nodes, ),
-        ),
-        role = :DEFAULT_PLAYER
+        )
     )
 
     learnedHeuristic = SeaPearl.LearnedHeuristic(agent, maxNumberOfCPNodes)
@@ -159,8 +158,7 @@ end
             capacity = 500,
             state = Matrix{Float32} => state_size,
             legal_actions_mask = Vector{Bool} => (generator.nb_nodes, ),
-        ),
-        role = :DEFAULT_PLAYER
+        )
     )
 
     maxNumberOfCPNodes = 150
