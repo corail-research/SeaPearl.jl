@@ -102,7 +102,7 @@ function (valueSelection::LearnedHeuristic)(PHASE::DecisionPhase, model::CPModel
     action = valueSelection.agent(env) # Choose action
     valueSelection.agent(RL.PRE_ACT_STAGE, env, action) # Store state and action
     
-    return action_to_value(valueSelection, action, obs.state, model)
+    return action_to_value(valueSelection, action, state(env), model)
 end
 
 """
