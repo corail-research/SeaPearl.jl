@@ -17,8 +17,8 @@
 
         SeaPearl.update_with_cpmodel!(lh, model)
 
-        @test typeof(lh.action_space) == RL.DiscreteSpace{Array{Int64,1}}
-        @test lh.action_space.span == [2, 3, 4]
+        @test typeof(lh.action_space) == Array{Int64,1}
+        @test lh.action_space == [2, 3, 4]
         @test typeof(lh.current_state) == SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization}
         @test lh.reward.value == 0
         @test isa(lh.search_metrics, SeaPearl.SearchMetrics)

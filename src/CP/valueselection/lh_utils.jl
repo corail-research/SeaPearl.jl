@@ -25,7 +25,7 @@ function update_with_cpmodel!(lh::LearnedHeuristic{SR, R, A}, model::CPModel) wh
     # construct the action_space
     valuesOfVariables = sort(branchable_values(model))
 
-    lh.action_space = RL.DiscreteSpace(valuesOfVariables)
+    lh.action_space = valuesOfVariables
     # state rep construction
     lh.current_state = SR(model)
 
@@ -172,7 +172,7 @@ function action_to_value(vs::LearnedHeuristic{SR, R, FixedOutput}, action::Int64
     SR <: AbstractStateRepresentation,
     R <: AbstractReward
 }
-    return vs.action_space.span[action]
+    return vs.action_space[action]
 end
 
 """
