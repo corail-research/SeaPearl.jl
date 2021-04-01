@@ -133,7 +133,7 @@ end
                     ),
                     optimizer = ADAM(0.001f0)
                 ),
-                loss_func = typeof(Flux.Losses.huber_loss),
+                loss_func = Flux.Losses.huber_loss,
                 stack_size = nothing,
                 γ = 0.99f0,
                 batch_size = 2,
