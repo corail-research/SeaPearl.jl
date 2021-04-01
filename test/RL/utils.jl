@@ -6,6 +6,10 @@
         )
 
         
+        push!(trajectory; state = Float32[1. 2.; 5. -1.], action = 2)
+        push!(trajectory; reward = -100., terminal = true)
+
+        @test SeaPearl.last_episode_total_reward(trajectory) == -100.
 
         push!(trajectory; state = Float32[1. 2.; 5. -1.], action = 2)
         push!(trajectory; reward = -2.5, terminal = false)
