@@ -14,7 +14,7 @@
 
     agent = RL.Agent(
         policy = RL.QBasedPolicy(
-            learner = SeaPearl.CPDQNLearner(
+            learner = RL.DQNLearner(
                 approximator = RL.NeuralNetworkApproximator(
                     model = SeaPearl.FlexGNN(
                         graphChain = Flux.Chain(
@@ -41,7 +41,7 @@
                     ),
                     optimizer = ADAM(0.001f0)
                 ),
-                loss_func = typeof(Flux.Losses.huber_loss),
+                loss_func = Flux.Losses.huber_loss,
                 stack_size = nothing,
                 γ = 0.99f0,
                 batch_size = 2,
