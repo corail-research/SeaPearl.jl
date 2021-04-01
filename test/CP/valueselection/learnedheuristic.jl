@@ -2,7 +2,7 @@ using Flux
 
 agent = RL.Agent(
     policy = RL.QBasedPolicy(
-        learner = SeaPearl.CPDQNLearner(
+        learner = RL.DQNLearner(
             approximator = RL.NeuralNetworkApproximator(
                 model = Chain(
                     Flux.flatten,
@@ -21,7 +21,7 @@ agent = RL.Agent(
                 ),
                 optimizer = ADAM(0.001f0)
             ),
-            loss_func = typeof(Flux.Losses.huber_loss),
+            loss_func = Flux.Losses.huber_loss,
             stack_size = nothing,
             γ = 0.99f0,
             batch_size = 32,
@@ -105,7 +105,8 @@ agent = RL.Agent(
         _, _ = SeaPearl.fixPoint!(model)
 
         obs = SeaPearl.get_observation!(lh, model, x1)
-        v1 = lh.agent(RL.PRE_ACT_STAGE, obs)
+        v1 = lh.agent(obs)
+        lh.agent(RL.PRE_ACT_STAGE, obs, v1)
 
         SeaPearl.assign!(x1, v1)
         _, _ = SeaPearl.fixPoint!(model, SeaPearl.getOnDomainChange(x1))
@@ -114,7 +115,8 @@ agent = RL.Agent(
         obs = SeaPearl.get_observation!(lh, model, x2)
         lh.agent(RL.POST_ACT_STAGE, obs)
 
-        v2 = lh.agent(RL.PRE_ACT_STAGE, obs)
+        v2 = lh.agent(obs)
+        lh.agent(RL.PRE_ACT_STAGE, obs, v2)
 
         SeaPearl.assign!(x2, v2)
         _, _ = SeaPearl.fixPoint!(model, SeaPearl.getOnDomainChange(x2))
@@ -123,7 +125,8 @@ agent = RL.Agent(
         obs = SeaPearl.get_observation!(lh, model, x3)
         lh.agent(RL.POST_ACT_STAGE, obs)
 
-        v3 = lh.agent(RL.PRE_ACT_STAGE, obs)
+        v3 = lh.agent(obs)
+        lh.agent(RL.PRE_ACT_STAGE, obs, v3)
 
         SeaPearl.assign!(x3, v3)
         _, _ = SeaPearl.fixPoint!(model, SeaPearl.getOnDomainChange(x2))
@@ -132,7 +135,8 @@ agent = RL.Agent(
         obs = SeaPearl.get_observation!(lh, model, x4)
         lh.agent(RL.POST_ACT_STAGE, obs)
 
-        v4 = lh.agent(RL.PRE_ACT_STAGE, obs)
+        v4 = lh.agent(obs)
+        lh.agent(RL.PRE_ACT_STAGE, obs, v4)
 
     end
 
