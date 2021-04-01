@@ -296,7 +296,7 @@ using DataStructures
             @test solution in possible_solutions
         end
 
-        @test length(keys(valueSelection.agent.trajectory)) == 11
+        @test length(valueSelection.agent.trajectory) == 8
 
     end
 
