@@ -15,7 +15,7 @@ using Random
 
         variableselection = SeaPearl.RandomVariableSelection{true}()
 
-        @test variableselection(cpmodel; rng=rng) == y
+        @test variableselection(cpmodel; rng=rng) == x
         @test variableselection(cpmodel; rng=rng) == x
         @test variableselection(cpmodel; rng=rng) == y
 
