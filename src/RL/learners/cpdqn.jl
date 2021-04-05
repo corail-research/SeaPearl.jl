@@ -96,7 +96,7 @@ end
 """
 function (learner::CPDQNLearner)(env)
     env |>
-    get_state |>
+    state |>
     x ->
         Flux.unsqueeze(x, ndims(x) + 1) |>
         x ->
