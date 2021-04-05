@@ -15,9 +15,12 @@ using Random
 
         variableselection = SeaPearl.RandomVariableSelection{true}()
 
-        @test variableselection(cpmodel; rng=rng) == x
-        @test variableselection(cpmodel; rng=rng) == x
-        @test variableselection(cpmodel; rng=rng) == y
+        # This condition is there because of the way random are generated can change from one version to another
+        if VERSION >= v"1.6.0"
+            @test variableselection(cpmodel; rng=rng) == x
+            @test variableselection(cpmodel; rng=rng) == x
+            @test variableselection(cpmodel; rng=rng) == y
+        end
 
         # With branchable variables
         trailer = SeaPearl.Trailer()
@@ -33,9 +36,12 @@ using Random
 
         variableselection = SeaPearl.RandomVariableSelection{true}()
 
-        @test variableselection(cpmodel; rng=rng) == x
-        @test variableselection(cpmodel; rng=rng) == x
-        @test variableselection(cpmodel; rng=rng) == x
+        # This condition is there because of the way random are generated can change from one version to another
+        if VERSION >= v"1.6.0"
+            @test variableselection(cpmodel; rng=rng) == x
+            @test variableselection(cpmodel; rng=rng) == x
+            @test variableselection(cpmodel; rng=rng) == x
+        end
     end
     @testset "RandomVariableSelection{TakeObjective=false}" begin
         trailer = SeaPearl.Trailer()
@@ -53,8 +59,11 @@ using Random
 
         variableselection = SeaPearl.RandomVariableSelection{false}()
 
-        @test variableselection(cpmodel; rng=rng) == z
-        @test variableselection(cpmodel; rng=rng) == z
-        @test variableselection(cpmodel; rng=rng) == z
+        # This condition is there because of the way random are generated can change from one version to another
+        if VERSION >= v"1.6.0"
+            @test variableselection(cpmodel; rng=rng) == z
+            @test variableselection(cpmodel; rng=rng) == z
+            @test variableselection(cpmodel; rng=rng) == z
+        end
     end
 end
