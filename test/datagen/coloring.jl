@@ -55,7 +55,11 @@ using Random
         SeaPearl.fill_with_generator!(model, generator; seed=12)
 
         @test length(keys(model.variables)) == nb_nodes + 1
-        @test length(model.constraints) == 37 || length(model.constraints) == 39 # Julia 1.4 || 1.5
+
+        # This condition is there because of the way random are generated can change from one version to another
+        if VERSION >= v"1.6.0"
+            @test length(model.constraints) == 38
+        end
             
         
     end
