@@ -8,9 +8,8 @@
 
     numInFeatures = 3
 
-    maxNumberOfCPNodes = 150
-
-    state_size = (maxNumberOfCPNodes, numInFeatures + maxNumberOfCPNodes + 2 + 1) 
+    state_size = SeaPearl.arraybuffer_dims(generator, SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization})
+    maxNumberOfCPNodes = state_size[1]
 
     agent = RL.Agent(
         policy = RL.QBasedPolicy(
@@ -100,9 +99,9 @@ end
 
     numInFeatures = 3
 
-    maxNumberOfCPNodes = 150
+    state_size = SeaPearl.arraybuffer_dims(generator, SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization})
+    maxNumberOfCPNodes = state_size[1]
 
-    state_size = (maxNumberOfCPNodes, numInFeatures + maxNumberOfCPNodes + 2 + 1) 
 
     agent = RL.Agent(
         policy = RL.QBasedPolicy(
@@ -161,11 +160,6 @@ end
         )
     )
 
-
-    maxNumberOfCPNodes = 150
-
-    state_size = (maxNumberOfCPNodes, numInFeatures + maxNumberOfCPNodes + 2 + 1) 
-    
     learnedHeuristic = SeaPearl.LearnedHeuristic(agent, maxNumberOfCPNodes)
 
     initial_params = deepcopy(params(learnedHeuristic.agent.policy.learner.approximator.model))
