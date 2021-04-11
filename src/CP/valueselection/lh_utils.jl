@@ -75,7 +75,6 @@ function get_observation!(lh::LearnedHeuristic, model::CPModel, x::AbstractIntVa
     sync_state!(lh, model, x)
 
     state = to_arraybuffer(lh.current_state, lh.cpnodes_max)
-    # println("reward", reward)
 
     if !wears_mask(lh)
         return unmaskedCPEnv(reward, done, state, lh.action_space)

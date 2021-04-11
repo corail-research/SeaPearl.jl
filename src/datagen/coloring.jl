@@ -122,6 +122,14 @@ function fill_with_generator!(cpmodel::CPModel, gen::HomogenousGraphColoringGene
     nothing
 end
 
+"""
+    arraybuffer_dims(gen::HomogenousGraphColoringGenerator, t::Type{DefaultStateRepresentation})
+
+Returns the size of the state representation in its matrix form, useful when construcing the trajectory for the RL agent
+"""
+arraybuffer_dims(gen::HomogenousGraphColoringGenerator, t::Type{DefaultStateRepresentation{F}}) where {F} = (gen.nb_nodes^3, gen.nb_nodes^3+3+feature_length(gen, t))
+
+
 struct GraphColoringWithFileGenerator <: AbstractModelGenerator
     input_file::String
 end

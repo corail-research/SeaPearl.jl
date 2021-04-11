@@ -101,6 +101,13 @@ function featurize(sr::DefaultStateRepresentation{DefaultFeaturization})
 end
 
 """
+    feature_length(gen::AbstractModelGenerator, ::Type{DefaultStateRepresentation{DefaultFeaturization}})
+
+Returns the length of the feature vector, useful for SeaPearl to choose the size of the container
+"""
+feature_length(gen::SeaPearl.AbstractModelGenerator, ::Type{DefaultStateRepresentation{DefaultFeaturization}}) = 3
+
+"""
     function possible_values(variable_id::Int64, g::CPLayerGraph)
 
 Return the ids of the values that the variable denoted by `variable_id` can take.
