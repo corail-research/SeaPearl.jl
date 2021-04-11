@@ -76,4 +76,19 @@ using Random
         
     end
 
+    
+
+    @testset "arraybuffer_dims(::ClusterizedGraphColoringGenerator)" begin
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+
+        n = 10
+        k = 5
+        p = 0.5
+
+        generator = SeaPearl.ClusterizedGraphColoringGenerator(n, k, p)
+
+        @test SeaPearl.arraybuffer_dims(generator, SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization}) == (201, 207)
+    end
+
 end

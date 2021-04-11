@@ -192,3 +192,11 @@ function fill_with_generator!(cpmodel::CPModel, gen::ClusterizedGraphColoringGen
 
     nothing
 end
+
+"""
+    arraybuffer_dims(gen::ClusterizedGraphColoringGenerator, t::Type{DefaultStateRepresentation})
+
+Returns the size of the state representation in its matrix form, useful when construcing the trajectory for the RL agent
+"""
+arraybuffer_dims(gen::ClusterizedGraphColoringGenerator, t::Type{DefaultStateRepresentation{F}}) where {F} = (1 + gen.n * 20, 1 + gen.n * 20 + 3 + feature_length(gen, t))
+
