@@ -25,7 +25,7 @@ const RLBase = ReinforcementLearningBase
 
 """
 mutable struct DirectedExplorer{R} <: RL.AbstractExplorer
-    explorer::CPEpsilonGreedyExplorer
+    explorer::RL.EpsilonGreedyExplorer
     direction::Function
     directed_steps::Int
     step::Int
@@ -96,9 +96,9 @@ Random.seed!(s::DirectedExplorer, seed) = Random.seed!(s.rng, seed)
 
 Return the probability of selecting each action given the estimated `values` of each action.
 """
-function RLBase.get_prob(s::DirectedExplorer{<:Any}, values)
+function RLBase.prob(s::DirectedExplorer{<:Any}, values)
     if s.step > s.directed_steps
-        return RLBase.get_prob(s.explorer, values)
+        return RLBase.prob(s.explorer, values)
     end
     n = length(values)
     probs = zeros(n)
@@ -106,16 +106,16 @@ function RLBase.get_prob(s::DirectedExplorer{<:Any}, values)
     Categorical(probs)
 end
 
-function RLBase.get_prob(s::DirectedExplorer{<:Any}, values, action::Integer)
+function RLBase.prob(s::DirectedExplorer{<:Any}, values, action::Integer)
     if s.step > s.directed_steps
-        return RLBase.get_prob(s.explorer, values, action)
+        return RLBase.prob(s.explorer, values, action)
     end
     s.direction(values) == action ? 1. : 0.
 end
 
-function RLBase.get_prob(s::DirectedExplorer{<:Any}, values, mask)
+function RLBase.prob(s::DirectedExplorer{<:Any}, values, mask)
     if s.step > s.directed_steps
-        return RLBase.get_prob(s.explorer, values, mask)
+        return RLBase.prob(s.explorer, values, mask)
     end
     n = length(values)
     probs = zeros(n)

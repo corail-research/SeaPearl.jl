@@ -11,7 +11,7 @@ function last_episode_total_reward(t::AbstractTrajectory)
     total_reward = t[:reward][last_index]
     
     i = 1
-    while !t[:terminal][last_index - i] && i < last_index
+    while i < last_index && !t[:terminal][last_index - i]
         total_reward += t[:reward][last_index - i]
 
         i += 1

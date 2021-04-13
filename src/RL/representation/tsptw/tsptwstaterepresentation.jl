@@ -127,6 +127,13 @@ function featurize(sr::TsptwStateRepresentation{TsptwFeaturization})
 end
 
 """
+    feature_length(gen::TsptwGenerator, ::Type{TsptwStateRepresentation{TsptwFeaturization}})
+
+Returns the length of the feature vector, useful for SeaPearl to choose the size of the container
+"""
+feature_length(gen::AbstractModelGenerator, ::Type{TsptwStateRepresentation{TsptwFeaturization}}) = 6
+
+"""
     function possible_value_ids(array::Array{Float32, 2})
 
 Returns the ids of the ValueVertex that are in the domain of the variable we are branching on.
