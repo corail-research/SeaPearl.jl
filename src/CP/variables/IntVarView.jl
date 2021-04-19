@@ -11,7 +11,7 @@ struct IntVarViewMul <: IntVarView
     id              ::String
 
     """
-        IntVarViewMul(x::IntVar, a::Int, id::String)
+        IntVarViewMul(x::AbstractIntVar, a::Int, id::String)
 
     Create a *fake* variable `y`, such that `y == a*x`. This variable behaves like an usual one.
     """
@@ -32,7 +32,7 @@ struct IntVarViewOpposite <: IntVarView
     id              ::String
 
     """
-    IntVarViewOpposite(x::IntVar, id::String)
+    IntVarViewOpposite(x::AbstractIntVar, id::String)
 
     Create a *fake* variable `y`, such that `y = -x`. This variable behaves like an usual one.
     """
@@ -54,7 +54,7 @@ struct IntVarViewOffset <: IntVarView
     id              ::String
 
     """
-    IntDomainViewOffset(x::IntVar, id::String)
+    IntVarViewOffset(x::AbstractIntVar, id::String)
 
     Create a *fake* variable `y`, such that `y = x + c`. This variable behaves like an usual one.
     """
