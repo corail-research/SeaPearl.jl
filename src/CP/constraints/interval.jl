@@ -33,3 +33,12 @@ function propagate!(constraint::IntervalConstant, toPropagate::Set{Constraint}, 
     end
     return !isempty(constraint.x.domain)
 end
+
+function Base.show(io::IO, ::MIME"text/plain", con::IntervalConstant)
+    println(io, typeof(con), ": ", con.lower, " <= ", con.x.id, " <= ", con.upper, ", active = ", con.active)
+    println(io, "   ", con.x)
+end
+
+function Base.show(io::IO, con::IntervalConstant)
+    print(io, typeof(con), ": ", con.lower, " <= ", con.x.id, " <= ", con.upper)
+end

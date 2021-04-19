@@ -3,7 +3,7 @@ abstract type EqualConstraint <: Constraint end
 """
     EqualConstant(x::SeaPearl.AbstractIntVar, v::Int)
 
-Equality constraint, putting a constant value `v` for the variable `x` i.e. `x == v`. 
+Equality constraint, putting a constant value `v` for the variable `x` i.e. `x == v`.
 """
 struct EqualConstant <: EqualConstraint
     x       ::SeaPearl.AbstractIntVar
@@ -40,6 +40,14 @@ end
 
 variablesArray(constraint::EqualConstant) = [constraint.x]
 
+function Base.show(io::IO, ::MIME"text/plain", con::EqualConstant)
+    println(io, typeof(con), ": ", con.x.id, " == ", con.v, ", active = ", con.active)
+    println(io, "   ", con.x)
+end
+
+function Base.show(io::IO, con::EqualConstant)
+    print(io, typeof(con), ": ", con.x.id, " == ", con.v)
+end
 
 """
     Equal(x::SeaPearl.AbstractIntVar, y::SeaPearl.AbstractIntVar)
@@ -57,13 +65,6 @@ struct Equal <: EqualConstraint
         addOnDomainChange!(y, constraint)
         return constraint
     end
-end
-
-function Base.show(io::IO, constraint::Equal)
-    write(io, "Equal constraint:\n")
-    show(io, constraint.x)
-    
-    show(io, constraint.y)
 end
 
 """
@@ -124,3 +125,13 @@ function pruneEqual!(x::AbstractIntVar, y::AbstractIntVar)
 end
 
 variablesArray(constraint::Equal) = [constraint.x, constraint.y]
+
+function Base.show(io::IO, ::MIME"text/plain", con::Equal)
+    println(io, typeof(con), ": ", con.x.id, " == ", con.y.id, ", active = ", con.active)
+    println(io, "   ", con.x)
+    println(io, "   ", con.y)
+end
+
+function Base.show(io::IO, con::Equal)
+    print(io, typeof(con), ": ", con.x.id, " == ", con.y.id)
+end

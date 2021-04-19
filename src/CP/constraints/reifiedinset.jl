@@ -20,7 +20,7 @@ end
 """
     propagate!(constraint::ReifiedInSet, toPropagate::Set{Constraint}, prunedDomains::CPModification)
 
-`ReifiedInSet` propagation function. 
+`ReifiedInSet` propagation function.
 """
 function propagate!(constraint::ReifiedInSet, toPropagate::Set{Constraint}, prunedDomains::CPModification)
     surely_in_set = all(is_required(constraint.s.domain, v) for v in constraint.x.domain)
@@ -92,7 +92,7 @@ function propagate!(constraint::ReifiedInSet, toPropagate::Set{Constraint}, prun
 
     surely_in_set = all(is_required(constraint.s.domain, v) for v in constraint.x.domain)
     surely_notin_set = all(!is_possible(constraint.s.domain, v) for v in constraint.x.domain)
-    
+
     # Deactivation
     if isbound(constraint.b) && ((assignedValue(constraint.b) && surely_in_set) || (!assignedValue(constraint.b) && surely_notin_set))
         setValue!(constraint.active, false)
@@ -102,3 +102,14 @@ function propagate!(constraint::ReifiedInSet, toPropagate::Set{Constraint}, prun
 end
 
 variablesArray(constraint::ReifiedInSet) = [constraint.x, constraint.s, constraint.b]
+
+function Base.show(io::IO, ::MIME"text/plain", con::ReifiedInSet)
+    println(io, typeof(con), ": ", con.b.id, " <=> ", con.x.id, " in ", con.s.id, ", active = ", con.active)
+    println(io, "   ", con.b)
+    println(io, "   ", con.x)
+    println(io, "   ", con.s)
+end
+
+function Base.show(io::IO, con::ReifiedInSet)
+    print(io, typeof(con), ": ", con.b.id, " <=> ", con.x.id, " in ", con.s.id)
+end

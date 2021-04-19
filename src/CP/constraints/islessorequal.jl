@@ -25,7 +25,7 @@ end
 `isLessOrEqual` propagation function.
 """
 function propagate!(constraint::isLessOrEqual, toPropagate::Set{Constraint}, prunedDomains::CPModification)
-    
+
     if !isbound(constraint.b)
         if maximum(constraint.x.domain) <= minimum(constraint.y.domain)
             prunedB = remove!(constraint.b.domain, false)
@@ -44,18 +44,18 @@ function propagate!(constraint::isLessOrEqual, toPropagate::Set{Constraint}, pru
         end
         return true
     else
-        if assignedValue(constraint.b) 
+        if assignedValue(constraint.b)
             # propagate constraint x <= y
             if maximum(constraint.x.domain) <= minimum(constraint.y.domain)
                 setValue!(constraint.active, false)
             end
-        
+
             prunedX = removeAbove!(constraint.x.domain, maximum(constraint.y.domain))
             if !isempty(prunedX)
                 addToPrunedDomains!(prunedDomains, constraint.x, prunedX)
                 triggerDomainChange!(toPropagate, constraint.x)
             end
-            
+
             prunedY = removeBelow!(constraint.y.domain, minimum(constraint.x.domain))
             if !isempty(prunedY)
                 addToPrunedDomains!(prunedDomains, constraint.y, prunedY)
@@ -67,13 +67,13 @@ function propagate!(constraint::isLessOrEqual, toPropagate::Set{Constraint}, pru
             if maximum(constraint.y.domain) <= minimum(constraint.x.domain) - 1
                 setValue!(constraint.active, false)
             end
-        
+
             prunedY = removeAbove!(constraint.y.domain, maximum(constraint.x.domain) - 1)
             if !isempty(prunedY)
                 addToPrunedDomains!(prunedDomains, constraint.y, prunedY)
                 triggerDomainChange!(toPropagate, constraint.y)
             end
-            
+
             prunedX = removeBelow!(constraint.x.domain, minimum(constraint.y.domain) + 1)
             if !isempty(prunedX)
                 addToPrunedDomains!(prunedDomains, constraint.x, prunedX)
@@ -83,7 +83,18 @@ function propagate!(constraint::isLessOrEqual, toPropagate::Set{Constraint}, pru
         end
     end
     # should not get there
-    return false 
+    return false
 end
 
 variablesArray(constraint::isLessOrEqual) = [constraint.b, constraint.x, constraint.y]
+
+function Base.show(io::IO, ::MIME"text/plain", con::isLessOrEqual)
+    println(io, typeof(con), ": ", con.b.id, " <=> ", con.x.id, " <= ", con.y.id, ", active = ", con.active)
+    println(io, "   ", con.b)
+    println(io, "   ", con.x)
+    println(io, "   ", con.y)
+end
+
+function Base.show(io::IO, con::isLessOrEqual)
+    print(io, typeof(con), ": ", con.b.id, " <=> ", con.x.id, " <= ", con.y.id)
+end

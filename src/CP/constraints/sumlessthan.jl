@@ -72,7 +72,7 @@ function propagate!(constraint::SumLessThan, toPropagate::Set{Constraint}, prune
         if !isempty(pruned)
             addToPrunedDomains!(prunedDomains, constraint.x[currentId], pruned)
             triggerDomainChange!(toPropagate, constraint.x[currentId])
-            
+
         end
     end
 
@@ -83,3 +83,15 @@ function propagate!(constraint::SumLessThan, toPropagate::Set{Constraint}, prune
     return true
 end
 
+function Base.show(io::IO, ::MIME"text/plain", con::SumLessThan)
+    ids = [var.id for var in con.x]
+    println(io, typeof(con), ": ", join(ids, " + "), " <= ", con.upper, ", active = ", con.active)
+    for var in con.x
+        println(io, "   ", con.var)
+    end
+end
+
+function Base.show(io::IO, con::SumLessThan)
+    ids = [var.id for var in con.x]
+    print(io, typeof(con), ": ", join(ids, " + "), " <= ", con.upper)
+end

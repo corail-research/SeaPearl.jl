@@ -17,11 +17,11 @@ struct BinaryMaximumBC <: Constraint
         return constraint
     end
 end
-        
+
 """
     propagate!(constraint::BinaryMaximumBC, toPropagate::Set{Constraint}, prunedDomains::CPModification)
 
-`BinaryMaximumBC` propagation function. 
+`BinaryMaximumBC` propagation function.
 """
 function propagate!(constraint::BinaryMaximumBC, toPropagate::Set{Constraint}, prunedDomains::CPModification)
     min_x, min_y, min_z = minimum(constraint.x.domain), minimum(constraint.y.domain), minimum(constraint.z.domain)
@@ -29,13 +29,13 @@ function propagate!(constraint::BinaryMaximumBC, toPropagate::Set{Constraint}, p
     max_of_min = max(min_y, min_z)
     max_of_max = max(max_y, max_z)
     min_of_min = min(min_y, min_z)
-    
+
     # feasibility
     if min_x > max_of_max || max_x < min_of_min
-        return false 
+        return false
     end
 
-    # y & z pruning x 
+    # y & z pruning x
     if min_x < max_of_min || max_x > max_of_max
         prunedX = vcat(removeBelow!(constraint.x.domain, max_of_min), removeAbove!(constraint.x.domain, max_of_max))
         addToPrunedDomains!(prunedDomains, constraint.x, prunedX)
@@ -43,15 +43,15 @@ function propagate!(constraint::BinaryMaximumBC, toPropagate::Set{Constraint}, p
     end
 
     # x pruning y & z
-    if min_x > max_z # if x can only be associated to y       
-        # x trying to prune y 
+    if min_x > max_z # if x can only be associated to y
+        # x trying to prune y
         prunedY = vcat(removeBelow!(constraint.y.domain, min_x), removeAbove!(constraint.y.domain, max_x))
         if !isempty(prunedY)
             addToPrunedDomains!(prunedDomains, constraint.y, prunedY)
             triggerDomainChange!(toPropagate, constraint.y)
         end
-    elseif min_x > max_y # if x can only be associated to z 
-        # x trying to prune z 
+    elseif min_x > max_y # if x can only be associated to z
+        # x trying to prune z
         prunedZ = vcat(removeBelow!(constraint.z.domain, min_x), removeAbove!(constraint.z.domain, max_x))
         if !isempty(prunedZ)
             addToPrunedDomains!(prunedDomains, constraint.z, prunedZ)
@@ -68,3 +68,14 @@ function propagate!(constraint::BinaryMaximumBC, toPropagate::Set{Constraint}, p
 end
 
 variablesArray(constraint::BinaryMaximumBC) = [constraint.x, constraint.y, constraint.z]
+
+function Base.show(io::IO, ::MIME"text/plain", con::BinaryMaximumBC)
+    println(io, string(typeof(con)), ": ", con.x.id, " == max(", con.y.id, con.z.id, "), ", "active = ", con.active)
+    println(io, "   ", con.x)
+    println(io, "   ", con.y)
+    println(io, "   ", con.z)
+end
+
+function Base.show(io::IO, con::BinaryMaximumBC)
+    print(io, typeof(con), ": ", con.x.id, " == max(", con.y.id, con.z.id, ")")
+end

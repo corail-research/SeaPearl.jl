@@ -27,3 +27,11 @@ function propagate!(constraint::GreaterOrEqualConstant, toPropagate::Set{Constra
     return !isempty(constraint.x.domain)
 end
 
+function Base.show(io::IO, ::MIME"text/plain", con::GreaterOrEqualConstant)
+    println(io, typeof(con), ": ", con.x.id, " >= ", con.v, ", active = ", con.active)
+    println(io, "   ", con.x)
+end
+
+function Base.show(io::IO, con::GreaterOrEqualConstant)
+    print(io, typeof(con), ": ", con.x.id, " >= ", con.v)
+end

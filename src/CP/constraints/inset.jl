@@ -18,7 +18,7 @@ end
 """
     propagate!(constraint::InSet, toPropagate::Set{Constraint}, prunedDomains::CPModification)
 
-`InSet` propagation function. 
+`InSet` propagation function.
 """
 function propagate!(constraint::InSet, toPropagate::Set{Constraint}, prunedDomains::CPModification)
     # Feasibility
@@ -45,7 +45,7 @@ function propagate!(constraint::InSet, toPropagate::Set{Constraint}, prunedDomai
         end
     end
 
-    
+
     # Deactivation
     if all(is_required(constraint.s.domain, v) for v in constraint.x.domain)
         setValue!(constraint.active, false)
@@ -55,3 +55,13 @@ function propagate!(constraint::InSet, toPropagate::Set{Constraint}, prunedDomai
 end
 
 variablesArray(constraint::InSet) = [constraint.x, constraint.s]
+
+function Base.show(io::IO, ::MIME"text/plain", con::InSet)
+    println(io, typeof(con), ": ", con.x.id, " in ", con.s.id, ", active = ", con.active)
+    println(io, "   ", con.x)
+    println(io, "   ", con.s)
+end
+
+function Base.show(io::IO, con::InSet)
+    print(io, typeof(con), ": ", con.x.id, " in ", con.s.id)
+end

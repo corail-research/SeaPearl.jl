@@ -126,3 +126,14 @@ function propagate!(constraint::SetDiffSingleton, toPropagate::Set{Constraint}, 
 end
 
 variablesArray(constraint::SetDiffSingleton) = [constraint.a, constraint.b, constraint.x]
+
+function Base.show(io::IO, ::MIME"text/plain", con::SetDiffSingleton)
+    println(io, typeof(con), ": ", con.a.id, " == ", con.b.id, " \\ {", con.x.id, "}, active = ", con.active)
+    println(io, "   ", con.a)
+    println(io, "   ", con.b)
+    println(io, "   ", con.x)
+end
+
+function Base.show(io::IO, con::SetDiffSingleton)
+    print(io, typeof(con), ": ", con.a.id, " == ", con.b.id, " \\ {", con.x.id, "}")
+end
