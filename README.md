@@ -4,7 +4,7 @@ SeaPearl is a Constraint Programming solver that can use Reinforcement Learning 
 
 The paper accompanying this solver can be found on the [arXiv](https://arxiv.org/abs/2102.09193v1). If you use SeaPearl in your research, please cite our work.
 
-The RL agents are defined using [ReinforcementLearning.jl](https://github.com/JuliaReinforcementLearning/ReinforcementLearning.jl), the inputs are dealt with using [GeometricFlux.jl](https://github.com/FluxML/GeometricFlux.jl). The CP part, inspired from [MiniCP](http://www.minicp.org/), is focused on readability. The code is meant to be clear and modulable so that researchers could easily get access to CP data and use it as input for their ML model.
+The RL agents are defined using [ReinforcementLearning.jl](https://github.com/JuliaReinforcementLearning/ReinforcementLearning.jl), their inputs are dealt with using [GeometricFlux.jl](https://github.com/FluxML/GeometricFlux.jl) and [Flux.jl](https://github.com/FluxML/Flux.jl). The CP part, inspired from [MiniCP](http://www.minicp.org/), is focused on readability. The code is meant to be clear and modulable so that researchers could easily get access to CP data and use it as input for their ML model.
 
 ## Installation
 
