@@ -8,7 +8,7 @@ using Distributions: Categorical
             nothing
         end
 
-        trueExplorer = SeaPearl.CPEpsilonGreedyExplorer(
+        trueExplorer = RL.EpsilonGreedyExplorer(
             ϵ_stable = 0.001,
             kind = :exp,
             ϵ_init = 0.1,
@@ -47,7 +47,7 @@ using Distributions: Categorical
         @test explorer.rng == MersenneTwister(12)
     end
     @testset "Flux.testmode!()" begin
-        trueExplorer = SeaPearl.CPEpsilonGreedyExplorer(
+        trueExplorer = RL.EpsilonGreedyExplorer(
             ϵ_stable = 0.001,
             kind = :exp,
             ϵ_init = 0.1,
@@ -82,7 +82,7 @@ using Distributions: Categorical
             4
         end
 
-        trueExplorer = SeaPearl.CPEpsilonGreedyExplorer(
+        trueExplorer = RL.EpsilonGreedyExplorer(
             ϵ_stable = 0.01,
             kind = :exp,
             ϵ_init = 0.1,
@@ -91,7 +91,7 @@ using Distributions: Categorical
             step = 1,
             is_break_tie = false, 
             is_training = true,
-            seed = 5
+            rng = MersenneTwister(33)
         )
 
         explorer = SeaPearl.DirectedExplorer(;
@@ -126,7 +126,7 @@ using Distributions: Categorical
             3
         end
 
-        trueExplorer = SeaPearl.CPEpsilonGreedyExplorer(
+        trueExplorer = RL.EpsilonGreedyExplorer(
             ϵ_stable = 0.01,
             kind = :exp,
             ϵ_init = 0.1,
@@ -135,7 +135,7 @@ using Distributions: Categorical
             step = 1,
             is_break_tie = false, 
             is_training = true,
-            seed = 5
+            rng = MersenneTwister(33)
         )
 
         explorer = SeaPearl.DirectedExplorer(;
@@ -171,7 +171,7 @@ using Distributions: Categorical
             3
         end
 
-        trueExplorer = SeaPearl.CPEpsilonGreedyExplorer(
+        trueExplorer = RL.EpsilonGreedyExplorer(
             ϵ_stable = 0.01,
             kind = :exp,
             ϵ_init = 0.5,
@@ -180,7 +180,7 @@ using Distributions: Categorical
             step = 1,
             is_break_tie = false, 
             is_training = false,
-            seed = 5
+            rng = MersenneTwister(33)
         )
 
         explorer = SeaPearl.DirectedExplorer(;
@@ -205,7 +205,7 @@ using Distributions: Categorical
             3
         end
 
-        trueExplorer = SeaPearl.CPEpsilonGreedyExplorer(
+        trueExplorer = RL.EpsilonGreedyExplorer(
             ϵ_stable = 0.01,
             kind = :exp,
             ϵ_init = 0.5,
@@ -214,7 +214,7 @@ using Distributions: Categorical
             step = 1,
             is_break_tie = false, 
             is_training = false,
-            seed = 5
+            rng = MersenneTwister(33)
         )
 
         explorer = SeaPearl.DirectedExplorer(;
@@ -239,7 +239,7 @@ using Distributions: Categorical
             3
         end
 
-        trueExplorer = SeaPearl.CPEpsilonGreedyExplorer(
+        trueExplorer = RL.EpsilonGreedyExplorer(
             ϵ_stable = 0.01,
             kind = :exp,
             ϵ_init = 0.5,
@@ -248,7 +248,7 @@ using Distributions: Categorical
             step = 1,
             is_break_tie = false, 
             is_training = false,
-            seed = 5
+            rng = MersenneTwister(33)
         )
 
         explorer = SeaPearl.DirectedExplorer(;

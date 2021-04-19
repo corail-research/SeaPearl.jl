@@ -122,89 +122,13 @@ function fill_with_generator!(cpmodel::CPModel, gen::HomogenousGraphColoringGene
     nothing
 end
 
-struct GraphColoringWithFileGenerator <: AbstractModelGenerator
-    input_file::String
-end
+"""
+    arraybuffer_dims(gen::HomogenousGraphColoringGenerator, t::Type{DefaultStateRepresentation})
 
-struct Edge
-    vertex1     :: Int
-    vertex2     :: Int
-end
+Returns the size of the state representation in its matrix form, useful when construcing the trajectory for the RL agent
+"""
+arraybuffer_dims(gen::HomogenousGraphColoringGenerator, t::Type{DefaultStateRepresentation{F}}) where {F} = (gen.nb_nodes^3, gen.nb_nodes^3+3+feature_length(gen, t))
 
-struct InputData
-    edges               :: Array{Edge}
-    numberOfEdges       :: Int
-    numberOfVertices    :: Int
-end
-
-struct OutputData
-    numberOfColors      :: Int
-    edgeColors          :: Array{Int}
-    optimality          :: Bool
-end
-
-include("IOmanager.jl")
-
-function fill_with_generator!(model::CPModel, gen::GraphColoringWithFileGenerator; seed=nothing)
-    input_file = gen.input_file
-    input = getInputData(input_file)
-
-    trailer = model.trailer
-
-    ### Variable declaration ###
-    x = SeaPearl.IntVar[]
-    for i in 1:input.numberOfVertices
-        push!(x, SeaPearl.IntVar(1, input.numberOfVertices, string(i), trailer))
-        SeaPearl.addVariable!(model, last(x))
-    end
-
-    ### Constraints ###
-    # Breaking some symmetries
-    push!(model.constraints, SeaPearl.EqualConstant(x[1], 1, trailer))
-    push!(model.constraints, SeaPearl.LessOrEqual(x[1], x[2], trailer))
-
-    # Edge constraints
-    degrees = zeros(Int, input.numberOfVertices)
-    for e in input.edges
-        push!(model.constraints, SeaPearl.NotEqual(x[e.vertex1], x[e.vertex2], trailer))
-        degrees[e.vertex1] += 1
-        degrees[e.vertex2] += 1
-    end
-    sortedPermutation = sortperm(degrees; rev=true)
-
-    ### Objective ###
-    numberOfColors = SeaPearl.IntVar(1, input.numberOfVertices, "numberOfColors", trailer)
-    SeaPearl.addVariable!(model, numberOfColors)
-    for var in x
-        push!(model.constraints, SeaPearl.LessOrEqual(var, numberOfColors, trailer))
-    end
-    model.objective = numberOfColors
-
-
-    ### Variable selection heuristic ###
-    function selectVariable(model::SeaPearl.CPModel, sortedPermutation, degrees)
-        maxDegree = 0
-        toReturn = nothing
-        for i in sortedPermutation
-            if !SeaPearl.isbound(model.variables[string(i)])
-                if isnothing(toReturn)
-                    toReturn = model.variables[string(i)]
-                    maxDegree = degrees[i]
-                end
-                if degrees[i] < maxDegree
-                    return toReturn
-                end
-
-                if length(model.variables[string(i)].domain) < length(toReturn.domain)
-                    toReturn = model.variables[string(i)]
-                end
-            end
-        end
-        return toReturn
-    end
-
-    return ((m) -> selectVariable(m, sortedPermutation, degrees))
-end
 
 struct ClusterizedGraphColoringGenerator <: AbstractModelGenerator
     n::Int64
@@ -268,3 +192,11 @@ function fill_with_generator!(cpmodel::CPModel, gen::ClusterizedGraphColoringGen
 
     nothing
 end
+
+"""
+    arraybuffer_dims(gen::ClusterizedGraphColoringGenerator, t::Type{DefaultStateRepresentation})
+
+Returns the size of the state representation in its matrix form, useful when construcing the trajectory for the RL agent
+"""
+arraybuffer_dims(gen::ClusterizedGraphColoringGenerator, t::Type{DefaultStateRepresentation{F}}) where {F} = (1 + gen.n * 20, 1 + gen.n * 20 + 3 + feature_length(gen, t))
+

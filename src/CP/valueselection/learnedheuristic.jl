@@ -31,7 +31,7 @@ mutable struct LearnedHeuristic{SR<:AbstractStateRepresentation, R<:AbstractRewa
     agent::RL.Agent
     fitted_problem::Union{Nothing, Type{G}} where G
     fitted_strategy::Union{Nothing, Type{S}} where S <: SearchStrategy
-    action_space::Union{Nothing, RL.DiscreteSpace{Array{Int64,1}}}
+    action_space::Union{Nothing, Array{Int64,1}}
     current_state::Union{Nothing, SR}
     reward::Union{Nothing, R}
     cpnodes_max::Union{Nothing, Int64}
@@ -92,15 +92,17 @@ function (valueSelection::LearnedHeuristic)(PHASE::DecisionPhase, model::CPModel
     set_metrics!(PHASE, valueSelection, model, nothing, x)
     set_reward!(PHASE, valueSelection, model)
 
-    obs = get_observation!(valueSelection, model, x)
+    env = get_observation!(valueSelection, model, x)
 
     #println("Decision  ", obs.reward, " ", obs.terminal, " ", obs.legal_actions, " ", obs.legal_actions_mask)
     if model.statistics.numberOfNodes > 1
-        valueSelection.agent(RL.POST_ACT_STAGE, obs) # get terminal and reward
+        valueSelection.agent(RL.POST_ACT_STAGE, env) # get terminal and reward
     end
-    action = valueSelection.agent(RL.PRE_ACT_STAGE, obs) # choose action, store it with the state
+
+    action = valueSelection.agent(env) # Choose action
+    valueSelection.agent(RL.PRE_ACT_STAGE, env, action) # Store state and action
     
-    return action_to_value(valueSelection, action, obs.state, model)
+    return action_to_value(valueSelection, action, state(env), model)
 end
 
 """

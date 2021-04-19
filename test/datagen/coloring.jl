@@ -38,6 +38,18 @@ using Random
         
     end
 
+    @testset "arraybuffer_dims(::HomogenousGraphColoringGenerator)" begin
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+
+        nb_nodes = 10
+        probability = 0.5
+
+        generator = SeaPearl.HomogenousGraphColoringGenerator(nb_nodes, probability)
+
+        @test SeaPearl.arraybuffer_dims(generator, SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization}) == (1000, 1006)
+    end
+
     
 
     
@@ -55,9 +67,28 @@ using Random
         SeaPearl.fill_with_generator!(model, generator; seed=12)
 
         @test length(keys(model.variables)) == nb_nodes + 1
-        @test length(model.constraints) == 37 || length(model.constraints) == 39 # Julia 1.4 || 1.5
+
+        # This condition is there because of the way random are generated can change from one version to another
+        if VERSION >= v"1.6.0"
+            @test length(model.constraints) == 38
+        end
             
         
+    end
+
+    
+
+    @testset "arraybuffer_dims(::ClusterizedGraphColoringGenerator)" begin
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+
+        n = 10
+        k = 5
+        p = 0.5
+
+        generator = SeaPearl.ClusterizedGraphColoringGenerator(n, k, p)
+
+        @test SeaPearl.arraybuffer_dims(generator, SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization}) == (201, 207)
     end
 
 end
