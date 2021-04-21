@@ -49,7 +49,7 @@ function augmentmatching!(digraph::DiGraph{Int}, lastfirst::Int, start::Int, fre
     return Pair(node, start)
 end
 
-function buildigraph!(digraph::DiGraph{Int}, graph::Graph{Int}, match::Matching{Int})
+function builddigraph!(digraph::DiGraph{Int}, graph::Graph{Int}, match::Matching{Int})
     for edge in edges(graph)
         src, dst = edge.src > edge.dst ? (edge.src, edge.dst) : (edge.dst, edge.src)
         add_edge!(digraph, src, dst)
