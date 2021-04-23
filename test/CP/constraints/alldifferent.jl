@@ -166,7 +166,6 @@
         b = SeaPearl.IntVar(3, 6, "b", trailer)
         c = SeaPearl.IntVar(6, 7, "c", trailer)
         vars = Vector{SeaPearl.AbstractIntVar}([x, y, z, a, b, c])
-        println(vars)
         constraint = SeaPearl.AllDifferent(vars, trailer)
 
         graph, digraph = SeaPearl.initializeGraphs!(constraint)
@@ -209,7 +208,6 @@
         b = SeaPearl.IntVar(3, 6, "b", trailer)
         c = SeaPearl.IntVar(6, 7, "c", trailer)
         vars = Vector{SeaPearl.AbstractIntVar}([x, y, z, a, b, c])
-        println(vars)
         constraint = SeaPearl.AllDifferent(vars, trailer)
 
         toPropagate = Set{SeaPearl.Constraint}([constraint])
@@ -234,6 +232,51 @@
         @test length(b.domain) == 2
         @test length(c.domain) == 2
 
-        println(modif)
+    end
+    @testset "4 queens" begin
+        trailer = SeaPearl.Trailer()
+        n = 3
+        rows = Vector{SeaPearl.AbstractIntVar}(undef, n)
+        for i = 1:n
+            rows[i] = SeaPearl.IntVar(1, n, "row_"*string(i), trailer)
+        end
+
+        rows_plus = Vector{SeaPearl.AbstractIntVar}(undef, n)
+        for i = 1:n
+            rows_plus[i] = SeaPearl.IntVarViewOffset(rows[i], i, rows[i].id*"+"*string(i))
+        end
+
+        rows_minus = Vector{SeaPearl.AbstractIntVar}(undef, n)
+        for i = 1:n
+            rows_minus[i] = SeaPearl.IntVarViewOffset(rows[i], -i, rows[i].id*"-"*string(i))
+        end
+
+        con1 = SeaPearl.AllDifferent(rows, trailer)
+        con2 = SeaPearl.AllDifferent(rows_plus, trailer)
+        con3 = SeaPearl.AllDifferent(rows_minus, trailer)
+
+        modif = SeaPearl.CPModification()
+
+        @test SeaPearl.propagate!(con1, toPropagate, modif)
+        @test SeaPearl.propagate!(con3, toPropagate, modif)
+        @test SeaPearl.propagate!(con2, toPropagate, modif)
+
+        SeaPearl.withNewState!(trailer) do
+            SeaPearl.assign!(rows[1].domain, 1)
+            toPropagate = Set{SeaPearl.Constraint}([con1, con2, con3])
+
+            @test SeaPearl.propagate!(con1, toPropagate, modif)
+            @test SeaPearl.propagate!(con3, toPropagate, modif)
+            @test !SeaPearl.propagate!(con2, toPropagate, modif)
+        end
+        modif = SeaPearl.CPModification()
+        SeaPearl.withNewState!(trailer) do
+            SeaPearl.assign!(rows[1].domain, 2)
+            toPropagate = Set{SeaPearl.Constraint}([con1, con2, con3])
+
+            @test SeaPearl.propagate!(con1, toPropagate, modif)
+            @test SeaPearl.propagate!(con3, toPropagate, modif)
+            @test !SeaPearl.propagate!(con2, toPropagate, modif)
+        end
     end
 end
