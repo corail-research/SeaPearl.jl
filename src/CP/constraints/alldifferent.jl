@@ -77,7 +77,6 @@ function maximummatching!(graph::Graph{Int}, digraph::DiGraph{Int}, lastfirst::I
         stop = isempty(freeval) || isempty(freevar)
     end
     matching = matchingfromdigraph(digraph, lastfirst)
-    println(matching)
     return matching
 end
 
@@ -236,6 +235,16 @@ function removeEdges!(constraint::AllDifferent, prunedValues::Vector{Vector{Int}
     end
 end
 
+function updateEdgesState!(constraint::AllDifferent)
+    modif = Set{Edge}()
+    for (edge, state) in constraint.edgesState
+        if state.value != removed && !(node2val(constraint, edge.dst)  in constraint.x[edge.src].domain)
+            push!(modif, edge)
+            setValue!(constraint.edgesState[edge], removed)
+        end
+    end
+    return modif
+end
 
 
 function propagate!(constraint::AllDifferent, toPropagate::Set{Constraint}, prunedDomains::CPModification)
@@ -259,9 +268,10 @@ function propagate!(constraint::AllDifferent, toPropagate::Set{Constraint}, prun
     #    Otherwise just read the stored values
     else
         matching = Matching{Int}(constraint.matched.value, map(pair -> pair.value, constraint.matching))
-        buildigraph!(digraph, graph, matching)
+        builddigraph!(digraph, graph, matching)
     end
 
+    modifications = updateEdgesState!(constraint)
     prunedValues = Vector{Vector{Int}}(undef, constraint.numberOfVars)
     for i = 1:constraint.numberOfVars
         prunedValues[i] = Int[]
@@ -269,25 +279,19 @@ function propagate!(constraint::AllDifferent, toPropagate::Set{Constraint}, prun
 
     removeEdges!(constraint, prunedValues, graph, digraph)
     needrematching = false
-    for (idx, var) in enumerate(constraint.x)
-        if !(var.id in keys(prunedDomains))
-            continue
-        end
-        for modif in prunedDomains[var.id], val in modif
-            e = Edge(idx, val2node(constraint, val))
-            rev_e = Edge(val2node(constraint, val), idx)
-            if e in edges(graph)
-                if constraint.edgesState[e].value == vital
-                    return false
-                elseif e in edges(digraph)
-                    needrematching = true
-                    rem_edge!(digraph, e)
-                else
-                    rem_edge!(digraph, rev_e)
-                end
-                rem_edge!(graph, e)
-                setValue!(constraint.edgesState[e], removed)
+    for e in modifications
+        rev_e = Edge(e.dst, e.src)
+        if e in edges(graph)
+            if constraint.edgesState[e].value == vital
+                return false
+            elseif e in edges(digraph)
+                needrematching = true
+                rem_edge!(digraph, e)
+            else
+                rem_edge!(digraph, rev_e)
             end
+            rem_edge!(graph, e)
+            setValue!(constraint.edgesState[e], removed)
         end
     end
 
@@ -328,3 +332,7 @@ function propagate!(constraint::AllDifferent, toPropagate::Set{Constraint}, prun
     end
     return true
 end
+
+AllDifferent(x::Vector{IntVar}, trailer) = AllDifferent(Vector{AbstractIntVar}(x), trailer)
+
+variableArray(constraint::AllDifferent) = constraint.x
