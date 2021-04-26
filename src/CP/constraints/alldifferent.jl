@@ -243,7 +243,6 @@ function updateEdgesState!(constraint::AllDifferent)
     for (edge, state) in constraint.edgesState
         if state.value != removed && !(node2val(constraint, edge.dst)  in constraint.x[edge.src].domain)
             push!(modif, edge)
-            setValue!(constraint.edgesState[edge], removed)
         end
     end
     return modif
