@@ -58,26 +58,35 @@
         @test Edge(7, 3) in edges(digraph)
     end
     @testset "maximummatching(::Graph{Int}, ::DiGraph{Int}, ::Int)::Matching{Int}" begin
-        graph = Graph(7)
-        digraph = DiGraph(7)
-        add_edge!(graph, 1, 5)
-        add_edge!(graph, 2, 5)
-        add_edge!(graph, 2, 7)
-        add_edge!(graph, 3, 5)
-        add_edge!(graph, 3, 6)
-        add_edge!(graph, 3, 7)
-        matching = SeaPearl.maximummatching!(graph, digraph, 3)
+    # This function and all its dependencies have been tested with an external library
+    # Thus the code written at that time is certified to work based on 3000 randomly generated
+    # matching cases with optimal matching detection.
 
-        @test matching.size == 3
-        @test Pair(1, 5) in matching.matches
-        @test Pair(2, 7) in matching.matches
-        @test Pair(3, 6) in matching.matches
-        @test Edge(1, 5) in edges(digraph)
-        @test Edge(5, 2) in edges(digraph)
-        @test Edge(2, 7) in edges(digraph)
-        @test Edge(5, 3) in edges(digraph)
-        @test Edge(3, 6) in edges(digraph)
-        @test Edge(7, 3) in edges(digraph)
+    # Warning the testsets aren't as powerful as this external control and in case of a code
+    # modification I recommend to run external tests again.
+
+        graph = Graph(13)
+        digraph = DiGraph(13)
+        add_edge!(graph, 1, 7)
+        add_edge!(graph, 1, 8)
+        add_edge!(graph, 2, 8)
+        add_edge!(graph, 2, 9)
+        add_edge!(graph, 3, 7)
+        add_edge!(graph, 3, 9)
+        add_edge!(graph, 4, 8)
+        add_edge!(graph, 4, 10)
+        add_edge!(graph, 5, 9)
+        add_edge!(graph, 5, 10)
+        add_edge!(graph, 5, 11)
+        add_edge!(graph, 6, 11)
+        add_edge!(graph, 6, 12)
+        matching = SeaPearl.maximummatching!(graph, digraph, 6)
+
+        @test matching.size == 6
+        @test all(map(pair -> Edge(pair[1], pair[2]) in edges(graph), matching.matches))
+        @test all(map(pair -> Edge(pair[1], pair[2]) in edges(digraph), matching.matches))
+        @test all(map(e -> e in edges(graph), edges(digraph)))
+        @test ne(graph) == ne(digraph)
     end
     @testset "AllDifferent(::Vector{AbstractIntVar}, ::Trailer)" begin
         trailer = SeaPearl.Trailer()
