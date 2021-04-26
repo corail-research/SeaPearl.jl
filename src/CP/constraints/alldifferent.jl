@@ -162,9 +162,12 @@ end
 
 function getalledges(digraph::DiGraph{Int}, parents::Vector{Int})::Set{Edge{Int}}
     res = Set{Edge{Int}}()
+    reached = findall(v -> parents[v] > 0, 1:nv(digraph))
     for i = 1:nv(digraph)
         if parents[i] > 0 && parents[i] != i
-            push!(res, orderEdge(Edge(parents[i], i)))
+            validneighbors = intersect(reached, inneighbors(digraph, i))
+            validedges = map(v -> orderEdge(Edge(v, i)), validneighbors)
+            union!(res, validedges)
         end
     end
     return res
