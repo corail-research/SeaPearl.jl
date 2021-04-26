@@ -7,9 +7,10 @@ makedocs(
     format = Documenter.HTML(),
     modules = [SeaPearl],
     pages = ["Home" => "index.md",
-    "Trailer" => "trailer.md",
-    "Constraint Programming solver" =>
-        ["Variables" => "CP/int_variable.md"],
+    "Constraint Programming solver" => [
+        "Variables" => "CP/int_variable.md",
+        "Trailer" => "CP/trailer.md",
+    ],
     "Building Models" =>
       ["Basics" => "models/basics.md"],
     "Community" => "community.md"],
