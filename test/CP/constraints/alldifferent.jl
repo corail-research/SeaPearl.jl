@@ -132,11 +132,12 @@
         parents = bfs_parents(bipartite, 4; dir=:out)
         edgeset = SeaPearl.getalledges(bipartite, parents)
 
-        @test length(edgeset) == 4
+        @test length(edgeset) == 5
         @test Edge(1, 4) in edgeset
         @test Edge(1, 6) in edgeset
         @test Edge(2, 5) in edgeset
         @test Edge(2, 6) in edgeset
+        @test Edge(1, 5) in edgeset
     end
     @testset "getalledges(::DiGraph, ::Vector{Int}, ::Vector{Int})" begin
         bipartite = DiGraph(7)
@@ -233,7 +234,7 @@
         @test length(c.domain) == 2
 
     end
-    @testset "4 queens" begin
+    @testset "3 queens dummy" begin
         trailer = SeaPearl.Trailer()
         n = 3
         rows = Vector{SeaPearl.AbstractIntVar}(undef, n)
@@ -256,6 +257,7 @@
         con3 = SeaPearl.AllDifferent(rows_minus, trailer)
 
         modif = SeaPearl.CPModification()
+        toPropagate = Set{SeaPearl.Constraint}([con1, con2, con3])
 
         @test SeaPearl.propagate!(con1, toPropagate, modif)
         @test SeaPearl.propagate!(con3, toPropagate, modif)
