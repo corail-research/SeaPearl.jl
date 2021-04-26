@@ -6,6 +6,11 @@ struct Matching{T}
     matches::Vector{Pair{T, T}}
 end
 
+"""
+    randommatching(graph, lastfirst)::Matching{Int}
+
+Compute a random matching in a bipartite graph, between 1:lastfirst and (lastfirst + 1):nv(graph).
+"""
 function randommatching(graph::Graph{Int}, lastfirst::Int)::Matching{Int}
     seen = Set{Int}()
     match = Vector{Pair{Int, Int}}()
@@ -20,6 +25,15 @@ function randommatching(graph::Graph{Int}, lastfirst::Int)::Matching{Int}
     return Matching{Int}(length(match), match)
 end
 
+"""
+    matchingfromdigraph(digraph, lastfirst)::Matching{Int}
+
+Compute a matching from a directed bipartite graph.
+
+The graph must bipartite with variables in 1:lastfirst and values in
+(lastfirst + 1):nv(digraph). A variable is assigned to value if the directed
+edge (Var => Val) exists.
+"""
 function matchingfromdigraph(digraph::DiGraph{Int}, lastfirst::Int)::Matching{Int}
     matches = Vector{Pair{Int, Int}}()
     for i = 1:lastfirst
@@ -31,6 +45,21 @@ function matchingfromdigraph(digraph::DiGraph{Int}, lastfirst::Int)::Matching{In
     return Matching(length(matches), matches)
 end
 
+"""
+    augmentmatching!(digraph, lastfirst, start, free)::Union{Nothing, Pair{Int, Int}}
+
+Find an alternating path in a directed graph and augment the current matching.
+
+From a directed bipartite graph, the boundary between the 2 groups, a free value
+and an array of the free variables, find an alternating path from a free value to
+a free variable and augment the mathcing.
+
+# Arguments
+- `digraph::DiGraph{Int}`: the directed graph encoding the problem state.
+- `lastfirst::Int`: the last element of the first group of nodes.
+- `start::Int`: the free value node to start the search from.
+- `free::Vector{Int}`: the list of all the free variables indexes.
+"""
 function augmentmatching!(digraph::DiGraph{Int}, lastfirst::Int, start::Int, free::Vector{Int})::Union{Nothing, Pair{Int, Int}}
     parents = bfs_parents(digraph, start; dir=:out)
     success = sum(parents[free]) > 0
@@ -49,6 +78,14 @@ function augmentmatching!(digraph::DiGraph{Int}, lastfirst::Int, start::Int, fre
     return Pair(node, start)
 end
 
+"""
+    builddigraph!(digraph, graph, matching)
+
+Build a directed bipartite graph, from a graph and a matching solution.
+
+Copy the structure of `graph` into a pre-allocated `digraph` and onrient the
+edges using the matches contained in `matching`.
+"""
 function builddigraph!(digraph::DiGraph{Int}, graph::Graph{Int}, match::Matching{Int})
     rem_edge!.([digraph], edges(digraph))
     for edge in edges(graph)
@@ -62,6 +99,15 @@ function builddigraph!(digraph::DiGraph{Int}, graph::Graph{Int}, match::Matching
     end
 end
 
+"""
+    maximummatching!(graph, digraph, lastfirst)::Matching{Int}
+
+Compute a maximum matching from a given bipartite graph.
+
+From a variables-values problem encoded in `graph`, a per-allocated `digraph` of
+the same size, and the index of the last node of the first group, compute a maximum
+matching and encode it in `digraph`.
+"""
 function maximummatching!(graph::Graph{Int}, digraph::DiGraph{Int}, lastfirst::Int)::Matching{Int}
     first = randommatching(graph, lastfirst)
     builddigraph!(digraph, graph, first)
@@ -88,6 +134,11 @@ end
     vital = 4
 end
 
+"""
+    AllDifferent(x::Vector{SeaPearl.AbstractIntVar}, trailer)
+
+AllDifferent constraint, enforcing ∀ i ≠ j ∈ ⟦1, length(x)⟧, x[i] ≠ x[j].
+"""
 struct AllDifferent <: Constraint
     x::Vector{SeaPearl.AbstractIntVar}
     active::StateObject{Bool}
@@ -136,19 +187,39 @@ struct AllDifferent <: Constraint
     end
 end
 
+"""
+    val2node(constraint, value)::Int
+
+Return the node index of a value.
+"""
 function val2node(con::AllDifferent, val::Int)
     return con.numberOfVars + val - con.nodesMin + 1
 end
 
+"""
+    node2val(constraint, node)::Int
+
+Return the underlying value of a node.
+"""
 function node2val(con::AllDifferent, node::Int)
     return node - con.numberOfVars + con.nodesMin - 1
 end
 
+"""
+    orderEdge(edge)::Edge
+
+Return the ordered version of an edge, i.e. with e.src ≤ e.dst.
+"""
 function orderEdge(e::Edge{Int})::Edge{Int}
     src, dst = e.src < e.dst ? (e.src, e.dst) : (e.dst, e.src)
     return Edge(src, dst)
 end
 
+"""
+    initializeGraphs!(constraint)
+
+Return the graph and the empty direct graph of a variable-value problem.
+"""
 function initializeGraphs!(con::AllDifferent)::Pair{Graph{Int}, DiGraph{Int}}
     graph = Graph(con.numberOfVars + con.numberOfVals)
     digraph = DiGraph(nv(graph))
@@ -160,12 +231,16 @@ function initializeGraphs!(con::AllDifferent)::Pair{Graph{Int}, DiGraph{Int}}
     return Pair(graph, digraph)
 end
 
+"""
+    getalledges(digraph, parents)::Set{Edge}
+
+Return all the edges visited by a BFS on `digraph` encoded in `parents`.
+"""
 function getalledges(digraph::DiGraph{Int}, parents::Vector{Int})::Set{Edge{Int}}
     res = Set{Edge{Int}}()
-    reached = findall(v -> parents[v] > 0, 1:nv(digraph))
     for i = 1:nv(digraph)
         if parents[i] > 0 && parents[i] != i
-            validneighbors = intersect(reached, inneighbors(digraph, i))
+            validneighbors = filter(v -> parents[v] > 0, inneighbors(digraph, i))
             validedges = map(v -> orderEdge(Edge(v, i)), validneighbors)
             union!(res, validedges)
         end
@@ -173,6 +248,11 @@ function getalledges(digraph::DiGraph{Int}, parents::Vector{Int})::Set{Edge{Int}
     return res
 end
 
+"""
+    getalledges(digraph, vars, vals)
+
+Return all the edges in a strongly connected component vars ∪ vars.
+"""
 function getalledges(digraph::DiGraph{Int}, vars::Vector{Int}, vals::Vector{Int})::Set{Edge{Int}}
     res = Set{Edge{Int}}()
     for var in vars
@@ -183,6 +263,16 @@ function getalledges(digraph::DiGraph{Int}, vars::Vector{Int}, vals::Vector{Int}
     return res
 end
 
+"""
+    removeEdges!(constraint, prunedValue, graph, digraph)
+
+Remove all the unnecessary edges in graph and digraph as in the original paper.
+
+Update `constraint.edgesState` with the new status of each edge, remove some
+edges from `graph` and `digraph` and push the removed values in `prunedValue`.
+Following exactly the procedure in the function with the same name in the original
+paper.
+"""
 function removeEdges!(constraint::AllDifferent, prunedValues::Vector{Vector{Int}}, graph::Graph{Int}, digraph::DiGraph{Int})
     for e in edges(graph)
         if constraint.edgesState[orderEdge(e)] != removed
@@ -238,6 +328,11 @@ function removeEdges!(constraint::AllDifferent, prunedValues::Vector{Vector{Int}
     end
 end
 
+"""
+    updateEdgesState!(constraint)::Set{Edge}
+
+Return all the pruned values not already encoded in the constraint state.
+"""
 function updateEdgesState!(constraint::AllDifferent)
     modif = Set{Edge}()
     for (edge, state) in constraint.edgesState
@@ -248,7 +343,11 @@ function updateEdgesState!(constraint::AllDifferent)
     return modif
 end
 
+"""
+    propagate!(constraint::AllDifferent, toPropagate::Set{Constraint}, prunedDomains::CPModification)
 
+`AllDifferent` propagation function. Implement the full procedure of the paper.
+"""
 function propagate!(constraint::AllDifferent, toPropagate::Set{Constraint}, prunedDomains::CPModification)
     if !constraint.active.value
         return true
