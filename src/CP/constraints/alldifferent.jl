@@ -30,8 +30,8 @@ end
 
 Compute a matching from a directed bipartite graph.
 
-The graph must bipartite with variables in 1:lastfirst and values in
-(lastfirst + 1):nv(digraph). A variable is assigned to value if the directed
+The graph must be bipartite with variables in 1:lastfirst and values in
+(lastfirst + 1):nv(digraph). A variable is assigned to a value if the directed
 edge (Var => Val) exists.
 """
 function matchingfromdigraph(digraph::DiGraph{Int}, lastfirst::Int)::Matching{Int}
@@ -83,7 +83,7 @@ end
 
 Build a directed bipartite graph, from a graph and a matching solution.
 
-Copy the structure of `graph` into a pre-allocated `digraph` and onrient the
+Copy the structure of `graph` into a pre-allocated `digraph` and orient the
 edges using the matches contained in `matching`.
 """
 function builddigraph!(digraph::DiGraph{Int}, graph::Graph{Int}, match::Matching{Int})
@@ -104,7 +104,7 @@ end
 
 Compute a maximum matching from a given bipartite graph.
 
-From a variables-values problem encoded in `graph`, a per-allocated `digraph` of
+From a variables-values problem encoded in `graph`, a pre-allocated `digraph` of
 the same size, and the index of the last node of the first group, compute a maximum
 matching and encode it in `digraph`.
 """
@@ -138,6 +138,11 @@ end
     AllDifferent(x::Vector{SeaPearl.AbstractIntVar}, trailer)
 
 AllDifferent constraint, enforcing ∀ i ≠ j ∈ ⟦1, length(x)⟧, x[i] ≠ x[j].
+
+The implementation of this contraint is inspired by:
+ https://www.researchgate.net/publication/200034395_A_Filtering_Algorithm_for_Constraints_of_Difference_in_CSPs
+Many of the functions below relate to algorithms depicted in the paper, and their
+documentation refer to parts of the overall algorithm.
 """
 struct AllDifferent <: Constraint
     x::Vector{SeaPearl.AbstractIntVar}
