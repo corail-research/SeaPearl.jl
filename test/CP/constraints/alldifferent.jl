@@ -1,6 +1,25 @@
 using LightGraphs
 
 @testset "alldifferent.jl" begin
+    @testset "AllDifferent(::Vector{AbstractIntVar}, ::Trailer)" begin
+        trailer = SeaPearl.Trailer()
+        x = SeaPearl.IntVar(1, 3, "x", trailer)
+        y = SeaPearl.IntVar(2, 3, "y", trailer)
+        z = SeaPearl.IntVar(2, 3, "Z", trailer)
+        vec = Vector{SeaPearl.AbstractIntVar}([x, y, z])
+
+        constraint = SeaPearl.AllDifferent(vec, trailer)
+
+        @test constraint.minimum.value == 1
+        @test constraint.maximum.value == 3
+        @test constraint.active.value
+        @test !constraint.initialized.value
+        @test constraint.nodesMin == 1
+        @test constraint.numberOfVals == 3
+        @test constraint in x.onDomainChange
+        @test constraint in y.onDomainChange
+        @test constraint in z.onDomainChange
+    end
     @testset "orderEdge(::Edge)::Edge" begin
         @test SeaPearl.orderEdge(Edge(1, 2)) == Edge(1, 2)
         @test SeaPearl.orderEdge(Edge(2, 1)) == Edge(1, 2)

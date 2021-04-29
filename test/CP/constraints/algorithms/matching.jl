@@ -114,23 +114,4 @@ using LightGraphs
         @test all(map(e -> e in edges(graph), edges(digraph)))
         @test ne(graph) == ne(digraph)
     end
-    @testset "AllDifferent(::Vector{AbstractIntVar}, ::Trailer)" begin
-        trailer = SeaPearl.Trailer()
-        x = SeaPearl.IntVar(1, 3, "x", trailer)
-        y = SeaPearl.IntVar(2, 3, "y", trailer)
-        z = SeaPearl.IntVar(2, 3, "Z", trailer)
-        vec = Vector{SeaPearl.AbstractIntVar}([x, y, z])
-
-        constraint = SeaPearl.AllDifferent(vec, trailer)
-
-        @test constraint.minimum.value == 1
-        @test constraint.maximum.value == 3
-        @test constraint.active.value
-        @test !constraint.initialized.value
-        @test constraint.nodesMin == 1
-        @test constraint.numberOfVals == 3
-        @test constraint in x.onDomainChange
-        @test constraint in y.onDomainChange
-        @test constraint in z.onDomainChange
-    end
 end
