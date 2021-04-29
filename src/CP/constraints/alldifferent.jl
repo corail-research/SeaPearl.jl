@@ -287,7 +287,6 @@ function removeEdges!(constraint::AllDifferent, prunedValues::Vector{Vector{Int}
 
     allvar = 1:constraint.numberOfVars
     allval = constraint.numberOfVars+1:nv(digraph)
-    freevar = filter(v -> outdegree(digraph, v) == 0, allvar)
     freeval = filter(v -> indegree(digraph,v) == 0, allval)
 
     seen = fill(false, constraint.numberOfVals)
@@ -402,7 +401,7 @@ function propagate!(constraint::AllDifferent, toPropagate::Set{Constraint}, prun
     end
 
     if needrematching
-        matching = maximummatching!(graph, digraph, constraint.numberOfVars)
+        matching = maximizematching!(graph, digraph, constraint.numberOfVars)
         if matching.size < constraint.numberOfVars
             return false
         end
