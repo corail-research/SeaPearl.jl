@@ -30,7 +30,7 @@
         add_edge!(bipartite, 2, 5)
         add_edge!(bipartite, 5, 3)
         add_edge!(bipartite, 6, 2)
-        free = [3]
+        free = Set([3])
         res = SeaPearl.augmentmatching!(bipartite, 3, 6, free)
 
         @test !isnothing(res)
@@ -56,6 +56,30 @@
         @test Edge(4, 3) in edges(digraph)
         @test Edge(6, 3) in edges(digraph)
         @test Edge(7, 3) in edges(digraph)
+    end
+    @testset "maximizematching!(::Graph, ::DiGraph, ::Int)::Matching" begin
+    #Replays the example from the paper
+        graph = Graph(12)
+        digraph = DiGraph(12)
+        add_edge!(graph, 1, 7)
+        add_edge!(graph, 1, 8)
+        add_edge!(graph, 2, 8)
+        add_edge!(graph, 2, 9)
+        add_edge!(graph, 3, 9)
+        add_edge!(graph, 4, 8)
+        add_edge!(graph, 4, 10)
+        add_edge!(graph, 5, 9)
+        add_edge!(graph, 5, 10)
+        add_edge!(graph, 5, 11)
+        add_edge!(graph, 5, 12)
+        add_edge!(graph, 6, 12)
+        matching = SeaPearl.Matching(3, [Pair(1, 7), Pair(4, 8), Pair(5, 10)])
+        SeaPearl.builddigraph!(digraph, graph, matching)
+
+        SeaPearl.maximizematching!(graph, digraph, 6)
+        target = [Edge(1, 7), Edge(2, 8), Edge(3, 9), Edge(4, 10), Edge(5, 11), Edge(6, 12)]
+        @test all([e in edges(digraph) for e in target])
+        @test all([outdegree(digraph, v) == 1 for v in 1:6])
     end
     @testset "maximummatching(::Graph{Int}, ::DiGraph{Int}, ::Int)::Matching{Int}" begin
     # This function and all its dependencies have been tested with an external library
