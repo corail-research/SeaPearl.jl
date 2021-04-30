@@ -21,9 +21,6 @@ struct AllDifferent <: Constraint
     x::Vector{SeaPearl.AbstractIntVar}
     active::StateObject{Bool}
     initialized::StateObject{Bool}
-    minimum::StateObject{Int}
-    maximum::StateObject{Int}
-    matched::StateObject{Int}
     matching::Vector{StateObject{Pair{Int, Int}}}
     edgesState::Dict{Edge{Int}, StateObject{State}}
     nodesMin::Int
@@ -37,7 +34,6 @@ struct AllDifferent <: Constraint
         active = StateObject{Bool}(true, trailer)
         initialized = StateObject{Bool}(false, trailer)
         numberOfVars = length(x)
-        matched = StateObject{Int}(-1, trailer)
         matching = Vector{StateObject{Pair{Int, Int}}}(undef, numberOfVars)
         for i = 1:numberOfVars
             matching[i] = StateObject{Pair{Int, Int}}(Pair(0, 0), trailer)
@@ -46,9 +42,6 @@ struct AllDifferent <: Constraint
         constraint = new(x,
             active,
             initialized,
-            StateObject{Int}(min, trailer),
-            StateObject{Int}(max, trailer),
-            matched,
             matching,
             edgesState,
             min,
@@ -238,14 +231,13 @@ function propagate!(constraint::AllDifferent, toPropagate::Set{Constraint}, prun
         if matching.size < constraint.numberOfVars
             return false
         end
-        setValue!(constraint.matched, matching.size)
         for (idx, match) in enumerate(matching.matches)
             setValue!(constraint.matching[idx], match)
         end
         setValue!(constraint.initialized, true)
     #    Otherwise just read the stored values
     else
-        matching = Matching{Int}(constraint.matched.value, map(pair -> pair.value, constraint.matching))
+        matching = Matching{Int}(length(constraint.matching), map(pair -> pair.value, constraint.matching))
         builddigraph!(digraph, graph, matching)
     end
 
@@ -278,7 +270,6 @@ function propagate!(constraint::AllDifferent, toPropagate::Set{Constraint}, prun
         if matching.size < constraint.numberOfVars
             return false
         end
-        setValue!(constraint.matched, matching.size)
         for (idx, match) in enumerate(matching.matches)
             setValue!(constraint.matching[idx], match)
         end

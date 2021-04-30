@@ -10,8 +10,6 @@ using LightGraphs
 
         constraint = SeaPearl.AllDifferent(vec, trailer)
 
-        @test constraint.minimum.value == 1
-        @test constraint.maximum.value == 3
         @test constraint.active.value
         @test !constraint.initialized.value
         @test constraint.nodesMin == 1
@@ -93,7 +91,6 @@ using LightGraphs
 
         graph, digraph = SeaPearl.initializeGraphs!(constraint)
         matching = SeaPearl.Matching(6, [Pair(1, 7), Pair(2, 8), Pair(3, 9), Pair(4, 10), Pair(5, 11), Pair(6, 12)])
-        SeaPearl.setValue!(constraint.matched, matching.size)
         for (idx, match) in enumerate(matching.matches)
             constraint.matching[idx] = SeaPearl.StateObject{Pair{Int, Int}}(match, trailer)
         end
