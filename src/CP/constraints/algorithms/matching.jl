@@ -60,7 +60,7 @@ a free variable and augment the mathcing.
 - `start::Int`: the free value node to start the search from.
 - `free::Vector{Int}`: the list of all the free variables indexes.
 """
-function augmentmatching!(digraph::DiGraph{Int}, lastfirst::Int, start::Int, free::Set{Int})::Union{Nothing, Pair{Int, Int}}
+function augmentmatching!(digraph::DiGraph{Int}, start::Int, free::Set{Int})::Union{Nothing, Pair{Int, Int}}
     parents = bfs_parents(digraph, start; dir=:out)
     reached = intersect(free, findall(v -> v > 0, parents))
     if isempty(reached)
@@ -108,14 +108,14 @@ The problem must be encoded in the 2 bipartite graph, and `digraph` must already
 encode a partial matching at least. Lastfirst is the index of the last node of
 the first group.
 """
-function maximizematching!(graph::Graph{Int}, digraph::DiGraph{Int}, lastfirst::Int)::Matching{Int}
+function maximizematching!(digraph::DiGraph{Int}, lastfirst::Int)::Matching{Int}
     currentmatching = matchingfromdigraph(digraph, lastfirst)
     stop = currentmatching.size == lastfirst
     freevar = Set(filter(v -> outdegree(digraph, v) == 0, 1:lastfirst))
     freeval = Set(filter(v -> indegree(digraph,v) == 0, lastfirst+1:nv(digraph)))
     while !stop
         start = pop!(freeval)
-        augment = augmentmatching!(digraph, lastfirst, start, freevar)
+        augment = augmentmatching!(digraph, start, freevar)
         if !isnothing(augment)
             pop!(freevar, augment[1])
         end
@@ -136,5 +136,5 @@ matching and encode it in `digraph`.
 function maximummatching!(graph::Graph{Int}, digraph::DiGraph{Int}, lastfirst::Int)::Matching{Int}
     first = randommatching(graph, lastfirst)
     builddigraph!(digraph, graph, first)
-    return maximizematching!(graph, digraph, lastfirst)
+    return maximizematching!(digraph, lastfirst)
 end

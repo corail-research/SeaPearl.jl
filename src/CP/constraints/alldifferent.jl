@@ -266,7 +266,7 @@ function propagate!(constraint::AllDifferent, toPropagate::Set{Constraint}, prun
     end
 
     if needrematching
-        matching = maximizematching!(graph, digraph, constraint.numberOfVars)
+        matching = maximizematching!(digraph, constraint.numberOfVars)
         if matching.size < constraint.numberOfVars
             return false
         end

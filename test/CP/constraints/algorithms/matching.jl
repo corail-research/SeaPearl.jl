@@ -25,7 +25,7 @@ using LightGraphs
         @test Pair(1, 4) in matching.matches
         @test Pair(2, 5) in matching.matches
     end
-    @testset "augmentmatching!(::DiGraph, ::Int, ::Int, ::Vector{Int})" begin
+    @testset "augmentmatching!(::DiGraph, ::Int, ::Vector{Int})" begin
         bipartite = DiGraph(6)
         add_edge!(bipartite, 1, 4)
         add_edge!(bipartite, 5, 1)
@@ -33,7 +33,7 @@ using LightGraphs
         add_edge!(bipartite, 5, 3)
         add_edge!(bipartite, 6, 2)
         free = Set([3])
-        res = SeaPearl.augmentmatching!(bipartite, 3, 6, free)
+        res = SeaPearl.augmentmatching!(bipartite, 6, free)
 
         @test !isnothing(res)
         @test res == Pair(3, 6)
@@ -78,7 +78,7 @@ using LightGraphs
         matching = SeaPearl.Matching(3, [Pair(1, 7), Pair(4, 8), Pair(5, 10)])
         SeaPearl.builddigraph!(digraph, graph, matching)
 
-        SeaPearl.maximizematching!(graph, digraph, 6)
+        SeaPearl.maximizematching!(digraph, 6)
         target = [Edge(1, 7), Edge(2, 8), Edge(3, 9), Edge(4, 10), Edge(5, 11), Edge(6, 12)]
         @test all([e in edges(digraph) for e in target])
         @test all([outdegree(digraph, v) == 1 for v in 1:6])
