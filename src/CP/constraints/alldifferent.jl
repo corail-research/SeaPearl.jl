@@ -312,5 +312,17 @@ function propagate!(constraint::AllDifferent, toPropagate::Set{Constraint}, prun
 end
 
 AllDifferent(x::Vector{IntVar}, trailer) = AllDifferent(Vector{AbstractIntVar}(x), trailer)
+AllDifferent(x::Vector{IntVarView}, trailer) = AllDifferent(Vector{AbstractIntVar}(x), trailer)
 
 variableArray(constraint::AllDifferent) = constraint.x
+
+function Base.show(io::IO, ::MIME"text/plain", con::AllDifferent)
+    println(io, string(typeof(con)), ": ", join([var.id for var in con.x], " != "), ", active = ", con.active)
+    for var in con.x
+        println(io, "   ", var)
+    end
+end
+
+function Base.show(io::IO, con::AllDifferent)
+    println(io, string(typeof(con)), ": ", join([var.id for var in con.x], " != "))
+end
