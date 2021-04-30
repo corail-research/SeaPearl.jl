@@ -21,8 +21,8 @@ struct AllDifferent <: Constraint
     x::Vector{SeaPearl.AbstractIntVar}
     active::StateObject{Bool}
     initialized::StateObject{Bool}
-    matching::Vector{StateObject{Pair{Int, Int}}}
-    edgesState::Dict{Edge{Int}, StateObject{State}}
+    matching::Vector{StateObject{Pair{Int,Int}}}
+    edgesState::Dict{Edge{Int},StateObject{State}}
     nodesMin::Int
     numberOfVars::Int
     numberOfVals::Int
@@ -34,11 +34,11 @@ struct AllDifferent <: Constraint
         active = StateObject{Bool}(true, trailer)
         initialized = StateObject{Bool}(false, trailer)
         numberOfVars = length(x)
-        matching = Vector{StateObject{Pair{Int, Int}}}(undef, numberOfVars)
+        matching = Vector{StateObject{Pair{Int,Int}}}(undef, numberOfVars)
         for i = 1:numberOfVars
-            matching[i] = StateObject{Pair{Int, Int}}(Pair(0, 0), trailer)
+            matching[i] = StateObject{Pair{Int,Int}}(Pair(0, 0), trailer)
         end
-        edgesState = Dict{Edge{Int}, StateObject{State}}()
+        edgesState = Dict{Edge{Int},StateObject{State}}()
         constraint = new(x,
             active,
             initialized,
@@ -55,7 +55,7 @@ struct AllDifferent <: Constraint
             end
         end
         return constraint
-    end
+end
 end
 
 """
@@ -91,14 +91,14 @@ end
 
 Return the graph and the empty direct graph of a variable-value problem.
 """
-function initializeGraphs!(con::AllDifferent)::Pair{Graph{Int}, DiGraph{Int}}
+function initializeGraphs!(con::AllDifferent)::Pair{Graph{Int},DiGraph{Int}}
     graph = Graph(con.numberOfVars + con.numberOfVals)
     digraph = DiGraph(nv(graph))
     for (e, status) in con.edgesState
         if status.value != removed
             add_edge!(graph, e.src, e.dst)
         end
-    end
+end
     return Pair(graph, digraph)
 end
 
@@ -152,11 +152,11 @@ function removeEdges!(constraint::AllDifferent, prunedValues::Vector{Vector{Int}
     end
 
     allvar = 1:constraint.numberOfVars
-    allval = constraint.numberOfVars+1:nv(digraph)
-    freeval = filter(v -> indegree(digraph,v) == 0, allval)
+    allval = constraint.numberOfVars + 1:nv(digraph)
+    freeval = filter(v -> indegree(digraph, v) == 0, allval)
 
     seen = fill(false, constraint.numberOfVals)
-    components = filter(comp -> length(comp)>1, strongly_connected_components(digraph))
+    components = filter(comp -> length(comp) > 1, strongly_connected_components(digraph))
     for component in components
         vars = filter(v -> v <= constraint.numberOfVars, component)
         vals = filter(v -> v > constraint.numberOfVars, component)
@@ -249,7 +249,7 @@ function propagate!(constraint::AllDifferent, toPropagate::Set{Constraint}, prun
 
     removeEdges!(constraint, prunedValues, graph, digraph)
     needrematching = false
-    for e in modifications
+        for e in modifications
         rev_e = Edge(e.dst, e.src)
         if e in edges(graph)
             if constraint.edgesState[e].value == vital
@@ -289,7 +289,7 @@ function propagate!(constraint::AllDifferent, toPropagate::Set{Constraint}, prun
     if constraint in toPropagate
         pop!(toPropagate, constraint)
     end
-
+        
     if all(var -> length(var.domain) <= 1, constraint.x)
         setValue!(constraint.active, false)
     end
