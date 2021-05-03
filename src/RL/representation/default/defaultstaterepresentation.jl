@@ -27,6 +27,7 @@ end
 
 DefaultStateRepresentation(m::CPModel) = DefaultStateRepresentation{DefaultFeaturization}(m::CPModel)
 
+#TODO understand why sr is called ???
 function update_representation!(sr::DefaultStateRepresentation, model::CPModel, x::AbstractIntVar)
     sr.variable_id = indexFromCpVertex(sr.cplayergraph, VariableVertex(x))
     sr.possible_value_ids = possible_values(sr.variable_id, sr.cplayergraph)
@@ -80,14 +81,14 @@ end
     function featurize(sr::DefaultStateRepresentation{DefaultFeaturization})
 
 Create features for every node of the graph. Supposed to be overwritten. 
-Default behavior is to call `default_featurize`.
+Default behavior is to call `default_featurize` which consists in 3D One-hot vector that encodes whether the node represents a Constraint, a Variable or a Value 
 """
 function featurize(sr::DefaultStateRepresentation{DefaultFeaturization})
     g = sr.cplayergraph
     features = zeros(Float32, nv(g), 3)
     for i in 1:nv(g)
         cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
-        if isa(cp_vertex, ConstraintVertex)
+        if isa(cp_vertex, ConstraintVertex)    
             features[i, 1] = 1.0f0
         end
         if isa(cp_vertex, VariableVertex)

@@ -162,10 +162,9 @@ end
 
         SeaPearl.search!(model, SeaPearl.DFSearch, variableheuristic, valueheuristic)
 
-
+        #TODO findout why sometimes no solution are found in the randomly generated problem  
         @test length(model.solutions) >= 1
     end
-
     @testset "find_tsptw_dist_matrix()" begin
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
