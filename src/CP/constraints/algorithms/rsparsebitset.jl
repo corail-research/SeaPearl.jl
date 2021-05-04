@@ -1,3 +1,13 @@
+
+"""
+    RSparseBitSet(size, trailer)
+
+Create a Reversible Sparse BitSet with `size` elements.
+
+This datastructure follows the implementation from Demeulenaere J. et al. 
+(2016) Compact-Table: Efficiently Filtering Table Constraints with Reversible Sparse Bit-Sets. 
+https://doi.org/10.1007/978-3-319-44953-1_14 .
+"""
 struct RSparseBitSet
     words::Vector{StateObject{UInt128}}
     index::Vector{Int}
@@ -29,24 +39,55 @@ function Base.isempty(set::RSparseBitSet)::Bool
     return set.limit.value == 0
 end
 
+function Base.show(io::IO, ::MIME"text/plain", set::RSparseBitSet)
+    println(io, string(typeof(set)), ": index = ", set.index, ", limit = ", set.limit.value)
+    println(io, "   words: ", join([string(x.value, base=16, pad=32) for x in set.words], " "))
+    println(io, "   mask:  ", join([string(x, base=16, pad=32) for x in set.mask], " "))
+end
+
+function Base.show(io::IO, set::RSparseBitSet)
+    println(io, string(typeof(set)), ": index = ", set.index, ", limit = ", set.limit.value)
+    println(io, "   words: ", join([string(x.value, base=16, pad=32) for x in set.words], " "))
+end
+
+"""
+    clearMask!(::RSparseBitSet)
+
+Set all the masks to 0.
+"""
 function clearMask!(set::RSparseBitSet)::Nothing
     offsets = set.index[1:set.limit.value]
     set.mask[offsets] .= UInt128(0)
     return
 end
 
+"""
+    reverseMask!(::RSparseBitSet)
+
+Set the mask to its opposite: Boolean NOT.
+"""
 function reverseMask!(set::RSparseBitSet)::Nothing
     offsets = set.index[1:set.limit.value]
     set.mask[offsets] .= .~ set.mask[offsets]
     return
 end
 
+"""
+    addToMask!(::RSparseBitSet, m)
+
+Add the content of m to the mask: Boolean OR.
+"""
 function addToMask!(set::RSparseBitSet, m::Vector{UInt128})::Nothing
     offsets = set.index[1:set.limit.value]
     set.mask[offsets] .= set.mask[offsets] .| m[offsets]
     return
 end
 
+"""
+    intersectWithMask!(::RSparseBitSet)
+
+Apply the mask to words: Bolean AND.
+"""
 function intersectWithMask!(set::RSparseBitSet)::Nothing
     for i = set.limit.value:-1:1
         offset = set.index[i]
@@ -60,6 +101,11 @@ function intersectWithMask!(set::RSparseBitSet)::Nothing
     return
 end
 
+"""
+    intersectIndex(::RSparseBitSet, m)
+
+Return the index of the first word intersecting m, or -1 if none exist.
+"""
 function intersectIndex(set::RSparseBitSet, m::Vector{UInt128})::Int
     for i = 1:set.limit.value
         offset = set.index[i]
