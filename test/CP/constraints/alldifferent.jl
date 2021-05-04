@@ -41,7 +41,7 @@ using LightGraphs
         @test Edge(3, 6) in edges(graph)
         @test ne(graph) == 6
     end
-    @testset "getalledges(::DiGraph, ::Vector{Int})" begin
+    @testset "getAllEdges(::DiGraph, ::Vector{Int})" begin
         bipartite = DiGraph(7)
         add_edge!(bipartite, 4, 1)
         add_edge!(bipartite, 5, 1)
@@ -50,7 +50,7 @@ using LightGraphs
         add_edge!(bipartite, 6, 2)
         add_edge!(bipartite, 3, 7)
         parents = bfs_parents(bipartite, 4; dir=:out)
-        edgeset = SeaPearl.getalledges(bipartite, parents)
+        edgeset = SeaPearl.getAllEdges(bipartite, parents)
 
         @test length(edgeset) == 5
         @test Edge(1, 4) in edgeset
@@ -59,7 +59,7 @@ using LightGraphs
         @test Edge(2, 6) in edgeset
         @test Edge(1, 5) in edgeset
     end
-    @testset "getalledges(::DiGraph, ::Vector{Int}, ::Vector{Int})" begin
+    @testset "getAllEdges(::DiGraph, ::Vector{Int}, ::Vector{Int})" begin
         bipartite = DiGraph(7)
         add_edge!(bipartite, 4, 1)
         add_edge!(bipartite, 5, 1)
@@ -67,7 +67,7 @@ using LightGraphs
         add_edge!(bipartite, 2, 5)
         add_edge!(bipartite, 6, 2)
         add_edge!(bipartite, 3, 7)
-        edgeset = SeaPearl.getalledges(bipartite, [1, 2], [5, 6])
+        edgeset = SeaPearl.getAllEdges(bipartite, [1, 2], [5, 6])
 
         @test length(edgeset) == 4
         @test Edge(1, 5) in edgeset
@@ -95,7 +95,7 @@ using LightGraphs
             constraint.matching[idx] = SeaPearl.StateObject{Pair{Int, Int}}(match, trailer)
         end
         SeaPearl.setValue!(constraint.initialized, true)
-        SeaPearl.builddigraph!(digraph, graph, matching)
+        SeaPearl.buildDigraph!(digraph, graph, matching)
         prunedValues = Vector{Vector{Int}}(undef, constraint.numberOfVars)
         for i = 1:constraint.numberOfVars
             prunedValues[i] = Int[]

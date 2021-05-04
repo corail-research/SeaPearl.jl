@@ -59,20 +59,20 @@ struct AllDifferent <: Constraint
 end
 
 """
-    val2node(constraint, value)::Int
+    valToNode(constraint, value)::Int
 
 Return the node index of a value.
 """
-function val2node(con::AllDifferent, val::Int)
+function valToNode(con::AllDifferent, val::Int)
     return con.numberOfVars + val - con.nodesMin + 1
 end
 
 """
-    node2val(constraint, node)::Int
+    nodeToVal(constraint, node)::Int
 
 Return the underlying value of a node.
 """
-function node2val(con::AllDifferent, node::Int)
+function nodeToVal(con::AllDifferent, node::Int)
     return node - con.numberOfVars + con.nodesMin - 1
 end
 
@@ -103,35 +103,35 @@ function initializeGraphs!(con::AllDifferent)::Pair{Graph{Int}, DiGraph{Int}}
 end
 
 """
-    getalledges(digraph, parents)::Set{Edge}
+    getAllEdges(digraph, parents)::Set{Edge}
 
 Return all the edges visited by a BFS on `digraph` encoded in `parents`.
 """
-function getalledges(digraph::DiGraph{Int}, parents::Vector{Int})::Set{Edge{Int}}
-    res = Set{Edge{Int}}()
+function getAllEdges(digraph::DiGraph{Int}, parents::Vector{Int})::Set{Edge{Int}}
+    edgeSet = Set{Edge{Int}}()
     for i = 1:nv(digraph)
         if parents[i] > 0 && parents[i] != i
             validneighbors = filter(v -> parents[v] > 0, inneighbors(digraph, i))
             validedges = map(v -> orderEdge(Edge(v, i)), validneighbors)
-            union!(res, validedges)
+            union!(edgeSet, validedges)
         end
     end
-    return res
+    return edgeSet
 end
 
 """
-    getalledges(digraph, vars, vals)
+    getAllEdges(digraph, vars, vals)
 
 Return all the edges in a strongly connected component vars ∪ vars.
 """
-function getalledges(digraph::DiGraph{Int}, vars::Vector{Int}, vals::Vector{Int})::Set{Edge{Int}}
-    res = Set{Edge{Int}}()
+function getAllEdges(digraph::DiGraph{Int}, vars::Vector{Int}, vals::Vector{Int})::Set{Edge{Int}}
+    edgeSet = Set{Edge{Int}}()
     for var in vars
         for val in intersect(union(inneighbors(digraph, var), outneighbors(digraph, var)), vals)
-            push!(res, orderEdge(Edge(var, val)))
+            push!(edgeSet, orderEdge(Edge(var, val)))
         end
     end
-    return res
+    return edgeSet
 end
 
 """
@@ -151,30 +151,29 @@ function removeEdges!(constraint::AllDifferent, prunedValues::Vector{Vector{Int}
         end
     end
 
-    allvar = 1:constraint.numberOfVars
-    allval = constraint.numberOfVars+1:nv(digraph)
-    freeval = filter(v -> indegree(digraph,v) == 0, allval)
+    allValues = constraint.numberOfVars+1:nv(digraph)
+    freeValues = filter(v -> indegree(digraph,v) == 0, allValues)
 
     seen = fill(false, constraint.numberOfVals)
     components = filter(comp -> length(comp)>1, strongly_connected_components(digraph))
     for component in components
-        vars = filter(v -> v <= constraint.numberOfVars, component)
-        vals = filter(v -> v > constraint.numberOfVars, component)
-        edgeSet = getalledges(digraph, vars, vals)
+        variables = filter(v -> v <= constraint.numberOfVars, component)
+        values = filter(v -> v > constraint.numberOfVars, component)
+        edgeSet = getAllEdges(digraph, variables, values)
         for e in edgeSet
             setValue!(constraint.edgesState[e], used)
         end
     end
-    for node in freeval
+    for node in freeValues
         if seen[node - constraint.numberOfVars]
             continue
         end
         parents = bfs_parents(digraph, node; dir=:out)
-        edgeSet = getalledges(digraph, parents)
+        edgeSet = getAllEdges(digraph, parents)
         for e in edgeSet
             setValue!(constraint.edgesState[e], used)
         end
-        reached = filter(v -> parents[v] > 0, allval)
+        reached = filter(v -> parents[v] > 0, allValues)
         for val in reached
             seen[val - constraint.numberOfVars] = true
         end
@@ -194,7 +193,7 @@ function removeEdges!(constraint::AllDifferent, prunedValues::Vector{Vector{Int}
         rem_edge!(digraph, Edge(e.dst, e.src))
         setValue!(constraint.edgesState[e], removed)
         var, val = e.src < e.dst ? (e.src, e.dst) : (e.dst, e.src)
-        push!(prunedValues[var], node2val(constraint, val))
+        push!(prunedValues[var], nodeToVal(constraint, val))
     end
 end
 
@@ -206,7 +205,7 @@ Return all the pruned values not already encoded in the constraint state.
 function updateEdgesState!(constraint::AllDifferent)
     modif = Set{Edge}()
     for (edge, state) in constraint.edgesState
-        if state.value != removed && !(node2val(constraint, edge.dst)  in constraint.x[edge.src].domain)
+        if state.value != removed && !(nodeToVal(constraint, edge.dst)  in constraint.x[edge.src].domain)
             push!(modif, edge)
         end
     end
@@ -227,7 +226,7 @@ function propagate!(constraint::AllDifferent, toPropagate::Set{Constraint}, prun
     graph, digraph = initializeGraphs!(constraint)
     #    Run only once, when constraint is first propagated
     if !constraint.initialized.value
-        matching = maximummatching!(graph, digraph, constraint.numberOfVars)
+        matching = maximumMatching!(graph, digraph, constraint.numberOfVars)
         if matching.size < constraint.numberOfVars
             return false
         end
@@ -238,7 +237,7 @@ function propagate!(constraint::AllDifferent, toPropagate::Set{Constraint}, prun
     #    Otherwise just read the stored values
     else
         matching = Matching{Int}(length(constraint.matching), map(pair -> pair.value, constraint.matching))
-        builddigraph!(digraph, graph, matching)
+        buildDigraph!(digraph, graph, matching)
     end
 
     modifications = updateEdgesState!(constraint)
@@ -266,7 +265,7 @@ function propagate!(constraint::AllDifferent, toPropagate::Set{Constraint}, prun
     end
 
     if needrematching
-        matching = maximizematching!(digraph, constraint.numberOfVars)
+        matching = maximizeMatching!(digraph, constraint.numberOfVars)
         if matching.size < constraint.numberOfVars
             return false
         end
