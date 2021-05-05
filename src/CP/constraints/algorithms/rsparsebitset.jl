@@ -1,6 +1,5 @@
-
 """
-    RSparseBitSet(size, trailer)
+    RSparseBitSet{T}(size, trailer)
 
 Create a Reversible Sparse BitSet with `size` elements.
 
@@ -8,56 +7,61 @@ This datastructure follows the implementation from Demeulenaere J. et al.
 (2016) Compact-Table: Efficiently Filtering Table Constraints with Reversible Sparse Bit-Sets. 
 https://doi.org/10.1007/978-3-319-44953-1_14 .
 """
-struct RSparseBitSet
-    words::Vector{StateObject{UInt128}}
+struct RSparseBitSet{T}
+    words::Vector{StateObject{T}}
     index::Vector{Int}
     limit::StateObject{Int}
-    mask::Vector{UInt128}
+    mask::Vector{T}
 
-    function RSparseBitSet(size::Int, trailer)
-        p = Int(ceil(size/128))
-        rest = size % 128
-        words = Vector{StateObject{UInt128}}(undef, p)
+    function RSparseBitSet{T}(size::Int, trailer) where T <: Unsigned
+        n = sizeof(T) * 8
+        p = Int(ceil(size/n))
+        rest = size % n
+        words = Vector{StateObject{T}}(undef, p)
         for i = 1:(p-1)
-            words[i] = StateObject{UInt128}(typemax(UInt128), trailer)
+            words[i] = StateObject{T}(typemax(T), trailer)
         end
         if rest == 0
-            words[p] = StateObject{UInt128}(typemax(UInt128), trailer)
+            words[p] = StateObject{T}(typemax(T), trailer)
         else
-            words[p] = StateObject{UInt128}(parse(UInt128, "0b" * "1"^rest * "0"^(128-rest)), trailer)
+            words[p] = StateObject{T}(parse(T, "0b" * "1"^rest * "0"^(n-rest)), trailer)
         end
 
         index = collect(Int, 1:p)
         limit = StateObject{Int}(p, trailer)
-        mask = Vector{UInt128}(undef, p)
+        mask = Vector{T}(undef, p)
 
         return new(words, index, limit, mask)
     end
 end
 
-function Base.isempty(set::RSparseBitSet)::Bool
+const RSparseBitSet(size::Int, trailer) = RSparseBitSet{UInt128}(size::Int, trailer)
+
+function Base.isempty(set::RSparseBitSet{T})::Bool where T <: Unsigned
     return set.limit.value == 0
 end
 
-function Base.show(io::IO, ::MIME"text/plain", set::RSparseBitSet)
+function Base.show(io::IO, ::MIME"text/plain", set::RSparseBitSet{T}) where T <: Unsigned
+    n = sizeof(T) * 8
     println(io, string(typeof(set)), ": index = ", set.index, ", limit = ", set.limit.value)
-    println(io, "   words: ", join([string(x.value, base=16, pad=32) for x in set.words], " "))
-    println(io, "   mask:  ", join([string(x, base=16, pad=32) for x in set.mask], " "))
+    println(io, "   words: ", join([string(x.value, base=16, pad=Int(n/4)) for x in set.words], " "))
+    println(io, "   mask:  ", join([string(x, base=16, pad=Int(n/4)) for x in set.mask], " "))
 end
 
-function Base.show(io::IO, set::RSparseBitSet)
+function Base.show(io::IO, set::RSparseBitSet{T}) where T <: Unsigned
+    n = sizeof(T) * 8
     println(io, string(typeof(set)), ": index = ", set.index, ", limit = ", set.limit.value)
-    println(io, "   words: ", join([string(x.value, base=16, pad=32) for x in set.words], " "))
+    println(io, "   words: ", join([string(x.value, base=16, pad=Int(n/4)) for x in set.words], " "))
 end
 
 """
-    clearMask!(::RSparseBitSet)
+    clearMask!(::RSparseBitSet{T})
 
 Set all the masks to 0.
 """
-function clearMask!(set::RSparseBitSet)::Nothing
+function clearMask!(set::RSparseBitSet{T})::Nothing where T <: Unsigned
     offsets = set.index[1:set.limit.value]
-    set.mask[offsets] .= UInt128(0)
+    set.mask[offsets] .= T(0)
     return
 end
 
@@ -66,29 +70,29 @@ end
 
 Set the mask to its opposite: Boolean NOT.
 """
-function reverseMask!(set::RSparseBitSet)::Nothing
+function reverseMask!(set::RSparseBitSet{T})::Nothing where T <: Unsigned
     offsets = set.index[1:set.limit.value]
     set.mask[offsets] .= .~ set.mask[offsets]
     return
 end
 
 """
-    addToMask!(::RSparseBitSet, m)
+    addToMask!(::RSparseBitSet{T}, m)
 
 Add the content of m to the mask: Boolean OR.
 """
-function addToMask!(set::RSparseBitSet, m::Vector{UInt128})::Nothing
+function addToMask!(set::RSparseBitSet{T}, m::Vector{T})::Nothing where T <: Unsigned
     offsets = set.index[1:set.limit.value]
     set.mask[offsets] .= set.mask[offsets] .| m[offsets]
     return
 end
 
 """
-    intersectWithMask!(::RSparseBitSet)
+    intersectWithMask!(::RSparseBitSet{T})
 
 Apply the mask to words: Bolean AND.
 """
-function intersectWithMask!(set::RSparseBitSet)::Nothing
+function intersectWithMask!(set::RSparseBitSet{T})::Nothing where T <: Unsigned
     for i = set.limit.value:-1:1
         offset = set.index[i]
         word = set.words[offset].value & set.mask[offset]
@@ -102,11 +106,11 @@ function intersectWithMask!(set::RSparseBitSet)::Nothing
 end
 
 """
-    intersectIndex(::RSparseBitSet, m)
+    intersectIndex(::RSparseBitSet{T}, m)
 
 Return the index of the first word intersecting m, or -1 if none exist.
 """
-function intersectIndex(set::RSparseBitSet, m::Vector{UInt128})::Int
+function intersectIndex(set::RSparseBitSet{T}, m::Vector{T})::Int where T <: Unsigned
     for i = 1:set.limit.value
         offset = set.index[i]
         if set.words[offset].value & m[offset] != 0
