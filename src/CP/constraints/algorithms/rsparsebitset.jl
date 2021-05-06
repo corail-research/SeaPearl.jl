@@ -54,6 +54,13 @@ function Base.show(io::IO, set::RSparseBitSet{T}) where T <: Unsigned
     println(io, "   words: ", join([string(x.value, base=16, pad=Int(n/4)) for x in set.words], " "))
 end
 
+function Base.getindex(set::RSparseBitSet{T}, idx::Integer) where T <: Unsigned
+    n = sizeof(T) * 8
+    wordIndex = Int(ceil((idx)/n))
+    offset = (n - idx%n)%n
+    return (set.words[wordIndex].value & (T(1) << offset)) > 0
+end
+
 """
     clearMask!(::RSparseBitSet{T})
 
