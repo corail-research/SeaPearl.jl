@@ -35,7 +35,7 @@ struct RSparseBitSet{T}
     end
 end
 
-const RSparseBitSet(size::Int, trailer) = RSparseBitSet{UInt128}(size::Int, trailer)
+const RSparseBitSet(size::Int, trailer) = RSparseBitSet{UInt64}(size::Int, trailer)
 
 function Base.isempty(set::RSparseBitSet{T})::Bool where T <: Unsigned
     return set.limit.value == 0
