@@ -68,4 +68,26 @@
         @test SeaPearl.assignedValue(x) == 7
     end
 
+    @testset "Absolute()-Suite4" begin
+        trailer = SeaPearl.Trailer()
+        a = SeaPearl.IntVar(7, 7, "a", trailer)
+        b = SeaPearl.IntVar(-7, -7, "b", trailer)
+        c = SeaPearl.IntVar(6, 13, "c", trailer)
+
+        toPropagate = Set{SeaPearl.Constraint}()
+        prunedDomains = SeaPearl.CPModification()
+
+        x = SeaPearl.IntVar(-5, 5, "x", trailer)
+        constraint1 = SeaPearl.Absolute(x, a, trailer)
+        @test !SeaPearl.propagate!(constraint1, toPropagate, prunedDomains)
+
+        x = SeaPearl.IntVar(-5, 5, "x", trailer)
+        constraint2 = SeaPearl.Absolute(b, x, trailer)
+        @test !SeaPearl.propagate!(constraint2, toPropagate, prunedDomains)
+
+        x = SeaPearl.IntVar(-5, 5, "x", trailer)
+        constraint3 = SeaPearl.Absolute(x, c, trailer)
+        @test !SeaPearl.propagate!(constraint3, toPropagate, prunedDomains)
+    end
+
 end

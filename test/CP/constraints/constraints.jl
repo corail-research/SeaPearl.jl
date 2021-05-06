@@ -1,6 +1,7 @@
 
 @testset "constraints" begin
     include("algorithms/matching.jl")
+    include("absolute.jl")
     include("alldifferent.jl")
     include("equal.jl")
     include("notequal.jl")

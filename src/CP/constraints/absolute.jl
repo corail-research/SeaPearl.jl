@@ -26,15 +26,24 @@ end
 function propagate!(constraint::Absolute, toPropagate::Set{Constraint}, prunedDomains::CPModification)
 
     if isbound(constraint.x) 
-        prunedY = assign!(constraint.y, abs(assignedValue(constraint.x)))
+        value = abs(assignedValue(constraint.x))
+        if !(value in constraint.y.domain)
+            return false
+        end
+
+        prunedY = assign!(constraint.y, value)
         addToPrunedDomains!(prunedDomains, constraint.y, prunedY)
         triggerDomainChange!(toPropagate, constraint.y)
         setValue!(constraint.active, false)
 
     elseif isbound(constraint.y) # x is equal to y or -y
+        value = assignedValue(constraint.y)
+        if !(value in constraint.x.domain || -value in constraint.x.domain)
+            return false
+        end
     
         for v in minimum(constraint.x.domain):maximum(constraint.x.domain)
-            if v != assignedValue(constraint.y) && v != -assignedValue(constraint.y)
+            if v != value && v != -value
                 # remove everything in x domain except y and -y
                 prunedX = remove!(constraint.x.domain,v)
                 addToPrunedDomains!(prunedDomains, constraint.x, prunedX)
@@ -70,8 +79,26 @@ function propagate!(constraint::Absolute, toPropagate::Set{Constraint}, prunedDo
         triggerDomainChange!(toPropagate, constraint.y)
     end
 
+    if isempty(constraint.x.domain) || isempty(constraint.y.domain)
+        return false
+    end
+
+    if constraint in toPropagate
+        pop!(toPropagate, constraint)
+    end
+
     return true
 
 end
 
 variablesArray(constraint::Absolute) = [constraint.x, constraint.y]
+
+function Base.show(io::IO, ::MIME"text/plain", con::Absolute)
+    println(io, string(typeof(con)), ": |", con.x.id, "| = ", con.y.id, ", active = ", con.active.value)
+    println(io, "   ", con.x)
+    println(io, "   ", con.y)
+end
+
+function Base.show(io::IO, con::Absolute)
+    println(io, string(typeof(con)), ": |", con.x.id, "| = ", con.y.id, ", active = ", con.active.value)
+end
