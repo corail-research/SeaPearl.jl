@@ -6,7 +6,7 @@ struct DisjointSet
     DisjointSet(size) = new(size, fill(-1, size), collect(1:size), collect(1:size))
 end
 
-function union!(disjointSet::DisjointSet, representative1::Int, representative2::Int)
+function setUnion!(disjointSet::DisjointSet, representative1::Int, representative2::Int)
     #assert disjointSet.parent[representative1] < 0 && disjointSet.parent[representative1] < 0
     if (disjointSet.parent[representative1] < disjointSet.parent[representative2])
         disjointSet.parent[representative2] = representative1
