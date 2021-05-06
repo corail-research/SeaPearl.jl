@@ -44,4 +44,33 @@
         representative = SeaPearl.findRepresentative!(disjointSet, 1)
         @test representative == 1
     end
+
+
+    @testset "greatest!(disjointSet::DisjointSet, element::Int)::Int" begin  
+        disjointSet = SeaPearl.DisjointSet(6)
+        SeaPearl.union!(disjointSet, 3, 4)
+        SeaPearl.union!(disjointSet, 5, 6)
+        SeaPearl.union!(disjointSet, 4, 6)
+
+        max = SeaPearl.greatest!(disjointSet, 1)
+        @test max == 1
+
+        max = SeaPearl.greatest!(disjointSet, 3)
+        @test max == 6
+        @test disjointSet.parent[3] == 6
+    end
+
+    @testset "smallest!(disjointSet::DisjointSet, element::Int)::Int" begin  
+        disjointSet = SeaPearl.DisjointSet(6)
+        SeaPearl.union!(disjointSet, 3, 4)
+        SeaPearl.union!(disjointSet, 5, 6)
+        SeaPearl.union!(disjointSet, 4, 6)
+
+        min = SeaPearl.smallest!(disjointSet, 1)
+        @test min == 1
+
+        min = SeaPearl.smallest!(disjointSet, 3)
+        @test min == 3
+        @test disjointSet.parent[3] == 6
+    end
 end
