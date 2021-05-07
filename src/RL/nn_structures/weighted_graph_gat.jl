@@ -1,3 +1,4 @@
+using Zygote
 using Flux: @functor
 
 prelu(x, α) = x > 0 ? x : α*x
