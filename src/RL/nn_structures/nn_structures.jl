@@ -1,4 +1,5 @@
 using Flux
+using Zygote
 
 abstract type NNStructure end
 
@@ -15,6 +16,7 @@ end
 
 include("flexGNN.jl")
 include("flex_variable_output_gnn.jl")
+include("weighted_graph_gat.jl")
 
 abstract type NNArgs end
 
@@ -25,13 +27,6 @@ end
 
 Base.showerror(io::IO, ie::ModelNotImplementedError) = print(io, "Model $(ie.m) not implemented.")
 
-function build_model(structure::Type{T}, args::NNArgs) where {T <: NNStructure}
-    throw(ModelNotImplementedError(T))
-end
-
 wears_mask(structure::NNStructure) = true
 wears_mask(structure) = true # For simpler structures like Flux.Chain
 
-
-
-include("weighted_graph_gat.jl")
