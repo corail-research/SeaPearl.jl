@@ -22,11 +22,12 @@ https://doi.org/10.1007/978-3-319-44953-1_14
 """
 struct TableConstraint <: Constraint
     scope::Vector{<:AbstractIntVar}
+    active::StateObject{Bool}
     table::Matrix{Int}
     currentTable::RSparseBitSet{UInt64}
-    modifiedVariables::Vector{Int}
+    modifiedVariables::Set{Int}
     lastSizes::Vector{Int}
-    unfixedVariables::Vector{Int}
+    unfixedVariables::Set{Int}
     supports::Dict{Pair{Int,Int},BitVector}
     residues::Dict{Pair{Int,Int},Int}
 end
@@ -47,11 +48,12 @@ function TableConstraint(variables::Vector{<:AbstractIntVar}, table::Matrix{Int}
     @assert length(variables) == size(table, 1)
     cleanedTable = cleanTable(variables, table)
 
+    active = StateObject{Bool}(true, trailer)
     nVariables, nTuples = size(cleanedTable)
     currentTable = RSparseBitSet{UInt64}(nTuples, trailer)
-    modifiedVariables = Int[]
+    modifiedVariables = Set{Int}()
     lastSizes = [length(variable.domain) for variable in variables]
-    unfixedVariables = collect(1:nVariables)
+    unfixedVariables = Set(collect(1:nVariables))
 
     supports = buildSupport(variables, cleanedTable)
     cleanSupports!(supports, variables)
@@ -59,6 +61,7 @@ function TableConstraint(variables::Vector{<:AbstractIntVar}, table::Matrix{Int}
     residues = buildResidues(variables, supports)
     return TableConstraint(
         variables,
+        active,
         cleanedTable, 
         currentTable,
         modifiedVariables,
@@ -172,7 +175,7 @@ This function is directly inspired by Demeulenaere J. et al. paper.
 function updateTable!(constraint::TableConstraint)::Bool
     for variable in constraint.modifiedVariables
         clearMask!(constraint.currentTable)
-        for value in variable.domain
+        for value in constraint.scope[variable].domain
             support = bitVectorToUInt64Vector(constraint.supports[variable => value])
             addToMask!(constraint.currentTable, support)
         end
@@ -193,11 +196,11 @@ This function is directly inspired by Demeulenaere J. et al. paper.
 """
 function pruneDomains!(constraint::TableConstraint)::Vector{Vector{Int}}
     prunedValues = Vector{Vector{Int}}(undef, length(constraint.scope))
-    for i = 1:constraint.numberOfVars
+    for i = 1:length(constraint.scope)
         prunedValues[i] = Int[]
     end
 
-    for variable in constraint.unfixedVariables, value in variable.domain
+    for variable in constraint.unfixedVariables, value in constraint.scope[variable].domain
         index = constraint.residues[variable => value]
         support = bitVectorToUInt64Vector(constraint.supports[variable => value])
         if constraint.currentTable.words[index].value & support[index] == UInt64(0)
@@ -224,12 +227,15 @@ function propagate!(constraint::TableConstraint, toPropagate::Set{Constraint}, p
         return true
     end
 
-    constraint.modifiedVariables = findall((var, len) -> length(var.domain) != len, zip(constraint.scope, constraint.lastSizes))
+    empty!(constraint.modifiedVariables)
+    modified = [length(var.domain) != len for (var, len) in zip(constraint.scope, constraint.lastSizes)]
+    union!(constraint.modifiedVariables, findall(modified))
     for (idx, variable) in enumerate(constraint.scope)
         constraint.lastSizes[idx] = length(variable.domain)
     end
 
-    constraint.unfixedVariables = findall(var -> length(var.domain) > 1, constraint.scope)
+    empty!(constraint.unfixedVariables)
+    union!(constraint.unfixedVariables, findall(var -> length(var.domain) > 1, constraint.scope))
 
     if !updateTable!(constraint)
         return false
