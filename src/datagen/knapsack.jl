@@ -62,8 +62,8 @@ function fill_with_generator!(cpmodel::CPModel, gen::KnapsackGenerator; seed=not
     end
     totalWeight = SeaPearl.IntVar(0, maxWeight, "totalWeight", cpmodel.trailer)
     minusTotalWeight = SeaPearl.IntVarViewOpposite(totalWeight, "-totalWeight")
-    SeaPearl.addVariable!(cpmodel, totalWeight)
-    SeaPearl.addVariable!(cpmodel, minusTotalWeight)
+    SeaPearl.addVariable!(cpmodel, totalWeight;branchable=false)
+    SeaPearl.addVariable!(cpmodel, minusTotalWeight;branchable=false)
     push!(varsWeight, minusTotalWeight)
     weightEquality = SeaPearl.SumToZero(varsWeight, cpmodel.trailer)
     push!(cpmodel.constraints, weightEquality)
@@ -83,7 +83,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::KnapsackGenerator; seed=not
         maxValue += values[i]
     end
     totalValue = SeaPearl.IntVar(-maxValue, 0, "totalValue", cpmodel.trailer)
-    SeaPearl.addVariable!(cpmodel, totalValue)
+    SeaPearl.addVariable!(cpmodel, totalValue;branchable=false)
     push!(varsValue, totalValue)
     valueEquality = SeaPearl.SumToZero(varsValue, cpmodel.trailer)
     push!(cpmodel.constraints, valueEquality)
@@ -94,3 +94,13 @@ function fill_with_generator!(cpmodel::CPModel, gen::KnapsackGenerator; seed=not
 
     nothing
 end
+
+feature_length(gen::KnapsackGenerator,  t::Type{DefaultStateRepresentation{F}}) where {F} = 10  
+
+
+"""
+    arraybuffer_dims(gen::KnapsackGenerator, t::Type{DefaultStateRepresentation})
+
+Returns the size of the state representation in its matrix form, useful when construcing the trajectory for the RL agent
+"""
+arraybuffer_dims(gen::KnapsackGenerator, t::Type{DefaultStateRepresentation{F}}) where {F} = (gen.nb_items^3,gen.nb_items^3+ 3 + feature_length(gen, t))
