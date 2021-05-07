@@ -62,14 +62,18 @@ in the domain of the variable we're branching on.
 The result is given as a namedtuple for convenience with ReinforcementLearning.jl interface. 
 """
 function get_observation!(lh::LearnedHeuristic, model::CPModel, x::AbstractIntVar, done = false)
-    # get legal_actions_mask
+    #æet action_space_index. CAUTION : the action space is never updated. 
     action_space_index=collect(1:size(lh.action_space)[1])
+   
+    # get legal_actions_mask
     legal_actions_mask = [value in x.domain for value in lh.action_space]
 
     # compute legal actions
     legal_actions = lh.action_space[legal_actions_mask]
 
+    #get reward 
     reward = lh.reward.value
+    
     # Initialize reward for the next state: not compulsory with DefaultReward, but maybe useful in case the user forgets it
     lh.reward.value = 0
 
