@@ -1,5 +1,6 @@
 
 include("alldifferent.jl")
+include("compacttable.jl")
 include("equal.jl")
 include("notequal.jl")
 include("lessorequal.jl")
