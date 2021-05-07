@@ -155,8 +155,9 @@ Return the residues from the variables and the cleaned supports.
 """
 function buildResidues(variables::Vector{<:AbstractIntVar}, supports::Dict{Pair{Int,Int},BitVector})::Dict{Pair{Int,Int},Int}
     residues = Dict{Pair{Int,Int},Int}()
+    n = 64
     for (key, support) in supports
-        residues[key] = findfirst(support)
+        residues[key] = Int(ceil(findfirst(support)/n))
     end
     return residues
 end
@@ -199,7 +200,7 @@ function pruneDomains!(constraint::TableConstraint)::Vector{Vector{Int}}
     for variable in constraint.unfixedVariables, value in variable.domain
         index = constraint.residues[variable => value]
         support = bitVectorToUInt64Vector(constraint.supports[variable => value])
-        if constraint.currentTable.words[index] & support[index] == UInt64(0)
+        if constraint.currentTable.words[index].value & support[index] == UInt64(0)
             index = intersectIndex(constraint.currentTable, support)
             if index != -1
                 constraint.residues[variable => value] = index
@@ -235,7 +236,7 @@ function propagate!(constraint::TableConstraint, toPropagate::Set{Constraint}, p
     end
 
     prunedValues = pruneDomains!(constraint)
-    for (prunedVar, var) in zip(prunedValues, constraint.x)
+    for (prunedVar, var) in zip(prunedValues, constraint.scope)
         if !isempty(prunedVar)
             for val in prunedVar
                 remove!(var.domain, val)
