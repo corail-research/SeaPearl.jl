@@ -34,7 +34,7 @@
         x = SeaPearl.IntVar(1, 3, "x", trailer)
         y = SeaPearl.IntVar(2, 3, "y", trailer)
         z = SeaPearl.IntVar(2, 3, "Z", trailer)
-        vec = Vector{SeaPearl.AbstractIntVar}([x, y, z])
+        vec = [x, y, z]
         table = [
             1 2 2;
             3 3 3;
@@ -51,7 +51,7 @@
         x = SeaPearl.IntVar(1, 3, "x", trailer)
         y = SeaPearl.IntVar(2, 3, "y", trailer)
         z = SeaPearl.IntVar(2, 3, "Z", trailer)
-        vec = Vector{SeaPearl.AbstractIntVar}([x, y, z])
+        vec = [x, y, z]
         table = [
             1 2 2;
             3 3 3;
@@ -69,11 +69,10 @@
         x = SeaPearl.IntVar(1, 3, "x", trailer)
         y = SeaPearl.IntVar(2, 3, "y", trailer)
         z = SeaPearl.IntVar(2, 3, "z", trailer)
-        SeaPearl.remove!(z.domain, 2)
         a = SeaPearl.IntVar(2, 4, "a", trailer)
         SeaPearl.remove!(a.domain, 3)
         b = SeaPearl.IntVar(3, 6, "b", trailer)
-        c = SeaPearl.IntVar(6, 7, "c", trailer)
+        c = SeaPearl.IntVar(5, 7, "c", trailer)
 
         table = [
             1 2 2;
@@ -83,14 +82,13 @@
             3 7 6;
             5 7 7
         ]
-        vec = Vector{SeaPearl.AbstractIntVar}([x, y, z, a, b, c])
+        vec = [x, y, z, a, b, c]
         table = SeaPearl.cleanTable(vec,table)
 
         constraint = SeaPearl.TableConstraint(vec, table, trailer)
 
         toPropagate = Set{SeaPearl.Constraint}([constraint])
-        modif = SeaPearl.CPModification(Dict("z" => [2]))
-        SeaPearl.remove!(z.domain, 1)
+        modif = SeaPearl.CPModification()
         res = SeaPearl.propagate!(constraint, toPropagate, modif)
 
         @test !(constraint in toPropagate)
@@ -102,7 +100,57 @@
         @test length(b.domain) == 1
         @test length(c.domain) == 1
         @test 2 in x.domain
-        @test !(1 in z.domain)
+        @test 3 in y.domain
+        @test 3 in z.domain
+        @test 4 in a.domain
+        @test 6 in b.domain
+        @test 7 in c.domain
+    end
 
+    @testset "compactTable fullPropagation" begin
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+
+        x = SeaPearl.IntVar(1, 3, "x", trailer)
+        y = SeaPearl.IntVar(1, 3, "y", trailer)
+        z = SeaPearl.IntVar(1, 3, "z", trailer)
+        a = SeaPearl.IntVar(1, 3, "a", trailer)
+        b = SeaPearl.IntVar(1, 3, "b", trailer)
+        c = SeaPearl.IntVar(1, 3, "c", trailer)
+
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y)
+        SeaPearl.addVariable!(model, z)
+        SeaPearl.addVariable!(model, a)
+        SeaPearl.addVariable!(model, b)
+        SeaPearl.addVariable!(model, c)
+        table1 = [
+            1 2 3 1 2 3;
+            1 1 2 2 3 3;
+            1 1 1 3 3 3;
+            3 2 1 3 2 1
+        ]
+        table2 = [
+            1 2 3;
+            1 2 3;
+            1 2 3
+        ]
+
+        constraint1 = SeaPearl.TableConstraint([x, y, z, a], table1, trailer)
+        constraint2 = SeaPearl.TableConstraint([a, b, c], table2, trailer)
+
+        push!(model.constraints, constraint1)
+        push!(model.constraints, constraint2)
+
+        variableSelection = SeaPearl.MinDomainVariableSelection{false}()
+        SeaPearl.solve!(model; variableHeuristic=variableSelection)
+        
+        @test length(model.solutions) == 6
+        @test Dict("c" => 2, "x" => 2, "b" => 2, "z" => 3, "a" => 2, "y" => 3) in model.solutions
+        @test Dict("c" => 1, "x" => 3, "b" => 1, "z" => 3, "a" => 1, "y" => 3) in model.solutions
+        @test Dict("c" => 3, "x" => 1, "b" => 3, "z" => 3, "a" => 3, "y" => 2) in model.solutions
+        @test Dict("c" => 1, "x" => 3, "b" => 1, "z" => 1, "a" => 1, "y" => 2) in model.solutions
+        @test Dict("c" => 3, "x" => 1, "b" => 3, "z" => 1, "a" => 3, "y" => 1) in model.solutions
+        @test Dict("c" => 2, "x" => 2, "b" => 2, "z" => 1, "a" => 2, "y" => 1) in model.solutions
     end
 end
