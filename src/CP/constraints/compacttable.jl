@@ -259,3 +259,21 @@ function propagate!(constraint::TableConstraint, toPropagate::Set{Constraint}, p
 
     return true
 end
+
+function Base.show(io::IO, ::MIME"text/plain", con::TableConstraint)
+    table = split(repr("text/plain", con.table), '\n')[2:end]
+    maxlen = Base.maximum(x -> length(x.id), con.scope)
+
+    println(io, string(typeof(con)), ": active = ", con.active)
+    for i = 1:length(con.scope)
+        println(io, "   ", rpad(con.scope[i].id, maxlen),"  in  ", table[i])
+    end
+    println(io, "\n   With domains:")
+    for var in con.scope
+        println(io, "      ", var)
+    end
+end
+
+function Base.show(io::IO, con::TableConstraint)
+    println(io, string(typeof(con)), ": (", join([x.id for x in con.scope], ", "), ") in ", con.table, ", active = ", con.active)
+end
