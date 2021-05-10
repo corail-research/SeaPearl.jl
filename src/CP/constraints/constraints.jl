@@ -1,4 +1,4 @@
-
+include("absolute.jl")
 include("alldifferent.jl")
 include("compacttable.jl")
 include("equal.jl")
