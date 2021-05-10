@@ -234,11 +234,11 @@ function propagate!(constraint::TableConstraint, toPropagate::Set{Constraint}, p
         return true
     end
 
-    println(bitstring(constraint.currentTable.words[1].value))
     empty!(constraint.modifiedVariables)
-    modified = [length(var.domain) != len for (var, len) in zip(constraint.scope, constraint.lastSizes)]
-    union!(constraint.modifiedVariables, findall(modified))
     for (idx, variable) in enumerate(constraint.scope)
+        if (constraint.lastSizes[idx] != length(variable.domain)) || (variable.id in keys(prunedDomains))
+            push!(constraint.modifiedVariables, idx)
+        end
         constraint.lastSizes[idx] = length(variable.domain)
     end
 
