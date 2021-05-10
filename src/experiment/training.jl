@@ -7,8 +7,11 @@
         variableHeuristic=selectVariable)
 )
 
-Training the given LearnedHeuristics and using the Basic One to compare performances. Might evolve soon.
+Training the given LearnedHeuristics and using the Basic One to compare performances. 
 This function managed the training mode of the LEarnedHeuristic before and after a call to `launch_experiment!`.
+    
+The function return arrays containing scores, time needed and numbers of nodes visited on each episode for every heuristic
+(basic and learned heuristics)
 """
 function train!(;
         valueSelectionArray::Union{T, Array{T, 1}}, 
@@ -56,10 +59,10 @@ function train!(;
 
             if verbose 
                 print("Has been trained on : ", typeof(generator))
-                print(" ... with strategy : ", strategy)
-                print(" ... during ", nb_episodes, " episodes ")
-                out_solver && println("   out of the solver.")
-                !out_solver && println("   in the solver.")
+                print(" with strategy : ", strategy)
+                print(" during ", nb_episodes, " episodes ")
+                out_solver && println("out of the solver.")
+                !out_solver && println("in the solver.")
                 println("Training mode now desactivated !")
             end
         end
