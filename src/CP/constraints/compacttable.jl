@@ -200,16 +200,17 @@ function pruneDomains!(constraint::TableConstraint)::Vector{Vector{Int}}
         prunedValues[i] = Int[]
     end
 
-    for variable in constraint.unfixedVariables, value in constraint.scope[variable].domain
-        index = constraint.residues[variable => value]
-        support = bitVectorToUInt64Vector(constraint.supports[variable => value])
-        if constraint.currentTable.words[index].value & support[index] == UInt64(0)
-            index = intersectIndex(constraint.currentTable, support)
-            if index != -1
-                constraint.residues[variable => value] = index
-            else
-                remove!(constraint.scope[variable].domain, value)
-                push!(prunedValues[variable], value)
+    for variable in constraint.unfixedVariables
+        for value in constraint.scope[variable].domain
+            index = constraint.residues[variable => value]
+            support = bitVectorToUInt64Vector(constraint.supports[variable => value])
+            if constraint.currentTable.words[index].value & support[index] == UInt64(0)
+                index = intersectIndex(constraint.currentTable, support)
+                if index != -1
+                    constraint.residues[variable => value] = index
+                else
+                    push!(prunedValues[variable], value)
+                end
             end
         end
         constraint.lastSizes[variable] = length(constraint.scope[variable].domain)
