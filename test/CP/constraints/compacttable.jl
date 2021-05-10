@@ -101,7 +101,8 @@
         @test length(a.domain) == 1
         @test length(b.domain) == 1
         @test length(c.domain) == 1
-        @test 1 in x.domain
+        @test 2 in x.domain
+        @test !(1 in z.domain)
 
     end
 end

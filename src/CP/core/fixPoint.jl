@@ -9,10 +9,12 @@ Return a tuple with a boolean corresponding to the feasibility and a `CPModifica
 - `new_constraints::Union{Array{Constraint}, Nothing}`: if this is filled with a set of constraints, 
 only those will be propagated in the first place.
 """
-function fixPoint!(model::CPModel, new_constraints::Union{Array{Constraint}, Nothing}=nothing)
+function fixPoint!(model::CPModel, new_constraints::Union{Array{Constraint}, Nothing}=nothing, prunedDomains::Union{CPModification,Nothing}=nothing)
     toPropagate = Set{Constraint}()
 
-    prunedDomains = CPModification()
+    if isnothing(prunedDomains)
+        prunedDomains = CPModification()
+    end
 
     # If we did not specify the second argument, it is the beginning so we propagate every constraint
     if isnothing(new_constraints)

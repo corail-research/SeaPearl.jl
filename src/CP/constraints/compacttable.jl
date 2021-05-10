@@ -16,7 +16,7 @@ https://doi.org/10.1007/978-3-319-44953-1_14
 - `currentTable::RSparseBitSet{UInt64}`: the reversible representation of the table.
 - `modifiedVariables::Vector{Int}`: vector with the indexes of the variables modified since the last propagation.
 - `lastSizes::Vector{Int}`: vector with the size of the domains during the last propagation.
-- `unfixedVariables::Vector{Int}`: vector with the indexes of the variables binding.
+- `unfixedVariables::Vector{Int}`: vector with the indexes of the variables which are not binding.
 - `supports::Dict{Pair{Int,Int},BitVector}`: dictionnary which, for each pair (variable => value), gives the support of this pair.
 - `residues::Dict{Pair{Int,Int},Int}`: dictionnary which, for each pair (variable => value), gives the residue of this pair.
 """
@@ -59,7 +59,7 @@ function TableConstraint(variables::Vector{<:AbstractIntVar}, table::Matrix{Int}
     cleanSupports!(supports, variables)
 
     residues = buildResidues(variables, supports)
-    return TableConstraint(
+    constraint = TableConstraint(
         variables,
         active,
         cleanedTable, 
@@ -70,6 +70,12 @@ function TableConstraint(variables::Vector{<:AbstractIntVar}, table::Matrix{Int}
         supports,
         residues
     )
+
+    for variable in variables
+        addOnDomainChange!(variable, constraint)
+    end
+
+    return constraint
 end
 
 """
@@ -200,16 +206,17 @@ function pruneDomains!(constraint::TableConstraint)::Vector{Vector{Int}}
         prunedValues[i] = Int[]
     end
 
-    for variable in constraint.unfixedVariables, value in constraint.scope[variable].domain
-        index = constraint.residues[variable => value]
-        support = bitVectorToUInt64Vector(constraint.supports[variable => value])
-        if constraint.currentTable.words[index].value & support[index] == UInt64(0)
-            index = intersectIndex(constraint.currentTable, support)
-            if index != -1
-                constraint.residues[variable => value] = index
-            else
-                remove!(constraint.scope[variable].domain, value)
-                push!(prunedValues[variable], value)
+    for variable in constraint.unfixedVariables
+        for value in constraint.scope[variable].domain
+            index = constraint.residues[variable => value]
+            support = bitVectorToUInt64Vector(constraint.supports[variable => value])
+            if constraint.currentTable.words[index].value & support[index] == UInt64(0)
+                index = intersectIndex(constraint.currentTable, support)
+                if index != -1
+                    constraint.residues[variable => value] = index
+                else
+                    push!(prunedValues[variable], value)
+                end
             end
         end
         constraint.lastSizes[variable] = length(constraint.scope[variable].domain)
@@ -228,9 +235,10 @@ function propagate!(constraint::TableConstraint, toPropagate::Set{Constraint}, p
     end
 
     empty!(constraint.modifiedVariables)
-    modified = [length(var.domain) != len for (var, len) in zip(constraint.scope, constraint.lastSizes)]
-    union!(constraint.modifiedVariables, findall(modified))
     for (idx, variable) in enumerate(constraint.scope)
+        if (constraint.lastSizes[idx] != length(variable.domain)) || (variable.id in keys(prunedDomains))
+            push!(constraint.modifiedVariables, idx)
+        end
         constraint.lastSizes[idx] = length(variable.domain)
     end
 
@@ -257,4 +265,22 @@ function propagate!(constraint::TableConstraint, toPropagate::Set{Constraint}, p
     end
 
     return true
+end
+
+function Base.show(io::IO, ::MIME"text/plain", con::TableConstraint)
+    table = split(repr("text/plain", con.table), '\n')[2:end]
+    maxlen = Base.maximum(x -> length(x.id), con.scope)
+
+    println(io, string(typeof(con)), ": active = ", con.active)
+    for i = 1:length(con.scope)
+        println(io, "   ", rpad(con.scope[i].id, maxlen),"  in  ", table[i])
+    end
+    println(io, "\n   With domains:")
+    for var in con.scope
+        println(io, "      ", var)
+    end
+end
+
+function Base.show(io::IO, con::TableConstraint)
+    println(io, string(typeof(con)), ": (", join([x.id for x in con.scope], ", "), ") in ", con.table, ", active = ", con.active)
 end
