@@ -3,16 +3,12 @@ using SeaPearl
 @testset "sumlessthan.jl" begin
     @testset "SumLessThan()" begin
         trailer = SeaPearl.Trailer()
-        vars = SeaPearl.AbstractIntVar[]
 
         x = SeaPearl.IntVar(2, 6, "x", trailer)
-        push!(vars, x)
         y = SeaPearl.IntVar(2, 3, "y", trailer)
-        push!(vars, y)
         ax = SeaPearl.IntVarViewMul(x, 3, "3x")
-        push!(vars, ax)
         minusY = SeaPearl.IntVarViewOpposite(y, "-y")
-        push!(vars, minusY)
+        vars = [x, y, ax, minusY]
         constraint = SeaPearl.SumLessThan(vars, 10, trailer)
 
         @test constraint in x.onDomainChange

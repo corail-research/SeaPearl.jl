@@ -1,16 +1,16 @@
 """
-    SumLessThan(x::SeaPearl.AbstractIntVar, v::Int)
+    SumLessThan(x<:AbstractIntVar, v::Int)
 
 Summing constraint, states that `x[1] + x[2] + ... + x[length(x)] <= v`
 """
 struct SumLessThan <: Constraint
-    x                   ::Array{AbstractIntVar}
+    x                   ::Array{<:AbstractIntVar}
     upper               ::Int
     active              ::StateObject{Bool}
     numberOfFreeVars    ::StateObject{Int}
     sumOfFixedVars      ::StateObject{Int}
     freeIds             ::Array{Int}
-    function SumLessThan(x::Array{AbstractIntVar}, upper,  trailer)
+    function SumLessThan(x::Array{<:AbstractIntVar}, upper,  trailer)
         @assert !isempty(x)
 
         freeIds = zeros(length(x))
