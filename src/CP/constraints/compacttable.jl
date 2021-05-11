@@ -58,7 +58,7 @@ function TableConstraint(variables::Vector{<:AbstractIntVar}, table::Matrix{Int}
     supports = buildSupport(variables, cleanedTable)
     cleanSupports!(supports, variables)
 
-    residues = buildResidues(variables, supports)
+    residues = buildResidues(supports)
     constraint = TableConstraint(
         variables,
         active,
@@ -162,7 +162,7 @@ Return the residues from the variables and the cleaned supports.
 - `variables::Vector{<:AbstractIntVar}`: the variables of the constraint.
 - `supports::Dict{Pair{Int,Int},BitVector}`: the previously generated supports of the constraint.
 """
-function buildResidues(variables::Vector{<:AbstractIntVar}, supports::Dict{Pair{Int,Int},BitVector})::Dict{Pair{Int,Int},Int}
+function buildResidues(supports::Dict{Pair{Int,Int},BitVector})::Dict{Pair{Int,Int},Int}
     residues = Dict{Pair{Int,Int},Int}()
     n = 64
     for (key, support) in supports

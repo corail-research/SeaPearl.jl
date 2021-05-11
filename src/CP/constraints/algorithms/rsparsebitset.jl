@@ -37,29 +37,6 @@ end
 
 const RSparseBitSet(size::Int, trailer) = RSparseBitSet{UInt64}(size::Int, trailer)
 
-function Base.isempty(set::RSparseBitSet{T})::Bool where T <: Unsigned
-    return set.limit.value == 0
-end
-
-function Base.show(io::IO, ::MIME"text/plain", set::RSparseBitSet{T}) where T <: Unsigned
-    n = sizeof(T) * 8
-    println(io, string(typeof(set)), ": index = ", set.index, ", limit = ", set.limit.value)
-    println(io, "   words: ", join([string(x.value, base=16, pad=Int(n/4)) for x in set.words], " "))
-    println(io, "   mask:  ", join([string(x, base=16, pad=Int(n/4)) for x in set.mask], " "))
-end
-
-function Base.show(io::IO, set::RSparseBitSet{T}) where T <: Unsigned
-    n = sizeof(T) * 8
-    println(io, string(typeof(set)), ": index = ", set.index, ", limit = ", set.limit.value)
-    println(io, "   words: ", join([string(x.value, base=16, pad=Int(n/4)) for x in set.words], " "))
-end
-
-function Base.getindex(set::RSparseBitSet{T}, idx::Integer) where T <: Unsigned
-    n = sizeof(T) * 8
-    wordIndex = Int(ceil((idx)/n))
-    offset = (n - idx%n)%n
-    return (set.words[wordIndex].value & (T(1) << offset)) > 0
-end
 
 """
     clearMask!(::RSparseBitSet{T})
@@ -125,4 +102,29 @@ function intersectIndex(set::RSparseBitSet{T}, m::Vector{T})::Int where T <: Uns
         end
     end
     return -1
+end
+
+
+function Base.isempty(set::RSparseBitSet{T})::Bool where T <: Unsigned
+    return set.limit.value == 0
+end
+
+function Base.getindex(set::RSparseBitSet{T}, idx::Integer) where T <: Unsigned
+    n = sizeof(T) * 8
+    wordIndex = Int(ceil((idx)/n))
+    offset = (n - idx%n)%n
+    return (set.words[wordIndex].value & (T(1) << offset)) > 0
+end
+
+function Base.show(io::IO, ::MIME"text/plain", set::RSparseBitSet{T}) where T <: Unsigned
+    n = sizeof(T) * 8
+    println(io, string(typeof(set)), ": index = ", set.index, ", limit = ", set.limit.value)
+    println(io, "   words: ", join([string(x.value, base=16, pad=Int(n/4)) for x in set.words], " "))
+    println(io, "   mask:  ", join([string(x, base=16, pad=Int(n/4)) for x in set.mask], " "))
+end
+
+function Base.show(io::IO, set::RSparseBitSet{T}) where T <: Unsigned
+    n = sizeof(T) * 8
+    println(io, string(typeof(set)), ": index = ", set.index, ", limit = ", set.limit.value)
+    println(io, "   words: ", join([string(x.value, base=16, pad=Int(n/4)) for x in set.words], " "))
 end
