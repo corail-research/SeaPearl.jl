@@ -15,7 +15,6 @@ https://doi.org/10.1007/978-3-319-44953-1_14
 - `table::Matrix{Int}`: the original table describing the constraint (impossible assignment are filtered). 
 - `currentTable::RSparseBitSet{UInt64}`: the reversible representation of the table.
 - `modifiedVariables::Vector{Int}`: vector with the indexes of the variables modified since the last propagation.
-- `lastSizes::Vector{Int}`: vector with the size of the domains during the last propagation.
 - `unfixedVariables::Vector{Int}`: vector with the indexes of the variables which are not binding.
 - `supports::Dict{Pair{Int,Int},BitVector}`: dictionnary which, for each pair (variable => value), gives the support of this pair.
 - `residues::Dict{Pair{Int,Int},Int}`: dictionnary which, for each pair (variable => value), gives the residue of this pair.
@@ -26,7 +25,6 @@ struct TableConstraint <: Constraint
     table::Matrix{Int}
     currentTable::RSparseBitSet{UInt64}
     modifiedVariables::Set{Int}
-    lastSizes::Vector{Int}
     unfixedVariables::Set{Int}
     supports::Dict{Pair{Int,Int},BitVector}
     residues::Dict{Pair{Int,Int},Int}
@@ -52,7 +50,6 @@ function TableConstraint(variables::Vector{<:AbstractIntVar}, table::Matrix{Int}
     nVariables, nTuples = size(cleanedTable)
     currentTable = RSparseBitSet{UInt64}(nTuples, trailer)
     modifiedVariables = Set{Int}()
-    lastSizes = [length(variable.domain) for variable in variables]
     unfixedVariables = Set(collect(1:nVariables))
 
     supports = buildSupport(variables, cleanedTable)
@@ -65,7 +62,6 @@ function TableConstraint(variables::Vector{<:AbstractIntVar}, table::Matrix{Int}
         cleanedTable, 
         currentTable,
         modifiedVariables,
-        lastSizes,
         unfixedVariables,
         supports,
         residues
@@ -172,18 +168,26 @@ function buildResidues(supports::Dict{Pair{Int,Int},BitVector})::Dict{Pair{Int,I
 end
 
 """
-    updateTable!(constraint)
+    updateTable!(constraint, prunedValues)
 
 Remove the outdated columns from the reversible table of the constraint.
 
 This function is directly inspired by Demeulenaere J. et al. paper.
 """
-function updateTable!(constraint::TableConstraint)::Bool
+function updateTable!(constraint::TableConstraint, prunedValues::Vector{Vector{Int}})::Bool
     for variable in constraint.modifiedVariables
         clearMask!(constraint.currentTable)
-        for value in constraint.scope[variable].domain
-            support = bitVectorToUInt64Vector(constraint.supports[variable => value])
-            addToMask!(constraint.currentTable, support)
+        if length(prunedValues[variable]) < length(constraint.scope[variable].domain)
+            for value in prunedValues[variable]
+                support = bitVectorToUInt64Vector(constraint.supports[variable => value])
+                addToMask!(constraint.currentTable, support)
+            end
+            reverseMask!(constraint.currentTable)
+        else
+            for value in constraint.scope[variable].domain
+                support = bitVectorToUInt64Vector(constraint.supports[variable => value])
+                addToMask!(constraint.currentTable, support)
+            end
         end
         intersectWithMask!(constraint.currentTable)
         if isempty(constraint.currentTable)
@@ -194,9 +198,9 @@ function updateTable!(constraint::TableConstraint)::Bool
 end
 
 """
-    pruneDomains!(constraint)::Vector{Vector{Int}}
+    pruneDomains!(constraint, prunedValues)
 
-Remove the impossible values from the variables domain and return all the updates.
+Remove the impossible values from the variables domain update prunedValues.
 
 This function is directly inspired by Demeulenaere J. et al. paper.
 """
@@ -206,20 +210,17 @@ function pruneDomains!(constraint::TableConstraint)::Vector{Vector{Int}}
         prunedValues[i] = Int[]
     end
 
-    for variable in constraint.unfixedVariables
-        for value in constraint.scope[variable].domain
-            index = constraint.residues[variable => value]
-            support = bitVectorToUInt64Vector(constraint.supports[variable => value])
-            if constraint.currentTable.words[index].value & support[index] == UInt64(0)
-                index = intersectIndex(constraint.currentTable, support)
-                if index != -1
-                    constraint.residues[variable => value] = index
-                else
-                    push!(prunedValues[variable], value)
-                end
+    for variable in constraint.unfixedVariables, value in constraint.scope[variable].domain
+        index = constraint.residues[variable => value]
+        support = bitVectorToUInt64Vector(constraint.supports[variable => value])
+        if constraint.currentTable.words[index].value & support[index] == UInt64(0)
+            index = intersectIndex(constraint.currentTable, support)
+            if index != -1
+                constraint.residues[variable => value] = index
+            else
+                push!(prunedValues[variable], value)
             end
         end
-        constraint.lastSizes[variable] = length(constraint.scope[variable].domain)
     end
     return prunedValues
 end
@@ -234,23 +235,28 @@ function propagate!(constraint::TableConstraint, toPropagate::Set{Constraint}, p
         return true
     end
 
+    # Store all the changes concerning the variables in `constraint.scope`
+    prunedValues = Vector{Vector{Int}}(undef, length(constraint.scope))
     empty!(constraint.modifiedVariables)
     for (idx, variable) in enumerate(constraint.scope)
-        if (constraint.lastSizes[idx] != length(variable.domain)) || (variable.id in keys(prunedDomains))
+        if (variable.id in keys(prunedDomains))
             push!(constraint.modifiedVariables, idx)
+            prunedValues[idx] = prunedDomains[variable.id]
         end
-        constraint.lastSizes[idx] = length(variable.domain)
     end
 
+    # Update unfixed variables
     empty!(constraint.unfixedVariables)
     union!(constraint.unfixedVariables, findall(var -> length(var.domain) > 1, constraint.scope))
 
-    if !updateTable!(constraint)
+    # Remove impossible supports from the table
+    if !updateTable!(constraint, prunedValues)
         return false
     end
 
-    prunedValues = pruneDomains!(constraint)
-    for (prunedVar, var) in zip(prunedValues, constraint.scope)
+    # Restrict domains to the new supports
+    newPrunedValues = pruneDomains!(constraint)
+    for (prunedVar, var) in zip(newPrunedValues, constraint.scope)
         if !isempty(prunedVar)
             for val in prunedVar
                 remove!(var.domain, val)

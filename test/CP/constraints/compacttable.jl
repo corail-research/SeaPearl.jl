@@ -59,7 +59,6 @@
         ]
         constraint = SeaPearl.TableConstraint(vec, table, trailer)
         @test size(constraint.table, 2)==2
-        @test all(constraint.lastSizes.==[3, 2, 2])
         @test (constraint.supports[3=>2] == [1,0])
         @test(isempty(constraint.modifiedVariables))
         @test(constraint.residues[3=>2]==1)
