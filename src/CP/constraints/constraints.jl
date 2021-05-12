@@ -37,7 +37,7 @@ addOnDomainChange!(x::Union{IntVarView, BoolVarView}, constraint::Constraint) = 
 
 Add the constraints to `toPropagate` only if they are active.
 """
-function addToPropagate!(toPropagate::Set{Constraint}, constraints::Array{Constraint})
+function addToPropagate!(toPropagate::Set{<:Constraint}, constraints::Array{<:Constraint})
     for constraint in constraints
         if constraint.active.value
             push!(toPropagate, constraint)
@@ -50,6 +50,6 @@ end
 
 Add the constraints that have to be propagated when the domain of `x` changes to `toPropagate`.
 """
-triggerDomainChange!(toPropagate::Set{Constraint}, x::Union{AbstractIntVar, AbstractBoolVar, IntSetVar}) = addToPropagate!(toPropagate, getOnDomainChange(x))
+triggerDomainChange!(toPropagate::Set{<:Constraint}, x::Union{AbstractIntVar, AbstractBoolVar, IntSetVar}) = addToPropagate!(toPropagate, getOnDomainChange(x))
 getOnDomainChange(x::Union{IntVar, BoolVar, IntSetVar}) = x.onDomainChange
 getOnDomainChange(x::Union{IntVarView, BoolVarView}) = getOnDomainChange(x.x)

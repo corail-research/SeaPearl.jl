@@ -1,15 +1,15 @@
 """
-    SumToZero(x::SeaPearl.AbstractIntVar, v::Int)
+    SumToZero(x<:AbstractIntVar, v::Int)
 
 Summing constraint, states that `x[1] + x[2] + ... + x[length(x)] == 0`
 """
 struct SumToZero <: Constraint
-    x                   ::Array{AbstractIntVar}
+    x                   ::Array{<:AbstractIntVar}
     active              ::StateObject{Bool}
     numberOfFreeVars    ::StateObject{Int}
     sumOfFixedVars      ::StateObject{Int}
     freeIds             ::Array{Int}
-    function SumToZero(x::Array{AbstractIntVar}, trailer)
+    function SumToZero(x::Array{<:AbstractIntVar}, trailer)
         @assert !isempty(x)
 
         freeIds = zeros(length(x))

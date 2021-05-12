@@ -6,7 +6,7 @@ using LightGraphs
         x = SeaPearl.IntVar(1, 3, "x", trailer)
         y = SeaPearl.IntVar(2, 3, "y", trailer)
         z = SeaPearl.IntVar(2, 3, "Z", trailer)
-        vec = Vector{SeaPearl.AbstractIntVar}([x, y, z])
+        vec = Vector{SeaPearl.IntVar}([x, y, z])
 
         constraint = SeaPearl.AllDifferent(vec, trailer)
 
@@ -27,7 +27,7 @@ using LightGraphs
         x = SeaPearl.IntVar(1, 3, "x", trailer)
         y = SeaPearl.IntVar(2, 3, "y", trailer)
         z = SeaPearl.IntVar(2, 3, "Z", trailer)
-        vec = Vector{SeaPearl.AbstractIntVar}([x, y, z])
+        vec = Vector{SeaPearl.IntVar}([x, y, z])
 
         constraint = SeaPearl.AllDifferent(vec, trailer)
         SeaPearl.setValue!(constraint.edgesState[Edge(1, 6)], SeaPearl.removed)
@@ -86,7 +86,7 @@ using LightGraphs
         SeaPearl.remove!(a.domain, 3)
         b = SeaPearl.IntVar(3, 6, "b", trailer)
         c = SeaPearl.IntVar(6, 7, "c", trailer)
-        vars = Vector{SeaPearl.AbstractIntVar}([x, y, z, a, b, c])
+        vars = [x, y, z, a, b, c]
         constraint = SeaPearl.AllDifferent(vars, trailer)
 
         graph, digraph = SeaPearl.initializeGraphs!(constraint)
@@ -205,19 +205,19 @@ using LightGraphs
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
 
-        rows = Vector{SeaPearl.AbstractIntVar}(undef, n)
+        rows = Vector{SeaPearl.IntVar}(undef, n)
         for i = 1:n
             rows[i] = SeaPearl.IntVar(1, n, "row_"*string(i), trailer)
             SeaPearl.addVariable!(model, rows[i]; branchable=true)
         end
 
-        rows_plus = Vector{SeaPearl.AbstractIntVar}(undef, n)
+        rows_plus = Vector{SeaPearl.IntVarView}(undef, n)
         for i = 1:n
             rows_plus[i] = SeaPearl.IntVarViewOffset(rows[i], i, rows[i].id*"+"*string(i))
             #SeaPearl.addVariable!(model, rows_plus[i]; branchable=false)
         end
 
-        rows_minus = Vector{SeaPearl.AbstractIntVar}(undef, n)
+        rows_minus = Vector{SeaPearl.IntVarView}(undef, n)
         for i = 1:n
             rows_minus[i] = SeaPearl.IntVarViewOffset(rows[i], -i, rows[i].id*"-"*string(i))
             #SeaPearl.addVariable!(model, rows_minus[i]; branchable=false)
@@ -228,7 +228,7 @@ using LightGraphs
         push!(model.constraints, SeaPearl.AllDifferent(rows_minus, trailer))
 
         variableSelection = SeaPearl.MinDomainVariableSelection{false}()
-        status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection)
+        status = SeaPearl.solve!(model; variableHeuristic=variableSelection)
 
         @test status == :Optimal
         @test length(model.solutions) == 10
@@ -261,7 +261,7 @@ using LightGraphs
         push!(model.constraints, SeaPearl.AllDifferent(rows_minus, trailer))
 
         variableSelection = SeaPearl.MinDomainVariableSelection{false}()
-        status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection)
+        status = SeaPearl.solve!(model; variableHeuristic=variableSelection)
 
         @test status == :Optimal
         @test length(model.solutions) == 40
