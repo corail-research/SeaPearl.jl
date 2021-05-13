@@ -77,7 +77,7 @@ function get_observation!(lh::LearnedHeuristic, model::CPModel, x::AbstractIntVa
     # Initialize reward for the next state: not compulsory with DefaultReward, but maybe useful in case the user forgets it
     lh.reward.value = 0
 
-    # synchronize state: Update the adjacency_matrix of the CPLayerGraph using the CPModel
+    # synchronize state: 
     sync_state!(lh, model, x)
 
     state = to_arraybuffer(lh.current_state, lh.cpnodes_max)
