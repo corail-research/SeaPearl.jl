@@ -75,7 +75,6 @@ function launch_experiment!(
             bestsolutions[i, j] = model.objectiveBound + 1
             nodevisited[i, j] = model.statistics.numberOfNodes
 
-            #TODO understand what this line is doing
             if j == 2
                 set_postfix(iter, Delta=string(nodevisited[i, 1] - nodevisited[i, 2]))
             end
