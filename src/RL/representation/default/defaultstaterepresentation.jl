@@ -27,14 +27,30 @@ end
 
 DefaultStateRepresentation(m::CPModel) = DefaultStateRepresentation{DefaultFeaturization}(m::CPModel)
 
+""" 
+        function update_representation!(sr::DefaultStateRepresentation, model::CPModel, x::AbstractIntVar)
+
+While working with DefaultStateRepresentation, at each step of the research node, only the variable_id and the possible_value_ids need to be updated. 
+features don't need to be updated as they encode the initial problem and the CPLayerGraph is automatically updated as it is linked to the CPModel. 
+"""
 function update_representation!(sr::DefaultStateRepresentation, model::CPModel, x::AbstractIntVar)
     sr.variable_id = indexFromCpVertex(sr.cplayergraph, VariableVertex(x))
     sr.possible_value_ids = possible_values(sr.variable_id, sr.cplayergraph)
     sr
 end
 
+"""
+        function to_arraybuffer(sr::DefaultStateRepresentation, rows=nothing::Union{Nothing, Int})::Array{Float32, 2}
+
+This function encodes the DefaultStateRepresentation in a Array{Float32, 2}. This function is usefull as the trajectory buffer can only stock Array.  
+The argument "rows" allows the user to define the fixed size of the array that will encode the state. This is usefull as the size of the trajectory buffer 
+is fixed in advance. This method makes the array-encoding robust to different instance size as long as the size does not exceed the maximum size defined 
+by "rows". Such an encoding is a key element in the quest for generalization over different instances of a same problem.
+
+#TODO precisely describe the array construction whether rows=nothing or not.  
+"""
 function to_arraybuffer(sr::DefaultStateRepresentation, rows=nothing::Union{Nothing, Int})::Array{Float32, 2}
-    adj = Matrix(LightGraphs.LinAlg.adjacency_matrix(sr.cplayergraph))
+    adj = Matrix(LightGraphs.LinAlg.adjacency_matrix(sr.cplayergraph)) 
     var_id = sr.variable_id
 
     var_code = zeros(Float32, size(adj, 1))
@@ -55,9 +71,15 @@ function to_arraybuffer(sr::DefaultStateRepresentation, rows=nothing::Union{Noth
     cp_graph_array = hcat(ones(Float32, size(adj, 1), 1), adj, zeros(Float32, size(adj, 1), rows - size(adj, 1)), transpose(sr.features), var_code, vector_values)
     filler = zeros(Float32, rows - size(cp_graph_array, 1), size(cp_graph_array, 2))
 
-    return vcat(cp_graph_array, filler)
-end
 
+    return vcat(cp_graph_array, filler)
+    
+end
+"""
+        function featuredgraph(array::Array{Float32, 2}, ::Type{DefaultStateRepresentation})::GeometricFlux.FeaturedGraph
+
+#TODO analyse and comment featured graph
+"""
 function featuredgraph(array::Array{Float32, 2}, ::Type{DefaultStateRepresentation})::GeometricFlux.FeaturedGraph
     # Here we only take what's interesting, removing all null values that are there only to accept bigger graphs
     row_indexes = findall(x -> x == 1, array[:, 1])
@@ -80,14 +102,14 @@ end
     function featurize(sr::DefaultStateRepresentation{DefaultFeaturization})
 
 Create features for every node of the graph. Supposed to be overwritten. 
-Default behavior is to call `default_featurize`.
+Default behavior is to call `default_featurize` which consists in 3D One-hot vector that encodes whether the node represents a Constraint, a Variable or a Value 
 """
 function featurize(sr::DefaultStateRepresentation{DefaultFeaturization})
     g = sr.cplayergraph
     features = zeros(Float32, nv(g), 3)
     for i in 1:nv(g)
         cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
-        if isa(cp_vertex, ConstraintVertex)
+        if isa(cp_vertex, ConstraintVertex)    
             features[i, 1] = 1.0f0
         end
         if isa(cp_vertex, VariableVertex)

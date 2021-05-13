@@ -1,4 +1,4 @@
-
+#function used for graph coloring in SeaPearl Zoo
 function labelOfVertex(g::CPLayerGraph, d::Int64)
     cpVertex = cpVertexFromIndex(g, d)
     labelOfVertex(g, cpVertex)
