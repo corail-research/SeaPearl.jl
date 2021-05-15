@@ -6,6 +6,11 @@ struct DisjointSet
     DisjointSet(size) = new(size, fill(-1, size), collect(1:size), collect(1:size))
 end
 
+"""
+    function setUnion!(disjointSet::DisjointSet, representative1::Int, representative2::Int)
+
+Unite the sets of representative 1 and representative 2.
+"""
 function setUnion!(disjointSet::DisjointSet, representative1::Int, representative2::Int)
     #assert disjointSet.parent[representative1] < 0 && disjointSet.parent[representative1] < 0
     if (disjointSet.parent[representative1] < disjointSet.parent[representative2])
@@ -25,7 +30,11 @@ function setUnion!(disjointSet::DisjointSet, representative1::Int, representativ
     
 end
 
+"""
+    function findRepresentative!(disjointSet::DisjointSet, element::Int)
 
+Find the representative of the element in the set.
+"""
 function findRepresentative!(disjointSet::DisjointSet, element::Int)
     root = element
     while (disjointSet.parent[root] >= 0)
@@ -39,11 +48,22 @@ function findRepresentative!(disjointSet::DisjointSet, element::Int)
     return root
 end
 
+
+"""
+    function greatest!(disjointSet::DisjointSet, element::Int) 
+
+Find the gretest element in the set of element.
+"""
 function greatest!(disjointSet::DisjointSet, element::Int) 
     representative = findRepresentative!(disjointSet, element)
     return disjointSet.max[representative]
 end
 
+"""
+    function smallest!(disjointSet::DisjointSet, element::Int) 
+
+Find the smallest element in the set of element.
+"""
 function smallest!(disjointSet::DisjointSet, element::Int) 
     representative = findRepresentative!(disjointSet, element)
     return disjointSet.min[representative]
