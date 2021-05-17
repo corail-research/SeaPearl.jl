@@ -15,7 +15,6 @@ function search!(model::CPModel, ::Type{DFSearch}, variableHeuristic::AbstractVa
 
     # Starting at the root node with an empty stack
     currentStatus = expandDfs!(toCall, model, variableHeuristic, valueSelection)
-    
     while !isempty(toCall)
         # Stop right away if reached a limit
         if currentStatus == :NodeLimitStop || currentStatus == :SolutionLimitStop || (out_solver && (currentStatus in [:Infeasible, :FoundSolution]))
@@ -53,7 +52,8 @@ Add procedures to `toCall`, that, called in the stack order (LIFO) with the `mod
 Some procedures will contain a call to `expandDfs!` itself. Each `expandDfs!` call is wrapped around a `saveState!` and a `restoreState!` to be
 able to backtrack thanks to the trailer.
 """
-function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, newConstraints=nothing)
+function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, newConstraints=nothing; prunedDomains::Union{CPModification,Nothing}=nothing)
+
     # Dealing with limits
     model.statistics.numberOfNodes += 1
     if !belowNodeLimit(model)
@@ -64,7 +64,7 @@ function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
     end
 
     # Fix-point algorithm
-    feasible, pruned = fixPoint!(model, newConstraints)
+    feasible, pruned = fixPoint!(model, newConstraints, prunedDomains)
     if !feasible
         return :Infeasible
     end
@@ -82,11 +82,19 @@ function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
     #println("Value : ", v, " assigned to : ", x.id)
 
     push!(toCall, (model) -> (restoreState!(model.trailer); :BackTracking))
-    push!(toCall, (model) -> (remove!(x.domain, v); expandDfs!(toCall, model, variableHeuristic, valueSelection, getOnDomainChange(x))))
+    push!(toCall, (model) -> (
+        prunedDomains = CPModification();
+        addToPrunedDomains!(prunedDomains, x, remove!(x.domain, v));
+        expandDfs!(toCall, model, variableHeuristic, valueSelection, getOnDomainChange(x); prunedDomains=prunedDomains)
+    ))
     push!(toCall, (model) -> (saveState!(model.trailer); :SavingState))
 
     push!(toCall, (model) -> (restoreState!(model.trailer); :BackTracking))
-    push!(toCall, (model) -> (assign!(x, v); expandDfs!(toCall, model, variableHeuristic, valueSelection, getOnDomainChange(x))))
+    push!(toCall, (model) -> (
+        prunedDomains = CPModification();
+        addToPrunedDomains!(prunedDomains, x, assign!(x, v));
+        expandDfs!(toCall, model, variableHeuristic, valueSelection, getOnDomainChange(x); prunedDomains=prunedDomains)
+    ))
     push!(toCall, (model) -> (saveState!(model.trailer); :SavingState))
 
     return :Feasible
