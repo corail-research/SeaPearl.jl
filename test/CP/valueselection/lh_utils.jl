@@ -74,8 +74,8 @@
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
 
-        x = SeaPearl.IntVar(2, 3, "x", trailer)
-        y = SeaPearl.IntVar(2, 3, "y", trailer)
+        x = SeaPearl.IntVar(2, 4, "x", trailer)
+        y = SeaPearl.IntVar(6, 8, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
@@ -88,8 +88,9 @@
 
         @test obs.reward == 0
         @test obs.terminal == false 
-        @test obs.legal_actions == [2, 3]
-        @test obs.legal_actions_mask == [true, true]
+        @test obs.actions_index==[1, 2, 3, 4, 5, 6]  #correspond to the index of branchable values [2, 3, 4, 6, 7, 8] for ALL variables
+        @test obs.legal_actions == [2, 3, 4]
+        @test obs.legal_actions_mask == [true, true, true, false, false, false]
 
         SeaPearl.remove!(x.domain, 2)
 
@@ -97,8 +98,21 @@
 
         @test obs.reward == 0
         @test obs.terminal == false 
-        @test obs.legal_actions == [3]
-        @test obs.legal_actions_mask == [false, true]
+        @test obs.actions_index==[1, 2, 3, 4, 5, 6]  #correspond to the index of branchable values [2, 3, 4, 6, 7, 8] for ALL variables
+        @test obs.legal_actions == [3, 4]
+        @test obs.legal_actions_mask == [false, true, true, false, false, false]
+
+        SeaPearl.remove!(y.domain, 7)
+
+        obs = SeaPearl.get_observation!(lh, model, y)
+
+        @test obs.reward == 0
+        @test obs.terminal == false 
+        @test obs.actions_index==[1, 2, 3, 4, 5, 6]  #correspond to the index of branchable values [2, 3, 4, 6, 7, 8] for ALL variables
+        @test obs.legal_actions == [6, 8]
+        @test obs.legal_actions_mask == [false, false, false, true, false, true]
+
+        
 
     end
 

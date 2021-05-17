@@ -16,6 +16,8 @@ given to function. Each problem generated will be solved once by every value sel
 given, making it possible to compare them.
 
 This function is called by `train!` and by `benchmark_solving!`.
+
+Every "eval_freq" episodes, all heuristic are evaluated ( weights are no longer updated during the evaluation).
 """
 function launch_experiment!(
         valueSelectionArray::Array{T, 1}, 
@@ -54,7 +56,7 @@ function launch_experiment!(
     iter = ProgressBar(1:nb_episodes)
     for i in iter
     #for i in 1:nb_episodes
-        verbose && println(" --- EPISODE: ", i)
+        verbose && print(" --- EPISODE: ", i)
 
         empty!(model)
 
@@ -66,12 +68,11 @@ function launch_experiment!(
             dt = @elapsed search!(model, strategy, variableHeuristic, valueSelectionArray[j], out_solver=out_solver)
 
             if isa(valueSelectionArray[j], LearnedHeuristic)
-                verbose && print(", Visited nodes: ", model.statistics.numberOfNodes)
+                verbose && print(", Visited nodes with learnedHeuristic : ", model.statistics.numberOfNodes)
             else
-                verbose && print(" vs ", model.statistics.numberOfNodes)
+                verbose && println(" vs Visited nodes with basic Heuristic n°$(j-1) : ", model.statistics.numberOfNodes)
             end
-
-            # bestsolutions[i, j] = model.objectiveBound + 1
+            bestsolutions[i, j] = model.objectiveBound + 1
             nodevisited[i, j] = model.statistics.numberOfNodes
 
             if j == 2
@@ -91,6 +92,7 @@ function launch_experiment!(
                 total_reward = last_episode_total_reward(valueSelectionArray[j].agent.trajectory)
                 loss = valueSelectionArray[j].agent.policy.learner.loss
             end
+
             metricsFun(;episode=i, heuristic=valueSelectionArray[j], nodeVisited=model.statistics.numberOfNodes, loss=loss, total_reward=total_reward)
         end
         verbose && println()

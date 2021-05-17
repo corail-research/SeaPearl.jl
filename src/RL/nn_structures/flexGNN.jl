@@ -21,10 +21,16 @@ Flux.@functor FlexGNN
 # not sure about this line
 functor(::Type{FlexGNN}, c) = (c.graphChain, c.nodeChain, c.outputLayer), ls -> FlexGNN(ls...)
 
+"""
+    function (nn::FlexGNN)(x::AbstractArray{Float32,2})
 
+x is the encoded Array representation of the AbstractStateRepresentation usefull for the trajectory.
+#TODO try to avoid the graph reconstruction at each forward pass in the NN. the featured graph can be saved in cache and updated as the reseach progresses. CAUTION with backtracking
+
+"""
 function (nn::FlexGNN)(x::AbstractArray{Float32,2})
 
-    # get informations from the CPGraph (input) 
+    # get informations from the CPGraph (input) and encoded vector
     variableId = branchingvariable_id(x, DefaultStateRepresentation)
     fg = featuredgraph(x, DefaultStateRepresentation)
 
@@ -35,10 +41,10 @@ function (nn::FlexGNN)(x::AbstractArray{Float32,2})
     var_feature = GraphSignals.node_feature(fg)[:, variableId]
 
     # chain working on the node feature (array)
-    var_feature = nn.nodeChain(var_feature)
+    chain_output = nn.nodeChain(var_feature)
 
     # output layer
-    var_feature = nn.outputLayer(var_feature)
+    output = nn.outputLayer(chain_output)
 
-    return var_feature
+    return output
 end

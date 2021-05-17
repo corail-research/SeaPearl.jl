@@ -53,46 +53,52 @@ end
 This function retrieve all the elements that are useful for doing reinforcement learning. 
 - The reward, which has been incremented through the set_reward!(PHASE, ...) functions. 
 - The terminal boolean (is the episode done or not)
-- The current state, which is the StateRepresentation of the CPModel at this stage of the solving.
+- The current state, which is the Array representation of a StateRepresentation of the CPModel at this stage of the solving.
 This state is what will then be given to the agent to make him proposed an action (a value to assign.)
+- The agent uses indexes of branchable values instead of values directly in order to facilitate the interface understanding
 - The legal_actions & legal_actions_mask used to make sure the agent won't propose a value which isn't 
 in the domain of the variable we're branching on. 
 
 The result is given as a namedtuple for convenience with ReinforcementLearning.jl interface. 
 """
 function get_observation!(lh::LearnedHeuristic, model::CPModel, x::AbstractIntVar, done = false)
+    #æet action_space_index. CAUTION : the action space is never updated. 
+    action_space_index=collect(1:size(lh.action_space)[1])
+   
     # get legal_actions_mask
     legal_actions_mask = [value in x.domain for value in lh.action_space]
 
     # compute legal actions
     legal_actions = lh.action_space[legal_actions_mask]
 
+    #get reward 
     reward = lh.reward.value
+    
     # Initialize reward for the next state: not compulsory with DefaultReward, but maybe useful in case the user forgets it
     lh.reward.value = 0
 
-    # synchronize state: we could delete env.state, we do not need it 
+    # synchronize state: 
     sync_state!(lh, model, x)
 
     state = to_arraybuffer(lh.current_state, lh.cpnodes_max)
 
     if !wears_mask(lh)
-        return unmaskedCPEnv(reward, done, state, lh.action_space)
+        return unmaskedCPEnv(reward, done, state,action_space_index)
     end
     # return the observation as a named tuple (useful for interface understanding)
-    return CPEnv(reward, done, state, lh.action_space, legal_actions, legal_actions_mask)
+    return CPEnv(reward, done, state, action_space_index, legal_actions, legal_actions_mask)
 end
 
 struct CPEnv <: AbstractEnv
     reward
     terminal
     state
-    actions
+    actions_index
     legal_actions
     legal_actions_mask
 end
 
-RLBase.action_space(env::CPEnv) = env.actions
+RLBase.action_space(env::CPEnv) = env.actions_index
 RLBase.legal_action_space(env::CPEnv) = env.legal_actions
 RLBase.legal_action_space_mask(env::CPEnv) = env.legal_actions_mask
 RLBase.reward(env::CPEnv) = env.reward
@@ -105,10 +111,10 @@ struct unmaskedCPEnv <: AbstractEnv
     reward
     terminal
     state
-    actions
+    actions_index
 end
 
-RLBase.action_space(env::unmaskedCPEnv) = env.actions
+RLBase.action_space(env::unmaskedCPEnv) = env.actions_index
 RLBase.reward(env::unmaskedCPEnv) = env.reward
 RLBase.is_terminated(env::unmaskedCPEnv) = env.terminal
 RLBase.state(env::unmaskedCPEnv) = env.state
