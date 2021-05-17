@@ -28,18 +28,16 @@ function propagate!(constraint::SetDiffSingleton, toPropagate::Set{Constraint}, 
     x = constraint.x
 
 
-    # For all b possible, exlucde if not possible in a and x not assigned to the value
+    # For all b possible, exclude if not possible in a and not possible for x
+    toRemove = Int[]
     for v in possible_not_required_values(b.domain)
-        if !is_possible(a.domain, v) && !(isbound(x) && assignedValue(x) == v)
-            if is_possible(b.domain, v)
-                if !is_required(b.domain, v)
-                    exclude!(b.domain, v)
-                    triggerDomainChange!(toPropagate, b)
-                else
-                    return false
-                end
-            end
+        if !is_possible(a.domain, v) && !(v in x.domain)
+            push!(toRemove, v)
         end
+    end
+    for v in toRemove
+        exclude!(b.domain, v)
+        triggerDomainChange!(toPropagate, b)
     end
 
     # For all b required, require in a if not in x domain, assign to x if not possible in a, remove from x domain if required in a
@@ -60,10 +58,7 @@ function propagate!(constraint::SetDiffSingleton, toPropagate::Set{Constraint}, 
                     addToPrunedDomains!(prunedDomains, x, removed)
                     triggerDomainChange!(toPropagate, x)
                 end
-            end
-        end
-        if is_required(a.domain, v)
-            if v in x.domain
+            elseif is_required(a.domain, v)
                 removed = remove!(x.domain, v)
                 addToPrunedDomains!(prunedDomains, x, removed)
                 triggerDomainChange!(toPropagate, x)
@@ -72,17 +67,15 @@ function propagate!(constraint::SetDiffSingleton, toPropagate::Set{Constraint}, 
     end
 
     # For all possible in a, exclude from a if not possible in b
+    empty!(toRemove)
     for v in possible_not_required_values(a.domain)
         if !is_possible(b.domain, v)
-            if is_possible(a.domain, v)
-                if !is_required(a.domain, v)
-                    exclude!(a.domain, v)
-                    triggerDomainChange!(toPropagate, a)
-                else
-                    return false
-                end
-            end
+            push!(toRemove, v)
         end
+    end
+    for v in toRemove
+        exclude!(a.domain, v)
+        triggerDomainChange!(toPropagate, a)
     end
 
     # For all required in a, require in b and remove from x domain
