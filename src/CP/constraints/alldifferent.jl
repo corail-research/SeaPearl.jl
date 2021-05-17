@@ -8,17 +8,17 @@ include("algorithms/matching.jl")
 end
 
 """
-    AllDifferent(x::Vector{<:AbstractIntVar}, trailer)
+    AllDifferent(x::Array{<:AbstractIntVar}, trailer)
 
 AllDifferent constraint, enforcing ∀ i ≠ j ∈ ⟦1, length(x)⟧, x[i] ≠ x[j].
 
-The implementation of this contraint is inspired by:
+test The implementation of this contraint is inspired by:
  https://www.researchgate.net/publication/200034395_A_Filtering_Algorithm_for_Constraints_of_Difference_in_CSPs
 Many of the functions below relate to algorithms depicted in the paper, and their
 documentation refer to parts of the overall algorithm.
 """
 struct AllDifferent <: Constraint
-    x::Vector{<:AbstractIntVar}
+    x::Array{<:AbstractIntVar}
     active::StateObject{Bool}
     initialized::StateObject{Bool}
     matching::Vector{StateObject{Pair{Int, Int}}}
@@ -27,7 +27,7 @@ struct AllDifferent <: Constraint
     numberOfVars::Int
     numberOfVals::Int
 
-    function AllDifferent(x::Vector{<:AbstractIntVar}, trailer)::AllDifferent
+    function AllDifferent(x::Array{<:AbstractIntVar}, trailer)::AllDifferent
         max = Base.maximum(var -> maximum(var.domain), x)
         min = Base.minimum(var -> minimum(var.domain), x)
         range = max - min + 1
