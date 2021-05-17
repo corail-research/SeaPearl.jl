@@ -131,7 +131,7 @@ function Base.show(io::IO, ::MIME"text/plain", con::SetDiffSingleton)
     println(io, typeof(con), ": ", con.a.id, " == ", con.b.id, " \\ {", con.x.id, "}, active = ", con.active)
     println(io, "   ", con.a)
     println(io, "   ", con.b)
-    println(io, "   ", con.x)
+    print(io, "   ", con.x)
 end
 
 function Base.show(io::IO, con::SetDiffSingleton)

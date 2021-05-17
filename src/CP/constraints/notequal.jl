@@ -104,11 +104,11 @@ end
 variablesArray(constraint::NotEqual) = [constraint.x, constraint.y]
 
 function Base.show(io::IO, ::MIME"text/plain", con::NotEqual)
-    println(io, typeof(con), ": ", con.x.id, " != ", con.y.id, ", active = ", con.active)
+    println(io, typeof(con), ": ", con.x.id, " ≠ ", con.y.id, ", active = ", con.active)
     println(io, "   ", con.x)
-    println(io, "   ", con.y)
+    print(io, "   ", con.y)
 end
 
 function Base.show(io::IO, con::NotEqual)
-    print(io, typeof(con), ": ", con.x.id, " != ", con.y.id)
+    print(io, typeof(con), ": ", con.x.id, " ≠ ", con.y.id)
 end

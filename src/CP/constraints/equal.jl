@@ -129,7 +129,7 @@ variablesArray(constraint::Equal) = [constraint.x, constraint.y]
 function Base.show(io::IO, ::MIME"text/plain", con::Equal)
     println(io, typeof(con), ": ", con.x.id, " == ", con.y.id, ", active = ", con.active)
     println(io, "   ", con.x)
-    println(io, "   ", con.y)
+    print(io, "   ", con.y)
 end
 
 function Base.show(io::IO, con::Equal)

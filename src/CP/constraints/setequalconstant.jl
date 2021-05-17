@@ -42,7 +42,7 @@ variablesArray(constraint::SetEqualConstant) = [constraint.s]
 
 function Base.show(io::IO, ::MIME"text/plain", con::SetEqualConstant)
     println(io, typeof(con), ": ", con.s.id, " == ", con.c, ", active = ", con.active)
-    println(io, "   ", con.s)
+    print(io, "   ", con.s)
 end
 
 function Base.show(io::IO, con::SetEqualConstant)

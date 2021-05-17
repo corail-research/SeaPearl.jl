@@ -59,12 +59,11 @@ function reset_domain!(dom::IntDomain)
 end
 
 function Base.show(io::IO, dom::IntDomain)
-    toPrint = "["
-    for i in dom
-        toPrint *= string(i)*" "
-    end
-    toPrint *= "]"
-    write(io, toPrint)
+    print(io, "[", join(dom, " "), "]")
+end
+
+function Base.show(io::IO, ::MIME"text/plain", dom::IntDomain)
+    print(io, typeof(dom), ": [", join(dom, " "), "]")
 end
 
 """

@@ -85,13 +85,13 @@ end
 
 function Base.show(io::IO, ::MIME"text/plain", con::SumGreaterThan)
     ids = [var.id for var in con.x]
-    println(io, typeof(con), ": ", join(ids, " + "), " >= ", con.lower, ", active = ", con.active)
+    print(io, typeof(con), ": ", join(ids, " + "), " ≥ ", con.lower, ", active = ", con.active)
     for var in con.x
-        println(io, "   ", con.var)
+        print(io, "\n   ", con.var)
     end
 end
 
 function Base.show(io::IO, con::SumGreaterThan)
     ids = [var.id for var in con.x]
-    print(io, typeof(con), ": ", join(ids, " + "), " >= ", con.lower)
+    print(io, typeof(con), ": ", join(ids, " + "), " ≥ ", con.lower)
 end

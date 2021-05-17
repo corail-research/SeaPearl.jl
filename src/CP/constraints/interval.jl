@@ -35,10 +35,10 @@ function propagate!(constraint::IntervalConstant, toPropagate::Set{Constraint}, 
 end
 
 function Base.show(io::IO, ::MIME"text/plain", con::IntervalConstant)
-    println(io, typeof(con), ": ", con.lower, " <= ", con.x.id, " <= ", con.upper, ", active = ", con.active)
-    println(io, "   ", con.x)
+    println(io, typeof(con), ": ", con.x.id, " ∈ ⟦", con.lower, " ", con.upper, "⟧, active = ", con.active)
+    print(io, "   ", con.x)
 end
 
 function Base.show(io::IO, con::IntervalConstant)
-    print(io, typeof(con), ": ", con.lower, " <= ", con.x.id, " <= ", con.upper)
+    print(io, typeof(con), ": ",  con.x.id, " ∈ ⟦", con.lower, " ", con.upper, "⟧")
 end

@@ -82,9 +82,9 @@ variablesArray(constraint::SumToZero) = constraint.x
 
 function Base.show(io::IO, ::MIME"text/plain", con::SumToZero)
     ids = [var.id for var in con.x]
-    println(io, typeof(con), ": ", join(ids, " + "), " == 0, active = ", con.active)
+    print(io, typeof(con), ": ", join(ids, " + "), " == 0, active = ", con.active)
     for var in con.x
-        println(io, "   ", var)
+        print(io, "\n   ", var)
     end
 end
 

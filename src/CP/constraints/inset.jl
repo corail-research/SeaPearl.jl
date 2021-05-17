@@ -57,11 +57,11 @@ end
 variablesArray(constraint::InSet) = [constraint.x, constraint.s]
 
 function Base.show(io::IO, ::MIME"text/plain", con::InSet)
-    println(io, typeof(con), ": ", con.x.id, " in ", con.s.id, ", active = ", con.active)
+    println(io, typeof(con), ": ", con.x.id, " ∈ ", con.s.id, ", active = ", con.active)
     println(io, "   ", con.x)
-    println(io, "   ", con.s)
+    print(io, "   ", con.s)
 end
 
 function Base.show(io::IO, con::InSet)
-    print(io, typeof(con), ": ", con.x.id, " in ", con.s.id)
+    print(io, typeof(con), ": ", con.x.id, " ∈ ", con.s.id)
 end

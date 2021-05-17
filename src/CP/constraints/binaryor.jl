@@ -49,11 +49,11 @@ end
 variablesArray(constraint::BinaryOr) = [constraint.x, constraint.y]
 
 function Base.show(io::IO, ::MIME"text/plain", con::BinaryOr)
-    println(io, string(typeof(con)), ": ", con.x.id, " || ", con.y.id, ", active = ", con.active)
+    println(io, string(typeof(con)), ": ", con.x.id, " ∨ ", con.y.id, ", active = ", con.active)
     println(io, "   ", con.x)
-    println(io, "   ", con.y)
+    print(io, "   ", con.y)
 end
 
 function Base.show(io::IO, con::BinaryOr)
-    print(io, typeof(con), ": ", con.x.id, " || ", con.y.id)
+    print(io, typeof(con), ": ", con.x.id, " ∨ ", con.y.id)
 end

@@ -174,7 +174,7 @@ function Base.show(io::IO, ::MIME"text/plain", con::Element2D)
     println(io, "   matrix = ", con.matrix)
     println(io, "   ", con.x)
     println(io, "   ", con.y)
-    println(io, "   ", con.z)
+    print(io, "   ", con.z)
 end
 
 function Base.show(io::IO, con::Element2D)

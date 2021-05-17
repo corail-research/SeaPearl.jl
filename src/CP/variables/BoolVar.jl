@@ -23,8 +23,11 @@ function BoolVar(id::String, trailer::Trailer)
 end
 
 function Base.show(io::IO, var::BoolVar)
-    write(io, var.id, "=")
-    show(io, var.domain)
+    print(io, var.id, " = ", var.domain)
+end
+
+function Base.show(io::IO, ::MIME"text/plain", var::BoolVar)
+    print(io, typeof(var), ": ", var.id, " = ", var.domain)
 end
 
 """

@@ -104,12 +104,12 @@ end
 variablesArray(constraint::ReifiedInSet) = [constraint.x, constraint.s, constraint.b]
 
 function Base.show(io::IO, ::MIME"text/plain", con::ReifiedInSet)
-    println(io, typeof(con), ": ", con.b.id, " <=> ", con.x.id, " in ", con.s.id, ", active = ", con.active)
+    println(io, typeof(con), ": ", con.b.id, " ≡ ", con.x.id, " ∈ ", con.s.id, ", active = ", con.active)
     println(io, "   ", con.b)
     println(io, "   ", con.x)
-    println(io, "   ", con.s)
+    print(io, "   ", con.s)
 end
 
 function Base.show(io::IO, con::ReifiedInSet)
-    print(io, typeof(con), ": ", con.b.id, " <=> ", con.x.id, " in ", con.s.id)
+    print(io, typeof(con), ": ", con.b.id, " ≡ ", con.x.id, " ∈ ", con.s.id)
 end

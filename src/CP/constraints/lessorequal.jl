@@ -90,11 +90,11 @@ end
 variablesArray(constraint::LessOrEqual) = [constraint.x, constraint.y]
 
 function Base.show(io::IO, ::MIME"text/plain", con::LessOrEqual)
-    println(io, typeof(con), ": ", con.x.id, " <= ", con.y.id, ", active = ", con.active)
+    println(io, typeof(con), ": ", con.x.id, " ≤ ", con.y.id, ", active = ", con.active)
     println(io, "   ", con.x)
     println(io, "   ", con.y)
 end
 
 function Base.show(io::IO, con::LessOrEqual)
-    print(io, typeof(con), ": ", con.x.id, " <= ", con.y.id)
+    print(io, typeof(con), ": ", con.x.id, " ≤ ", con.y.id)
 end

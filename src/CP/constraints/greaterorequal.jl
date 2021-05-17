@@ -28,10 +28,10 @@ function propagate!(constraint::GreaterOrEqualConstant, toPropagate::Set{Constra
 end
 
 function Base.show(io::IO, ::MIME"text/plain", con::GreaterOrEqualConstant)
-    println(io, typeof(con), ": ", con.x.id, " >= ", con.v, ", active = ", con.active)
-    println(io, "   ", con.x)
+    println(io, typeof(con), ": ", con.x.id, " ≥ ", con.v, ", active = ", con.active)
+    print(io, "   ", con.x)
 end
 
 function Base.show(io::IO, con::GreaterOrEqualConstant)
-    print(io, typeof(con), ": ", con.x.id, " >= ", con.v)
+    print(io, typeof(con), ": ", con.x.id, " ≥ ", con.v)
 end
