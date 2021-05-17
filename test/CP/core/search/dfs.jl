@@ -82,6 +82,23 @@ using DataStructures
         @test length(model.trailer.prior) == 0 # restoreState!()
     end
 
+    @testset "initroot(::DFSearch)" begin
+        # :Feasible
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+        
+        x = SeaPearl.IntVar(2, 2, "x", trailer)
+        y = SeaPearl.IntVar(2, 2, "y", trailer)
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y)
+        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+
+        toCall = Stack{Function}()
+        @test SeaPearl.initroot!(toCall, SeaPearl.DFSearch, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic())== :FoundSolution
+        @test isempty(toCall)
+
+    end
+    
     @testset "search!(::DFSearch)" begin
         ### Checking status ###
         # :LimitStop
