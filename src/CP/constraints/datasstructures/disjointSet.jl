@@ -1,3 +1,8 @@
+"""
+    DisjoinSet(size::Int)
+
+Disjoint Set Data Structure.
+"""
 struct DisjointSet
     size::Int
     parent::Array{Int}
