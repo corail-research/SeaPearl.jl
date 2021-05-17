@@ -42,7 +42,7 @@ end
     update_support_and_prune!(constraint::Element2D, xyz::Array{Tuple{Int, Int, Int}, 1}, lost_position::Int)
 
 Supports are associated to x and y 's domains. Each possible value of x & y can be associated with n number of possible
-values of z. If this number n equal 0, the value associated is pruned. 
+values of z. If this number n equal 0, the value associated is pruned.
 
 This function basically handle the increment, prune domains when necessary and retrieve the pruned values.
 """
@@ -58,29 +58,29 @@ function update_support_and_prune!(constraint::Element2D, xyz::Array{Tuple{Int, 
     end
     return prunedX, prunedY
 end
-        
+
 """
     propagate!(constraint::Element2D, toPropagate::Set{Constraint}, prunedDomains::CPModification)
 
-`Element2D` propagation function. 
+`Element2D` propagation function.
 
-Supports (n_cols_sup & n_rows_sup) are the number of possible z values that 
-are in a row or column. Once a support reaches 0, the value corresponding to the index cannot be taken by 
-the corresponding variable. 
+Supports (n_cols_sup & n_rows_sup) are the number of possible z values that
+are in a row or column. Once a support reaches 0, the value corresponding to the index cannot be taken by
+the corresponding variable.
 x = [1, 2, 3]
 y = [1, 2, 3]
 z = [6, 7]
           | 1 | 2 | 3 | n_rows_sup
         --------------
         1 | 3   4   2    0
-        2 | 6   7   1    2 
+        2 | 6   7   1    2
         3 | 7   5   1    1
 
 n_cols_sup  2   1   0
 
-Here, the value 3 can be pruned from y and the value 1 can be pruned from x. 
+Here, the value 3 can be pruned from y and the value 1 can be pruned from x.
 
-Only the lowest and the highest values of z are pruned when they are not in the matrix. 
+Only the lowest and the highest values of z are pruned when they are not in the matrix.
 (it's be for performance reason, this implemention is inspired by miniCP)
 
 It'd be interesting to try to benchmark with a propagation function which also pruned
@@ -154,7 +154,7 @@ function propagate!(constraint::Element2D, toPropagate::Set{Constraint}, prunedD
     # update useful variables
     setValue!(constraint.low, low)
     setValue!(constraint.up, up)
-    
+
     # deactivate the constraint if necessary
     if isbound(constraint.z)
         zv = assignedValue(constraint.z)
@@ -168,3 +168,15 @@ function propagate!(constraint::Element2D, toPropagate::Set{Constraint}, prunedD
 end
 
 variablesArray(constraint::Element2D) = [constraint.x, constraint.y, constraint.z]
+
+function Base.show(io::IO, ::MIME"text/plain", con::Element2D)
+    println(io, "Element2D constraint: maxtrix[$(con.x.id), $(con.y.id)] == $(con.z.id)", ", active = ", con.active)
+    println(io, "   matrix = ", con.matrix)
+    println(io, "   ", con.x)
+    println(io, "   ", con.y)
+    print(io, "   ", con.z)
+end
+
+function Base.show(io::IO, con::Element2D)
+    print(io, typeof(con), ": maxtrix[$(con.x.id), $(con.y.id)] == $(con.z.id)")
+end

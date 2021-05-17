@@ -281,12 +281,12 @@ function Base.show(io::IO, ::MIME"text/plain", con::TableConstraint)
     for i = 1:length(con.scope)
         println(io, "   ", rpad(con.scope[i].id, maxlen),"  in  ", table[i])
     end
-    println(io, "\n   With domains:")
+    print(io, "\n   With domains:")
     for var in con.scope
-        println(io, "      ", var)
+        print(io, "\n      ", var)
     end
 end
 
 function Base.show(io::IO, con::TableConstraint)
-    println(io, string(typeof(con)), ": (", join([x.id for x in con.scope], ", "), ") in ", con.table, ", active = ", con.active)
+    print(io, string(typeof(con)), ": (", join([x.id for x in con.scope], ", "), ") in ", con.table, ", active = ", con.active)
 end

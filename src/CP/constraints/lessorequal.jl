@@ -23,7 +23,7 @@ end
 """
 function propagate!(constraint::LessOrEqualConstant, toPropagate::Set{Constraint}, prunedDomains::CPModification)
     setValue!(constraint.active, false)
-    
+
     addToPrunedDomains!(prunedDomains, constraint.x, removeAbove!(constraint.x.domain, constraint.v))
     triggerDomainChange!(toPropagate, constraint.x)
     if constraint in toPropagate
@@ -31,8 +31,17 @@ function propagate!(constraint::LessOrEqualConstant, toPropagate::Set{Constraint
     end
     return !isempty(constraint.x.domain)
 end
+
 variablesArray(constraint::LessOrEqualConstant) = [constraint.x]
 
+function Base.show(io::IO, ::MIME"text/plain", con::LessOrEqualConstant)
+    println(io, typeof(con), ": ", con.x.id, " <= ", con.v, ", active = ", con.active)
+    println(io, "   ", con.x)
+end
+
+function Base.show(io::IO, con::LessOrEqualConstant)
+    print(io, typeof(con), ": ", con.x.id, " <= ", con.v)
+end
 
 struct LessOrEqual <: Constraint
     x       ::AbstractIntVar
@@ -58,7 +67,7 @@ end
 `LessOrEqual` propagation function.
 """
 function propagate!(constraint::LessOrEqual, toPropagate::Set{Constraint}, prunedDomains::CPModification)
-    
+
 
     if maximum(constraint.x.domain) <= minimum(constraint.y.domain)
         setValue!(constraint.active, false)
@@ -69,7 +78,7 @@ function propagate!(constraint::LessOrEqual, toPropagate::Set{Constraint}, prune
         addToPrunedDomains!(prunedDomains, constraint.x, prunedX)
         triggerDomainChange!(toPropagate, constraint.x)
     end
-    
+
     prunedY = removeBelow!(constraint.y.domain, minimum(constraint.x.domain))
     if !isempty(prunedY)
         addToPrunedDomains!(prunedDomains, constraint.y, prunedY)
@@ -77,4 +86,15 @@ function propagate!(constraint::LessOrEqual, toPropagate::Set{Constraint}, prune
     end
     return !isempty(constraint.x.domain) && !isempty(constraint.y.domain)
 end
+
 variablesArray(constraint::LessOrEqual) = [constraint.x, constraint.y]
+
+function Base.show(io::IO, ::MIME"text/plain", con::LessOrEqual)
+    println(io, typeof(con), ": ", con.x.id, " ≤ ", con.y.id, ", active = ", con.active)
+    println(io, "   ", con.x)
+    println(io, "   ", con.y)
+end
+
+function Base.show(io::IO, con::LessOrEqual)
+    print(io, typeof(con), ": ", con.x.id, " ≤ ", con.y.id)
+end

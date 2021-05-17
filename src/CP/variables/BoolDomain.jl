@@ -22,12 +22,11 @@ Used in `reset_model!`.
 reset_domain!(dom::BoolDomain) = reset_domain!(dom.inner)
 
 function Base.show(io::IO, dom::BoolDomain)
-    toPrint = "["
-    for i in dom
-        toPrint *= string(i)*" "
-    end
-    toPrint *= "]"
-    write(io, toPrint)
+    print(io, "[", join(dom, " "), "]")
+end
+
+function Base.show(io::IO, ::MIME"text/plain", dom::BoolDomain)
+    print(io, typeof(dom), ": [", join(dom, " "), "]")
 end
 
 """

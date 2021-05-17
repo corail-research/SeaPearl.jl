@@ -33,6 +33,15 @@ function propagate!(constraint::NotEqualConstant, toPropagate::Set{Constraint}, 
     return true
 end
 
+function Base.show(io::IO, ::MIME"text/plain", con::NotEqualConstant)
+    println(io, typeof(con), ": ", con.x.id, " != ", con.v, ", active = ", con.active)
+    println(io, "   ", con.x)
+end
+
+function Base.show(io::IO, con::NotEqualConstant)
+    print(io, typeof(con), ": ", con.x.id, " != ", con.v)
+end
+
 """
     NotEqual(x::SeaPearl.IntVar, y::SeaPearl.IntVar)
 
@@ -94,3 +103,12 @@ end
 
 variablesArray(constraint::NotEqual) = [constraint.x, constraint.y]
 
+function Base.show(io::IO, ::MIME"text/plain", con::NotEqual)
+    println(io, typeof(con), ": ", con.x.id, " ≠ ", con.y.id, ", active = ", con.active)
+    println(io, "   ", con.x)
+    print(io, "   ", con.y)
+end
+
+function Base.show(io::IO, con::NotEqual)
+    print(io, typeof(con), ": ", con.x.id, " ≠ ", con.y.id)
+end
