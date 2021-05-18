@@ -1,4 +1,12 @@
 
+
+
+"""
+initroot!(toCall::Stack{Function}, ::Type{DFSearch},model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, newConstraints=nothing)
+
+generic function to instantiate the research based on a specific Strategy <: SearchStrategy. The max discrepancy correspond to the number or branchable variables at 
+the beginning of the search. Calls to expandIlds! with a decreasing discrepancy is stacked in the toCall Stack. 
+"""
 function initroot!(toCall::Stack{Function}, ::Type{ILDSearch}, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, newConstraints=nothing)
     isboundedlist = [!isbound(v) for (k,v) in model.variables]
     @assert !isempty(isboundedlist) "initialisation failed : no declared variables"
@@ -10,7 +18,17 @@ function initroot!(toCall::Stack{Function}, ::Type{ILDSearch}, model::CPModel, v
     return expandIlds!(toCall,0,depth, nothing, model, variableHeuristic, valueSelection)
 end
 
+"""
+        expandIlds!(toCall::Stack{Function}, discrepancy::Int64, previousdepth::Int64, direction::Union{Nothing, Symbol} , model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, newConstraints=nothing)
 
+This function fills the toCall Stack (LIFO) and perform a recursive Limited Discrepancy Search. Some procedures will contain a call to `expandIlds!` itself. Each `expandIlds!` 
+call is wrapped around a `saveState!` and a `restoreState!` to be able to backtrack thanks to the trailer. Depth is the virtual depth of the "bounding tree", and decrease as 
+long as variables get bounded. Discrepancy is the virtual Discrepancy of the path in the "bounding tree". It is not updated each time the algorithm steps into the right sub-tree, but after
+each right step that bounded one or more variable. ( after the fix-point algorithm ) This method allows to work with search tree where the depth ( and hence the max discrepancy ) 
+is unknown.
+    
+This implementation is based on this paper : Improved Limited Discrepancy Search - 1996 - Richard E. Korf
+"""
 function expandIlds!(toCall::Stack{Function}, discrepancy::Int64, previousdepth::Int64, direction::Union{Nothing, Symbol} , model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, newConstraints=nothing)
     # Dealing with limits
     model.statistics.numberOfNodes += 1
@@ -29,11 +47,12 @@ function expandIlds!(toCall::Stack{Function}, discrepancy::Int64, previousdepth:
     if solutionFound(model)
         if (direction ==:Left && discrepancy == 0)  || (direction ==:Right && discrepancy == 1 ) || isnothing(direction)
             triggerFoundSolution!(model) 
+
         end
         return :FoundSolution 
     end
     depth = sum([!isbound(v) for (k,v) in model.variables])  #recomputed at each step, maybe not efficient
-    discrepancy =(depth != previousdepth && direction == :Right ) ? discrepancy - 1 : discrepancy
+    discrepancy =(depth != previousdepth && direction == :Right ) ? discrepancy - 1 : discrepancy   
     @assert depth > 0 "a least one variable should be branchable"
     # Variable selection
     x = variableHeuristic(model)
