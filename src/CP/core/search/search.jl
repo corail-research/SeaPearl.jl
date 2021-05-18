@@ -4,11 +4,10 @@ include("ilds.jl")
 include("strategies.jl")
 
 """
-    search!(model::CPModel, ::Type{S}, variableHeuristic, valueSelection::ValueSelection=BasicHeuristic())
+    search!(model::CPModel, ::Type{Strategy}, variableHeuristic, valueSelection::ValueSelection=BasicHeuristic())
 
-Perform a Depth-First search in the `model` using `variableHeuristic` to choose which domain will be changed
+Perform a search following a specific strategy in the `model` using `variableHeuristic` to choose which domain will be changed
 at each branching and using `valueSelection` to choose how the branching will be done. 
-This strategy, starting at the root node, will explore as deep as possible before backtracking.
 
 """
 function search!(model::CPModel, ::Type{Strategy}, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection=BasicHeuristic(); out_solver::Bool=false) where Strategy <: SearchStrategy
