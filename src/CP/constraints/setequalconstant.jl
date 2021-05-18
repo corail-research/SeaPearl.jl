@@ -17,7 +17,7 @@ end
 """
     propagate!(constraint::SetEqualConstant, toPropagate::Set{Constraint}, prunedDomains::CPModification)
 
-`SetEqualConstant` propagation function. 
+`SetEqualConstant` propagation function.
 """
 function propagate!(constraint::SetEqualConstant, toPropagate::Set{Constraint}, prunedDomains::CPModification)
     # Feasibility & requiring
@@ -39,3 +39,12 @@ function propagate!(constraint::SetEqualConstant, toPropagate::Set{Constraint}, 
 end
 
 variablesArray(constraint::SetEqualConstant) = [constraint.s]
+
+function Base.show(io::IO, ::MIME"text/plain", con::SetEqualConstant)
+    println(io, typeof(con), ": ", con.s.id, " == ", con.c, ", active = ", con.active)
+    print(io, "   ", con.s)
+end
+
+function Base.show(io::IO, con::SetEqualConstant)
+    print(io, typeof(con), ": ", con.s.id, " == ", con.c)
+end

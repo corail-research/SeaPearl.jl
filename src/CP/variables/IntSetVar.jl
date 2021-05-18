@@ -23,11 +23,6 @@ function IntSetVar(min::Int, max::Int, id::String, trailer::Trailer)
     return IntSetVar(Constraint[], dom, id)
 end
 
-function Base.show(io::IO, var::IntSetVar)
-    write(io, var.id, "=")
-    show(io, var.domain)
-end
-
 """
     isbound(x::IntSetVar)
 
@@ -44,4 +39,13 @@ function assignedValue(x::IntSetVar)
     @assert isbound(x)
 
     return required_values(x.domain)
+end
+
+function Base.show(io::IO, var::IntSetVar)
+    print(io, var.id, ": ", var.domain)
+end
+
+function Base.show(io::IO, ::MIME"text/plain", var::IntSetVar)
+    println(io, typeof(var), ": ", var.id)
+    print(io, "   ", var.domain)
 end

@@ -25,8 +25,11 @@ function IntVar(min::Int, max::Int, id::String, trailer::Trailer)
 end
 
 function Base.show(io::IO, var::IntVar)
-    write(io, var.id, "=")
-    show(io, var.domain)
+    print(io, var.id, " = ", var.domain)
+end
+
+function Base.show(io::IO, ::MIME"text/plain", var::IntVar)
+    print(io, typeof(var), ": ", var.id, " = ", var.domain)
 end
 
 """

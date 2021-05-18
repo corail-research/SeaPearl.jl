@@ -67,7 +67,7 @@ function propagate!(constraint::SumToZero, toPropagate::Set{Constraint}, prunedD
         if !isempty(pruned)
             addToPrunedDomains!(prunedDomains, constraint.x[currentId], pruned)
             triggerDomainChange!(toPropagate, constraint.x[currentId])
-            
+
         end
     end
 
@@ -79,3 +79,16 @@ function propagate!(constraint::SumToZero, toPropagate::Set{Constraint}, prunedD
 end
 
 variablesArray(constraint::SumToZero) = constraint.x
+
+function Base.show(io::IO, ::MIME"text/plain", con::SumToZero)
+    ids = [var.id for var in con.x]
+    print(io, typeof(con), ": ", join(ids, " + "), " == 0, active = ", con.active)
+    for var in con.x
+        print(io, "\n   ", var)
+    end
+end
+
+function Base.show(io::IO, con::SumToZero)
+    ids = [var.id for var in con.x]
+    print(io, typeof(con), ": ", join(ids, " + "), " == 0")
+end

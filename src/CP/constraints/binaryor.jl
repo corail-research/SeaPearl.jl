@@ -22,7 +22,7 @@ end
 `BinaryOr` propagation function.
 """
 function propagate!(constraint::BinaryOr, toPropagate::Set{Constraint}, prunedDomains::CPModification)
-    
+
     if isbound(constraint.x) && !assignedValue(constraint.x)
         prunedY = remove!(constraint.y.domain, false)
         if !isempty(prunedY)
@@ -47,3 +47,13 @@ function propagate!(constraint::BinaryOr, toPropagate::Set{Constraint}, prunedDo
 end
 
 variablesArray(constraint::BinaryOr) = [constraint.x, constraint.y]
+
+function Base.show(io::IO, ::MIME"text/plain", con::BinaryOr)
+    println(io, string(typeof(con)), ": ", con.x.id, " ∨ ", con.y.id, ", active = ", con.active)
+    println(io, "   ", con.x)
+    print(io, "   ", con.y)
+end
+
+function Base.show(io::IO, con::BinaryOr)
+    print(io, typeof(con), ": ", con.x.id, " ∨ ", con.y.id)
+end
