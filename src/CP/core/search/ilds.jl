@@ -11,6 +11,8 @@ function initroot!(toCall::Stack{Function}, ::Type{ILDSearch}, model::CPModel, v
     isboundedlist = [!isbound(v) for (k,v) in model.variables]
     @assert !isempty(isboundedlist) "initialisation failed : no declared variables"
     depth = sum(isboundedlist)
+    
+    # Note that toCall stack is a LIFO data structure, expandIlds with a discrepancy threshold of 0 will be the first one to execute (then with 1, 2, 3, etc.)
     for k in depth:-1:1
         push!(toCall, (model) -> (expandIlds!(toCall,k,depth, nothing, model, variableHeuristic, valueSelection)))
     end
