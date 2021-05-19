@@ -8,7 +8,7 @@ using DataStructures
         model = SeaPearl.CPModel(trailer)
         model.limit.numberOfNodes = 1
         toCall = Stack{Function}()
-        @test SeaPearl.expandIlds!(toCall,0,0,nothing, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :NodeLimitStop
+        @test SeaPearl.expandIlds!(toCall,0,0,nothing, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(),nothing) == :NodeLimitStop
         @test isempty(toCall)
 
         # :SolutionLimitStop
@@ -17,7 +17,7 @@ using DataStructures
         model.limit.numberOfSolutions = 0
         
         toCall = Stack{Function}()
-        @test SeaPearl.expandIlds!(toCall,0,0,nothing, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :SolutionLimitStop
+        @test SeaPearl.expandIlds!(toCall,0,0,nothing, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(),nothing) == :SolutionLimitStop
         @test isempty(toCall)
 
         # :Infeasible
@@ -31,7 +31,7 @@ using DataStructures
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
-        @test SeaPearl.expandIlds!(toCall,0,0,nothing, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Infeasible
+        @test SeaPearl.expandIlds!(toCall,0,0,nothing, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(),nothing) == :Infeasible
         @test isempty(toCall)
 
         # :Feasible
@@ -45,7 +45,7 @@ using DataStructures
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
-        @test SeaPearl.expandIlds!(toCall,0,0,nothing, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :FoundSolution
+        @test SeaPearl.expandIlds!(toCall,0,0,nothing, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(),nothing) == :FoundSolution
         @test isempty(toCall)
 
 
@@ -60,7 +60,7 @@ using DataStructures
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
-        @test SeaPearl.expandIlds!(toCall,0,2,nothing, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Feasible
+        @test SeaPearl.expandIlds!(toCall,0,2,nothing, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(),nothing) == :Feasible
         @test length(toCall) == 6   #only explore both sub-trees but only the left one will be taken into account ( discrepancy = 0 )
 
         @test pop!(toCall)(model) == :SavingState

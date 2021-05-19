@@ -11,11 +11,10 @@ function initroot!(toCall::Stack{Function}, ::Type{ILDSearch}, model::CPModel, v
     isboundedlist = [!isbound(v) for (k,v) in model.variables]
     @assert !isempty(isboundedlist) "initialisation failed : no declared variables"
     depth = sum(isboundedlist)
-    
     for k in depth:-1:1
-        push!(toCall, (model) -> (nothing;expandIlds!(toCall,k,depth, nothing, model, variableHeuristic, valueSelection)))
+        push!(toCall, (model) -> (expandIlds!(toCall,k,depth, nothing, model, variableHeuristic, valueSelection)))
     end
-    return expandIlds!(toCall,0,depth, nothing, model, variableHeuristic, valueSelection)
+    return expandIlds!(toCall,0,depth, nothing, model, variableHeuristic, valueSelection,nothing)
 end
 
 """
@@ -29,7 +28,7 @@ is unknown.
     
 This implementation is based on this paper : Improved Limited Discrepancy Search - 1996 - Richard E. Korf
 """
-function expandIlds!(toCall::Stack{Function}, discrepancy::Int64, previousdepth::Int64, direction::Union{Nothing, Symbol} , model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, newConstraints=nothing)
+function expandIlds!(toCall::Stack{Function}, discrepancy::Int64, previousdepth::Int64, direction::Union{Nothing, Symbol} , model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, newConstraints=nothing; prunedDomains::Union{CPModification,Nothing}=nothing)
     # Dealing with limits
     model.statistics.numberOfNodes += 1
     if !belowNodeLimit(model)
@@ -38,16 +37,14 @@ function expandIlds!(toCall::Stack{Function}, discrepancy::Int64, previousdepth:
     if !belowSolutionLimit(model)
         return :SolutionLimitStop
     end
-
     # Fix-point algorithm
-    feasible, pruned = fixPoint!(model, newConstraints)
+    feasible, pruned = fixPoint!(model, newConstraints,prunedDomains)
     if !feasible
         return :Infeasible
     end
     if solutionFound(model)
         if (direction ==:Left && discrepancy == 0)  || (direction ==:Right && discrepancy == 1 ) || isnothing(direction)
             triggerFoundSolution!(model) 
-
         end
         return :FoundSolution 
     end
@@ -56,21 +53,25 @@ function expandIlds!(toCall::Stack{Function}, discrepancy::Int64, previousdepth:
     @assert depth > 0 "a least one variable should be branchable"
     # Variable selection
     x = variableHeuristic(model)
-
     # Value selection
     v = valueSelection(DecisionPhase(), model, x, nothing)
-
     if (discrepancy>=0)   
         push!(toCall, (model) -> (restoreState!(model.trailer); :BackTracking))
-        push!(toCall, (model) -> (remove!(x.domain, v); expandIlds!(toCall,discrepancy, depth, :Right, model, variableHeuristic, valueSelection, getOnDomainChange(x))))
+        push!(toCall, (model) -> (
+            prunedDomains = CPModification();
+            addToPrunedDomains!(prunedDomains, x, remove!(x.domain, v));
+            expandIlds!(toCall,discrepancy, depth, :Right, model, variableHeuristic, valueSelection, getOnDomainChange(x),prunedDomains=prunedDomains)
+        ))
         push!(toCall, (model) -> (saveState!(model.trailer); :SavingState))
     end
-
     if (depth>discrepancy)
         push!(toCall, (model) -> (restoreState!(model.trailer); :BackTracking))
-        push!(toCall, (model) -> (assign!(x, v); expandIlds!(toCall,discrepancy, depth-1, :Left, model, variableHeuristic, valueSelection, getOnDomainChange(x))))
+        push!(toCall, (model) -> (
+            prunedDomains = CPModification();
+            addToPrunedDomains!(prunedDomains, x, assign!(x, v));
+            expandIlds!(toCall,discrepancy, depth-1, :Left, model, variableHeuristic, valueSelection, getOnDomainChange(x),prunedDomains=prunedDomains)
+        ))
         push!(toCall, (model) -> (saveState!(model.trailer); :SavingState))
     end
     return :Feasible
 end
-
