@@ -12,7 +12,7 @@ end
 
 AllDifferent constraint, enforcing ∀ i ≠ j ∈ ⟦1, length(x)⟧, x[i] ≠ x[j].
 
-test The implementation of this contraint is inspired by:
+The implementation of this contraint is inspired by:
  https://www.researchgate.net/publication/200034395_A_Filtering_Algorithm_for_Constraints_of_Difference_in_CSPs
 Many of the functions below relate to algorithms depicted in the paper, and their
 documentation refer to parts of the overall algorithm.
