@@ -99,15 +99,15 @@
 
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        SeaPearl.addObjective(model, y)
+        SeaPearl.addObjective!(model, y)
 
         SeaPearl.triggerFoundSolution!(model)
 
-        @test length(model.statistics.solution) == 1
-        @test model.statistics.solution[1] == Dict("x" => 2,"y" => 3)
+        @test length(model.statistics.solutions) == 1
+        @test model.statistics.solutions[1] == Dict("x" => 2,"y" => 3)
         @test model.objectiveBound == 2
-        @test model.Statistics.numberOfSolutions == 1
-        @test model.statistics.objective[1] == 3
+        @test model.statistics.numberOfSolutions == 1
+        @test model.statistics.objectives[1] == 3
 
     end
 
@@ -120,7 +120,7 @@
 
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        SeaPearl.addObjective(model, y)
+        SeaPearl.addObjective!(model, y)
 
         @test isnothing(model.objectiveBound)
 

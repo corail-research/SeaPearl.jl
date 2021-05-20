@@ -144,7 +144,7 @@
         variableSelection = SeaPearl.MinDomainVariableSelection{false}()
         SeaPearl.solve!(model; variableHeuristic=variableSelection)
         
-        @test length(model.statistics.statistics.solutions) == 6
+        @test length(model.statistics.solutions) == 6
         @test Dict("c" => 2, "x" => 2, "b" => 2, "z" => 3, "a" => 2, "y" => 3) in model.statistics.solutions
         @test Dict("c" => 1, "x" => 3, "b" => 1, "z" => 3, "a" => 1, "y" => 3) in model.statistics.solutions
         @test Dict("c" => 3, "x" => 1, "b" => 3, "z" => 3, "a" => 3, "y" => 2) in model.statistics.solutions

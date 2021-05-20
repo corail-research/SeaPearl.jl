@@ -33,8 +33,6 @@ Launch the solving process of the solver.
 function MOI.optimize!(model::Optimizer)
     fill_cpmodel!(model)
 
-    # println(model.cpmodel.objective)
-
 
     status = SeaPearl.solve!(model.cpmodel; variableHeuristic=model.variableselection, valueSelection=model.valueselection)
 

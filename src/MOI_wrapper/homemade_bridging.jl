@@ -17,7 +17,7 @@ end
 
 function bridge_objective!(optimizer::Optimizer)
     if !isnothing(optimizer.moimodel.objective_identifier)
-        optimizer.cpmodel.objective = get_cp_variable(optimizer, optimizer.moimodel.objective_identifier)
+        SeaPearl.addObjective!(optimizer.cpmodel, get_cp_variable(optimizer, optimizer.moimodel.objective_identifier))
     end
 end
 

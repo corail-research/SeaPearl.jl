@@ -120,7 +120,7 @@ end
         # println("dist", dist)
         # println("time_windows", time_windows)
 
-        @test length(model.statistics.solution) >= 1
+        @test length(model.statistics.solutions) >= 1
 
         # println("nodes: ", model.statistics.numberOfNodes)
 
@@ -163,7 +163,7 @@ end
         SeaPearl.search!(model, SeaPearl.DFSearch, variableheuristic, valueheuristic)
 
         #TODO findout why sometimes no solution are found in the randomly generated problem  
-        @test length(model.statistics.solution) >= 1
+        @test length(model.statistics.solutions) >= 1
     end
     @testset "find_tsptw_dist_matrix()" begin
         trailer = SeaPearl.Trailer()
