@@ -82,6 +82,8 @@ end
 
 Create a CompactTable constraint from the `variables`, with values given in `table`.
 
+This is the recommended constructor, as it safely builds the constraint and isolates it. If you choose any of the 2 other constructor,
+beware how you create your attributes, and be sure not to modify them at any time.
 
 # Arguments
 - `variables::Vector{<:AbstractIntVar}`: vector of variables of size (n, ).
