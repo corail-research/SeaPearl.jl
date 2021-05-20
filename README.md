@@ -40,8 +40,7 @@ SeaPearl.addVariable!(...)
 push!(model.constraints, SeaPearl.AbstractConstraint(...))
 
 #add optionnal objective function : 
-model.objective = ObjectiveVar
-
+SeaPearl.addObjective!(model, ObjectiveVar)
 ```
 ### SeaPearl as a RL-driven CP solver : 
 To use SeaPearl as a RL-driven CP solver, one needs to  : 
