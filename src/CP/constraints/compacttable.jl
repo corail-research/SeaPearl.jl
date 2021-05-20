@@ -31,7 +31,8 @@ Create a CompactTable constraint from the `variables`, with values given in `tab
 
 This constructor gives full control on both `table` and `supports`. The attributes are not duplicated and remains
 linked to the variables given to the constructor. It should be used only to avoid duplication of `table` when using
-the same table constraint many times with different variables.
+the same table constraint many times with different variables. *WARNING*: all variables must have the same domain; 
+`table` and `supports` must be cleaned.
 
 # Arguments
 - `variables::Vector{<:AbstractIntVar}`: vector of variables of size (n, ).
@@ -207,12 +208,7 @@ function buildResidues(supports::Dict{Pair{Int,Int},BitVector})::Dict{Pair{Int,I
     residues = Dict{Pair{Int,Int},Int}()
     n = 64
     for (key, support) in supports
-        index = findfirst(support)
-        if isnothing(index)
-            residues[key] = 1
-        else
-            residues[key] = Int(ceil(index/n))
-        end
+        residues[key] = Int(ceil(findfirst(support)/n))
     end
     return residues
 end

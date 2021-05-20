@@ -59,6 +59,8 @@
             1 2 3
         ]
         supports = SeaPearl.buildSupport(vec1, table)
+        SeaPearl.cleanSupports!(supports, vec1)
+        table = SeaPearl.cleanTable(vec1, table)
         constraint1 = SeaPearl.TableConstraint(vec1, table, supports, trailer)
         constraint2 = SeaPearl.TableConstraint(vec2, table, supports, trailer)
         @test size(constraint1.table, 2)==3
