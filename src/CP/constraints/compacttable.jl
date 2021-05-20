@@ -3,12 +3,17 @@ include("algorithms/rsparsebitset.jl")
 """
     TableConstraint
 
-Constraint enforcing that: ∃ j ∈ ⟦1,m⟧, such that ∀ i ∈ ⟦1,n⟧ xᵢ=table[i,j].
+Efficient implentation of the constraint enforcing: ∃ j ∈ ⟦1,m⟧, such that ∀ i ∈ ⟦1,n⟧ xᵢ=table[i,j].
 
 The datastructure and the functions using it are inspired by: 
 Demeulenaere J. et al. (2016) Compact-Table: Efficiently Filtering Table Constraints with Reversible Sparse Bit-Sets. 
 In: Rueher M. (eds) Principles and Practice of Constraint Programming. CP 2016. Lecture Notes in Computer Science, vol 9892. Springer, Cham. 
 https://doi.org/10.1007/978-3-319-44953-1_14
+
+  
+    TableConstraint(scope, active, table, currentTable, modifiedVariables, unfixedVariables, supports, residues) 
+
+TableConstraint default constructor.
 
 # Arguments
 - `scope::Vector{<:AbstractIntVar}`: the ordered variables present in the table.
@@ -18,6 +23,21 @@ https://doi.org/10.1007/978-3-319-44953-1_14
 - `unfixedVariables::Vector{Int}`: vector with the indexes of the variables which are not binding.
 - `supports::Dict{Pair{Int,Int},BitVector}`: dictionnary which, for each pair (variable => value), gives the support of this pair.
 - `residues::Dict{Pair{Int,Int},Int}`: dictionnary which, for each pair (variable => value), gives the residue of this pair.
+
+
+    TableConstraint(variables, table, supports, trailer)
+
+Create a CompactTable constraint from the `variables`, with values given in `table` and supports given in `supports`.
+
+This constructor gives full control on both `table` and `supports`. The attributes are not duplicated and remains
+linked to the variables given to the constructor. It should be used only to avoid duplication of `table` when using
+the same table constraint many times with different variables.
+
+# Arguments
+- `variables::Vector{<:AbstractIntVar}`: vector of variables of size (n, ).
+- `table::Matrix{Int}`: matrix of the constraint of size (n, m).
+- `supports::Dict{Pair{Int,Int},BitVector}`: for each assignment, a list of the tuples supporting this assignment.
+- `trailer::Trailer`: the trailer of the model.
 """
 struct TableConstraint <: Constraint
     scope::Vector{<:AbstractIntVar}
@@ -28,6 +48,32 @@ struct TableConstraint <: Constraint
     unfixedVariables::Set{Int}
     supports::Dict{Pair{Int,Int},BitVector}
     residues::Dict{Pair{Int,Int},Int}
+
+    TableConstraint(scope, active, table, currentTable, modifiedVariables, unfixedVariables, supports, residues) = new(scope, active, table, currentTable, modifiedVariables, unfixedVariables, supports, residues)
+
+    function TableConstraint(variables::Vector{<:AbstractIntVar}, table::Matrix{Int}, supports::Dict{Pair{Int,Int},BitVector}, trailer)
+        @assert length(variables) == size(table, 1)
+    
+        nVariables, nTuples = size(table)
+  
+        constraint = new(
+            variables,
+            StateObject{Bool}(true, trailer),
+            table, 
+            RSparseBitSet{UInt64}(nTuples, trailer),
+            Set{Int}(),
+            Set(collect(1:nVariables)),
+            supports,
+            buildResidues(supports)
+        )
+    
+        for variable in variables
+            addOnDomainChange!(variable, constraint)
+        end
+    
+        return constraint
+    end
+    
 end
 
 """
@@ -35,7 +81,6 @@ end
 
 Create a CompactTable constraint from the `variables`, with values given in `table`.
 
-Efficient implentation of the constraint enforcing: ∃ j ∈ ⟦1,m⟧, such that ∀ i ∈ ⟦1,n⟧ xᵢ=table[i,j].
 
 # Arguments
 - `variables::Vector{<:AbstractIntVar}`: vector of variables of size (n, ).
@@ -162,7 +207,12 @@ function buildResidues(supports::Dict{Pair{Int,Int},BitVector})::Dict{Pair{Int,I
     residues = Dict{Pair{Int,Int},Int}()
     n = 64
     for (key, support) in supports
-        residues[key] = Int(ceil(findfirst(support)/n))
+        index = findfirst(support)
+        if isnothing(index)
+            residues[key] = 1
+        else
+            residues[key] = Int(ceil(index/n))
+        end
     end
     return residues
 end
