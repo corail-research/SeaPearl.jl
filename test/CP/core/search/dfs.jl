@@ -67,7 +67,7 @@ using DataStructures
         @test length(model.trailer.prior) == 1 # saveState!()
 
         @test pop!(toCall)(model) == :FoundSolution
-        @test length(model.solutions) == 1 # Found a solution
+        @test length(model.statistics.solutions) == 1 # Found a solution
 
         @test pop!(toCall)(model) == :BackTracking
         @test length(model.trailer.prior) == 0 # restoreState!()
@@ -76,7 +76,7 @@ using DataStructures
         @test length(model.trailer.prior) == 1 # saveState!()
 
         @test pop!(toCall)(model) == :FoundSolution
-        @test length(model.solutions) == 2 # Found another solution
+        @test length(model.statistics.solution) == 2 # Found another solution
 
         @test pop!(toCall)(model) == :BackTracking
         @test length(model.trailer.prior) == 0 # restoreState!()
@@ -141,7 +141,7 @@ using DataStructures
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
         @test SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection()) == :Optimal
-        @test length(model.solutions) == 1
+        @test length(model.statistics.solutions) == 1
 
 
         ### Checking more complex solutions ###
@@ -155,9 +155,9 @@ using DataStructures
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
         @test SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection()) == :Optimal
-        @test length(model.solutions) == 2
-        @test model.solutions[1] == Dict("x" => 3,"y" => 3)
-        @test model.solutions[2] == Dict("x" => 2,"y" => 2)
+        @test length(model.statistics.solutions) == 2
+        @test model.statistics.solutions[1] == Dict("x" => 3,"y" => 3)
+        @test model.statistics.solutions[2] == Dict("x" => 2,"y" => 2)
 
     end
 
@@ -173,8 +173,8 @@ using DataStructures
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
         @test SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Optimal
-        @test model.solutions[1] == Dict("x" => 3,"y" => 3)
-        @test model.solutions[2] == Dict("x" => 2,"y" => 2)
+        @test model.statistics.solutions[1] == Dict("x" => 3,"y" => 3)
+        @test model.statistics.solutions[2] == Dict("x" => 2,"y" => 2)
 
         SeaPearl.empty!(model)
 
@@ -186,8 +186,8 @@ using DataStructures
 
         my_heuristic(x::SeaPearl.IntVar; cpmodel=nothing) = minimum(x.domain)
         @test SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(my_heuristic)) == :Optimal
-        @test model.solutions[1] == Dict("x" => 2,"y" => 2)
-        @test model.solutions[2] == Dict("x" => 3,"y" => 3)
+        @test model.statistics.solutions[1] == Dict("x" => 2,"y" => 2)
+        @test model.statistics.solutions[2] == Dict("x" => 3,"y" => 3)
 
     end
 
@@ -203,8 +203,8 @@ using DataStructures
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
         @test SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(); out_solver=true) == :FoundSolution
-        @test length(model.solutions) == 1
-        @test model.solutions[1] == Dict("x" => 3,"y" => 3)
+        @test length(model.statistics.solutions) == 1
+        @test model.statistics.solutions[1] == Dict("x" => 3,"y" => 3)
 
         SeaPearl.empty!(model)
 
@@ -216,8 +216,8 @@ using DataStructures
 
         my_heuristic(x::SeaPearl.IntVar; cpmodel=nothing) = minimum(x.domain)
         @test SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(my_heuristic); out_solver=true) == :FoundSolution
-        @test length(model.solutions) == 1
-        @test model.solutions[1] == Dict("x" => 2,"y" => 2)
+        @test length(model.statistics.solutions) == 1
+        @test model.statistics.solutions[1] == Dict("x" => 2,"y" => 2)
 
     end
 
@@ -309,7 +309,7 @@ using DataStructures
             Dict("x1" => 2, "x2" => 1, "x3" => 2, "x4" => 4)
         ]
 
-        for solution in model.solutions
+        for solution in model.statistics.solutions
             @test solution in possible_solutions
         end
 
@@ -405,7 +405,7 @@ using DataStructures
             Dict("x1" => 2, "x2" => 1, "x3" => 2, "x4" => 4)
         ]
 
-        for solution in model.solutions
+        for solution in model.statistics.solutions
             @test solution in possible_solutions
         end
 

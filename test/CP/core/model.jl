@@ -103,8 +103,8 @@
 
         SeaPearl.triggerFoundSolution!(model)
 
-        @test length(model.solutions) == 1
-        @test model.solutions[1] == Dict("x" => 2,"y" => 3)
+        @test length(model.statistics.solution) == 1
+        @test model.statistics.solution[1] == Dict("x" => 2,"y" => 3)
         @test model.objectiveBound == 2
         @test model.Statistics.numberOfSolutions == 1
         @test model.statistics.objective[1] == 3

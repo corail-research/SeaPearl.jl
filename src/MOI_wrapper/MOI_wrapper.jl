@@ -50,16 +50,15 @@ function MOI.optimize!(model::Optimizer)
         model.terminationStatus == MOI.OTHER_ERROR
     end
 
-    model.primalStatus = !isempty(model.cpmodel.solutions) ? MOI.FEASIBLE_POINT : MOI.NO_SOLUTION
+    model.primalStatus = !isempty(model.cpmodel.statistics.solutions) ? MOI.FEASIBLE_POINT : MOI.NO_SOLUTION
 
     # println(model.cpmodel.constraints)
     
     solution = nothing
-    solutions = model.cpmodel
-    if !isempty(model.cpmodel.solutions)
-        solution = last(model.cpmodel.solutions)
+    if !isempty(model.cpmodel.statistics.solutions)
+        solution = last(model.cpmodel.statistics.solutions)
     end
-    # println(model.cpmodel.solutions)
+    # println(model.cpmodel.statistics.solutions)
     return status, solution
 end
 

@@ -4,7 +4,7 @@ MOI.get(model::Optimizer, ::MOI.PrimalStatus) = model.primalStatus
 
 function MOI.get(optimizer::SeaPearl.Optimizer, ::MathOptInterface.VariablePrimal, vi::MathOptInterface.VariableIndex)
     id = vi.value
-    last(optimizer.cpmodel.solutions)[string(id)]
+    last(optimizer.cpmodel.statistics.solutions)[string(id)]
 end
 
 """

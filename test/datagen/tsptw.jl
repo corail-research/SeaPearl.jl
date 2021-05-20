@@ -120,28 +120,28 @@ end
         # println("dist", dist)
         # println("time_windows", time_windows)
 
-        @test length(model.solutions) >= 1
+        @test length(model.statistics.solution) >= 1
 
         # println("nodes: ", model.statistics.numberOfNodes)
 
         solution_found = Int[]
         for i in 1:(n_city-1)
-            push!(solution_found, model.solutions[end]["a_"*string(i)])
+            push!(solution_found, model.statistics.solutions[end]["a_"*string(i)])
         end
 
         # From: http://www.hakank.org/minizinc/tsptw.mzn
         @test solution_found == [17,10,20,18,19,11,6,16,2,12,13,7,14,8,3,5,9,21,4,15]
-        @test model.solutions[end]["total_cost"] == 378
+        @test model.statistics.solutions[end]["total_cost"] == 378
 
         # for i in 1:(n_city-1)
-        #     println("a_"*string(i)*": ", model.solutions[end]["a_"*string(i)])
-        #     println("c_"*string(i)*": ", model.solutions[end]["c_"*string(i)])
-        #     println("d_"*string(i)*": ", model.solutions[end]["d_"*string(i)])
-        #     println("v_"*string(i)*": ", model.solutions[end]["v_"*string(i)])
-        #     println("dist[v[i], a[i]]: ", dist[model.solutions[end]["v_"*string(i)], model.solutions[end]["a_"*string(i)]])
+        #     println("a_"*string(i)*": ", model.statistics.solution[end]["a_"*string(i)])
+        #     println("c_"*string(i)*": ", model.statistics.solutions[end]["c_"*string(i)])
+        #     println("d_"*string(i)*": ", model.statistics.solutions[end]["d_"*string(i)])
+        #     println("v_"*string(i)*": ", model.statistics.solutions[end]["v_"*string(i)])
+        #     println("dist[v[i], a[i]]: ", dist[model.statistics.solution[end]["v_"*string(i)], model.statistics.solution[end]["a_"*string(i)]])
         # end
-        # println("total_cost: ", model.solutions[end]["total_cost"])
-        # println("c_21: ", model.solutions[end]["c_21"])
+        # println("total_cost: ", model.statistics.solution[end]["total_cost"])
+        # println("c_21: ", model.statistics.solution[end]["c_21"])
     end
     @testset "Search known instance" begin
         trailer = SeaPearl.Trailer()
@@ -163,7 +163,7 @@ end
         SeaPearl.search!(model, SeaPearl.DFSearch, variableheuristic, valueheuristic)
 
         #TODO findout why sometimes no solution are found in the randomly generated problem  
-        @test length(model.solutions) >= 1
+        @test length(model.statistics.solution) >= 1
     end
     @testset "find_tsptw_dist_matrix()" begin
         trailer = SeaPearl.Trailer()

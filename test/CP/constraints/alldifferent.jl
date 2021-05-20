@@ -231,7 +231,7 @@ using LightGraphs
         status = SeaPearl.solve!(model; variableHeuristic=variableSelection)
 
         @test status == :Optimal
-        @test length(model.solutions) == 10
+        @test length(model.statistics.solutions) == 10
     end
     @testset "7 queens full" begin
         n=7
@@ -264,6 +264,6 @@ using LightGraphs
         status = SeaPearl.solve!(model; variableHeuristic=variableSelection)
 
         @test status == :Optimal
-        @test length(model.solutions) == 40
+        @test length(model.statistics.solutions) == 40
     end
 end
