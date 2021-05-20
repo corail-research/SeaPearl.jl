@@ -97,11 +97,19 @@ function propagate!(constraint::Disjunctive, toPropagate::Set{Constraint}, prune
         end
     end
     for i in 1:size(constraint.tasks)[1]
+        if  filteredEST[i] > constraint.tasks[i].earliestStartingTime.domain.max.value
+            return false
+        end
         if  filteredEST[i] > constraint.tasks[i].earliestStartingTime.domain.min.value
             prunedEST = SeaPearl.removeBelow!(constraint.tasks[i].earliestStartingTime.domain, filteredEST[i])
             addToPrunedDomains!(prunedDomains, constraint.tasks[i].earliestStartingTime, prunedEST)
             triggerDomainChange!(toPropagate, constraint.tasks[i].earliestStartingTime)
         end
     end
+
+    if all(task -> length(task.earliestStartingTime.domain) <= 1, constraint.tasks)
+        setValue!(constraint.active, false)
+    end
+
     return true
 end
