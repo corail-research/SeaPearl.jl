@@ -76,7 +76,7 @@ using DataStructures
         @test length(model.trailer.prior) == 1 # saveState!()
 
         @test pop!(toCall)(model) == :FoundSolution
-        @test length(model.statistics.solution) == 2 # Found another solution
+        @test length(model.statistics.solutions) == 2 # Found another solution
 
         @test pop!(toCall)(model) == :BackTracking
         @test length(model.trailer.prior) == 0 # restoreState!()

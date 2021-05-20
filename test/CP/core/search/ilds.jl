@@ -67,7 +67,7 @@ using DataStructures
         @test length(model.trailer.prior) == 1 # saveState!()
 
         @test pop!(toCall)(model) == :FoundSolution
-        @test length(model.statistics.solution) == 1 # Found a solution
+        @test length(model.statistics.solutions) == 1 # Found a solution
 
         @test pop!(toCall)(model) == :BackTracking
         @test length(model.trailer.prior) == 0 # restoreState!()
@@ -239,7 +239,7 @@ using DataStructures
         my_heuristic(x::SeaPearl.IntVar; cpmodel=nothing) = minimum(x.domain)
         @test SeaPearl.search!(model, SeaPearl.ILDSearch, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(my_heuristic); out_solver=true) == :FoundSolution
         @test length(model.statistics.solutions) == 1
-        @test model.statistics.statistics.solutions[1] == Dict("x" => 2,"y" => 2)
+        @test model.statistics.solutions[1] == Dict("x" => 2,"y" => 2)
 
     end
 
@@ -331,7 +331,7 @@ using DataStructures
             Dict("x1" => 2, "x2" => 1, "x3" => 2, "x4" => 4)
         ]
 
-        for solution in model.statistics.solution
+        for solution in model.statistics.solutions
             @test solution in possible_solutions
         end
 
@@ -426,7 +426,7 @@ using DataStructures
             Dict("x1" => 2, "x2" => 1, "x3" => 2, "x4" => 4)
         ]
 
-        for solution in model.statistics.solution
+        for solution in model.statistics.solutions
             @test solution in possible_solutions
         end
 
