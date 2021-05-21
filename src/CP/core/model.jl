@@ -3,10 +3,11 @@ using LightGraphs
 const Solution = Dict{String, Union{Int, Bool, Set{Int}}}
 
 mutable struct Statistics
-    numberOfNodes       ::Int
-    numberOfSolutions   ::Int
-    solutions           ::Array{Solution}
-    objectives          ::Union{Nothing, Array{Int}}
+    numberOfNodes           ::Int
+    numberOfSolutions       ::Int
+    solutions               ::Array{Solution}
+    nodevisitedpersolution  ::Array{Int}
+    objectives              ::Union{Nothing, Array{Int}}
 end
 
 mutable struct Limit
@@ -36,7 +37,7 @@ mutable struct CPModel
     statistics              ::Statistics
     limit                   ::Limit
     adhocInfo               ::Any
-    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Constraint[], trailer, nothing, nothing, Statistics(0, 0,Solution[],nothing), Limit(nothing, nothing))
+    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Constraint[], trailer, nothing, nothing, Statistics(0, 0,Solution[],Int[],nothing), Limit(nothing, nothing))
 end
 
 CPModel() = CPModel(Trailer())
@@ -152,6 +153,7 @@ function triggerFoundSolution!(model::CPModel)
         solution[k] = assignedValue(x)
     end
     push!(model.statistics.solutions, solution)
+    push!(model.statistics.nodevisitedpersolution,model.statistics.numberOfNodes)
 
     if !isnothing(model.objective)
         push!(model.statistics.objectives, assignedValue(model.objective))
