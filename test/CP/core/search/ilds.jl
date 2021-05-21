@@ -202,6 +202,8 @@ using DataStructures
 
         @test SeaPearl.search!(model, SeaPearl.ILDSearch, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Optimal
         #in this specific finding order with the given heuristic and iLDS method.
+        @test length(model.statistics.solutions) == 9 
+        
         @test model.statistics.solutions[1] == Dict("x1" => 2,"x2" => 3,"x3" => 4)
         @test model.statistics.solutions[2] == Dict("x1" => 2,"x2" => 3,"x3" => 2)
         @test model.statistics.solutions[3] == Dict("x1" => 2,"x2" => 1,"x3" => 4)
