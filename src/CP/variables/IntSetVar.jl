@@ -23,7 +23,36 @@ function IntSetVar(min::Int, max::Int, id::String, trailer::Trailer)
     return IntSetVar(Constraint[], dom, id)
 end
 
-# TODO define SetModification
+"""
+    SetModification(; excluded::Array{Int}, required::Array{Int})
+
+Stock the two types of modification of a IntSetVar.
+"""
+struct SetModification
+    excluded::Array{Int}
+    required::Array{Int}
+    
+    function SetModification(;excluded::Union{Nothing,Array{Int}}=nothing, required::Union{Nothing,Array{Int}}=nothing)
+        if isnothing(excluded)
+            excluded = Int[]
+        end
+        if isnothing(required)
+            required = Int[]
+        end
+        return new(excluded, required)
+    end
+end
+
+"""
+    mergeSetModifications!(modif1, modif2)
+
+Add the modifications in `modif2` at the end of `modif1`
+"""
+function mergeSetModifications!(modif1::SetModification, modif2::SetModification)
+    append!(modif1.required, modif2.required)
+    append!(modif1.excluded, modif2.excluded)
+    return
+end
 
 """
     isbound(x::IntSetVar)

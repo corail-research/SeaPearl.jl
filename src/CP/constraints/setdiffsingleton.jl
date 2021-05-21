@@ -37,7 +37,7 @@ function propagate!(constraint::SetDiffSingleton, toPropagate::Set{Constraint}, 
     end
     for v in toRemove
         exclude!(b.domain, v)
-        # TODO log modifications in b
+        addToPrunedDomains!(prunedDomains, b, SetModification(;excluded=[v]))
         triggerDomainChange!(toPropagate, b)
     end
 
@@ -47,7 +47,7 @@ function propagate!(constraint::SetDiffSingleton, toPropagate::Set{Constraint}, 
             if is_possible(a.domain, v)
                 if !is_required(a.domain, v)
                     require!(a.domain, v)
-                    # TODO log modifications in a
+                    addToPrunedDomains!(prunedDomains, a, SetModification(;required=[v]))
                     triggerDomainChange!(toPropagate, a)
                 end
             else
@@ -77,7 +77,7 @@ function propagate!(constraint::SetDiffSingleton, toPropagate::Set{Constraint}, 
     end
     for v in toRemove
         exclude!(a.domain, v)
-        # TODO log modifications in a
+        addToPrunedDomains!(prunedDomains, a, SetModification(;excluded=[v]))
         triggerDomainChange!(toPropagate, a)
     end
 
@@ -86,7 +86,7 @@ function propagate!(constraint::SetDiffSingleton, toPropagate::Set{Constraint}, 
         if is_possible(b.domain, v)
             if !is_required(b.domain, v)
                 require!(b.domain, v)
-                # TODO log modifications in b
+                addToPrunedDomains!(prunedDomains, b, SetModification(;required=[v]))
                 triggerDomainChange!(toPropagate, b)
             end
         else
@@ -105,7 +105,7 @@ function propagate!(constraint::SetDiffSingleton, toPropagate::Set{Constraint}, 
         if is_possible(a.domain, v)
             if !is_required(a.domain, v)
                 exclude!(a.domain, v)
-                # TODO log modifications in a
+                addToPrunedDomains!(prunedDomains, a, SetModification(;excluded=[v]))
                 triggerDomainChange!(toPropagate, a)
             else
                 return false

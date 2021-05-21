@@ -29,8 +29,8 @@ function propagate!(constraint::SetEqualConstant, toPropagate::Set{Constraint}, 
         end
     end
 
-    exclude_all!(constraint.s.domain)
-    # TODO log modifications in s
+    excluded = exclude_all!(constraint.s.domain)
+    addToPrunedDomains!(prunedDomains, s, SetModification(;excluded=excluded))
     triggerDomainChange!(toPropagate, constraint.s)
 
     setValue!(constraint.active, false)

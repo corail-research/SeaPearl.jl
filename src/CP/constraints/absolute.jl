@@ -7,11 +7,10 @@ struct Absolute <: Constraint
     x::AbstractIntVar
     y::AbstractIntVar
     active::StateObject{Bool}
+    initialized::StateObject{Bool}
 
     function Absolute(x, y, trailer)
-        constraint = new(x, y, StateObject(true, trailer))
-        # TODO fix domain change
-        removeBelow!(y.domain, 0) # y cannot take a negative value
+        constraint = new(x, y, StateObject(true, trailer), StateObject(false, trailer))
         addOnDomainChange!(x, constraint)
         addOnDomainChange!(y, constraint)
         return constraint
@@ -26,6 +25,13 @@ end
 """
 function propagate!(constraint::Absolute, toPropagate::Set{Constraint}, prunedDomains::CPModification)
 
+    if !constraint.initialized.value
+        setValue!(constraint.initialized, true)
+        prunedY = removeBelow!(y.domain, 0) # y cannot take a negative value
+        addToPrunedDomains!(prunedDomains, y, prunedY)
+        triggerDomainChange!(toPropagate, y)
+    end
+    
     if isbound(constraint.x) 
         value = abs(assignedValue(constraint.x))
         if !(value in constraint.y.domain)

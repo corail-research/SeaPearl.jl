@@ -41,7 +41,7 @@ function propagate!(constraint::InSet, toPropagate::Set{Constraint}, prunedDomai
     if isbound(constraint.x)
         if !is_required(constraint.s.domain, assignedValue(constraint.x))
             require!(constraint.s.domain, assignedValue(constraint.x))
-            # TODO log modifications on s
+            addToPrunedDomains!(prunedDomains, s, SetModification(;required=[assignedValue(constraint.x)]))
             triggerDomainChange!(toPropagate, constraint.s)
         end
     end

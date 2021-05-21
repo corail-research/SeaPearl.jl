@@ -52,7 +52,7 @@ function propagate!(constraint::ReifiedInSet, toPropagate::Set{Constraint}, prun
             if isbound(constraint.x)
                 if !is_required(constraint.s.domain, assignedValue(constraint.x))
                     require!(constraint.s.domain, assignedValue(constraint.x))
-                    # TODO log modifications in s
+                    addToPrunedDomains!(prunedDomains, s, SetModification(;excluded=[assignedValue(constraint.x)]))
                     triggerDomainChange!(toPropagate, constraint.s)
                 end
             end
@@ -70,8 +70,8 @@ function propagate!(constraint::ReifiedInSet, toPropagate::Set{Constraint}, prun
             # Filter s
             if isbound(constraint.x)
                 if is_possible(constraint.s.domain, assignedValue(constraint.x))
-                    exclude!(constraint.s.domain, assignedValue(constraint.x))
-                    # TODO log modifications in s
+                    exclude!(constrain.domain, assignedValue(constraint.x))
+                    addToPrunedDomains!(prunedDomains, s, SetModification(;excluded=[assignedValue(constraint.x)]))
                     triggerDomainChange!(toPropagate, constraint.s)
                 end
             end
