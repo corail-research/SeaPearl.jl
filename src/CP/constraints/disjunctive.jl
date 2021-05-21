@@ -1,31 +1,63 @@
 include("datasstructures/disjointSet.jl")
+
+"""
+    mutable struct Task(    earliestStartingTime::SeaPearl.IntVar, processingTime::Int, id::Int)
+
+Task stucture with a earliestStartingTime variable, a processing time constant and an ID
+"""
 mutable struct Task
     earliestStartingTime::SeaPearl.IntVar
     processingTime::Int
     id::Int
 end
 
+"""
+    getEST(task::Task)
+
+return the earliest starting time of a task.
+"""
 function getEST(task::Task)
     return task.earliestStartingTime.domain.min.value
 end
 
+"""
+    getLCT(task::Task)
+
+return the latest completion time of a task.
+"""
 function getLCT(task::Task)
     return task.earliestStartingTime.domain.max.value + task.processingTime
 end
+
+"""
+    getECT(task::Task)
+
+return the earliest completion time of a task.
+"""
 function getECT(task::Task)
     return task.earliestStartingTime.domain.min.value + task.processingTime
 end
 
+"""
+    getLST(task::Task)
+
+return the latest starting time of a task.
+"""
 function getLST(task::Task)
     return task.earliestStartingTime.domain.max.value
 end
 
+"""
+    function Disjunctive(earliestStartingTime::Array{AbstractIntVar}, 
+        processingTime::Array{Int}, trailer)::Disjunctive
 
+Constraint that insure that no task are executed in the same time range, i.e. 
+"""
 struct Disjunctive <: Constraint
     tasks::Array{Task}
     active::StateObject{Bool}
 
-    function Disjunctive(earliestStartingTime::Array{IntVar}, 
+    function Disjunctive(earliestStartingTime::Array{AbstractIntVar}, 
                         processingTime::Array{Int}, trailer)::Disjunctive
         tasks = []
         for i in 1:size(earliestStartingTime)[1]
@@ -41,8 +73,15 @@ struct Disjunctive <: Constraint
     end
 end
 
+
+"""
+    function propagate!(constraint::Disjunctive, toPropagate::Set{Constraint}, prunedDomains::CPModification)
+        S_i + p_i <= S_j \/ S_j + p_j <= S_i
+disjunctive propagate function. The implementation is the timetabling as described in this paper : http://www2.ift.ulaval.ca/~quimper/publications/TimeLineProject.pdf
+"""
+
 function propagate!(constraint::Disjunctive, toPropagate::Set{Constraint}, prunedDomains::CPModification)
-    taskNumberWithCompulsaryPart = 1
+    NumberOfTaskWithCompulsaryPart = 1
     lowerBoundCompulsaryPart = []
     upperBoundCompulsaryPart = []
     nextTaskWithClosestCompulsaryPart = fill(0, size(constraint.tasks)[1])
@@ -52,47 +91,49 @@ function propagate!(constraint::Disjunctive, toPropagate::Set{Constraint}, prune
     tasksOrderedByPT = sort(constraint.tasks, by = x-> x.processingTime)
 
     for task in tasksOrderedByLST
+        #If the task as a compulsary part
         if getLST(task) < getECT(task)
-            if (taskNumberWithCompulsaryPart > 1)
-                if (upperBoundCompulsaryPart[taskNumberWithCompulsaryPart - 1] > getLST(task))
+            if (NumberOfTaskWithCompulsaryPart > 1)
+                if (upperBoundCompulsaryPart[NumberOfTaskWithCompulsaryPart - 1] > getLST(task))
                     return false
                 else
-                    filteredEST[task.id] = max(filteredEST[task.id], upperBoundCompulsaryPart[taskNumberWithCompulsaryPart - 1])
+                    filteredEST[task.id] = max(filteredEST[task.id], upperBoundCompulsaryPart[NumberOfTaskWithCompulsaryPart - 1])
                 end
             end
             push!(lowerBoundCompulsaryPart, getLST(task))
             push!(upperBoundCompulsaryPart, filteredEST[task.id] + task.processingTime)
-            taskNumberWithCompulsaryPart = taskNumberWithCompulsaryPart + 1
+            NumberOfTaskWithCompulsaryPart = NumberOfTaskWithCompulsaryPart + 1
         end
     end
-
-    if taskNumberWithCompulsaryPart == 1
+    #if no task has a compulsary part, no need to filter.
+    if NumberOfTaskWithCompulsaryPart == 1
         return true
     end
 
     iterator = 1
     for task in tasksOrderedByEST
-        while (iterator < taskNumberWithCompulsaryPart && getEST(task) >= upperBoundCompulsaryPart[iterator])
+        while (iterator < NumberOfTaskWithCompulsaryPart && getEST(task) >= upperBoundCompulsaryPart[iterator])
             iterator = iterator + 1
         end
         nextTaskWithClosestCompulsaryPart[task.id] = iterator
     end
-    nextPart = SeaPearl.DisjointSet(taskNumberWithCompulsaryPart)
+    
+    nextPart = SeaPearl.DisjointSet(NumberOfTaskWithCompulsaryPart)
     for task in tasksOrderedByPT
         if (getECT(task) <= getLST(task))
-            c = nextTaskWithClosestCompulsaryPart[task.id]
+            nextTask = nextTaskWithClosestCompulsaryPart[task.id]
             firstUpdate = true
-            while (c < taskNumberWithCompulsaryPart && filteredEST[task.id] + task.processingTime > lowerBoundCompulsaryPart[c])
-                c = SeaPearl.greatest!(nextPart,c)
-                filteredEST[task.id] = max(filteredEST[task.id], upperBoundCompulsaryPart[c])
+            while (nextTask < NumberOfTaskWithCompulsaryPart && filteredEST[task.id] + task.processingTime > lowerBoundCompulsaryPart[nextTask])
+                nextTask = SeaPearl.greatest!(nextPart, nextTask)
+                filteredEST[task.id] = max(filteredEST[task.id], upperBoundCompulsaryPart[nextTask])
                 if (filteredEST[task.id] + task.processingTime > getLCT(task))
                     return false
                 end
                 if (!firstUpdate)
-                    SeaPearl.setUnion!(nextPart,nextTaskWithClosestCompulsaryPart[task.id], c)
+                    SeaPearl.setUnion!(nextPart,nextTaskWithClosestCompulsaryPart[task.id], nextTask)
                 end
                 firstUpdate = false
-                c = c + 1
+                nextTask = nextTask + 1
             end
         end
     end
