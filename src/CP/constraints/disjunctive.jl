@@ -57,7 +57,7 @@ struct Disjunctive <: Constraint
     tasks::Array{Task}
     active::StateObject{Bool}
 
-    function Disjunctive(earliestStartingTime::Array{AbstractIntVar}, 
+    function Disjunctive(earliestStartingTime::Array{IntVar}, 
                         processingTime::Array{Int}, trailer)::Disjunctive
         tasks = []
         for i in 1:size(earliestStartingTime)[1]
@@ -76,7 +76,7 @@ end
 
 """
     function propagate!(constraint::Disjunctive, toPropagate::Set{Constraint}, prunedDomains::CPModification)
-        S_i + p_i <= S_j \/ S_j + p_j <= S_i
+        S_i + p_i <= S_j or S_j + p_j <= S_i
 disjunctive propagate function. The implementation is the timetabling as described in this paper : http://www2.ift.ulaval.ca/~quimper/publications/TimeLineProject.pdf
 """
 
@@ -117,7 +117,7 @@ function propagate!(constraint::Disjunctive, toPropagate::Set{Constraint}, prune
         end
         nextTaskWithClosestCompulsaryPart[task.id] = iterator
     end
-    
+
     nextPart = SeaPearl.DisjointSet(NumberOfTaskWithCompulsaryPart)
     for task in tasksOrderedByPT
         if (getECT(task) <= getLST(task))
