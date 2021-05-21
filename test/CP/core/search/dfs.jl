@@ -80,11 +80,6 @@ using DataStructures
 
         @test pop!(toCall)(model) == :BackTracking
         @test length(model.trailer.prior) == 0 # restoreState!()
-
-        @test length(model.statistics.nodevisitedpersolution) == 2
-        @test model.statistics.nodevisitedpersolution[1] == 2
-        @test model.statistics.nodevisitedpersolution[2] == 3
-
     end
 
     @testset "initroot(::DFSearch)" begin
@@ -161,9 +156,6 @@ using DataStructures
 
         @test SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection()) == :Optimal
         @test length(model.statistics.solutions) == 2
-        @test model.statistics.nodevisitedpersolution[1] == 2
-        @test model.statistics.nodevisitedpersolution[1] == 3
-
         @test model.statistics.solutions[1] == Dict("x" => 3,"y" => 3)
         @test model.statistics.solutions[2] == Dict("x" => 2,"y" => 2)
 
