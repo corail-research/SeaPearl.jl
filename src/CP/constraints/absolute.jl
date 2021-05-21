@@ -27,11 +27,11 @@ function propagate!(constraint::Absolute, toPropagate::Set{Constraint}, prunedDo
 
     if !constraint.initialized.value
         setValue!(constraint.initialized, true)
-        prunedY = removeBelow!(y.domain, 0) # y cannot take a negative value
-        addToPrunedDomains!(prunedDomains, y, prunedY)
-        triggerDomainChange!(toPropagate, y)
+        prunedY = removeBelow!(constraint.y.domain, 0) # y cannot take a negative value
+        addToPrunedDomains!(prunedDomains, constraint.y, prunedY)
+        triggerDomainChange!(toPropagate, constraint.y)
     end
-    
+
     if isbound(constraint.x) 
         value = abs(assignedValue(constraint.x))
         if !(value in constraint.y.domain)
