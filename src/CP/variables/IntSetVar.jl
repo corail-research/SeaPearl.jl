@@ -23,6 +23,8 @@ function IntSetVar(min::Int, max::Int, id::String, trailer::Trailer)
     return IntSetVar(Constraint[], dom, id)
 end
 
+# TODO define SetModification
+
 """
     isbound(x::IntSetVar)
 

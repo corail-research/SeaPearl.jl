@@ -30,7 +30,7 @@ function propagate!(constraint::SetEqualConstant, toPropagate::Set{Constraint}, 
     end
 
     exclude_all!(constraint.s.domain)
-
+    # TODO log modifications in s
     triggerDomainChange!(toPropagate, constraint.s)
 
     setValue!(constraint.active, false)

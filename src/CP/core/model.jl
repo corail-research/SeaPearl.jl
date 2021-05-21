@@ -40,6 +40,7 @@ end
 
 CPModel() = CPModel(Trailer())
 
+# TODO  add SetModification
 const CPModification = Dict{String, Array{Int}}
 
 """

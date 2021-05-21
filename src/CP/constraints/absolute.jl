@@ -10,6 +10,7 @@ struct Absolute <: Constraint
 
     function Absolute(x, y, trailer)
         constraint = new(x, y, StateObject(true, trailer))
+        # TODO fix domain change
         removeBelow!(y.domain, 0) # y cannot take a negative value
         addOnDomainChange!(x, constraint)
         addOnDomainChange!(y, constraint)
