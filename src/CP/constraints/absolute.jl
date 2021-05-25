@@ -103,9 +103,9 @@ variablesArray(constraint::Absolute) = [constraint.x, constraint.y]
 function Base.show(io::IO, ::MIME"text/plain", con::Absolute)
     println(io, string(typeof(con)), ": |", con.x.id, "| = ", con.y.id, ", active = ", con.active.value)
     println(io, "   ", con.x)
-    println(io, "   ", con.y)
+    print(io, "   ", con.y)
 end
 
 function Base.show(io::IO, con::Absolute)
-    println(io, string(typeof(con)), ": |", con.x.id, "| = ", con.y.id, ", active = ", con.active.value)
+    print(io, string(typeof(con)), ": |", con.x.id, "| = ", con.y.id)
 end

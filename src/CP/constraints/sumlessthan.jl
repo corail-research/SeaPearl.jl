@@ -87,7 +87,7 @@ function Base.show(io::IO, ::MIME"text/plain", con::SumLessThan)
     ids = [var.id for var in con.x]
     print(io, typeof(con), ": ", join(ids, " + "), " ≤ ", con.upper, ", active = ", con.active)
     for var in con.x
-        print(io, "\n   ", con.var)
+        print(io, "\n   ", var)
     end
 end
 
