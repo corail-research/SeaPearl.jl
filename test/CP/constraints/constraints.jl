@@ -3,6 +3,8 @@
     include("algorithms/matching.jl")
     include("algorithms/rsparsebitset.jl")
     include("absolute.jl")
+    include("datasstructures/disjointSet.jl")
+    include("disjunctive.jl")
     include("alldifferent.jl")
     include("compacttable.jl")
     include("equal.jl")
@@ -22,7 +24,7 @@
     include("element1d.jl")
     include("binarymaximum.jl")
     include("setequalconstant.jl")
-
+    
     @testset "addOnDomainChange!()" begin
         trailer = SeaPearl.Trailer()
         x = SeaPearl.IntVar(2, 6, "x", trailer)
