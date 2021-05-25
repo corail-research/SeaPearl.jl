@@ -37,7 +37,9 @@ function propagate!(constraint::SetDiffSingleton, toPropagate::Set{Constraint}, 
     end
     for v in toRemove
         exclude!(b.domain, v)
-        addToPrunedDomains!(prunedDomains, b, SetModification(;excluded=[v]))
+    end
+    if !isempty(toRemove)
+        addToPrunedDomains!(prunedDomains, b, SetModification(;excluded=copy(toRemove)))
         triggerDomainChange!(toPropagate, b)
     end
 
@@ -77,7 +79,9 @@ function propagate!(constraint::SetDiffSingleton, toPropagate::Set{Constraint}, 
     end
     for v in toRemove
         exclude!(a.domain, v)
-        addToPrunedDomains!(prunedDomains, a, SetModification(;excluded=[v]))
+    end
+    if !isempty(toRemove)
+        addToPrunedDomains!(prunedDomains, a, SetModification(;excluded=copy(toRemove)))
         triggerDomainChange!(toPropagate, a)
     end
 
@@ -118,6 +122,10 @@ function propagate!(constraint::SetDiffSingleton, toPropagate::Set{Constraint}, 
         if (isbound(a) && isbound(b)) || possible_not_required_values(b.domain) == Set{Int}([assignedValue(x)])
             setValue!(constraint.active, false)
         end
+    end
+
+    if constraint in toPropagate
+        pop!(toPropagate, constraint)
     end
 
     return !isempty(x.domain)
