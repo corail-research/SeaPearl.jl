@@ -5,6 +5,7 @@
     include("constraints/constraints.jl")
 
     include("core/fixPoint.jl")
+    include("core/cpModification.jl")
 
     include("core/search/strategies.jl")
 
