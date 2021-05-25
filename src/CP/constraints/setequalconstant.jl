@@ -20,12 +20,24 @@ end
 `SetEqualConstant` propagation function.
 """
 function propagate!(constraint::SetEqualConstant, toPropagate::Set{Constraint}, prunedDomains::CPModification)
-    # Feasibility & requiring
+    if !constraint.active.value
+        return true
+    end
+
+    # for every value in c, require in s
     for v in constraint.c
         if !is_possible(constraint.s.domain, v)
             return false
         elseif !is_required(constraint.s.domain, v)
             require!(constraint.s.domain, v)
+            addToPrunedDomains!(prunedDomains, constraint.s, SetModification(;required=[v]))
+        end
+    end
+
+    # for every required value in s, assert v in c
+    for v in required_values(constraint.s.domain)
+        if !(v in constraint.c)
+            return false
         end
     end
 
@@ -34,6 +46,10 @@ function propagate!(constraint::SetEqualConstant, toPropagate::Set{Constraint}, 
     triggerDomainChange!(toPropagate, constraint.s)
 
     setValue!(constraint.active, false)
+
+    if constraint in toPropagate
+        pop!(toPropagate, constraint)
+    end
 
     return true
 end
