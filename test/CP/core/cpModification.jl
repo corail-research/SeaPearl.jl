@@ -10,7 +10,8 @@
         a = SeaPearl.IntVar(-10, 10, "a", trailer)
         b = SeaPearl.IntVar(1, 10, "b", trailer)
         c = SeaPearl.IntVar(1, 10, "c", trailer)
-        SeaPearl.addVariable!.([model], [x, y, z, a, b, c])
+        d = SeaPearl.IntVar(-10, 10, "d", trailer)
+        SeaPearl.addVariable!.([model], [x, y, z, a, b, c, d])
 
         c1 = SeaPearl.Absolute(a, x, trailer)
         c2 = SeaPearl.AllDifferent([x, y, z], trailer)
@@ -23,7 +24,12 @@
         c8 = SeaPearl.SumGreaterThan([b, c], 18, trailer)
         c9 = SeaPearl.SumLessThan([y, z], -18, trailer)
         c10 = SeaPearl.SumToZero([z, b], trailer)
-        append!(model.constraints, [c1, c2, c3, c4, c5, c6, c7])
+        table = [
+            8 8 8 9 9 9 10 10 10;
+            1 2 3 5 6 7 8 9 10;
+        ]
+        c11 = SeaPearl.TableConstraint([c, d], table, trailer)
+        append!(model.constraints, [c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11])
 
         status, prunedDomains = SeaPearl.fixPoint!(model)
 
@@ -33,6 +39,7 @@
         @test Set(prunedDomains["a"]) == setdiff(Set(-10:10), -8)
         @test Set(prunedDomains["b"]) == setdiff(Set(1:10), 10)
         @test Set(prunedDomains["c"]) == setdiff(Set(1:10), 10)
+        @test Set(prunedDomains["d"]) == setdiff(Set(-10:10), Set(8:10))
     end
 
     @testset "Boolean variables" begin
