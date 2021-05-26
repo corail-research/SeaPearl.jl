@@ -24,7 +24,7 @@ function benchmark_solving(;
         out_solver::Bool=false, 
         metricsFun=((;kwargs...) -> nothing),
         verbose::Bool=true,
-        evaluator::Union{Nothing, AbstractEvaluator}=SameInstancesEvaluator()
+        evaluator::Union{Nothing, AbstractEvaluator}
     ) where T <: ValueSelection
     println("Benchmarking...")
     if isa(valueSelectionArray, T)
@@ -49,13 +49,12 @@ function benchmark_solving(;
 
     nb_heuristics = length(valueSelectionArray)
     nb_instances = evaluator.nb_instances
-    init_evaluator!(evaluator, generator)
-    eval_nodevisited = zeros(Float64, (nb_heuristics, nb_instances))
-    eval_timeneeded = zeros(Float64, (nb_heuristics, nb_instances))
 
-    for j in 1:nb_heuristics
-        eval_nodevisited[j, :], eval_timeneeded[j, :] = evaluate(evaluator, variableHeuristic, valueSelectionArray[j], strategy)
+    if isnothing(evaluator)
+        evaluator=SameInstancesEvaluator(valueSelectionArray, generator)
     end
+    evaluate(evaluator, variableHeuristic, strategy)
 
-    eval_nodevisited, eval_timeneeded
+
+    return evaluator.metrics
 end
