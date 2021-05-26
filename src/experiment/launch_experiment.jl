@@ -64,7 +64,8 @@ function launch_experiment!(
             reset_model!(model)
             
             dt = @elapsed search!(model, strategy, variableHeuristic, valueSelectionArray[j], out_solver=out_solver)
-            metricsArray[j](model,dt)  #filling metrics
+            
+            metricsArray[j](model,dt)  #adding results in the metrics data structure
 
             if isa(valueSelectionArray[j], LearnedHeuristic)
                 verbose && print(", Visited nodes with learnedHeuristic : ", model.statistics.numberOfNodes)
