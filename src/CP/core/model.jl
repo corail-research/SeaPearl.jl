@@ -5,9 +5,9 @@ const Solution = Dict{String, Union{Int, Bool, Set{Int}}}
 mutable struct Statistics
     numberOfNodes           ::Int
     numberOfSolutions       ::Int
-    solutions               ::Array{Solution}
-    nodevisitedpersolution  ::Array{Int}
-    objectives              ::Union{Nothing, Array{Int}}
+    solutions               ::Vector{Solution}
+    nodevisitedpersolution  ::Vector{Int}
+    objectives              ::Union{Nothing, Vector{Int}}
 end
 
 mutable struct Limit
@@ -193,6 +193,8 @@ function Base.isempty(model::CPModel)::Bool
         && isnothing(model.objective)
         && isnothing(model.objectiveBound)
         && isempty(model.statistics.solutions)
+        && isempty(model.statistics.nodevisitedpersolution)
+        && isnothing(model.statistics.objectives)
         && model.statistics.numberOfNodes == 0
         && model.statistics.numberOfSolutions == 0
         && isnothing(model.limit.numberOfNodes)
@@ -213,6 +215,8 @@ function Base.empty!(model::CPModel)
     model.objective = nothing
     model.objectiveBound = nothing
     empty!(model.statistics.solutions)
+    empty!(model.statistics.nodevisitedpersolution)
+    model.statistics.objectives = nothing
     model.statistics.numberOfNodes = 0
     model.statistics.numberOfSolutions = 0
     model.limit.numberOfNodes = nothing
@@ -234,9 +238,13 @@ function reset_model!(model::CPModel)
     end
     model.objectiveBound = nothing
     empty!(model.statistics.solutions)
+    empty!(model.statistics.nodevisitedpersolution)
+    if !isnothing(model.objective)
+        empty!(model.statistics.objectives)
+    end
     model.statistics.numberOfNodes = 0
     model.statistics.numberOfSolutions = 0
-    model
+
 end
 
 """
