@@ -62,8 +62,8 @@ function launch_experiment!(
                 verbose && println(" vs Visited nodes with basic Heuristic n°$(j-1) : ", model.statistics.numberOfNodes)
             end
         end
-        
-        if !isnothing(evaluator) && (i % evaluator.eval_freq == 1)
+
+        if !isnothing(evaluator) && (i % evaluator.eval_freq == 0)
             evaluate(evaluator, variableHeuristic, strategy)
         end
         verbose && println()
