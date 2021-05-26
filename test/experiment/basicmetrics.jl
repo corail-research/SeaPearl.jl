@@ -221,11 +221,19 @@ agent = RL.Agent(
         push!(metrics.NodeVisited, [0,10])
         push!(metrics.NodeVisited, [0,10])
 
-
+        push!(metrics.meanNodeVisitedUntilOptimality, 0)
+        push!(metrics.meanNodeVisitedUntilOptimality, 0)
+        push!(metrics.meanNodeVisitedUntilOptimality, 0)
+        push!(metrics.meanNodeVisitedUntilOptimality, 0)
+        push!(metrics.meanNodeVisitedUntilOptimality, 10)
+        push!(metrics.meanNodeVisitedUntilOptimality, 10)
+        push!(metrics.meanNodeVisitedUntilOptimality, 10)
+        push!(metrics.meanNodeVisitedUntilOptimality, 10)
+        
         metrics.nb_episodes = 8
         SeaPearl.computemean!(metrics)
-        @test metrics.meanNodeVisitedUntilfirstSolFound == [10.0,10.0,10.0,10.0,7.5,5.0,2.5,0.0]
-        @test metrics.meanNodeVisitedUntilOptimality == [0.0,0.0,0.0,0.0,2.5,5.0,7.5,10.0]
+        @test metrics.meanNodeVisitedUntilfirstSolFound == [10.0, 7.5, 5.0, 2.5, 0.0]
+        @test metrics.meanNodeVisitedUntilOptimality == [0.0, 2.5, 5.0, 7.5, 10.0]
 
     end
 end
