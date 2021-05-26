@@ -26,32 +26,20 @@ function launch_experiment!(
         strategy::Type{DFSearch},
         variableHeuristic::AbstractVariableSelection,
         out_solver::Bool,
-        metricsFun,
         verbose::Bool;
-        evaluator::Union{Nothing, AbstractEvaluator}=SameInstancesEvaluator()
+        evaluator::Union{Nothing, AbstractEvaluator}=SameInstancesEvaluator(valueSelectionArray,generator)
     ) where T <: ValueSelection
 
     nb_heuristics = length(valueSelectionArray)
 
-    eval_nodevisited = nothing
-    eval_timeneeded = nothing
-    if !isnothing(evaluator)
-        eval_freq = evaluator.eval_freq
-        nb_instances = evaluator.nb_instances
-        init_evaluator!(evaluator, generator)
-
-        # TODO: here we should not have a +1 for the first dimension, but removing it makes the tests fail
-        eval_nodevisited = zeros(Float64, (floor(Int64, nb_episodes/eval_freq)+1, nb_heuristics, nb_instances))
-        eval_timeneeded = zeros(Float64, (floor(Int64, nb_episodes/eval_freq)+1, nb_heuristics, nb_instances))
-    end
-
-    bestsolutions = zeros(Int64, (nb_episodes, nb_heuristics))
-    nodevisited = zeros(Int64, (nb_episodes, nb_heuristics))
-    timeneeded = zeros(Float64, (nb_episodes, nb_heuristics))
-    
-
     trailer = Trailer()
     model = CPModel(trailer)
+
+    fill_with_generator!(model, generator)  #get the type of CPmodel ( does it contains an objective )
+    metricsArray=[]
+    for j in 1:nb_heuristics
+        push!(metricsArray,basicmetrics(model,valueSelectionArray[j]))
+    end 
 
     iter = ProgressBar(1:nb_episodes)
     for i in iter
@@ -66,38 +54,28 @@ function launch_experiment!(
             reset_model!(model)
             
             dt = @elapsed search!(model, strategy, variableHeuristic, valueSelectionArray[j], out_solver=out_solver)
+            metricsArray[j](model,dt)  #filling metrics
 
             if isa(valueSelectionArray[j], LearnedHeuristic)
                 verbose && print(", Visited nodes with learnedHeuristic : ", model.statistics.numberOfNodes)
             else
                 verbose && println(" vs Visited nodes with basic Heuristic n°$(j-1) : ", model.statistics.numberOfNodes)
             end
-            bestsolutions[i, j] = model.objectiveBound + 1
-            nodevisited[i, j] = model.statistics.numberOfNodes
-
-            if j == 2
-                set_postfix(iter, Delta=string(nodevisited[i, 1] - nodevisited[i, 2]))
-            end
-
-            # eval_nodevisited[i, j], eval_timeneeded[i, j] = 0., 0.
-            if !isnothing(evaluator) && (i % eval_freq == 1)
-                eval_nodevisited[floor(Int64, (i-1)/eval_freq + 1), j, :], eval_timeneeded[floor(Int64, (i-1)/eval_freq + 1), j, :] = evaluate(evaluator, variableHeuristic, valueSelectionArray[j], strategy)
-            end
-
-            timeneeded[i, j] = dt
-
-            total_reward = 0
-            loss = 0
-            if isa(valueSelectionArray[j], LearnedHeuristic)
-                total_reward = last_episode_total_reward(valueSelectionArray[j].agent.trajectory)
-                loss = valueSelectionArray[j].agent.policy.learner.loss
-            end
-
-            metricsFun(;episode=i, heuristic=valueSelectionArray[j], nodeVisited=model.statistics.numberOfNodes, loss=loss, total_reward=total_reward)
+        end
+        
+        if !isnothing(evaluator) && (i % evaluator.eval_freq == 1)
+            evaluate(evaluator, variableHeuristic, strategy)
         end
         verbose && println()
+    end
+    for j in 1:nb_heuristics
+        #compute slidding mean for each metrics
+        computemean!(metricsArray[j])  
+    end
+    
+    if !isnothing(evaluator)
+        return metricsArray, evaluator.metrics
 
     end
-
-    bestsolutions, nodevisited, timeneeded, eval_nodevisited, eval_timeneeded
+    return metricsArray,[]
 end
