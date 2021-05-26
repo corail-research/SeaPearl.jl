@@ -42,11 +42,7 @@ function search!(model::CPModel, ::Type{Strategy}, variableHeuristic::AbstractVa
     end
     
 
-<<<<<<< HEAD
     if length(model.statistics.solutions) > 0
-=======
-    if length(model.solutions) > 0
->>>>>>> origin/master
         return :Optimal
     end
 
