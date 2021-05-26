@@ -1,15 +1,19 @@
 """
     train!(;
-        ValueSelectionArray::Array{ValueSelection, 1}, 
+        valueSelectionArray::Union{T, Array{T, 1}}, 
         generator::AbstractModelGenerator,
         nb_episodes::Int64=10,
         strategy::Type{DFSearch}=DFSearch,
         variableHeuristic=selectVariable)
-)
+        out_solver::Bool=false,
+        verbose::Bool=true,
+        evaluator::Union{Nothing, AbstractEvaluator}, 
+        metrics::Union{Nothing,AbstractMetrics}=nothing
+        ) where T <: ValueSelection
 
-Training the given LearnedHeuristics and using the Basic One to compare performances. 
-This function managed the training mode of the LEarnedHeuristic before and after a call to `launch_experiment!`.
-    
+Training the given LearnedHeuristics and using the Basic ones to compare performances. 
+This function managed the training mode of the LearnedHeuristic before and after a call to `launch_experiment!`.
+
 The function return arrays containing scores, time needed and numbers of nodes visited on each episode for every heuristic
 (basic and learned heuristics)
 """
@@ -21,7 +25,8 @@ function train!(;
         variableHeuristic::AbstractVariableSelection=MinDomainVariableSelection(),
         out_solver::Bool=false,
         verbose::Bool=true,
-        evaluator::Union{Nothing, AbstractEvaluator}
+        evaluator::Union{Nothing, AbstractEvaluator},
+        metrics::Union{Nothing,AbstractMetrics}=nothing
     ) where T <: ValueSelection
 
     if isa(valueSelectionArray, T)
@@ -46,8 +51,9 @@ function train!(;
         strategy,
         variableHeuristic,
         out_solver,
-        verbose,
-        evaluator=evaluator
+        verbose;
+        metrics=metrics,
+        evaluator=evaluator,
     )
 
     for valueSelection in valueSelectionArray

@@ -15,6 +15,11 @@ be precised as well. To finish with, the value selection heuristic (eather learn
 given to function. Each problem generated will be solved once by every value selection heuristic
 given, making it possible to compare them.
 
+All the results of consecutive search during the training is stocked in metricsArray containing a metrics 
+for each heuristic (eather learned or basic).  
+
+It is also possible to give an evaluator to compare the evolution of performance of the heuristic on same instances along the search. 
+
 This function is called by `train!` and by `benchmark_solving!`.
 
 Every "eval_freq" episodes, all heuristic are evaluated ( weights are no longer updated during the evaluation).
@@ -27,18 +32,23 @@ function launch_experiment!(
         variableHeuristic::AbstractVariableSelection,
         out_solver::Bool,
         verbose::Bool;
+        metrics::Union{Nothing, AbstractMetrics}=nothing,
         evaluator::Union{Nothing, AbstractEvaluator}=SameInstancesEvaluator(valueSelectionArray,generator)
     ) where T <: ValueSelection
 
     nb_heuristics = length(valueSelectionArray)
 
+     #get the type of CPmodel ( does it contains an objective )
     trailer = Trailer()
     model = CPModel(trailer)
-
-    fill_with_generator!(model, generator)  #get the type of CPmodel ( does it contains an objective )
-    metricsArray=[]
+    fill_with_generator!(model, generator) 
+    metricsArray=AbstractMetrics[]
     for j in 1:nb_heuristics
-        push!(metricsArray,basicmetrics(model,valueSelectionArray[j]))
+        if !isnothing(metrics)
+            push!(metricsArray,metrics(model,valueSelectionArray[j]))
+        else
+            push!(metricsArray,basicmetrics(model,valueSelectionArray[j]))
+        end
     end 
 
     iter = ProgressBar(1:nb_episodes)
@@ -70,7 +80,9 @@ function launch_experiment!(
     end
     for j in 1:nb_heuristics
         #compute slidding mean for each metrics
-        computemean!(metricsArray[j])  
+        if metricsArray[j]==basicmetrics{<:AbstractTakeObjective,<:ValueSelection}
+            computemean!(metricsArray[j])  
+        end
     end
     
     if !isnothing(evaluator)
