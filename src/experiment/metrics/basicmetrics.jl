@@ -1,81 +1,108 @@
 
+using Plots
+using RollingFunctions
 
 
-mutable struct basicmetrics{OBJ,H<:ValueSelection} <: AbstractMetrics
-    NodeVisited::Vector{Array{Int64}}
+
+
+mutable struct basicmetrics{OBJ<:AbstractTakeObjective, H<:ValueSelection} <: AbstractMetrics
+    heuristic::H
+    NodeVisited::Vector{Vector{Int64}}
     meanNodeVisitedUntilfirstSolFound::Vector{Float32}
     meanNodeVisitedUntilOptimality::Vector{Float32}
-    timeneeded::Array{Float32}
-    scores::Union{Nothing,Vector{Array{Float32}}}
-    total_reward::Union{Nothing,Array{Float32}}
-    loss::Union{Nothing,Array{Float32}}
+    timeneeded::Vector{Float32}
+    scores::Union{Nothing,Vector{Vector{Float32}}}
+    total_reward::Union{Nothing,Vector{Float32}}
+    loss::Union{Nothing,Vector{Float32}}
     meanOver::Int64
     nb_episodes::Int64
-
-    basicmetrics{OBJ,H}(model::CPModel, meanOver) where {OBJ,H}= new{OBJ, H}(Vector{Array{Int64}}(),Vector{Vector{Float32}}(),Vector{Vector{Float32}}(), Float32[], OBJ ? Vector{Array{Float32}}() : nothing, (H == BasicHeuristic) ? nothing : Float32[], (H == BasicHeuristic) ? nothing : Float32[], meanOver,0)
+    basicmetrics{OBJ,H}(heuristic,meanOver) where {OBJ,H}= new{OBJ, H}(heuristic,Vector{Vector{Int64}}(),Float32[],Float32[], Float32[], OBJ==TakeObjective ? Vector{Vector{Float32}}() : nothing, (H == BasicHeuristic) ? nothing : Float32[], (H == BasicHeuristic) ? nothing : Float32[], meanOver,0)
 end
 
-basicmetrics(model::CPModel, heuristic; meanOver=50) = basicmetrics{!isnothing(model.objective),typeof(heuristic)}(model, meanOver)
+basicmetrics(model::CPModel, heuristic; meanOver=20) = basicmetrics{(!isnothing(model.objective)) ? TakeObjective : DontTakeObjective ,typeof(heuristic)}(heuristic,meanOver)
 
-function (metrics::basicmetrics{false, BasicHeuristic})(model::CPModel,dt::Float64)
+function (metrics::basicmetrics{DontTakeObjective, BasicHeuristic})(model::CPModel,dt::Float64)
     metrics.nb_episodes+=1
-    push!(metrics.NodeVisited,model.statistics.nodevisitedpersolution)
+    push!(metrics.NodeVisited,copy(model.statistics.nodevisitedpersolution))
+    push!(metrics.meanNodeVisitedUntilOptimality,model.statistics.numberOfNodes)
+    push!(metrics.timeneeded,dt)
+end 
+
+function (metrics::basicmetrics{TakeObjective, BasicHeuristic})(model::CPModel,dt::Float64)
+    metrics.nb_episodes+=1
+    push!(metrics.NodeVisited,copy(model.statistics.nodevisitedpersolution))
+    push!(metrics.scores,copy(model.statistics.objectives ./ model.statistics.objectives[size(model.statistics.objectives,1)]))
+    push!(metrics.meanNodeVisitedUntilOptimality,model.statistics.numberOfNodes)
     push!(metrics.timeneeded,dt)
 
 end 
 
-function (metrics::basicmetrics{true, BasicHeuristic})(model::CPModel,dt::Float64)
+function (metrics::basicmetrics{DontTakeObjective, LearnedHeuristic{SR, R, A}})(model::CPModel,dt::Float64) where {SR,R,A}
     metrics.nb_episodes+=1
-    push!(metrics.NodeVisited,model.statistics.nodevisitedpersolution)
-    push!(metrics.scores,model.statistics.objectives ./ model.statistics.objectives[size(model.statistics.objectives,1)])
+    push!(metrics.NodeVisited,copy(model.statistics.nodevisitedpersolution))
+    push!(metrics.meanNodeVisitedUntilOptimality,model.statistics.numberOfNodes)
+    push!(metrics.total_reward,last_episode_total_reward(metrics.heuristic.agent.trajectory))
+    push!(metrics.loss,metrics.heuristic.agent.policy.learner.loss)
     push!(metrics.timeneeded,dt)
 
 end 
 
-function (metrics::basicmetrics{false, LearnedHeuristic{SR, R, A}})(model::CPModel, agent::ReinforcementLearning.Agent,dt::Float64) where {SR,R,A}
+function (metrics::basicmetrics{TakeObjective, LearnedHeuristic{SR, R, A}})(model::CPModel,dt::Float64) where {SR,R,A}
     metrics.nb_episodes+=1
-    push!(metrics.NodeVisited,model.statistics.nodevisitedpersolution)
-    push!(metrics.total_reward,last_episode_total_reward(agent.trajectory))
-    push!(metrics.loss,agent.policy.learner.loss)
-    push!(metrics.timeneeded,dt)
-
-end 
-
-function (metrics::basicmetrics{true, LearnedHeuristic{SR, R, A}})(model::CPModel,agent::ReinforcementLearning.Agent,dt::Float64) where {SR,R,A}
-    metrics.nb_episodes+=1
-    push!(metrics.NodeVisited,model.statistics.nodevisitedpersolution)
-    push!(metrics.scores,model.statistics.objectives ./ model.statistics.objectives[size(model.statistics.objectives,1)])
-    push!(metrics.total_reward,last_episode_total_reward(agent.trajectory))
-    push!(metrics.loss,agent.policy.learner.loss)
+    push!(metrics.NodeVisited,copy(model.statistics.nodevisitedpersolution))
+    push!(metrics.meanNodeVisitedUntilOptimality,model.statistics.numberOfNodes)
+    push!(metrics.scores,copy(model.statistics.objectives ./ model.statistics.objectives[size(model.statistics.objectives,1)]))
+    push!(metrics.total_reward,last_episode_total_reward(metrics.heuristic.agent.trajectory))
+    push!(metrics.loss,metrics.heuristic.agent.policy.learner.loss)
     push!(metrics.timeneeded,dt)
 
 end 
 
 
-function computemean(metrics::basicmetrics{OBJ, H}) where{OBJ, H<:ValueSelection}
+function computemean!(metrics::basicmetrics{OBJ, H}) where{OBJ, H<:ValueSelection}
+    windowspan = min(metrics.meanOver,length(metrics.NodeVisited))
     nodeVisitedUntilFirstSolFound = [ nodes[1] for nodes in metrics.NodeVisited]
-    nodeVisitedUntilOptimality = [ nodes[size(nodes,1)] for nodes in metrics.NodeVisited]
-    for i in 1:metrics.nb_episodes
-        currentSolMean = (i <= metrics.meanOver) ? mean(nodeVisitedUntilFirstSolFound[1:i]) : mean(nodeVisitedUntilFirstSolFound[(i-metrics.meanOver+1):i])
-        currentOptMean = (i <= metrics.meanOver) ? mean(nodeVisitedUntilOptimality[1:i]) : mean(nodeVisitedUntilOptimality[(i-metrics.meanOver+1):i])
-        push!(metrics.meanNodeVisitedUntilfirstSolFound,currentSolMean)
-        push!(metrics.meanNodeVisitedUntilOptimality,currentOptMean)
-    end
+    metrics.meanNodeVisitedUntilfirstSolFound = rollmean(nodeVisitedUntilFirstSolFound, windowspan)
+    nodeVisitedUntilOptimality = copy(metrics.meanNodeVisitedUntilOptimality)
+    metrics.meanNodeVisitedUntilOptimality = rollmean(nodeVisitedUntilOptimality,windowspan)
 end 
     
-function plotNodeVisited(metrics::basicmetrics{OBJ, H}) where{OBJ, H<:ValueSelection}
-    max_y =1.1*maximum([maximum(metrics.nodeVisitedUntilOptimality),maximum(metrics.nodeVisitedUntilFirstSolFound)])
+function plotNodeVisited(metrics::basicmetrics{OBJ, H}; filename::String="") where{OBJ, H<:ValueSelection}
+    max_Opt =1.1*Base.maximum(metrics.meanNodeVisitedUntilOptimality)
+    max_Fsf =1.1*Base.maximum(metrics.meanNodeVisitedUntilfirstSolFound)
+    L = length(metrics.meanNodeVisitedUntilOptimality)
+    println(L)
     p = plot(
-        1:nb_episodes, 
-        [metrics.nodeVisitedUntilOptimality[1:metrics.nb_episodes] metrics.nodeVisitedUntilFirstSolFound[1:metrics.nb_episodes]], 
+        1:L, 
+        [metrics.meanNodeVisitedUntilOptimality[1:L] metrics.meanNodeVisitedUntilfirstSolFound[1:L]], 
         xlabel="Episode", 
-        ylabel="Number of nodes visited", 
-        label = ["Until Optimality", "Until First Solution Found"],
-        ylims = (0,max_y)
+        ylabel="Number of nodes visited",
+        label = ["Until Optimality" "Until First Solution Found"],
+        layout = (2, 1)
     )
     display(p)
-    savefig(p,"node_visited_knapsack_$(knapsack_generator.nb_items).png")
+    #savefig(p,filename*"_node_visited_"*"$(metrics.heuristic)"*".png")
 end
+
+function plotScoreVariation(metrics::basicmetrics{OBJ, H}; filename::String="") where{OBJ, H<:ValueSelection}
+    Data=[]
+    for i in length(metrics.NodeVisited):-1:1
+        push!(Data,hcat(metrics.NodeVisited[i],metrics.scores[i]))
+    end
+
+    p = plot(
+        [scatter[:,1] for scatter in Data], 
+        [scatter[:,2] for scatter in Data], 
+        #fillrange =[[ones(length(scatter[:,2])),scatter[:,2]] for scatter in Data],
+        #fillalpha=1,
+        xlabel="number of nodes visited", 
+        ylabel="relative score",
+        xaxis=:log, 
+    )
+    display(p)
+    #savefig(p,filename*"_node_visited_"*"$(metrics.heuristic)"*".png")
+end
+
 
 function store_training_data(metrics::basicmetrics{OBJ, H}, title::String) where{OBJ, H<:ValueSelection}
     df = DataFrame()
