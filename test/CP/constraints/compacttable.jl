@@ -46,6 +46,32 @@
         SeaPearl.cleanSupports!(support, vec)
         @test !(1 in x.domain)
     end
+    @testset "TableConstraint(variables::Vector{<:AbstractIntVar}, table::Matrix{Int}, supports::Dict{Pair{Int,Int},BitVector}, trailer)" begin
+        trailer = SeaPearl.Trailer()
+        x = SeaPearl.IntVar(1, 3, "x", trailer)
+        y = SeaPearl.IntVar(1, 3, "y", trailer)
+        z = SeaPearl.IntVar(1, 3, "Z", trailer)
+        vec1 = [x, y, z]
+        vec2 = [z, y, x]
+        table = [
+            1 2 2;
+            3 3 3;
+            1 2 3
+        ]
+        supports = SeaPearl.buildSupport(vec1, table)
+        SeaPearl.cleanSupports!(supports, vec1)
+        table = SeaPearl.cleanTable(vec1, table)
+        constraint1 = SeaPearl.TableConstraint(vec1, table, supports, trailer)
+        constraint2 = SeaPearl.TableConstraint(vec2, table, supports, trailer)
+        @test size(constraint1.table, 2)==3
+        @test size(constraint2.table, 2)==3
+        @test (constraint1.supports[3=>2] == [0,1,0])
+        @test (constraint2.supports[3=>2] == [0,1,0])
+        @test(isempty(constraint1.modifiedVariables))
+        @test(isempty(constraint2.modifiedVariables))
+        @test(constraint1.residues[3=>2]==1)
+        @test(constraint2.residues[3=>2]==1)
+    end
     @testset "TableConstraint(variables::Vector{<:AbstractIntVar}, table::Matrix{Int}, trailer)" begin
         trailer = SeaPearl.Trailer()
         x = SeaPearl.IntVar(1, 3, "x", trailer)

@@ -127,7 +127,7 @@ using LightGraphs
         SeaPearl.remove!(a.domain, 3)
         b = SeaPearl.IntVar(3, 6, "b", trailer)
         c = SeaPearl.IntVar(6, 7, "c", trailer)
-        vars = Vector{SeaPearl.AbstractIntVar}([x, y, z, a, b, c])
+        vars = Matrix{SeaPearl.AbstractIntVar}([x y z; a b c])
         constraint = SeaPearl.AllDifferent(vars, trailer)
 
         toPropagate = Set{SeaPearl.Constraint}([constraint])

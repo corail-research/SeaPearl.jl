@@ -67,7 +67,11 @@ using DataStructures
         @test length(model.trailer.prior) == 1 # saveState!()
 
         @test pop!(toCall)(model) == :FoundSolution
+<<<<<<< HEAD
         @test length(model.statistics.solutions) == 1 # Found a solution
+=======
+        @test length(model.solutions) == 1 # Found a solution
+>>>>>>> origin/master
 
         @test pop!(toCall)(model) == :BackTracking
         @test length(model.trailer.prior) == 0 # restoreState!()
@@ -135,10 +139,17 @@ using DataStructures
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
         @test SeaPearl.search!(model, SeaPearl.ILDSearch, SeaPearl.MinDomainVariableSelection()) == :Optimal
+<<<<<<< HEAD
         @test length(model.statistics.solutions) == 1
 
 
         ### Checking more complex statistics.solutions ###
+=======
+        @test length(model.solutions) == 1
+
+
+        ### Checking more complex solutions ###
+>>>>>>> origin/master
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
         
@@ -149,9 +160,15 @@ using DataStructures
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
         @test SeaPearl.search!(model, SeaPearl.ILDSearch, SeaPearl.MinDomainVariableSelection()) == :Optimal
+<<<<<<< HEAD
         @test length(model.statistics.solutions) == 2
         @test model.statistics.solutions[1] == Dict("x" => 3,"y" => 3)
         @test model.statistics.solutions[2] == Dict("x" => 2,"y" => 2)
+=======
+        @test length(model.solutions) == 2
+        @test model.solutions[1] == Dict("x" => 3,"y" => 3)
+        @test model.solutions[2] == Dict("x" => 2,"y" => 2)
+>>>>>>> origin/master
 
     end
 
@@ -167,8 +184,13 @@ using DataStructures
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
         @test SeaPearl.search!(model, SeaPearl.ILDSearch, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Optimal
+<<<<<<< HEAD
         @test model.statistics.solutions[1] == Dict("x" => 3,"y" => 3)
         @test model.statistics.solutions[2] == Dict("x" => 2,"y" => 2)
+=======
+        @test model.solutions[1] == Dict("x" => 3,"y" => 3)
+        @test model.solutions[2] == Dict("x" => 2,"y" => 2)
+>>>>>>> origin/master
 
         SeaPearl.empty!(model)
 
@@ -180,8 +202,13 @@ using DataStructures
 
         my_heuristic(x::SeaPearl.IntVar; cpmodel=nothing) = minimum(x.domain)
         @test SeaPearl.search!(model, SeaPearl.ILDSearch, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(my_heuristic)) == :Optimal
+<<<<<<< HEAD
         @test model.statistics.solutions[1] == Dict("x" => 2,"y" => 2)
         @test model.statistics.solutions[2] == Dict("x" => 3,"y" => 3)
+=======
+        @test model.solutions[1] == Dict("x" => 2,"y" => 2)
+        @test model.solutions[2] == Dict("x" => 3,"y" => 3)
+>>>>>>> origin/master
 
     end
 
