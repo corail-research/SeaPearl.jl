@@ -73,7 +73,7 @@
     metrics,evalmetrics = SeaPearl.train!(
         valueSelectionArray=learnedHeuristic, 
         generator=generator,
-        nb_episodes= 3, #3,
+        nbEpisodes= 3, #3,
         strategy=SeaPearl.DFSearch,
         variableHeuristic=SeaPearl.MinDomainVariableSelection{true}(),
         out_solver = false,
@@ -163,7 +163,7 @@ end
     metrics,evalmetrics = SeaPearl.train!(
         valueSelectionArray=learnedHeuristic, 
         generator=generator,
-        nb_episodes=3,
+        nbEpisodes=3,
         strategy=SeaPearl.DFSearch,
         variableHeuristic=SeaPearl.MinDomainVariableSelection{false}(),
         out_solver = true,

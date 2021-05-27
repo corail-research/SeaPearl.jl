@@ -3,7 +3,7 @@
     benchmark_solving!(;
         valueSelectionArray::Union{T, Array{T, 1}},
         generator::AbstractModelGenerator,
-        nb_episodes::Int64=10,
+        nbEpisodes::Int64=10,
         strategy::Type{DFSearch}=DFSearch,
         variableHeuristic=selectVariable,
         metricsFun,
@@ -47,8 +47,8 @@ function benchmark_solving(;
         end
     end
 
-    nb_heuristics = length(valueSelectionArray)
-    nb_instances = evaluator.nb_instances
+    nbHeuristics = length(valueSelectionArray)
+    nbInstances = evaluator.nbInstances
 
     if isnothing(evaluator)
         evaluator=SameInstancesEvaluator(valueSelectionArray, generator)

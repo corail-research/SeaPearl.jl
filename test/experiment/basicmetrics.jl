@@ -67,19 +67,19 @@ agent = RL.Agent(
         cpmodel = SeaPearl.CPModel(trailer)
         basicheuristic = SeaPearl.BasicHeuristic()
         
-        metrics  = SeaPearl.basicmetrics(cpmodel, basicheuristic)
+        metrics  = SeaPearl.BasicMetrics(cpmodel, basicheuristic)
 
         
-        @test isempty(metrics.NodeVisited)== true
+        @test isempty(metrics.nodeVisited)== true
         @test isempty(metrics.meanNodeVisitedUntilOptimality) == true
         @test isempty(metrics.timeneeded) == true
         @test isnothing(metrics.scores) == true
-        @test isnothing(metrics.total_reward) == true
+        @test isnothing(metrics.totalReward) == true
         @test isnothing(metrics.loss) == true
         @test metrics.meanOver == 20
-        @test metrics.nb_episodes == 0
+        @test metrics.nbEpisodes == 0
 
-        metrics  = SeaPearl.basicmetrics(cpmodel, basicheuristic;meanOver=100)
+        metrics  = SeaPearl.BasicMetrics(cpmodel, basicheuristic;meanOver=100)
         @test metrics.meanOver == 100
 
         
@@ -94,26 +94,26 @@ agent = RL.Agent(
         basicheuristic = SeaPearl.BasicHeuristic()
         learnedheuristic = SeaPearl.LearnedHeuristic(agent)
 
-        metrics  = SeaPearl.basicmetrics(cpmodel, basicheuristic)
-        @test typeof(metrics) ==  SeaPearl.basicmetrics{SeaPearl.DontTakeObjective, SeaPearl.BasicHeuristic}
+        metrics  = SeaPearl.BasicMetrics(cpmodel, basicheuristic)
+        @test typeof(metrics) ==  SeaPearl.BasicMetrics{SeaPearl.DontTakeObjective, SeaPearl.BasicHeuristic}
 
-        metrics  = SeaPearl.basicmetrics(cpmodel, learnedheuristic)
-        @test typeof(metrics) ==  SeaPearl.basicmetrics{SeaPearl.DontTakeObjective, SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation, SeaPearl.DefaultReward, SeaPearl.FixedOutput}} 
-        @test isnothing(metrics.total_reward) == false
+        metrics  = SeaPearl.BasicMetrics(cpmodel, learnedheuristic)
+        @test typeof(metrics) ==  SeaPearl.BasicMetrics{SeaPearl.DontTakeObjective, SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation, SeaPearl.DefaultReward, SeaPearl.FixedOutput}} 
+        @test isnothing(metrics.totalReward) == false
         @test isnothing(metrics.loss) == false 
 
         SeaPearl.addObjective!(cpmodel,y)
 
-        metrics  = SeaPearl.basicmetrics(cpmodel, basicheuristic)
-        @test typeof(metrics) ==  SeaPearl.basicmetrics{SeaPearl.TakeObjective, SeaPearl.BasicHeuristic}
+        metrics  = SeaPearl.BasicMetrics(cpmodel, basicheuristic)
+        @test typeof(metrics) ==  SeaPearl.BasicMetrics{SeaPearl.TakeObjective, SeaPearl.BasicHeuristic}
         @test isnothing(metrics.scores) == false
 
-        metrics  = SeaPearl.basicmetrics(cpmodel, learnedheuristic)
-        @test typeof(metrics) ==  SeaPearl.basicmetrics{SeaPearl.TakeObjective, SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation, SeaPearl.DefaultReward, SeaPearl.FixedOutput}} 
+        metrics  = SeaPearl.BasicMetrics(cpmodel, learnedheuristic)
+        @test typeof(metrics) ==  SeaPearl.BasicMetrics{SeaPearl.TakeObjective, SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation, SeaPearl.DefaultReward, SeaPearl.FixedOutput}} 
 
     end
 
-    @testset "basicmetrics{DontTakeObjective, BasicHeuristic} " begin
+    @testset "BasicMetrics{DontTakeObjective, BasicHeuristic} " begin
        
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
@@ -125,17 +125,17 @@ agent = RL.Agent(
         SeaPearl.addVariable!(model, y)
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
-        metrics  = SeaPearl.basicmetrics(model, basicheuristic)
+        metrics  = SeaPearl.BasicMetrics(model, basicheuristic)
         dt = @elapsed SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection(), basicheuristic) 
         metrics(model,dt)
 
-        @test metrics.NodeVisited[1] == [2,3]
+        @test metrics.nodeVisited[1] == [2,3]
         @test size(metrics.timeneeded,1) == 1
-        @test metrics.nb_episodes == 1 
+        @test metrics.nbEpisodes == 1 
         
     end
 
-    @testset "basicmetrics{DontTakeObjective, LearnedHeuristic}" begin
+    @testset "BasicMetrics{DontTakeObjective, LearnedHeuristic}" begin
         
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
@@ -146,21 +146,21 @@ agent = RL.Agent(
         SeaPearl.addVariable!(model, y)
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
-        metrics  = SeaPearl.basicmetrics(model, learnedheuristic)
+        metrics  = SeaPearl.BasicMetrics(model, learnedheuristic)
         dt = @elapsed SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection(), learnedheuristic) 
         
         metrics(model,dt)
 
 
-        @test isempty(metrics.NodeVisited) == false #the number of solution found and their relative score depend on the stochastic heuristic...
-        @test metrics.nb_episodes == 1 
+        @test isempty(metrics.nodeVisited) == false #the number of solution found and their relative score depend on the stochastic heuristic...
+        @test metrics.nbEpisodes == 1 
         @test size(metrics.timeneeded,1) == 1
-        @test size(metrics.total_reward,1) == 1
+        @test size(metrics.totalReward,1) == 1
         @test size(metrics.loss,1) == 1
 
     end
 
-    @testset "basicmetrics{TakeObjective, BasicHeuristic}" begin
+    @testset "BasicMetrics{TakeObjective, BasicHeuristic}" begin
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
         basicheuristic = SeaPearl.BasicHeuristic()
@@ -171,17 +171,17 @@ agent = RL.Agent(
         SeaPearl.addVariable!(model, y)
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
         SeaPearl.addObjective!(model,y)
-        metrics  = SeaPearl.basicmetrics(model, basicheuristic)
+        metrics  = SeaPearl.BasicMetrics(model, basicheuristic)
         dt = @elapsed SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection(), basicheuristic) 
         metrics(model,dt)
 
-        @test metrics.NodeVisited[1] == [2, 3] #only one soluion found due to Objective prunning 
+        @test metrics.nodeVisited[1] == [2, 3] #only one soluion found due to Objective prunning 
         @test metrics.scores[1] == [1.5, 1.0] #relative to the optimal score
         @test size(metrics.timeneeded,1) == 1
-        @test metrics.nb_episodes == 1 
+        @test metrics.nbEpisodes == 1 
     end
 
-    @testset "basicmetrics{TakeObjective, LearnedHeuristic}" begin
+    @testset "BasicMetrics{TakeObjective, LearnedHeuristic}" begin
 
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
@@ -193,16 +193,16 @@ agent = RL.Agent(
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
         SeaPearl.addObjective!(model,y)
 
-        metrics  = SeaPearl.basicmetrics(model, learnedheuristic)
+        metrics  = SeaPearl.BasicMetrics(model, learnedheuristic)
         dt = @elapsed SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection(), learnedheuristic) 
         
         metrics(model,dt)
 
-        @test isempty(metrics.NodeVisited) == false #the number of solution found and their relative score depend on the stochastic heuristic...
+        @test isempty(metrics.nodeVisited) == false #the number of solution found and their relative score depend on the stochastic heuristic...
         @test isempty(metrics.scores) == false 
-        @test metrics.nb_episodes == 1 
+        @test metrics.nbEpisodes == 1 
         @test size(metrics.timeneeded,1) == 1
-        @test size(metrics.total_reward,1) == 1
+        @test size(metrics.totalReward,1) == 1
         @test size(metrics.loss,1) == 1
     end
 
@@ -210,16 +210,16 @@ agent = RL.Agent(
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
         basicheuristic = SeaPearl.BasicHeuristic()
-        metrics  = SeaPearl.basicmetrics(model, basicheuristic; meanOver=4)
+        metrics  = SeaPearl.BasicMetrics(model, basicheuristic; meanOver=4)
 
-        push!(metrics.NodeVisited, [10,0])
-        push!(metrics.NodeVisited, [10,0])
-        push!(metrics.NodeVisited, [10,0])
-        push!(metrics.NodeVisited, [10,0])
-        push!(metrics.NodeVisited, [0,10])
-        push!(metrics.NodeVisited, [0,10])
-        push!(metrics.NodeVisited, [0,10])
-        push!(metrics.NodeVisited, [0,10])
+        push!(metrics.nodeVisited, [10,0])
+        push!(metrics.nodeVisited, [10,0])
+        push!(metrics.nodeVisited, [10,0])
+        push!(metrics.nodeVisited, [10,0])
+        push!(metrics.nodeVisited, [0,10])
+        push!(metrics.nodeVisited, [0,10])
+        push!(metrics.nodeVisited, [0,10])
+        push!(metrics.nodeVisited, [0,10])
 
         push!(metrics.meanNodeVisitedUntilOptimality, 0)
         push!(metrics.meanNodeVisitedUntilOptimality, 0)
@@ -230,7 +230,7 @@ agent = RL.Agent(
         push!(metrics.meanNodeVisitedUntilOptimality, 10)
         push!(metrics.meanNodeVisitedUntilOptimality, 10)
         
-        metrics.nb_episodes = 8
+        metrics.nbEpisodes = 8
         SeaPearl.computemean!(metrics)
         @test metrics.meanNodeVisitedUntilfirstSolFound == [10.0, 7.5, 5.0, 2.5, 0.0]
         @test metrics.meanNodeVisitedUntilOptimality == [0.0, 2.5, 5.0, 7.5, 10.0]

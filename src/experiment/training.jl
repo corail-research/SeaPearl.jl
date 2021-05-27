@@ -2,7 +2,7 @@
     train!(;
         valueSelectionArray::Union{T, Array{T, 1}}, 
         generator::AbstractModelGenerator,
-        nb_episodes::Int64=10,
+        nbEpisodes::Int64=10,
         strategy::Type{DFSearch}=DFSearch,
         variableHeuristic=selectVariable)
         out_solver::Bool=false,
@@ -20,7 +20,7 @@ The function return arrays containing scores, time needed and numbers of nodes v
 function train!(;
         valueSelectionArray::Union{T, Array{T, 1}}, 
         generator::AbstractModelGenerator,
-        nb_episodes::Int64=10,
+        nbEpisodes::Int64=10,
         strategy::Type{DFSearch}=DFSearch,
         variableHeuristic::AbstractVariableSelection=MinDomainVariableSelection(),
         out_solver::Bool=false,
@@ -47,7 +47,7 @@ function train!(;
     metricsArray, eval_metricsArray = launch_experiment!(
         valueSelectionArray,
         generator,
-        nb_episodes,
+        nbEpisodes,
         strategy,
         variableHeuristic,
         out_solver,
@@ -64,7 +64,7 @@ function train!(;
             if verbose 
                 print("Has been trained on : ", typeof(generator))
                 print(" with strategy : ", strategy)
-                print(" during ", nb_episodes, " episodes ")
+                print(" during ", nbEpisodes, " episodes ")
                 out_solver && println("out of the solver.")
                 !out_solver && println("in the solver.")
                 println("Training mode now desactivated !")
