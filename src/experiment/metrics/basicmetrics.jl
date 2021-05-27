@@ -154,17 +154,16 @@ The learning process should show a decrease in the number of nodes required to f
 """
 function plotNodeVisited(metrics::basicmetrics{O, H}; filename::String="") where{O<:AbstractTakeObjective, H<:ValueSelection}
     L = length(metrics.meanNodeVisitedUntilOptimality)
-    println(L)
     p = plot(
         1:L, 
         [metrics.meanNodeVisitedUntilOptimality[1:L] metrics.meanNodeVisitedUntilfirstSolFound[1:L]], 
         xlabel="Episode", 
-        ylabel="Number of nodes visited",
-        label = ["Until Optimality" "Until First Solution Found"],
+        ylabel="Nodes visited",
+        title = ["Node visited until Optimality" "Node visited until first solution found"],
         layout = (2, 1)
     )
     display(p)
-    #savefig(p,filename*"_node_visited_"*"$(metrics.heuristic)"*".png")
+    savefig(p,filename*"_node_visited_"*"$(typeof(metrics.heuristic))"*".png")
 end
 
 """
@@ -189,7 +188,7 @@ function plotScoreVariation(metrics::basicmetrics{TakeObjective, H}; filename::S
         xaxis=:log, 
     )
     display(p)
-    #savefig(p,filename*"_node_visited_"*"$(metrics.heuristic)"*".png")
+    savefig(p,filename*"_score_variation_"*"$(typeof(metrics.heuristic))"*".png")
 end
 
 """
