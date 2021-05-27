@@ -3,8 +3,11 @@ using LightGraphs
 const Solution = Dict{String, Union{Int, Bool, Set{Int}}}
 
 mutable struct Statistics
-    numberOfNodes       ::Int
-    numberOfSolutions   ::Int
+    numberOfNodes           ::Int
+    numberOfSolutions       ::Int
+    solutions               ::Vector{Solution}
+    nodevisitedpersolution  ::Vector{Int}
+    objectives              ::Union{Nothing, Vector{Int}}
 end
 
 mutable struct Limit
@@ -31,11 +34,10 @@ mutable struct CPModel
     trailer                 ::Trailer
     objective               ::Union{Nothing, AbstractIntVar}
     objectiveBound          ::Union{Nothing, Int}
-    solutions               ::Array{Solution}
     statistics              ::Statistics
     limit                   ::Limit
     adhocInfo               ::Any
-    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Constraint[], trailer, nothing, nothing, Solution[], Statistics(0, 0), Limit(nothing, nothing))
+    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Constraint[], trailer, nothing, nothing, Statistics(0, 0,Solution[],Int[],nothing), Limit(nothing, nothing))
 end
 
 CPModel() = CPModel(Trailer())
@@ -56,6 +58,11 @@ function addVariable!(model::CPModel, x::AbstractVar; branchable=true)
 
     model.branchable[x.id] = branchable
     model.variables[x.id] = x
+end
+
+function addObjective!(model::CPModel, objective::AbstractVar)
+    model.objective = objective
+    model.statistics.objectives = Int[]  #initialisation of the Array that will contain the score of every solution
 end
 
 """
@@ -145,10 +152,12 @@ function triggerFoundSolution!(model::CPModel)
     for (k, x) in model.variables
         solution[k] = assignedValue(x)
     end
-    push!(model.solutions, solution)
+    push!(model.statistics.solutions, solution)
+    push!(model.statistics.nodevisitedpersolution,model.statistics.numberOfNodes)
 
     if !isnothing(model.objective)
-        # println("Solution found! Current objective: ", assignedValue(model.objective))
+        @assert !isnothing(model.statistics.objectives)   "did you used SeaPearl.addObjective! to declare your objective function ? "
+        push!(model.statistics.objectives, assignedValue(model.objective))
         tightenObjective!(model)
     end
 end
@@ -184,7 +193,9 @@ function Base.isempty(model::CPModel)::Bool
         && isempty(model.trailer.current) 
         && isnothing(model.objective)
         && isnothing(model.objectiveBound)
-        && isempty(model.solutions)
+        && isempty(model.statistics.solutions)
+        && isempty(model.statistics.nodevisitedpersolution)
+        && isnothing(model.statistics.objectives)
         && model.statistics.numberOfNodes == 0
         && model.statistics.numberOfSolutions == 0
         && isnothing(model.limit.numberOfNodes)
@@ -204,7 +215,9 @@ function Base.empty!(model::CPModel)
     empty!(model.trailer.current) 
     model.objective = nothing
     model.objectiveBound = nothing
-    empty!(model.solutions)
+    empty!(model.statistics.solutions)
+    empty!(model.statistics.nodevisitedpersolution)
+    model.statistics.objectives = nothing
     model.statistics.numberOfNodes = 0
     model.statistics.numberOfSolutions = 0
     model.limit.numberOfNodes = nothing
@@ -225,10 +238,14 @@ function reset_model!(model::CPModel)
         reset_domain!(x.domain)
     end
     model.objectiveBound = nothing
-    empty!(model.solutions)
+    empty!(model.statistics.solutions)
+    empty!(model.statistics.nodevisitedpersolution)
+    if !isnothing(model.objective)
+        empty!(model.statistics.objectives)
+    end
     model.statistics.numberOfNodes = 0
     model.statistics.numberOfSolutions = 0
-    model
+
 end
 
 """

@@ -89,8 +89,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::KnapsackGenerator; seed=not
     push!(cpmodel.constraints, valueEquality)
 
     # Setting it as the objective
-    cpmodel.objective = totalValue
-    
+    SeaPearl.addObjective!(cpmodel,totalValue)
 
     nothing
 end
