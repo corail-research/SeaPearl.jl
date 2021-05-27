@@ -156,6 +156,7 @@ function triggerFoundSolution!(model::CPModel)
     push!(model.statistics.nodevisitedpersolution,model.statistics.numberOfNodes)
 
     if !isnothing(model.objective)
+        @assert !isnothing(model.statistics.objectives)   "did you used SeaPearl.addObjective! to declare your objective function ? "
         push!(model.statistics.objectives, assignedValue(model.objective))
         tightenObjective!(model)
     end
