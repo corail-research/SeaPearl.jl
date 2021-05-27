@@ -173,7 +173,7 @@ end
 plot the relative scores ( compared to the optimal ) of the heuristic during the search for fixed instances along the training. This plot is 
 meanningfull only if the metrics is one from the evaluator (ie. the instance remains the same one ).
 """
-function plotScoreVariation(metrics::basicmetrics{O, H}; filename::String="") where{O<:AbstractTakeObjective, H<:ValueSelection}
+function plotScoreVariation(metrics::basicmetrics{TakeObjective, H}; filename::String="") where{H<:ValueSelection}
     Data=[]
     for i in length(metrics.NodeVisited):-1:1
         push!(Data,hcat(metrics.NodeVisited[i],metrics.scores[i]))
