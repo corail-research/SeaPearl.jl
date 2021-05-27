@@ -153,8 +153,6 @@ The learning process should show a decrease in the number of nodes required to f
 ( depending on the reward engineering ).
 """
 function plotNodeVisited(metrics::basicmetrics{O, H}; filename::String="") where{O<:AbstractTakeObjective, H<:ValueSelection}
-    max_Opt =1.1*Base.maximum(metrics.meanNodeVisitedUntilOptimality)
-    max_Fsf =1.1*Base.maximum(metrics.meanNodeVisitedUntilfirstSolFound)
     L = length(metrics.meanNodeVisitedUntilOptimality)
     println(L)
     p = plot(
