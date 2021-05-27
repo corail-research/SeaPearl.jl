@@ -43,6 +43,7 @@ the same table constraint many times with different variables. *WARNING*: all va
 struct TableConstraint <: Constraint
     scope::Vector{<:AbstractIntVar}
     active::StateObject{Bool}
+    initialized::StateObject{Bool}
     table::Matrix{Int}
     currentTable::RSparseBitSet{UInt64}
     modifiedVariables::Set{Int}
@@ -50,7 +51,7 @@ struct TableConstraint <: Constraint
     supports::Dict{Pair{Int,Int},BitVector}
     residues::Dict{Pair{Int,Int},Int}
 
-    TableConstraint(scope, active, table, currentTable, modifiedVariables, unfixedVariables, supports, residues) = new(scope, active, table, currentTable, modifiedVariables, unfixedVariables, supports, residues)
+    TableConstraint(scope, active, initialized, table, currentTable, modifiedVariables, unfixedVariables, supports, residues) = new(scope, active, initialized, table, currentTable, modifiedVariables, unfixedVariables, supports, residues)
 
     function TableConstraint(variables::Vector{<:AbstractIntVar}, table::Matrix{Int}, supports::Dict{Pair{Int,Int},BitVector}, trailer)
         @assert length(variables) == size(table, 1)
@@ -60,6 +61,7 @@ struct TableConstraint <: Constraint
         constraint = new(
             variables,
             StateObject{Bool}(true, trailer),
+            StateObject{Bool}(false, trailer),
             table, 
             RSparseBitSet{UInt64}(nTuples, trailer),
             Set{Int}(),
@@ -95,6 +97,7 @@ function TableConstraint(variables::Vector{<:AbstractIntVar}, table::Matrix{Int}
     cleanedTable = cleanTable(variables, table)
 
     active = StateObject{Bool}(true, trailer)
+    initialized = StateObject{Bool}(false, trailer)
     nVariables, nTuples = size(cleanedTable)
     currentTable = RSparseBitSet{UInt64}(nTuples, trailer)
     modifiedVariables = Set{Int}()
@@ -107,6 +110,7 @@ function TableConstraint(variables::Vector{<:AbstractIntVar}, table::Matrix{Int}
     constraint = TableConstraint(
         variables,
         active,
+        initialized,
         cleanedTable, 
         currentTable,
         modifiedVariables,
@@ -191,7 +195,6 @@ function cleanSupports!(supports::Dict{Pair{Int,Int},BitVector}, variables::Vect
     for ((variable, value), support) in supports
         if !any(support)
             delete!(supports, variable => value)
-            remove!(variables[variable].domain, value)
         end
     end
     return
@@ -213,6 +216,20 @@ function buildResidues(supports::Dict{Pair{Int,Int},BitVector})::Dict{Pair{Int,I
         residues[key] = Int(ceil(findfirst(support)/n))
     end
     return residues
+end
+
+"""
+    initialPruning!(constraint, prunedValues)
+
+Store all the assignments without support in `prunedValues` for them to be pruned.
+"""
+function initialPruning!(constraint::TableConstraint, prunedValues::Vector{Vector{Int}})
+    for (idx, variable) in enumerate(constraint.scope), value in variable.domain
+        if !((idx => value) in keys(constraint.supports))
+            push!(prunedValues[idx], value)
+        end
+    end
+    return  
 end
 
 """
@@ -283,6 +300,19 @@ function propagate!(constraint::TableConstraint, toPropagate::Set{Constraint}, p
         return true
     end
 
+    initialPrunedValues = nothing
+    if !constraint.initialized.value
+        initialPrunedValues = Vector{Vector{Int}}(undef, length(constraint.scope))
+        for i = 1:length(constraint.scope)
+            initialPrunedValues[i] = Int[]
+        end
+        initialPruning!(constraint, initialPrunedValues)
+        setValue!(constraint.initialized, true)
+        for (variable, toRemove) in enumerate(initialPrunedValues), v in toRemove
+            remove!(constraint.scope[variable].domain, v)
+        end
+    end
+
     # Store all the changes concerning the variables in `constraint.scope`
     prunedValues = Vector{Vector{Int}}(undef, length(constraint.scope))
     empty!(constraint.modifiedVariables)
@@ -304,6 +334,11 @@ function propagate!(constraint::TableConstraint, toPropagate::Set{Constraint}, p
 
     # Restrict domains to the new supports
     newPrunedValues = pruneDomains!(constraint)
+    if !isnothing(initialPrunedValues)
+        for i = 1:length(constraint.scope)
+            append!(newPrunedValues[i], initialPrunedValues[i])
+        end
+    end
     for (prunedVar, var) in zip(newPrunedValues, constraint.scope)
         if !isempty(prunedVar)
             for val in prunedVar
