@@ -81,9 +81,7 @@ function launch_experiment!(
     end
     for j in 1:nb_heuristics
         #compute slidding mean for each metrics
-        if metricsArray[j]==basicmetrics{<:AbstractTakeObjective,<:ValueSelection}
-            computemean!(metricsArray[j])  
-        end
+        computemean!(metricsArray[j])  #how to handle non basic metrics here ? 
     end
     
     if !isnothing(evaluator)
