@@ -99,13 +99,17 @@
 
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        model.objective = y
+        SeaPearl.addObjective!(model, y)
 
         SeaPearl.triggerFoundSolution!(model)
 
-        @test length(model.solutions) == 1
-        @test model.solutions[1] == Dict("x" => 2,"y" => 3)
+        @test length(model.statistics.solutions) == 1
+        @test model.statistics.solutions[1] == Dict("x" => 2,"y" => 3)
+        @test model.statistics.nodevisitedpersolution[1] == 0
         @test model.objectiveBound == 2
+        @test model.statistics.numberOfSolutions == 1
+        @test model.statistics.objectives[1] == 3
+
     end
 
     @testset "tightenObjective!()" begin
@@ -117,7 +121,7 @@
 
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        model.objective = y
+        SeaPearl.addObjective!(model, y)
 
         @test isnothing(model.objectiveBound)
 

@@ -9,8 +9,7 @@
         SeaPearl.addVariable!(cpmodel, x1)
         SeaPearl.addVariable!(cpmodel, x2)
         SeaPearl.addVariable!(cpmodel, y)
-        cpmodel.objective = y
-
+        SeaPearl.addObjective!(cpmodel,y)
 
         variableselection = SeaPearl.MinDomainVariableSelection{true}()
 
@@ -32,7 +31,7 @@
         SeaPearl.addVariable!(cpmodel, x1)
         SeaPearl.addVariable!(cpmodel, x2; branchable=false)
         SeaPearl.addVariable!(cpmodel, y)
-        cpmodel.objective = y
+        SeaPearl.addObjective!(cpmodel,y)
 
 
         variableselection = SeaPearl.MinDomainVariableSelection{true}()
@@ -55,7 +54,7 @@
         SeaPearl.addVariable!(cpmodel, x1)
         SeaPearl.addVariable!(cpmodel, x2)
         SeaPearl.addVariable!(cpmodel, y)
-        cpmodel.objective = y
+        SeaPearl.addObjective!(cpmodel,y)
 
 
         variableselection = SeaPearl.MinDomainVariableSelection{false}()
@@ -78,7 +77,7 @@
         SeaPearl.addVariable!(cpmodel, x1; branchable=false)
         SeaPearl.addVariable!(cpmodel, x2)
         SeaPearl.addVariable!(cpmodel, y)
-        cpmodel.objective = y
+        SeaPearl.addObjective!(cpmodel,y)
 
 
         variableselection = SeaPearl.MinDomainVariableSelection{false}()

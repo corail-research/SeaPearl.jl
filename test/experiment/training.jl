@@ -1,5 +1,3 @@
-
-
 @testset "training.jl inside the solver (with backtracking)" begin
     
     println("Training inside the solver -------- ")
@@ -72,22 +70,20 @@
 
     initial_params = deepcopy(params(learnedHeuristic.agent.policy.learner.approximator.model))
 
-    bestsolutions, nodevisited, timeneeded = SeaPearl.train!(
+    metrics,evalmetrics = SeaPearl.train!(
         valueSelectionArray=learnedHeuristic, 
         generator=generator,
-        nb_episodes= 3, #3,
+        nbEpisodes= 3, #3,
         strategy=SeaPearl.DFSearch,
         variableHeuristic=SeaPearl.MinDomainVariableSelection{true}(),
         out_solver = false,
-        evaluator=SeaPearl.SameInstancesEvaluator()
+        verbose = false,
+        evaluator=SeaPearl.SameInstancesEvaluator([learnedHeuristic],generator)  #need to be a vector of Heuristic
     )
 
     final_params = params(learnedHeuristic.agent.policy.learner.approximator.model)
 
     @test final_params != initial_params
-
-    # println(bestsolutions)
-    println(nodevisited)
 
 end
 
@@ -164,21 +160,19 @@ end
 
     initial_params = deepcopy(params(learnedHeuristic.agent.policy.learner.approximator.model))
 
-    bestsolutions, nodevisited, timeneeded = SeaPearl.train!(
+    metrics,evalmetrics = SeaPearl.train!(
         valueSelectionArray=learnedHeuristic, 
         generator=generator,
-        nb_episodes=3,
+        nbEpisodes=3,
         strategy=SeaPearl.DFSearch,
         variableHeuristic=SeaPearl.MinDomainVariableSelection{false}(),
         out_solver = true,
-        evaluator=nothing #SeaPearl.SameInstancesEvaluator(eval_freq = 100000, nb_instances = 5)
+        evaluator=nothing 
     )
 
     final_params = params(learnedHeuristic.agent.policy.learner.approximator.model)
 
     @test final_params != initial_params
 
-    println(bestsolutions)
-    println(nodevisited)
 
 end

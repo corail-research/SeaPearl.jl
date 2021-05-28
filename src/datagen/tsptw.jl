@@ -195,8 +195,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
     end
 
     # Objective function: min total_cost
-    cpmodel.objective = total_cost
-
+    SeaPearl.addObjective!(cpmodel,total_cost)
     return dist, time_windows
 end
 

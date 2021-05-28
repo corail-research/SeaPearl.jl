@@ -9,7 +9,7 @@ using Random
 
         SeaPearl.addVariable!(cpmodel, x)
         SeaPearl.addVariable!(cpmodel, y)
-        cpmodel.objective = y
+        SeaPearl.addObjective!(cpmodel,y)
 
         rng = MersenneTwister(10)
 
@@ -30,7 +30,7 @@ using Random
 
         SeaPearl.addVariable!(cpmodel, x)
         SeaPearl.addVariable!(cpmodel, y; branchable=false)
-        cpmodel.objective = y
+        SeaPearl.addObjective!(cpmodel,y)
 
         rng = MersenneTwister(10)
 
@@ -53,7 +53,7 @@ using Random
         SeaPearl.addVariable!(cpmodel, x; branchable=false)
         SeaPearl.addVariable!(cpmodel, y)
         SeaPearl.addVariable!(cpmodel, z)
-        cpmodel.objective = y
+        SeaPearl.addObjective!(cpmodel,y)
 
         rng = MersenneTwister(10)
 
