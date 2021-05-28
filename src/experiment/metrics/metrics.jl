@@ -33,11 +33,3 @@ struct DontTakeObjective<:AbstractTakeObjective end
 
 include("basicmetrics.jl")
 
-<<<<<<< HEAD
-=======
-#TODO implement this function to compare several heuristic results
-"""function plot_diff_metrics(...)
-    
-end
-"""
->>>>>>> origin/master
