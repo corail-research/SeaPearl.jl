@@ -41,10 +41,15 @@
             1 2 3
         ]
         table = SeaPearl.cleanTable(vec, table)
-        @test !(1 in y.domain)
         support = SeaPearl.buildSupport(vec,table)
+        @test all([(i => j) in keys(support) for i = 1:3, j = 2:3])
+        @test (1 => 1) in keys(support)
         SeaPearl.cleanSupports!(support, vec)
-        @test !(1 in x.domain)
+        @test !((1 => 1) in keys(support))
+        @test !((1 => 3) in keys(support))
+        @test !((2 => 2) in keys(support))
+        @test !((3 => 1) in keys(support))
+        @test length(keys(support)) == 4
     end
     @testset "TableConstraint(variables::Vector{<:AbstractIntVar}, table::Matrix{Int}, supports::Dict{Pair{Int,Int},BitVector}, trailer)" begin
         trailer = SeaPearl.Trailer()

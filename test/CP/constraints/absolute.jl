@@ -8,7 +8,7 @@
 
         @test constraint in x.onDomainChange
         @test constraint in y.onDomainChange
-        @test y.domain.min.value == 0
+        @test y.domain.min.value == -10
         @test y.domain.max.value == 10
         @test x.domain.min.value == -5
         @test x.domain.max.value == 5

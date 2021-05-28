@@ -145,7 +145,6 @@ function computemean!(metrics::BasicMetrics{O, H}) where{O, H<:ValueSelection}
     metrics.meanNodeVisitedUntilOptimality = rollmean(nodeVisitedUntilOptimality,windowspan)
 
     if isa(metrics,BasicMetrics{O,<:LearnedHeuristic})
-        println("hello")
         metrics.totalReward = rollmean(metrics.totalReward,windowspan)
     end
 end 

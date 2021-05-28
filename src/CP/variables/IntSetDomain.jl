@@ -64,7 +64,9 @@ end
 Exclude all possible not yet required values from the set domain.
 """
 function exclude_all!(dom::IntSetDomain)
+    excluded = dom.values[dom.requiring_index.value:dom.excluding_index.value] .+ (dom.min -1)
     setValue!(dom.excluding_index, dom.requiring_index.value - 1)
+    return excluded
 end
 
 """
@@ -73,7 +75,9 @@ end
 Require all possible not yet excluded values from the set domain.
 """
 function require_all!(dom::IntSetDomain)
+    required = dom.values[dom.requiring_index.value:dom.excluding_index.value] .+ (dom.min -1)
     setValue!(dom.requiring_index, dom.excluding_index.value + 1)
+    return required
 end
 
 """

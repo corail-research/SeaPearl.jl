@@ -304,12 +304,12 @@ end
 variableArray(constraint::AllDifferent) = constraint.x
 
 function Base.show(io::IO, ::MIME"text/plain", con::AllDifferent)
-    println(io, string(typeof(con)), ": ", join([var.id for var in con.x], " != "), ", active = ", con.active)
+    print(io, string(typeof(con)), ": ", join([var.id for var in con.x], " != "), ", active = ", con.active)
     for var in con.x
-        println(io, "   ", var)
+        print(io, "\n   ", var)
     end
 end
 
 function Base.show(io::IO, con::AllDifferent)
-    println(io, string(typeof(con)), ": ", join([var.id for var in con.x], " != "))
+    print(io, string(typeof(con)), ": ", join([var.id for var in con.x], " != "))
 end
