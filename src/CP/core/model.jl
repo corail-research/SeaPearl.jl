@@ -42,7 +42,7 @@ end
 
 CPModel() = CPModel(Trailer())
 
-const CPModification = Dict{String, Array{Int}}
+const CPModification = Dict{String, Union{Array{Int}, Array{Bool}, SetModification}}
 
 """
     addVariable!(model::CPModel, x::AbstractVar; branchable=true)
@@ -117,10 +117,33 @@ function addToPrunedDomains!(prunedDomains::CPModification, x::Union{AbstractInt
         return
     end
     if haskey(prunedDomains, x.id)
-        prunedDomains[x.id] = vcat(prunedDomains[x.id], pruned)
+        prunedDomains[x.id] = vcat(prunedDomains[x.id], Array(pruned))
     else
-        prunedDomains[x.id] = pruned
+        prunedDomains[x.id] = Array(pruned)
     end
+end
+
+"""
+    addToPrunedDomains!(prunedDomains::CPModification, x::IntVar, pruned::Array{Int})
+
+Update the `CPModification` by adding modified set values.
+
+# Arguments
+- `prunedDomains::CPModification`: the `CPModification` you want to update.
+- `x::IntSetVar`: the variable that had its values changed.
+- `modification::SetModification`: the modified values.
+"""
+function addToPrunedDomains!(prunedDomains::CPModification, x::IntSetVar, modification::SetModification)
+    if isempty(modification.required) && isempty(modification.excluded)
+        return
+    end
+
+    if haskey(prunedDomains, x.id)
+        mergeSetModifications!(prunedDomains[x.id], modification)
+    else
+        prunedDomains[x.id] = modification
+    end
+    return
 end
 
 """

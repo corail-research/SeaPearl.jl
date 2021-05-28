@@ -77,5 +77,5 @@ function Base.show(io::IO, ::MIME"text/plain", con::BinaryMaximumBC)
 end
 
 function Base.show(io::IO, con::BinaryMaximumBC)
-    print(io, typeof(con), ": ", con.x.id, " == max(", con.y.id, con.z.id, ")")
+    print(io, typeof(con), ": ", con.x.id, " == max(", con.y.id, ", ", con.z.id, ")")
 end

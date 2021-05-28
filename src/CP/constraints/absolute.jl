@@ -7,10 +7,10 @@ struct Absolute <: Constraint
     x::AbstractIntVar
     y::AbstractIntVar
     active::StateObject{Bool}
+    initialized::StateObject{Bool}
 
     function Absolute(x, y, trailer)
-        constraint = new(x, y, StateObject(true, trailer))
-        removeBelow!(y.domain, 0) # y cannot take a negative value
+        constraint = new(x, y, StateObject(true, trailer), StateObject(false, trailer))
         addOnDomainChange!(x, constraint)
         addOnDomainChange!(y, constraint)
         return constraint
@@ -24,6 +24,13 @@ end
 "Propagate the 'Absolute' constraint.
 """
 function propagate!(constraint::Absolute, toPropagate::Set{Constraint}, prunedDomains::CPModification)
+
+    if !constraint.initialized.value
+        setValue!(constraint.initialized, true)
+        prunedY = removeBelow!(constraint.y.domain, 0) # y cannot take a negative value
+        addToPrunedDomains!(prunedDomains, constraint.y, prunedY)
+        triggerDomainChange!(toPropagate, constraint.y)
+    end
 
     if isbound(constraint.x) 
         value = abs(assignedValue(constraint.x))
@@ -96,9 +103,9 @@ variablesArray(constraint::Absolute) = [constraint.x, constraint.y]
 function Base.show(io::IO, ::MIME"text/plain", con::Absolute)
     println(io, string(typeof(con)), ": |", con.x.id, "| = ", con.y.id, ", active = ", con.active.value)
     println(io, "   ", con.x)
-    println(io, "   ", con.y)
+    print(io, "   ", con.y)
 end
 
 function Base.show(io::IO, con::Absolute)
-    println(io, string(typeof(con)), ": |", con.x.id, "| = ", con.y.id, ", active = ", con.active.value)
+    print(io, string(typeof(con)), ": |", con.x.id, "| = ", con.y.id)
 end
