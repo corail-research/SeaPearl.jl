@@ -21,6 +21,7 @@ This generator create graps for the NQueens problem.
 
 """
 function fill_with_generator!(cpmodel::CPModel, gen::NQueensGenerator; seed=nothing)
+    cpmodel.limit.numberOfSolutions = 1
     if !isnothing(seed)
         Random.seed!(seed)
     end
@@ -32,25 +33,25 @@ function fill_with_generator!(cpmodel::CPModel, gen::NQueensGenerator; seed=noth
 
     rows = Vector{SeaPearl.AbstractIntVar}(undef, board_size)
     for i = 1:board_size
-        rows[i] = SeaPearl.IntVar(1, board_size, "row_"*string(i), trailer)
-        SeaPearl.addVariable!(model, rows[i]; branchable=true)
+        rows[i] = SeaPearl.IntVar(1, board_size, "row_"*string(i), cpmodel.trailer)
+        SeaPearl.addVariable!(cpmodel, rows[i]; branchable=true)
     end
 
     rows_plus = Vector{SeaPearl.AbstractIntVar}(undef, board_size)
     for i = 1:board_size
         rows_plus[i] = SeaPearl.IntVarViewOffset(rows[i], i, rows[i].id*"+"*string(i))
-        SeaPearl.addVariable!(model, rows_plus[i]; branchable=false)
+        #SeaPearl.addVariable!(model, rows_plus[i]; branchable=false)
     end
 
     rows_minus = Vector{SeaPearl.AbstractIntVar}(undef, board_size)
     for i = 1:board_size
         rows_minus[i] = SeaPearl.IntVarViewOffset(rows[i], -i, rows[i].id*"-"*string(i))
-        SeaPearl.addVariable!(model, rows_minus[i]; branchable=false)
+        #SeaPearl.addVariable!(model, rows_minus[i]; branchable=false)
     end
 
-    push!(model.constraints, SeaPearl.AllDifferent(rows, trailer))
-    push!(model.constraints, SeaPearl.AllDifferent(rows_plus, trailer))
-    push!(model.constraints, SeaPearl.AllDifferent(rows_minus, trailer))
+    push!(cpmodel.constraints, SeaPearl.AllDifferent(rows, cpmodel.trailer))
+    push!(cpmodel.constraints, SeaPearl.AllDifferent(rows_plus, cpmodel.trailer))
+    push!(cpmodel.constraints, SeaPearl.AllDifferent(rows_minus, cpmodel.trailer))
     return nothing
     #return model
 end
@@ -61,4 +62,4 @@ end
 
 Returns the size of the state representation in its matrix form, useful when construcing the trajectory for the RL agent
 """
-arraybuffer_dims(gen::NQueensGenerator, t::Type{DefaultStateRepresentation{F}}) where {F} = (gen.board_size*4+3, gen.board_size*4+3+3+feature_length(gen, t))
+arraybuffer_dims(gen::NQueensGenerator, t::Type{DefaultStateRepresentation{F}}) where {F} = (10+gen.board_size*4+3, 10+gen.board_size*4+3+3+feature_length(gen, t))

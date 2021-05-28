@@ -301,7 +301,7 @@ function propagate!(constraint::AllDifferent, toPropagate::Set{Constraint}, prun
     return true
 end
 
-variableArray(constraint::AllDifferent) = constraint.x
+variablesArray(constraint::AllDifferent) = constraint.x
 
 function Base.show(io::IO, ::MIME"text/plain", con::AllDifferent)
     println(io, string(typeof(con)), ": ", join([var.id for var in con.x], " != "), ", active = ", con.active)
