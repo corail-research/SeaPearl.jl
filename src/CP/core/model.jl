@@ -20,11 +20,11 @@ end
     CPModel()
 
 The structure storing all the informations needed to solve a specific problem and it also stores the solutions.
-The CPModel is the center of the solver and evolve during the solving. 
-The `AbstractStateRepresentation` used by the RL Agent is created from the CPModel. 
+The CPModel is the center of the solver and evolve during the solving.
+The `AbstractStateRepresentation` used by the RL Agent is created from the CPModel.
 
-The CPModel is always created empty and is filled eather by hand by the user (or automatically thanks to written files) 
-or filled by an `AbstractModelGenerator`. 
+The CPModel is always created empty and is filled eather by hand by the user (or automatically thanks to written files)
+or filled by an `AbstractModelGenerator`.
 
 """
 mutable struct CPModel
@@ -210,10 +210,10 @@ Return a boolean describing if the model is empty or not.
 """
 function Base.isempty(model::CPModel)::Bool
     (
-        isempty(model.variables) 
-        && isempty(model.constraints) 
-        && isempty(model.trailer.prior) 
-        && isempty(model.trailer.current) 
+        isempty(model.variables)
+        && isempty(model.constraints)
+        && isempty(model.trailer.prior)
+        && isempty(model.trailer.current)
         && isnothing(model.objective)
         && isnothing(model.objectiveBound)
         && isempty(model.statistics.solutions)
@@ -232,10 +232,10 @@ end
 Empty the CPModel.
 """
 function Base.empty!(model::CPModel)
-    empty!(model.variables) 
-    empty!(model.constraints) 
-    empty!(model.trailer.prior) 
-    empty!(model.trailer.current) 
+    empty!(model.variables)
+    empty!(model.constraints)
+    empty!(model.trailer.prior)
+    empty!(model.trailer.current)
     model.objective = nothing
     model.objectiveBound = nothing
     empty!(model.statistics.solutions)
@@ -251,9 +251,9 @@ end
 """
     reset_model!(model::CPModel)
 
-Reset a given CPModel instance. Make it possible to reuse the same instance instead of having to 
-delete the old one and create another one. This is used in `launch_experiment!` in order to be able 
-to use the same CPModel instance to compare different given heuristics. 
+Reset a given CPModel instance. Make it possible to reuse the same instance instead of having to
+delete the old one and create another one. This is used in `launch_experiment!` in order to be able
+to use the same CPModel instance to compare different given heuristics.
 """
 function reset_model!(model::CPModel)
     restoreInitialState!(model.trailer)
@@ -264,6 +264,7 @@ function reset_model!(model::CPModel)
     empty!(model.statistics.solutions)
     empty!(model.statistics.nodevisitedpersolution)
     if !isnothing(model.objective)
+        @assert !isnothing(model.statistics.objectives)   "did you used SeaPearl.addObjective! to declare your objective function ? "
         empty!(model.statistics.objectives)
     end
     model.statistics.numberOfNodes = 0

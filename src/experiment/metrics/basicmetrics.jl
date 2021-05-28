@@ -1,6 +1,6 @@
 using Plots
 using RollingFunctions
-
+using BSON
 """
     BasicMetrics{O<:AbstractTakeObjective, H<:ValueSelection} <: AbstractMetrics
 
@@ -152,17 +152,16 @@ The learning process should show a decrease in the number of nodes required to f
 """
 function plotNodeVisited(metrics::BasicMetrics{O, H}; filename::String="") where{O<:AbstractTakeObjective, H<:ValueSelection}
     L = length(metrics.meanNodeVisitedUntilOptimality)
-    println(L)
     p = plot(
         1:L,
         [metrics.meanNodeVisitedUntilOptimality[1:L] metrics.meanNodeVisitedUntilfirstSolFound[1:L]],
         xlabel="Episode",
-        ylabel="Number of nodes visited",
-        label = ["Until Optimality" "Until First Solution Found"],
+        ylabel="Nodes visited",
+        title = ["Node visited until Optimality" "Node visited until first solution found"],
         layout = (2, 1)
     )
     display(p)
-    savefig(p,filename*"_node_visited_"*".png")
+    savefig(p,filename*"_node_visited_"*"$(typeof(metrics.heuristic))"*".png")
 end
 
 """
@@ -171,7 +170,7 @@ end
 plot the relative scores ( compared to the optimal ) of the heuristic during the search for fixed instances along the training. This plot is
 meaningful only if the metrics is one from the evaluator (ie. the instance remains the same one).
 """
-function plotScoreVariation(metrics::BasicMetrics{O, H}; filename::String="") where{O<:AbstractTakeObjective, H<:ValueSelection}
+function plotScoreVariation(metrics::BasicMetrics{TakeObjective, H}; filename::String="") where{H<:ValueSelection}
     Data=[]
     for i in length(metrics.nodeVisited):-1:1
         push!(Data,hcat(metrics.nodeVisited[i],metrics.scores[i]))
@@ -187,7 +186,7 @@ function plotScoreVariation(metrics::BasicMetrics{O, H}; filename::String="") wh
         xaxis=:log,
     )
     display(p)
-    savefig(p,filename*"_node_visited_"*".png")
+    savefig(p,filename*"_score_variation_"*"$(typeof(metrics.heuristic))"*".png")
 end
 
 """
