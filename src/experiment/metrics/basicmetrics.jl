@@ -139,7 +139,7 @@ this averaging smoothes the high frequency variations due to the differences bet
 """
 function computemean!(metrics::BasicMetrics{O, H}) where{O, H<:ValueSelection} 
     windowspan = min(metrics.meanOver,length(metrics.nodeVisited))
-    nodeVisitedUntilFirstSolFound = copy(metrics.nodeVisitedUntilFirstSolFound)
+    nodeVisitedUntilFirstSolFound = copy(metrics.meanNodeVisitedUntilfirstSolFound)
     metrics.meanNodeVisitedUntilfirstSolFound = rollmean(nodeVisitedUntilFirstSolFound, windowspan)
     nodeVisitedUntilOptimality = copy(metrics.meanNodeVisitedUntilOptimality)
     metrics.meanNodeVisitedUntilOptimality = rollmean(nodeVisitedUntilOptimality, windowspan)
