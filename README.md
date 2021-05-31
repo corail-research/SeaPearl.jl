@@ -40,8 +40,7 @@ SeaPearl.addVariable!(...)
 push!(model.constraints, SeaPearl.AbstractConstraint(...))
 
 #add optionnal objective function : 
-model.objective = ObjectiveVar
-
+SeaPearl.addObjective!(model, ObjectiveVar)
 ```
 ### SeaPearl as a RL-driven CP solver : 
 To use SeaPearl as a RL-driven CP solver, one needs to  : 
@@ -89,10 +88,10 @@ function CustomMetricsFun
 ```
 9. launch the training :  
 ```julia
-bestsolutions, nodevisited,timeneeded, eval_nodevisited, eval_timeneeded = SeaPearl.train!(
+bestsolutions, nodeVisited,timeneeded, eval_nodevisited, eval_timeneeded = SeaPearl.train!(
 valueSelectionArray=[learnedHeuristic, basicHeuristic], 
 generator=CustomProblemGenerator,
-nb_episodes=nb_episodes,
+nbEpisodes=nbEpisodes,
 strategy=CustomStrategy,
 variableHeuristic=CustomVariableSelectionHeuristic,
 metricsFun=CustomMetricsFun,
