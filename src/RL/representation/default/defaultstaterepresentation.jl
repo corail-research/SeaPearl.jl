@@ -11,9 +11,9 @@ the information to his LearnedHeurstic when defining it.
 """
 mutable struct DefaultStateRepresentation{F} <: FeaturizedStateRepresentation{F}
     cplayergraph::CPLayerGraph
-    features::Union{Nothing, Array{Float32, 2}}
+    features::Union{Nothing, AbstractArray{Float32, 2}}
     variable_id::Union{Nothing, Int64}
-    possible_value_ids::Union{Nothing, Array{Int64}}
+    possible_value_ids::Union{Nothing, AbstractArray{Int64}}
 end
 
 function DefaultStateRepresentation{F}(model::CPModel) where F
@@ -80,20 +80,20 @@ end
 
 #TODO analyse and comment featured graph
 """
-function featuredgraph(array::Array{Float32, 2}, ::Type{DefaultStateRepresentation})::GeometricFlux.FeaturedGraph
+function featuredgraph(array::AbstractArray{Float32, 2}, ::Type{DefaultStateRepresentation})::GeometricFlux.FeaturedGraph
     # Here we only take what's interesting, removing all null values that are there only to accept bigger graphs
     row_indexes = findall(x -> x == 1, array[:, 1])
     col_indexes = vcat(1 .+ row_indexes, (size(array, 1)+2):size(array, 2))
-    array = view(array, row_indexes, col_indexes)
+    array = array[row_indexes, col_indexes]
     
     n = size(array, 1)
-    dense_adj = array[:, 1:n]
+    dense_adj = array[:, 1:n] |> cpu
     features = array[:, n+1:end-2]
 
     return GraphSignals.FeaturedGraph(dense_adj; nf=permutedims(features, [2, 1])) # Cannot use `transpose` to transpose here, see https://github.com/yuehhua/GraphSignals.jl/pull/19
 end
 
-function branchingvariable_id(array::Array{Float32, 2}, ::Type{DefaultStateRepresentation})::Int64
+function branchingvariable_id(array::AbstractArray{Float32, 2}, ::Type{DefaultStateRepresentation})::Int64
     findfirst(x -> x == 1, array[:, end-1])
 end
 
@@ -147,6 +147,6 @@ end
 
 Returns the ids of the ValueVertex that are in the domain of the variable we are branching on.
 """
-function possible_value_ids(array::Array{Float32, 2}, ::Type{DefaultStateRepresentation})
+function possible_value_ids(array::AbstractArray{Float32, 2}, ::Type{DefaultStateRepresentation})
     findall(x -> x == 1, array[:, end])
 end

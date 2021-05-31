@@ -10,11 +10,33 @@ using GraphSignals
 This structure is here to provide a flexible way to create a nn model which respect this approach:
 Making modification on the graph, then extract one node feature and modify it. 
 """
-Base.@kwdef struct FlexGNN <: NNStructure
+struct FlexGNN <: NNStructure
     graphChain::Flux.Chain
     nodeChain::Flux.Chain
     outputLayer::Flux.Dense
 end
+
+function FlexGNN(; 
+    graphChain::Flux.Chain, 
+    nodeChain::Flux.Chain, 
+    outputLayer::Flux.Dense, 
+    enableGPU::Bool=true
+)
+    if enableGPU
+        return FlexGNN(
+            graphChain |> gpu,
+            nodeChain |> gpu,
+            outputLayer |> gpu
+        )
+    else
+        return FlexGNN(
+            graphChain,
+            nodeChain,
+            outputLayer
+        )
+    end
+end
+
 
 Flux.@functor FlexGNN
 
