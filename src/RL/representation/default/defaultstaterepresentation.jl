@@ -87,10 +87,10 @@ function featuredgraph(array::AbstractArray{Float32, 2}, ::Type{DefaultStateRepr
     array = array[row_indexes, col_indexes]
     
     n = size(array, 1)
-    dense_adj = array[:, 1:n] |> cpu
+    dense_adj = array[:, 1:n]
     features = array[:, n+1:end-2]
-
-    return GraphSignals.FeaturedGraph(dense_adj; nf=permutedims(features, [2, 1])) # Cannot use `transpose` to transpose here, see https://github.com/yuehhua/GraphSignals.jl/pull/19
+    fg = GraphSignals.FeaturedGraph(dense_adj; nf=permutedims(features, [2, 1])) # Cannot use `transpose` to transpose here, see https://github.com/yuehhua/GraphSignals.jl/pull/19
+    return fg
 end
 
 function branchingvariable_id(array::AbstractArray{Float32, 2}, ::Type{DefaultStateRepresentation})::Int64
