@@ -144,3 +144,7 @@ function LightGraphs.SimpleGraph(cplayergraph::CPLayerGraph)
     end
     return graph
 end
+
+function LightGraphs.adjacency_matrix(cplayergraph::CPLayerGraph)
+    return Matrix(adjacency_matrix(Graph(cplayergraph)))
+end
