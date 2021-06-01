@@ -16,7 +16,7 @@ end
 
 function DefaultStateRepresentation{F, TS}(model::CPModel) where {F, TS}
     g = CPLayerGraph(model)
-    sr = DefaultStateRepresentation{F, TS}(g, nothing, nothing, nothing)
+    sr = DefaultStateRepresentation{F, TS}(g, nothing, nothing)
 
     features = featurize(sr)
     sr.features = transpose(features)
@@ -83,11 +83,11 @@ function DefaultTrajectoryState(sr::DefaultStateRepresentation{F, DefaultTraject
     if isnothing(sr.variable_id)
         throw(ErrorException("Unable to build a DefaultTrajectoryState, when the branching variable is nothing."))
     end
-    # TODO: Implement FeaturedGraph(CPLayerGraph; kwargs...) 
-    fg = FeaturedGraph(sr.cplayergraph; nf=sr.features)
+    graph = Graph(sr.cplayergraph)
+    fg = FeaturedGraph(graph; nf=sr.features)
     return DefaultTrajectoryState(fg, sr.variable_id)
 end
 
-DefaultStateRepresentation(m::CPModel) = DefaultStateRepresentation{DefaultFeaturization, DefaultStateRepresentation}(m::CPModel)
+DefaultStateRepresentation(m::CPModel) = DefaultStateRepresentation{DefaultFeaturization, DefaultTrajectoryState}(m::CPModel)
 
 
