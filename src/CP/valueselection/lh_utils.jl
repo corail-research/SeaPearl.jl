@@ -161,12 +161,14 @@ function action_to_value(vs::LearnedHeuristic{SR, R, VariableOutput}, action::In
     return cp_vertex.value
 end
 
+"""
 function action_to_value(vs::LearnedHeuristic{SR, R, VariableOutput}, action::Int64, state::AbstractArray, model::CPModel) where {
     SR <: TsptwStateRepresentation,
     R <: AbstractReward
 }
     return from_order_to_id(state, action, SR)
 end
+"""
 
 """
     action_to_value(vs::LearnedHeuristic{SR, R, FixedOutput}, action::Int64, state::AbstractArray, model::CPModel)

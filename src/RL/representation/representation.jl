@@ -54,4 +54,4 @@ function featurize(::FeaturizedStateRepresentation{F, TS}) where {F, TS}
 end
 
 include("default/defaultstaterepresentation.jl")
-include("tsptw/tsptwstaterepresentation.jl")
+#include("tsptw/tsptwstaterepresentation.jl")
