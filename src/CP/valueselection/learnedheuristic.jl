@@ -34,13 +34,12 @@ mutable struct LearnedHeuristic{SR<:AbstractStateRepresentation, R<:AbstractRewa
     action_space::Union{Nothing, Array{Int64,1}}
     current_state::Union{Nothing, SR}
     reward::Union{Nothing, R}
-    cpnodes_max::Union{Nothing, Int64}
     search_metrics::Union{Nothing, SearchMetrics}
 
-    LearnedHeuristic{SR, R, A}(agent::RL.Agent, cpnodes_max=nothing) where {SR, R, A}= new{SR, R, A}(agent, nothing, nothing, nothing, nothing, nothing, cpnodes_max, nothing)
+    LearnedHeuristic{SR, R, A}(agent::RL.Agent) where {SR, R, A}= new{SR, R, A}(agent, nothing, nothing, nothing, nothing, nothing, nothing)
 end
 
-LearnedHeuristic(agent::RL.Agent, cpnodes_max=nothing) = LearnedHeuristic{DefaultStateRepresentation, DefaultReward, FixedOutput}(agent, cpnodes_max)
+LearnedHeuristic(agent::RL.Agent) = LearnedHeuristic{DefaultStateRepresentation, DefaultReward, FixedOutput}(agent)
 
 include("rewards/rewards.jl")
 include("lh_utils.jl")
