@@ -79,11 +79,10 @@ function get_observation!(lh::LearnedHeuristic, model::CPModel, x::AbstractIntVa
 
     # synchronize state: 
     sync_state!(lh, model, x)
-
-    state = #TODO complete this with TrajState...
+    state = trajectoryState(lh.current_state)
 
     if !wears_mask(lh)
-        return unmaskedCPEnv(reward, done, state,action_space_index)
+        return unmaskedCPEnv(reward, done, state, action_space_index)
     end
     # return the observation as a named tuple (useful for interface understanding)
     return CPEnv(reward, done, state, action_space_index, legal_actions, legal_actions_mask)
@@ -92,7 +91,7 @@ end
 struct CPEnv <: AbstractEnv
     reward::Float32
     terminal::Bool
-    state           #add the type <:AbstractTrajStateType
+    state::AbstractTrajectoryState
     actions_index::Array{Int64, 1}
     legal_actions::Array{Int64, 1}
     legal_actions_mask::Array{Int64, 1}
@@ -110,7 +109,7 @@ RLBase.ActionStyle(::CPEnv) = FULL_ACTION_SET
 struct unmaskedCPEnv <: AbstractEnv
     reward::Float32
     terminal::Bool
-    state        #add the type <:AbstractTrajStateType
+    state::AbstractTrajectoryState
     actions_index::Array{Int64, 1}
 end
 

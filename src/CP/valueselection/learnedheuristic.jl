@@ -55,13 +55,13 @@ function (valueSelection::LearnedHeuristic)(::InitializingPhase, model::CPModel,
     # create the environment
     update_with_cpmodel!(valueSelection, model)
     false_x = first(values(branchable_variables(model)))
-    obs = get_observation!(valueSelection, model, false_x)
+    env = get_observation!(valueSelection, model, false_x)
 
     # Reset the agent, useful for things like recurrent networks
     Flux.reset!(valueSelection.agent)
 
     ###TODO: We should investigate why this line must be removed
-    # valueSelection.agent(RL.PRE_EPISODE_STAGE, obs)
+    valueSelection.agent(RL.PRE_EPISODE_STAGE, env)
 end
 
 """
@@ -113,12 +113,12 @@ function (valueSelection::LearnedHeuristic)(PHASE::EndingPhase, model::CPModel, 
     # the RL EPISODE stops
     set_reward!(PHASE, valueSelection, model, current_status)
     false_x = first(values(branchable_variables(model)))
-    obs = get_observation!(valueSelection, model, false_x, true)
+    env = get_observation!(valueSelection, model, false_x, true)
     #println("EndingPhase  ", obs.reward, " ", obs.terminal, " ", obs.legal_actions, " ", obs.legal_actions_mask)
 
     valueSelection.agent(RL.POST_ACT_STAGE, obs) # get terminal and reward
 
     ###TODO: We should investigate why this line must be removed
-    # valueSelection.agent(RL.POST_EPISODE_STAGE, obs)  # let the agent see the last observation
+    valueSelection.agent(RL.POST_EPISODE_STAGE, env)  # let the agent see the last observation
 end
 
