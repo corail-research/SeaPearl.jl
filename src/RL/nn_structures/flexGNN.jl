@@ -28,23 +28,21 @@ x is the encoded Array representation of the AbstractStateRepresentation usefull
 #TODO try to avoid the graph reconstruction at each forward pass in the NN. the featured graph can be saved in cache and updated as the reseach progresses. CAUTION with backtracking
 
 """
-function (nn::FlexGNN)(x::AbstractArray{Float32,2})
+function (nn::FlexGNN)(state::DefaultTrajectoryState)
 
-    # get informations from the CPGraph (input) and encoded vector
-    variableId = branchingvariable_id(x, DefaultStateRepresentation)
-    fg = featuredgraph(x, DefaultStateRepresentation)
+    fg, variableIdx = state.fg, state.variabeIdx
 
     # chain working on the graph
-    fg = nn.graphChain(fg)
+    nodeFeatures = nn.graphChain(fg)
 
     # extract the feature of the variable we're working on 
-    var_feature = GraphSignals.node_feature(fg)[:, variableId]
+    variableFeature = nodeFeatures[:, variableIdx]
 
     # chain working on the node feature (array)
-    chain_output = nn.nodeChain(var_feature)
+    chainOutput = nn.nodeChain(variableFeature)
 
     # output layer
-    output = nn.outputLayer(chain_output)
+    output = nn.outputLayer(chainOutput)
 
     return output
 end
