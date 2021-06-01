@@ -38,24 +38,6 @@ function update_representation!(sr::DefaultStateRepresentation, model::CPModel, 
 end
 
 """
-        function featuredgraph(array::Array{Float32, 2}, ::Type{DefaultStateRepresentation})::GeometricFlux.FeaturedGraph
-
-#TODO analyse and comment featured graph
-"""
-function featuredgraph(array::AbstractArray{Float32, 2}, ::Type{DefaultStateRepresentation})::GeometricFlux.FeaturedGraph
-    # Here we only take what's interesting, removing all null values that are there only to accept bigger graphs
-    row_indexes = findall(x -> x == 1, array[:, 1])
-    col_indexes = vcat(1 .+ row_indexes, (size(array, 1)+2):size(array, 2))
-    array = array[row_indexes, col_indexes]
-    
-    n = size(array, 1)
-    dense_adj = array[:, 1:n]
-    features = array[:, n+1:end-2]
-    fg = GraphSignals.FeaturedGraph(dense_adj; nf=permutedims(features, [2, 1])) # Cannot use `transpose` to transpose here, see https://github.com/yuehhua/GraphSignals.jl/pull/19
-    return fg
-end
-
-"""
     function featurize(sr::DefaultStateRepresentation{DefaultFeaturization})
 
 Create features for every node of the graph. Supposed to be overwritten. 
