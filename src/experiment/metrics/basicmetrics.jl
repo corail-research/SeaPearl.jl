@@ -1,6 +1,7 @@
 using Plots
 using RollingFunctions
 using BSON
+using DataFrames
 """
     BasicMetrics{O<:AbstractTakeObjective, H<:ValueSelection} <: AbstractMetrics
 
@@ -55,6 +56,7 @@ function (metrics::BasicMetrics{DontTakeObjective, BasicHeuristic})(model::CPMod
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
     push!(metrics.meanNodeVisitedUntilOptimality,model.statistics.numberOfNodes)
+    push!(metrics.meanNodeVisitedUntilfirstSolFound,model.statistics.nodevisitedpersolution[1])
     push!(metrics.timeneeded,dt)
 end
 
@@ -72,6 +74,7 @@ function (metrics::BasicMetrics{TakeObjective, BasicHeuristic})(model::CPModel,d
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
     push!(metrics.meanNodeVisitedUntilOptimality,model.statistics.numberOfNodes)
+    push!(metrics.meanNodeVisitedUntilfirstSolFound,model.statistics.nodevisitedpersolution[1])
     push!(metrics.timeneeded,dt)
     push!(metrics.scores,copy(model.statistics.objectives ./ model.statistics.objectives[size(model.statistics.objectives,1)]))
 
@@ -93,6 +96,7 @@ function (metrics::BasicMetrics{DontTakeObjective, LearnedHeuristic{SR, R, A}})(
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
     push!(metrics.meanNodeVisitedUntilOptimality,model.statistics.numberOfNodes)
+    push!(metrics.meanNodeVisitedUntilfirstSolFound,model.statistics.nodevisitedpersolution[1])
     push!(metrics.timeneeded,dt)
     push!(metrics.totalReward,last_episode_total_reward(metrics.heuristic.agent.trajectory))
     push!(metrics.loss,metrics.heuristic.agent.policy.learner.loss)
@@ -115,6 +119,7 @@ function (metrics::BasicMetrics{TakeObjective, LearnedHeuristic{SR, R, A}})(mode
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
     push!(metrics.meanNodeVisitedUntilOptimality,model.statistics.numberOfNodes)
+    push!(metrics.meanNodeVisitedUntilfirstSolFound,model.statistics.nodevisitedpersolution[1])
     push!(metrics.timeneeded,dt)
     push!(metrics.scores,copy(model.statistics.objectives ./ model.statistics.objectives[size(model.statistics.objectives,1)]))
     push!(metrics.totalReward,last_episode_total_reward(metrics.heuristic.agent.trajectory))
@@ -134,11 +139,15 @@ this averaging smoothes the high frequency variations due to the differences bet
 """
 function computemean!(metrics::BasicMetrics{O, H}) where{O, H<:ValueSelection}
     windowspan = min(metrics.meanOver,length(metrics.nodeVisited))
-    nodeVisitedUntilFirstSolFound = [ nodes[1] for nodes in metrics.nodeVisited]
+    nodeVisitedUntilFirstSolFound = copy(metrics.meanNodeVisitedUntilfirstSolFound)
     metrics.meanNodeVisitedUntilfirstSolFound = rollmean(nodeVisitedUntilFirstSolFound, windowspan)
     nodeVisitedUntilOptimality = copy(metrics.meanNodeVisitedUntilOptimality)
-    metrics.meanNodeVisitedUntilOptimality = rollmean(nodeVisitedUntilOptimality,windowspan)
-end
+    metrics.meanNodeVisitedUntilOptimality = rollmean(nodeVisitedUntilOptimality, windowspan)
+
+    if isa(metrics,BasicMetrics{O,<:LearnedHeuristic})
+        metrics.totalReward = rollmean(metrics.totalReward,windowspan)
+    end
+end 
 
 """
     function plotNodeVisited(metrics::BasicMetrics{O, H}; filename::String="") where{O<:AbstractTakeObjective, H<:ValueSelection}
@@ -150,6 +159,36 @@ plot 2 graphs :
 The learning process should show a decrease in the number of nodes required to find a first solution along the search
 (depending on the reward engineering).
 """
+function plotNodeVisited(metricsArray::Union{BasicMetrics{O, H}, Vector{AbstractMetrics}}; filename::String="") where{O<:AbstractTakeObjective, H<:ValueSelection}
+    L = length(metricsArray[1].meanNodeVisitedUntilOptimality)
+    Label = Matrix{String}(undef, 1, length(metricsArray))
+    for j in 1:length(metricsArray) #nb of heuristics
+        if isa(metricsArray[j].heuristic, LearnedHeuristic)
+            Label[1,j]="Learned heuristic n°$j"
+        else
+            Label[1,j]="Classic heuristic n°$(j-1)"
+        end
+    end 
+    p1 = plot(
+        1:L, 
+        [metricsArray[i].meanNodeVisitedUntilOptimality[1:L] for i in 1:length(metricsArray)], 
+        title = "Node visited until optimality",
+        label=Label,
+        xlabel="Episode",
+        ylabel="Nodes visited",
+    )
+    p2 = plot(
+        1:L, 
+        [metricsArray[i].meanNodeVisitedUntilfirstSolFound[1:L] for i in 1:length(metricsArray)], 
+        title ="Node visited until first solution found",
+        label=Label,
+        xlabel="Episode", 
+        ylabel="Nodes visited",
+    )
+    plot(p1,p2, layout=(2,1))
+end
+
+
 function plotNodeVisited(metrics::BasicMetrics{O, H}; filename::String="") where{O<:AbstractTakeObjective, H<:ValueSelection}
     L = length(metrics.meanNodeVisitedUntilOptimality)
     p = plot(
@@ -186,19 +225,42 @@ function plotScoreVariation(metrics::BasicMetrics{TakeObjective, H}; filename::S
         xaxis=:log,
     )
     display(p)
-    savefig(p,filename*"_score_variation_"*"$(typeof(metrics.heuristic))"*".png")
+    savefig(p,filename*"_score_variation.png")
 end
+
+
+"""
+    function plotScoreVariation(metrics::BasicMetrics{O, H}; filename::String="") where{O<:AbstractTakeObjective, H<:ValueSelection}
+
+plot the relative scores ( compared to the optimal ) of the heuristic during the search for fixed instances along the training. This plot is 
+meaningful only if the metrics is one from the evaluator (ie. the instance remains the same one).
+"""
+function plotRewardVariation(metrics::BasicMetrics{TakeObjective, LearnedHeuristic{SR,R,A}}; filename::String="") where {SR, R, A}
+    L = length(metrics.totalReward)
+
+    p = plot(1:L, 
+        metrics.totalReward[1:L],
+        xlabel="Episode", 
+        ylabel="Total reward",
+        title ="Total reward per episode",
+    )
+    display(p)
+    savefig(p,filename*"_reward_variation.png")
+end
+
+
+
 
 """
     function store_data(metrics::BasicMetrics{O, H}, title::String) where{O<:AbstractTakeObjective, H<:ValueSelection}
 
 Store useful results from consecutive search in `.csv` file.
 """
-function store_data(metrics::BasicMetrics{O, H}, title::String) where{O<:AbstractTakeObjective, H<:ValueSelection}
+function store_data(metrics::BasicMetrics{O, H}; filename::String="") where{O<:AbstractTakeObjective, H<:ValueSelection}
     df = DataFrame()
-    for i in 1:nbInstances
+    for i in 1:metrics.nbEpisodes
         df[!, string(i)*"_node_visited"] = metrics.nodeVisited[i]
-        df[!, string(i)*"_node_visited_until_first_solution_found"] = metrics.nodeVisitedUntilFirstSolFound[i]
+        df[!, string(i)*"_node_visited_until_first_solution_found"] = metrics.meanNodeVisitedUntilfirstSolFound[i]
         df[!, string(i)*"_node_visited_until_optimality"] = metrics.meanNodeVisitedUntilOptimality[i]
         df[!, string(i)*"_time_needed"] = metrics.timeneeded[i]
         if !isnothing(metrics.scores)
