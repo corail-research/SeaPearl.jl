@@ -13,7 +13,6 @@ mutable struct DefaultStateRepresentation{F} <: FeaturizedStateRepresentation{F}
     cplayergraph::CPLayerGraph
     features::Union{Nothing, AbstractArray{Float32, 2}}
     variable_id::Union{Nothing, Int64}
-    possible_value_ids::Union{Nothing, AbstractArray{Int64}}
 end
 
 function DefaultStateRepresentation{F}(model::CPModel) where F
@@ -30,51 +29,14 @@ DefaultStateRepresentation(m::CPModel) = DefaultStateRepresentation{DefaultFeatu
 """ 
         function update_representation!(sr::DefaultStateRepresentation, model::CPModel, x::AbstractIntVar)
 
-While working with DefaultStateRepresentation, at each step of the research node, only the variable_id and the possible_value_ids need to be updated. 
+While working with DefaultStateRepresentation, at each step of the research node, only the variable_id need to be updated. 
 features don't need to be updated as they encode the initial problem and the CPLayerGraph is automatically updated as it is linked to the CPModel. 
 """
 function update_representation!(sr::DefaultStateRepresentation, model::CPModel, x::AbstractIntVar)
     sr.variable_id = indexFromCpVertex(sr.cplayergraph, VariableVertex(x))
-    sr.possible_value_ids = possible_values(sr.variable_id, sr.cplayergraph)
     sr
 end
 
-"""
-        function to_arraybuffer(sr::DefaultStateRepresentation, rows=nothing::Union{Nothing, Int})::Array{Float32, 2}
-
-This function encodes the DefaultStateRepresentation in a Array{Float32, 2}. This function is usefull as the trajectory buffer can only stock Array.  
-The argument "rows" allows the user to define the fixed size of the array that will encode the state. This is usefull as the size of the trajectory buffer 
-is fixed in advance. This method makes the array-encoding robust to different instance size as long as the size does not exceed the maximum size defined 
-by "rows". Such an encoding is a key element in the quest for generalization over different instances of a same problem.
-
-#TODO precisely describe the array construction whether rows=nothing or not.  
-"""
-function to_arraybuffer(sr::DefaultStateRepresentation, rows=nothing::Union{Nothing, Int})::Array{Float32, 2}
-    adj = Matrix(LightGraphs.LinAlg.adjacency_matrix(sr.cplayergraph)) 
-    var_id = sr.variable_id
-
-    var_code = zeros(Float32, size(adj, 1))
-    var_code[var_id] = 1f0
-
-    vector_values = zeros(Float32, size(adj, 1))
-    for i in sr.possible_value_ids
-        vector_values[i] = 1.
-    end
-
-    
-    if isnothing(rows)
-        return hcat(ones(Float32, size(adj, 1), 1), adj, transpose(sr.features), var_code, vector_values)
-    end
-
-    @assert rows > size(adj, 1) "maxNumberOfCPNodes too small"
-
-    cp_graph_array = hcat(ones(Float32, size(adj, 1), 1), adj, zeros(Float32, size(adj, 1), rows - size(adj, 1)), transpose(sr.features), var_code, vector_values)
-    filler = zeros(Float32, rows - size(cp_graph_array, 1), size(cp_graph_array, 2))
-
-
-    return vcat(cp_graph_array, filler)
-    
-end
 """
         function featuredgraph(array::Array{Float32, 2}, ::Type{DefaultStateRepresentation})::GeometricFlux.FeaturedGraph
 
@@ -92,11 +54,6 @@ function featuredgraph(array::AbstractArray{Float32, 2}, ::Type{DefaultStateRepr
     fg = GraphSignals.FeaturedGraph(dense_adj; nf=permutedims(features, [2, 1])) # Cannot use `transpose` to transpose here, see https://github.com/yuehhua/GraphSignals.jl/pull/19
     return fg
 end
-
-function branchingvariable_id(array::AbstractArray{Float32, 2}, ::Type{DefaultStateRepresentation})::Int64
-    findfirst(x -> x == 1, array[:, end-1])
-end
-
 
 """
     function featurize(sr::DefaultStateRepresentation{DefaultFeaturization})
@@ -129,24 +86,5 @@ Returns the length of the feature vector, useful for SeaPearl to choose the size
 """
 feature_length(gen::SeaPearl.AbstractModelGenerator, ::Type{DefaultStateRepresentation{DefaultFeaturization}}) = 3
 
-"""
-    function possible_values(variable_id::Int64, g::CPLayerGraph)
 
-Return the ids of the values that the variable denoted by `variable_id` can take.
-It actually returns the id of every ValueVertex neighbors of the VariableVertex.
 
-"""
-function possible_values(variable_id::Int64, g::CPLayerGraph)
-    possible_values = LightGraphs.neighbors(g, variable_id)
-    filter!((id) -> isa(cpVertexFromIndex(g, convert(Int64, id)), ValueVertex), possible_values)
-    return possible_values
-end
-
-"""
-    function possible_value_ids(array::Array{Float32, 2})
-
-Returns the ids of the ValueVertex that are in the domain of the variable we are branching on.
-"""
-function possible_value_ids(array::AbstractArray{Float32, 2}, ::Type{DefaultStateRepresentation})
-    findall(x -> x == 1, array[:, end])
-end
