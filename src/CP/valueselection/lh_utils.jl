@@ -88,13 +88,23 @@ function get_observation!(lh::LearnedHeuristic, model::CPModel, x::AbstractIntVa
     return CPEnv(reward, done, state, action_space_index, legal_actions, legal_actions_mask)
 end
 
-struct CPEnv <: AbstractEnv
+struct CPEnv{ST <: AbstractTrajectoryState} <: AbstractEnv
     reward::Float32
     terminal::Bool
-    state::AbstractTrajectoryState
-    actions_index::Array{Int64, 1}
-    legal_actions::Array{Int64, 1}
-    legal_actions_mask::Array{Int64, 1}
+    state::ST
+    actions_index::Vector{Int}
+    legal_actions::Vector{Int}
+    legal_actions_mask::Vector{Bool}
+end
+
+function (learner::DQNLearner)(env::CPEnv{ST}) where {ST <: NonTabularTrajectoryState}
+    env |>
+    state |>
+    x ->
+        send_to_device(device(learner), x) |>
+        learner.approximator |>
+        vec |>
+        send_to_host
 end
 
 RLBase.action_space(env::CPEnv) = env.actions_index
