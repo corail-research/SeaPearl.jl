@@ -1,3 +1,16 @@
+#TODO update documentation
+
+abstract type AbstractTrajectoryState end
+
+"""
+    AbstractFeaturization
+
+Some AbstractStateRepresentation require a Featurization (`FeaturizedStateRepresentation{F}`), this for instance often the case when 
+representing the state with a graph. This type give the possibility to characterise those 
+representation by the way they are featurize and thus give the ability to easily define new
+featuriations.
+"""
+abstract type AbstractFeaturization end
 
 """
     AbstractStateRepresentation
@@ -14,7 +27,7 @@ To define a new one, the user need to:
 - define a new structure, subtype of AbstractStateRepresentation
 - create a constructor from a CPModel 
 - define an `update_representation!` function
-- define a `to_arraybuffer` function         #TODO update documentation
+- define a `to_arraybuffer` function
 - define a `featuredgraph` function
 - define a `branchingvariable_id` function
 
@@ -23,17 +36,7 @@ To be able to work with variable action space, you also need to:
 
 Look at the DefaultStateRepresentation to get inspired.
 """
-abstract type AbstractStateRepresentation end 
-
-"""
-    AbstractFeaturization
-
-Some AbstractStateRepresentation require a Featurization (`FeaturizedStateRepresentation{F}`), this for instance often the case when 
-representing the state with a graph. This type give the possibility to characterise those 
-representation by the way they are featurize and thus give the ability to easily define new
-featuriations.
-"""
-abstract type AbstractFeaturization end
+abstract type AbstractStateRepresentation{TS <: AbstractTrajectoryState} end 
 
 """
     FeaturizedStateRepresentation{F}
@@ -43,9 +46,9 @@ often the case when representing the state with a graph. When a user wants to tr
 the featurized elements, instead of having to completely redefine a new type of AbstractStateRepresentation, he can keep the same and 
 just use a new AbstractFeaturization. 
 """
-abstract type FeaturizedStateRepresentation{F} <: AbstractStateRepresentation end
+abstract type FeaturizedStateRepresentation{F <: AbstractFeaturization, TS} <: AbstractStateRepresentation{TS} end
 
-function featurize(::FeaturizedStateRepresentation{F}) where F <: AbstractFeaturization
+function featurize(::FeaturizedStateRepresentation{F, TS}) where {F, TS}
     throw(ErrorException("Featurization $(F) not implemented."))
     nothing
 end
