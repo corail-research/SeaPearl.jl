@@ -16,7 +16,7 @@ end
 
 function DefaultStateRepresentation{F, TS}(model::CPModel) where {F, TS}
     g = CPLayerGraph(model)
-    sr = DefaultStateRepresentation{F}(g, nothing, nothing, nothing)
+    sr = DefaultStateRepresentation{F, TS}(g, nothing, nothing, nothing)
 
     features = featurize(sr)
     sr.features = transpose(features)
@@ -30,6 +30,7 @@ While working with DefaultStateRepresentation, at each step of the research node
 features don't need to be updated as they encode the initial problem and the CPLayerGraph is automatically updated as it is linked to the CPModel. 
 """
 function update_representation!(sr::DefaultStateRepresentation, model::CPModel, x::AbstractIntVar)
+    update_features!(sr, model)
     sr.variable_id = indexFromCpVertex(sr.cplayergraph, VariableVertex(x))
     sr
 end
@@ -41,12 +42,12 @@ end
 struct DefaultFeaturization <: AbstractFeaturization end
 
 """
-    function featurize(sr::DefaultStateRepresentation{DefaultFeaturization})
+    function featurize(sr::DefaultStateRepresentation{DefaultFeaturization, TS})
 
 Create features for every node of the graph. Supposed to be overwritten. 
 Default behavior is to call `default_featurize` which consists in 3D One-hot vector that encodes whether the node represents a Constraint, a Variable or a Value 
 """
-function featurize(sr::DefaultStateRepresentation{DefaultFeaturization})
+function featurize(sr::DefaultStateRepresentation{DefaultFeaturization, TS}) where TS
     g = sr.cplayergraph
     features = zeros(Float32, nv(g), 3)
     for i in 1:nv(g)
@@ -64,12 +65,14 @@ function featurize(sr::DefaultStateRepresentation{DefaultFeaturization})
     features
 end
 
+function update_features!(::DefaultStateRepresentation{DefaultFeaturization, TS}, ::CPModel) where TS end
+
 """
     feature_length(gen::AbstractModelGenerator, ::Type{DefaultStateRepresentation{DefaultFeaturization}})
 
 Returns the length of the feature vector, useful for SeaPearl to choose the size of the container
 """
-feature_length(gen::SeaPearl.AbstractModelGenerator, ::Type{DefaultStateRepresentation{DefaultFeaturization}}) = 3
+feature_length(gen::SeaPearl.AbstractModelGenerator, ::Type{DefaultStateRepresentation{DefaultFeaturization, TS}}) where TS = 3
 
 struct DefaultTrajectoryState <: AbstractTrajectoryState
     fg::GraphSignals.FeaturedGraph
@@ -85,6 +88,6 @@ function DefaultTrajectoryState(sr::DefaultStateRepresentation{F, DefaultTraject
     return DefaultTrajectoryState(fg, sr.variable_id)
 end
 
-DefaultStateRepresentation(m::CPModel) = DefaultStateRepresentation{DefaultFeaturization}(m::CPModel)
+DefaultStateRepresentation(m::CPModel) = DefaultStateRepresentation{DefaultFeaturization, DefaultStateRepresentation}(m::CPModel)
 
 
