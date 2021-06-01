@@ -74,7 +74,7 @@ Returns the length of the feature vector, useful for SeaPearl to choose the size
 """
 feature_length(gen::SeaPearl.AbstractModelGenerator, ::Type{DefaultStateRepresentation{DefaultFeaturization, TS}}) where TS = 3
 
-struct DefaultTrajectoryState <: AbstractTrajectoryState
+struct DefaultTrajectoryState <: NonTabularTrajectoryState
     fg::GraphSignals.FeaturedGraph
     variabeIdx::Int
 end
@@ -83,8 +83,8 @@ function DefaultTrajectoryState(sr::DefaultStateRepresentation{F, DefaultTraject
     if isnothing(sr.variable_id)
         throw(ErrorException("Unable to build a DefaultTrajectoryState, when the branching variable is nothing."))
     end
-    graph = Graph(sr.cplayergraph)
-    fg = FeaturedGraph(graph; nf=sr.features)
+    adj = adjacency_matrix(sr.cplayergraph)
+    fg = FeaturedGraph(adj; nf=sr.features)
     return DefaultTrajectoryState(fg, sr.variable_id)
 end
 
