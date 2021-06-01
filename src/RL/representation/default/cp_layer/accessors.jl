@@ -61,16 +61,13 @@ function LightGraphs.edges(g::CPLayerGraph)
         xVertex = cpVertexFromIndex(g, id)
         @assert isa(xVertex, VariableVertex)
         x = xVertex.variable
+        # TODO: investigate this condition
         if is_branchable(g.cpmodel, x)
-            for v in x.domain
-                push!(edgesSet, edgetype(g::CPLayerGraph)(id, g.nodeToId[ValueVertex(v)]))
-            end
+            union!(edgesSet, map(v -> edgetype(g::CPLayerGraph)(id, g.nodeToId[ValueVertex(v)]), x.domain))
         end
     end
 
-    for edge in edges(g.fixedEdgesGraph)
-        push!(edgesSet, edgetype(g::CPLayerGraph)(src(edge), dst(edge)))
-    end
+    union!(edgesSet, edges(g.fixedEdgesGraph))
 
     return collect(edgesSet)
 end
@@ -138,3 +135,12 @@ LightGraphs.is_directed(g::Type{CPLayerGraph}) = false
 
 Base.zero(::Type{CPLayerGraph}) = CPLayerGraph()
 Base.reverse(g::CPLayerGraph) = g
+
+function LightGraphs.SimpleGraph(cplayergraph::CPLayerGraph)
+    graph = Graph(edges(cplayergraph))
+    n = nv(cplayergraph)
+    if nv(graph) < n
+        add_vertices!(graph, n - nv)
+    end
+    return graph
+end
