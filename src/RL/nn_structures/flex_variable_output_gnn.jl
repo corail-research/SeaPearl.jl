@@ -17,9 +17,9 @@ Base.@kwdef struct FlexVariableOutputGNN <: NNStructure
     state_rep::Type{<:AbstractStateRepresentation}
 end
 
+# Enable the `|> gpu` syntax from Flux
 Flux.@functor FlexVariableOutputGNN
 
-# not sure about this line
 functor(::Type{FlexVariableOutputGNN}, c) = (c.graphChain, c.nodeChain, c.outputLayer), ls -> FlexVariableOutputGNN(ls...)
 
 wears_mask(s::FlexVariableOutputGNN) = false
