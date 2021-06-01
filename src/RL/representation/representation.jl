@@ -14,7 +14,7 @@ To define a new one, the user need to:
 - define a new structure, subtype of AbstractStateRepresentation
 - create a constructor from a CPModel 
 - define an `update_representation!` function
-- define a `to_arraybuffer` function
+- define a `to_arraybuffer` function         #TODO update documentation
 - define a `featuredgraph` function
 - define a `branchingvariable_id` function
 

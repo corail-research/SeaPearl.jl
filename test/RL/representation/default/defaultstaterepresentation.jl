@@ -16,7 +16,6 @@ adj = [0 1 0 1;
         @test dsr.cplayergraph == g
         @test dsr.features == features
         @test dsr.variable_id == 1
-        @test dsr.possible_value_ids == [1, 2, 3]
 
     end
 
@@ -46,7 +45,6 @@ adj = [0 1 0 1;
                                         0 0 1 1 0 0
                                         0 0 0 0 1 1]
         @test dsr.variable_id == 3
-        @test dsr.possible_value_ids == [6]
         @test SeaPearl.cpVertexFromIndex(SeaPearl.CPLayerGraph(model), dsr.variable_id).variable == model.variables["x"]
     end
 
@@ -76,7 +74,6 @@ adj = [0 1 0 1;
                                                         0 0 0 0 1 1]
 
         @test dsr.variable_id == 3
-        @test dsr.possible_value_ids == [5, 6]
         @test SeaPearl.cpVertexFromIndex(SeaPearl.CPLayerGraph(model), dsr.variable_id).variable == model.variables["x"]
 
         SeaPearl.assign!(y, 2)
@@ -95,11 +92,11 @@ adj = [0 1 0 1;
                                                         0 0 1 1 0 0
                                                         0 0 0 0 1 1]
         @test dsr.variable_id == 4
-        @test dsr.possible_value_ids == [5]
         @test SeaPearl.cpVertexFromIndex(g, dsr.variable_id).variable == model.variables["y"]
 
     end
 
+    #TODO update this test
     @testset "featuredgraph() from array" begin
 
         array = Float32[    1 0 0 1 1 0 0 0 0 1 0 0 0 0
@@ -126,6 +123,7 @@ adj = [0 1 0 1;
 
     end
 
+    #TODO update this test
     @testset "branchingvariable_id() from array" begin
 
         array = Float32[    1 0 0 1 1 0 0 0 0 1 0 0 0 0
@@ -143,18 +141,7 @@ adj = [0 1 0 1;
 
     end
 
-    @testset "possible_value_ids()" begin
-        array = Float32[1 0 0 1 1 0 0 0 0 1 0 0 0 1
-                        1 0 0 1 1 0 0 0 0 1 0 0 0 0
-                        1 1 1 0 0 1 1 0 0 0 1 0 1 0
-                        1 1 1 0 0 1 1 0 0 0 1 0 0 0
-                        1 0 0 1 1 0 0 0 0 0 0 1 0 0
-                        1 0 0 1 1 0 0 0 0 0 0 1 0 1
-                        0 0 0 0 0 0 0 0 0 0 0 0 0 0
-                        0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-        @test SeaPearl.possible_value_ids(array, SeaPearl.DefaultStateRepresentation) == [1, 6]
-    end
-
+    #TODO update this test
     @testset "to_arraybuffer()" begin
 
         trailer = SeaPearl.Trailer()
@@ -183,6 +170,7 @@ adj = [0 1 0 1;
 
     end
 
+    #TODO update this test
     @testset "possible_values()" begin
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
