@@ -1,5 +1,7 @@
+using GraphPlot
 
 struct DefaultFeaturization <: AbstractFeaturization end
+
 
 include("cp_layer/cp_layer.jl")
 
@@ -7,7 +9,7 @@ include("cp_layer/cp_layer.jl")
     DefaultStateRepresentation{F}
 
 This is the default representation used by SeaPearl unless the user define his own and give
-the information to his LearnedHeurstic when defining it. 
+the information to his LearnedHeurstic when defining it.
 """
 mutable struct DefaultStateRepresentation{F} <: FeaturizedStateRepresentation{F}
     cplayergraph::CPLayerGraph
@@ -27,11 +29,11 @@ end
 
 DefaultStateRepresentation(m::CPModel) = DefaultStateRepresentation{DefaultFeaturization}(m::CPModel)
 
-""" 
+"""
         function update_representation!(sr::DefaultStateRepresentation, model::CPModel, x::AbstractIntVar)
 
-While working with DefaultStateRepresentation, at each step of the research node, only the variable_id and the possible_value_ids need to be updated. 
-features don't need to be updated as they encode the initial problem and the CPLayerGraph is automatically updated as it is linked to the CPModel. 
+While working with DefaultStateRepresentation, at each step of the research node, only the variable_id and the possible_value_ids need to be updated.
+features don't need to be updated as they encode the initial problem and the CPLayerGraph is automatically updated as it is linked to the CPModel.
 """
 function update_representation!(sr::DefaultStateRepresentation, model::CPModel, x::AbstractIntVar)
     sr.variable_id = indexFromCpVertex(sr.cplayergraph, VariableVertex(x))
@@ -42,15 +44,15 @@ end
 """
         function to_arraybuffer(sr::DefaultStateRepresentation, rows=nothing::Union{Nothing, Int})::Array{Float32, 2}
 
-This function encodes the DefaultStateRepresentation in a Array{Float32, 2}. This function is usefull as the trajectory buffer can only stock Array.  
-The argument "rows" allows the user to define the fixed size of the array that will encode the state. This is usefull as the size of the trajectory buffer 
-is fixed in advance. This method makes the array-encoding robust to different instance size as long as the size does not exceed the maximum size defined 
+This function encodes the DefaultStateRepresentation in a Array{Float32, 2}. This function is usefull as the trajectory buffer can only stock Array.
+The argument "rows" allows the user to define the fixed size of the array that will encode the state. This is usefull as the size of the trajectory buffer
+is fixed in advance. This method makes the array-encoding robust to different instance size as long as the size does not exceed the maximum size defined
 by "rows". Such an encoding is a key element in the quest for generalization over different instances of a same problem.
 
-#TODO precisely describe the array construction whether rows=nothing or not.  
+#TODO precisely describe the array construction whether rows=nothing or not.
 """
 function to_arraybuffer(sr::DefaultStateRepresentation, rows=nothing::Union{Nothing, Int})::Array{Float32, 2}
-    adj = Matrix(LightGraphs.LinAlg.adjacency_matrix(sr.cplayergraph)) 
+    adj = Matrix(LightGraphs.LinAlg.adjacency_matrix(sr.cplayergraph))
     var_id = sr.variable_id
 
     var_code = zeros(Float32, size(adj, 1))
@@ -61,7 +63,7 @@ function to_arraybuffer(sr::DefaultStateRepresentation, rows=nothing::Union{Noth
         vector_values[i] = 1.
     end
 
-    
+
     if isnothing(rows)
         return hcat(ones(Float32, size(adj, 1), 1), adj, transpose(sr.features), var_code, vector_values)
     end
@@ -73,7 +75,7 @@ function to_arraybuffer(sr::DefaultStateRepresentation, rows=nothing::Union{Noth
 
 
     return vcat(cp_graph_array, filler)
-    
+
 end
 """
         function featuredgraph(array::Array{Float32, 2}, ::Type{DefaultStateRepresentation})::GeometricFlux.FeaturedGraph
@@ -85,7 +87,7 @@ function featuredgraph(array::Array{Float32, 2}, ::Type{DefaultStateRepresentati
     row_indexes = findall(x -> x == 1, array[:, 1])
     col_indexes = vcat(1 .+ row_indexes, (size(array, 1)+2):size(array, 2))
     array = view(array, row_indexes, col_indexes)
-    
+
     n = size(array, 1)
     dense_adj = array[:, 1:n]
     features = array[:, n+1:end-2]
@@ -101,15 +103,15 @@ end
 """
     function featurize(sr::DefaultStateRepresentation{DefaultFeaturization})
 
-Create features for every node of the graph. Supposed to be overwritten. 
-Default behavior is to call `default_featurize` which consists in 3D One-hot vector that encodes whether the node represents a Constraint, a Variable or a Value 
+Create features for every node of the graph. Supposed to be overwritten.
+Default behavior is to call `default_featurize` which consists in 3D One-hot vector that encodes whether the node represents a Constraint, a Variable or a Value
 """
 function featurize(sr::DefaultStateRepresentation{DefaultFeaturization})
     g = sr.cplayergraph
     features = zeros(Float32, nv(g), 3)
     for i in 1:nv(g)
         cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
-        if isa(cp_vertex, ConstraintVertex)    
+        if isa(cp_vertex, ConstraintVertex)
             features[i, 1] = 1.0f0
         end
         if isa(cp_vertex, VariableVertex)
@@ -149,4 +151,17 @@ Returns the ids of the ValueVertex that are in the domain of the variable we are
 """
 function possible_value_ids(array::Array{Float32, 2}, ::Type{DefaultStateRepresentation})
     findall(x -> x == 1, array[:, end])
+end
+
+function print_tripartite(sr::DefaultStateRepresentation)
+    cpmodel = sr.cplayergraph
+    n = cpmodel.totalLength
+    nodefillc = []
+    for id in 1:n
+        v = cpmodel.idToNode[id]
+        if isa(v, VariableVertex) push!(nodefillc,"red")
+        elseif isa(v, ValueVertex) push!(nodefillc,"blue")
+        else  push!(nodefillc,"black") end
+    end
+    gplot(cpmodel;nodefillc=nodefillc)
 end
