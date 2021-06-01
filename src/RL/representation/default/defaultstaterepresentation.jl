@@ -17,7 +17,7 @@ end
 
 function DefaultStateRepresentation{F}(model::CPModel) where F
     g = CPLayerGraph(model)
-    sr = DefaultStateRepresentation{F}(g, nothing, nothing, nothing)
+    sr = DefaultStateRepresentation{F}(g, nothing, nothing)
 
     features = featurize(sr)
     sr.features = transpose(features)
