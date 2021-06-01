@@ -1,6 +1,8 @@
 #TODO update documentation
 
 abstract type AbstractTrajectoryState end
+abstract type TabularTrajectoryState <: AbstractTrajectoryState end
+abstract type NonTabularTrajectoryState <: AbstractTrajectoryState end
 
 """
     AbstractFeaturization
