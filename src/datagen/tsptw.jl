@@ -1,6 +1,3 @@
-using Random
-using Distributions
-
 struct TsptwGenerator <: AbstractModelGenerator
     n_city::Int
     grid_size::Int # Maximum of positions

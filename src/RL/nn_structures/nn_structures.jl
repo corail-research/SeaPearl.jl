@@ -1,5 +1,6 @@
 using Flux
 using Zygote
+using GraphSignals
 
 abstract type NNStructure end
 

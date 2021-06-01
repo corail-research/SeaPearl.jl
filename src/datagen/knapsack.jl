@@ -1,5 +1,3 @@
-using Distributions
-
 struct KnapsackGenerator <: AbstractModelGenerator
     nb_items::Int
     max_weight::Int

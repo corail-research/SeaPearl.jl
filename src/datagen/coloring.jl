@@ -1,5 +1,3 @@
-using Distributions
-
 struct LegacyGraphColoringGenerator <: AbstractModelGenerator
     nb_nodes::Int
     density::Real
