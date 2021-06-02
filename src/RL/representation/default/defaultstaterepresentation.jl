@@ -18,8 +18,7 @@ function DefaultStateRepresentation{F, TS}(model::CPModel) where {F, TS}
     g = CPLayerGraph(model)
     sr = DefaultStateRepresentation{F, TS}(g, nothing, nothing)
 
-    features = featurize(sr)
-    sr.features = transpose(features)
+    sr.features = featurize(sr)
     sr
 end
 
@@ -49,17 +48,17 @@ Default behavior is to call `default_featurize` which consists in 3D One-hot vec
 """
 function featurize(sr::DefaultStateRepresentation{DefaultFeaturization, TS}) where TS
     g = sr.cplayergraph
-    features = zeros(Float32, nv(g), 3)
+    features = zeros(Float32, 3, nv(g))
     for i in 1:nv(g)
         cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
         if isa(cp_vertex, ConstraintVertex)    
-            features[i, 1] = 1.0f0
+            features[1, i] = 1.0f0
         end
         if isa(cp_vertex, VariableVertex)
-            features[i, 2] = 1.0f0
+            features[2, i] = 1.0f0
         end
         if isa(cp_vertex, ValueVertex)
-            features[i, 3] = 1.0f0
+            features[3, i] = 1.0f0
         end
     end
     features
