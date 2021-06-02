@@ -16,8 +16,8 @@ function (nn::NNStructure)(x::AbstractVector{<:TabularTrajectoryState})
 end
 
 function (nn::NNStructure)(x::AbstractVector{<:NonTabularTrajectoryState})
-    qval = [nn(x[i]) for i in 1:length(x)]
-    hcat(qval...)
+    qval = nn.(x)
+    return hcat(qval...)
 end
 
 include("flexGNN.jl")

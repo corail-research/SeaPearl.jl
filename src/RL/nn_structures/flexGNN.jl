@@ -33,10 +33,7 @@ function (nn::FlexGNN)(state::DefaultTrajectoryState)
     fg, variableIdx = state.fg, state.variabeIdx
 
     # chain working on the graph
-    nodeFeatures = nn.graphChain(fg)
-
-    # extract the feature of the variable we're working on 
-    variableFeature = nodeFeatures[:, variableIdx]
+    variableFeature = nn.graphChain(fg)[:, variableIdx]
 
     # chain working on the node feature (array)
     chainOutput = nn.nodeChain(variableFeature)
@@ -46,3 +43,34 @@ function (nn::FlexGNN)(state::DefaultTrajectoryState)
 
     return output
 end
+
+"""
+Not working yet, issue with line
+nodeFeatures = cat(nn.graphChain.(fg)...; dims=3)
+and Zygote.
+
+
+function (nn::FlexGNN)(states::AbstractVector{DefaultTrajectoryState})
+
+    batchSize = length(states)
+    fg = map(s -> s.fg, states)
+    variableIdx = map(s -> s.variabeIdx, states)
+
+    # chain working on the graph
+    nodeFeatures = cat(nn.graphChain.(fg)...; dims=3)
+    return nodeFeatures[:,1,:]
+    #nodeFeatures = rand(Float32, 2, 23, 2)
+
+    # extract the feature of the variable we're working on 
+    indices = [CartesianIndex(t) for t in zip(variableIdx, 1:batchSize)]
+    variableFeature = nodeFeatures[:, indices]
+
+    # chain working on the node feature (array)
+    chainOutput = nn.nodeChain(variableFeature)
+
+    # output layer
+    output = nn.outputLayer(chainOutput)
+
+    return output
+end
+"""
