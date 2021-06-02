@@ -116,7 +116,7 @@ function (valueSelection::LearnedHeuristic)(PHASE::EndingPhase, model::CPModel, 
     env = get_observation!(valueSelection, model, false_x, true)
     #println("EndingPhase  ", obs.reward, " ", obs.terminal, " ", obs.legal_actions, " ", obs.legal_actions_mask)
 
-    valueSelection.agent(RL.POST_ACT_STAGE, obs) # get terminal and reward
+    valueSelection.agent(RL.POST_ACT_STAGE, env) # get terminal and reward
 
     ###TODO: We should investigate why this line must be removed
     valueSelection.agent(RL.POST_EPISODE_STAGE, env)  # let the agent see the last observation

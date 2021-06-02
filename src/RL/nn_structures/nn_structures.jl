@@ -9,9 +9,14 @@ abstract type NNStructure end
 
 Make NNStructure able to work with batches.
 """
-function (nn::NNStructure)(x::AbstractVector{<:AbstractTrajectoryState})
-    batch_size = size(x)[end]
+function (nn::NNStructure)(x::AbstractVector{<:TabularTrajectoryState})
+    batch_size = size(x, 3)
     qval = [nn(x[:, :, i]) for i in 1:batch_size]
+    hcat(qval...)
+end
+
+function (nn::NNStructure)(x::AbstractVector{<:NonTabularTrajectoryState})
+    qval = [nn(x[i]) for i in 1:length(x)]
     hcat(qval...)
 end
 
