@@ -1,5 +1,10 @@
 include("datasstructures/disjointSet.jl")
 
+@enum filteringAlgorithmTypes begin
+    algoTimeTabling
+    algoDetectablePrecedence 
+end
+
 """
     mutable struct Task(    earliestStartingTime::SeaPearl.IntVar, processingTime::Int, id::Int)
 
@@ -54,24 +59,27 @@ end
 Constraint that insure that no task are executed in the same time range, i.e. 
 """
 struct Disjunctive <: Constraint
+    
     tasks::Array{Task}
     active::StateObject{Bool}
+    filteringAlgorithm::Array{filteringAlgorithmTypes}
 
     function Disjunctive(earliestStartingTime::Array{IntVar}, 
-                        processingTime::Array{Int}, trailer)::Disjunctive
+                        processingTime::Array{Int}, trailer, filteringAlgorithm::Array{filteringAlgorithmTypes} = [algoTimeTabling])::Disjunctive
         tasks = []
         for i in 1:size(earliestStartingTime)[1]
             push!(tasks, Task(earliestStartingTime[i], 
                              processingTime[i],
                              i))
         end 
-        constraint = new(tasks, StateObject{Bool}(true, trailer))
+        constraint = new(tasks, StateObject{Bool}(true, trailer), filteringAlgorithm)
         for i in 1:size(earliestStartingTime)[1]
             addOnDomainChange!(earliestStartingTime[i], constraint)
         end
         return constraint
     end
 end
+
 
 
 """
@@ -81,6 +89,19 @@ disjunctive propagate function. The implementation is the timetabling as describ
 """
 
 function propagate!(constraint::Disjunctive, toPropagate::Set{Constraint}, prunedDomains::CPModification)
+    if algoTimeTabling in constraint.filteringAlgorithm && algoDetectablePrecedence in constraint.filteringAlgorithm
+        resultTimeTabling = timeTabling!(constraint, toPropagate, prunedDomains)
+        resultDetectablePrecedence = detectablePrecedence!(constraint, toPropagate, prunedDomains)
+        return resultDetectablePrecedence && resultTimeTabling
+    elseif algoTimeTabling in constraint.filteringAlgorithm
+        return timeTabling!(constraint, toPropagate, prunedDomains)
+    else 
+        return detectablePrecedence!(constraint, toPropagate, prunedDomains)
+    end
+end
+
+
+function timeTabling!(constraint::Disjunctive, toPropagate::Set{Constraint}, prunedDomains::CPModification)
     NumberOfTaskWithCompulsaryPart = 1
     lowerBoundCompulsaryPart = []
     upperBoundCompulsaryPart = []
@@ -137,7 +158,7 @@ function propagate!(constraint::Disjunctive, toPropagate::Set{Constraint}, prune
             end
         end
     end
-    for i in 1:size(constraint.tasks)[1]
+    for i in 1:length(constraint.tasks)
         if  filteredEST[i] > constraint.tasks[i].earliestStartingTime.domain.max.value
             return false
         end
@@ -152,5 +173,63 @@ function propagate!(constraint::Disjunctive, toPropagate::Set{Constraint}, prune
         setValue!(constraint.active, false)
     end
 
+    return true
+end
+
+
+
+function detectablePrecedence!(constraint::Disjunctive, toPropagate::Set{Constraint}, prunedDomains::CPModification)
+    timeline = SeaPearl.Timeline(constraint.tasks)
+    orderedTaskByLST = sort(constraint.tasks, by = x-> x.earliestStartingTime.domain.max.value)
+    orderedTaskByECT = sort(constraint.tasks, by = x-> x.earliestStartingTime.domain.min.value + x.processingTime)
+    postponedTasks = []
+    blockingTask = nothing
+    currentTaskIndex = 1
+    currentTask = orderedTaskByLST[currentTaskIndex]
+    filteredEST = fill(-1, size(constraint.tasks))
+    for task in orderedTaskByECT
+        while currentTaskIndex < length(constraint.tasks) && SeaPearl.getLST(currentTask) < SeaPearl.getECT(task)
+            if SeaPearl.getLST(currentTask) >= SeaPearl.getECT(currentTask)
+                SeaPearl.scheduleTask(timeline, currentTask)
+            else
+                if blockingTask !== nothing
+                    return false
+                end
+                blockingTask = currentTask
+            end
+            currentTaskIndex += 1
+            currentTask = orderedTaskByLST[currentTaskIndex]
+        end
+        if blockingTask === nothing
+            filteredEST[task.id] = max(getEST(task), SeaPearl.earliestCompletionTime(timeline))
+        else
+            if blockingTask == task
+                filteredEST[task.id] = max(getEST(task), SeaPearl.earliestCompletionTime(timeline))
+                SeaPearl.scheduleTask(timeline, blockingTask)
+                for postponedTask in postponedTasks
+                    filteredEST[postponedTask.id] = max(SeaPearl.getEST(postponedTask), SeaPearl.earliestCompletionTime(timeline))
+                end
+                blockingTask = nothing 
+                postponedTasks = []
+            else
+                push!(postponedTasks, task)
+            end
+        end
+    end
+
+    for i in 1:length(constraint.tasks)
+        if  filteredEST[i] > constraint.tasks[i].earliestStartingTime.domain.max.value
+            return false
+        end
+        if  filteredEST[i] > constraint.tasks[i].earliestStartingTime.domain.min.value
+            prunedEST = SeaPearl.removeBelow!(constraint.tasks[i].earliestStartingTime.domain, filteredEST[i])
+            addToPrunedDomains!(prunedDomains, constraint.tasks[i].earliestStartingTime, prunedEST)
+            triggerDomainChange!(toPropagate, constraint.tasks[i].earliestStartingTime)
+        end
+    end
+
+    if all(task -> length(task.earliestStartingTime.domain) <= 1, constraint.tasks)
+        setValue!(constraint.active, false)
+    end
     return true
 end

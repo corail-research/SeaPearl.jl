@@ -93,7 +93,6 @@
         @test timeline.timePoints[3] == 5
         @test timeline.timePoints[4] == 28
 
-
         @test length(timeline.timePointsCapacity) == 3
         @test timeline.timePointsCapacity[1] == 3
         @test timeline.timePointsCapacity[2] == 1
@@ -129,6 +128,5 @@
         @test SeaPearl.findRepresentative!(timeline.disjointSet, 2) == SeaPearl.findRepresentative!(timeline.disjointSet, 3)
         @test timeline.lastestDecrementedTimePoint == 3
         @test SeaPearl.earliestCompletionTime(timeline) == 14
-
     end
 end
