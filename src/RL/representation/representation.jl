@@ -1,3 +1,5 @@
+using GraphSignals
+
 #TODO update documentation
 
 abstract type AbstractTrajectoryState end
@@ -57,3 +59,4 @@ end
 
 include("default/defaultstaterepresentation.jl")
 #include("tsptw/tsptwstaterepresentation.jl")
+include("cuda.jl")
