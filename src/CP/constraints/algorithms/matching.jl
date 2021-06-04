@@ -1,5 +1,3 @@
-using LightGraphs
-using Random
 
 struct Matching{T}
     size::Int

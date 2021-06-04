@@ -4,7 +4,7 @@
 Used as a generic function to instantiate the research based on a specific Strategy <: SearchStrategy. 
     
 """
-function initroot!(toCall::Stack{Function}, ::Type{DFSearch}, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, newConstraints=nothing)
+function initroot!(toCall::Stack{Function}, ::Type{DFSearch}, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
     return expandDfs!(toCall, model, variableHeuristic, valueSelection)
 end
 

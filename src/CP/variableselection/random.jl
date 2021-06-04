@@ -1,4 +1,3 @@
-using Random
 
 struct RandomVariableSelection{TakeObjective} <: AbstractVariableSelection{TakeObjective} end
 

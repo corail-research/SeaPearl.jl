@@ -1,6 +1,5 @@
 using SeaPearl
 using Random
-using GeometricFlux
 
 @testset "RL.jl" begin
 
