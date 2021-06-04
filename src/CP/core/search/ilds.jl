@@ -56,7 +56,7 @@ function expandIlds!(toCall::Stack{Function}, discrepancy::Int64, previousdepth:
     # Variable selection
     x = variableHeuristic(model)
     # Value selection
-    v = valueSelection(DecisionPhase(), model, x, nothing)
+    v = valueSelection(DecisionPhase, model, x)
     if (discrepancy>=0)   
         push!(toCall, (model) -> (restoreState!(model.trailer); :BackTracking))
         push!(toCall, (model) -> (
