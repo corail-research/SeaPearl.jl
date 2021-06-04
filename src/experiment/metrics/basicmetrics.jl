@@ -238,7 +238,7 @@ end
 plot the relative scores ( compared to the optimal ) of the heuristic during the search for fixed instances along the training. This plot is 
 meaningful only if the metrics is one from the evaluator (ie. the instance remains the same one).
 """
-function plotRewardVariation(metrics::BasicMetrics{<:AbstractMetrics, LearnedHeuristic{SR,R,A}}; filename::String="") where {SR, R, A}
+function plotRewardVariation(metrics::BasicMetrics{<:AbstractTakeObjective, LearnedHeuristic{SR,R,A}}; filename::String="") where {SR, R, A}
     L = length(metrics.totalReward)
 
     p = plot(1:L, 
