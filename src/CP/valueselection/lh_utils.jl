@@ -97,6 +97,7 @@ struct CPEnv{ST <: AbstractTrajectoryState} <: AbstractEnv
     legal_actions_mask::Vector{Bool}
 end
 
+# TODO: move this function somewhere cleaner
 function (learner::DQNLearner)(env::CPEnv{ST}) where {ST <: NonTabularTrajectoryState}
     env |>
     state |>
