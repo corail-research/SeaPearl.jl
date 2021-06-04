@@ -22,6 +22,7 @@ include("../../RL/RL.jl")
 
 abstract type ValueSelection end
 
+include("searchmetrics.jl")
 include("basicheuristic.jl")
 
 abstract type ActionOutput end
