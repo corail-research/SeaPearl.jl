@@ -19,7 +19,7 @@ end
 # Enable the `|> gpu` syntax from Flux
 Flux.@functor FlexGNN
 
-functor(::Type{FlexGNN}, c) = (c.graphChain, c.nodeChain, c.outputLayer), ls -> FlexGNN(ls...)
+#functor(::Type{FlexGNN}, c) = (c.graphChain, c.nodeChain, c.outputLayer), ls -> FlexGNN(ls...)
 
 """
     function (nn::FlexGNN)(x::AbstractArray{Float32,2})
@@ -31,9 +31,11 @@ x is the encoded Array representation of the AbstractStateRepresentation usefull
 function (nn::FlexGNN)(state::DefaultTrajectoryState)
 
     fg, variableIdx = state.fg, state.variabeIdx
+    #println(typeof(fg), " ", typeof(variableIdx))
 
     # chain working on the graph
-    variableFeature = nn.graphChain(fg)[:, variableIdx]
+    _, nodeFeatures = nn.graphChain((fg.graph, fg.nf))
+    variableFeature = nodeFeatures[:, variableIdx]
 
     # chain working on the node feature (array)
     chainOutput = nn.nodeChain(variableFeature)
@@ -44,22 +46,17 @@ function (nn::FlexGNN)(state::DefaultTrajectoryState)
     return output
 end
 
-"""
-Not working yet, issue with line
-nodeFeatures = cat(nn.graphChain.(fg)...; dims=3)
-and Zygote.
+function (nn::FlexGNN)(states::BatchedDefaultTrajectoryState)
 
-
-function (nn::FlexGNN)(states::AbstractVector{DefaultTrajectoryState})
-
-    batchSize = length(states)
-    fg = map(s -> s.fg, states)
-    variableIdx = map(s -> s.variabeIdx, states)
+    adjacencies = states.adjacencies
+    features = states.features
+    variableIdx = states.variables
+    batchSize = size(adjacencies, 3)
+    
 
     # chain working on the graph
-    nodeFeatures = cat(nn.graphChain.(fg)...; dims=3)
-    return nodeFeatures[:,1,:]
-    #nodeFeatures = rand(Float32, 2, 23, 2)
+    _, nodeFeatures = nn.graphChain((adjacencies, features))
+    #nodeFeatures = rand(Float32, 20, size(adjacencies, 1), batchSize)
 
     # extract the feature of the variable we're working on 
     indices = [CartesianIndex(t) for t in zip(variableIdx, 1:batchSize)]
@@ -73,4 +70,3 @@ function (nn::FlexGNN)(states::AbstractVector{DefaultTrajectoryState})
 
     return output
 end
-"""
