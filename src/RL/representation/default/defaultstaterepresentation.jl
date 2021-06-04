@@ -1,5 +1,3 @@
-using GraphSignals
-
 include("cp_layer/cp_layer.jl")
 
 """
@@ -76,6 +74,12 @@ feature_length(gen::SeaPearl.AbstractModelGenerator, ::Type{DefaultStateRepresen
 struct DefaultTrajectoryState <: NonTabularTrajectoryState
     fg::GraphSignals.FeaturedGraph
     variabeIdx::Int
+end
+
+struct BatchedDefaultTrajectoryState{S, T} <: NonTabularTrajectoryState
+    adjacencies::AbstractArray{S, 3}
+    features::AbstractArray{T, 3}
+    variables::AbstractVector{Int}
 end
 
 function DefaultTrajectoryState(sr::DefaultStateRepresentation{F, DefaultTrajectoryState}) where {F}
