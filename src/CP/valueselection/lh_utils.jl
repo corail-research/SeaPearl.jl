@@ -120,15 +120,6 @@ RLBase.is_terminated(env::unmaskedCPEnv) = env.terminal
 RLBase.state(env::unmaskedCPEnv) = env.state
 RLBase.ActionStyle(::unmaskedCPEnv) = MINIMAL_ACTION_SET
 
-"""
-    set_metrics!(PHASE::T, lh::LearnedHeuristic, model::CPModel, symbol::Union{Nothing, Symbol}, x::Union{Nothing, AbstractIntVar}) where T <: LearningPhase 
-
-Call set_metrics!(::SearchMetrics, ...) on env.search_metrics to simplify synthax.
-Could also add it to basicheuristic !
-"""
-function set_metrics!(PHASE::T, lh::LearnedHeuristic, model::CPModel, symbol::Union{Nothing, Symbol}, x::Union{Nothing, AbstractIntVar}) where T <: LearningPhase
-    set_metrics!(PHASE, lh.search_metrics, model, symbol, x::Union{Nothing, AbstractIntVar})
-end
 
 wears_mask(valueSelection::LearnedHeuristic) = wears_mask(valueSelection.agent.policy.learner.approximator.model)
 

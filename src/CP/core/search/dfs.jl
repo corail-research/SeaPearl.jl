@@ -40,9 +40,8 @@ function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
 
     # Variable selection
     x = variableHeuristic(model)
-
     # Value selection
-    v = valueSelection(DecisionPhase(), model, x, nothing)
+    v = valueSelection(DecisionPhase, model, x)
 
     #println("Value : ", v, " assigned to : ", x.id)
 

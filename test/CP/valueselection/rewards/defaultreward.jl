@@ -8,7 +8,7 @@
         SeaPearl.update_with_cpmodel!(lh, model)
 
         lh.reward.value = 0
-        SeaPearl.set_reward!(SeaPearl.DecisionPhase(), lh, model)
+        SeaPearl.set_reward!(SeaPearl.DecisionPhase, lh, model)
         @test lh.reward.value == -0.025f0
     end
 
@@ -21,7 +21,7 @@
 
         lh.reward.value = 5
         model.statistics.numberOfNodes = 30
-        SeaPearl.set_reward!(SeaPearl.EndingPhase(), lh, model, nothing)
+        SeaPearl.set_reward!(SeaPearl.EndingPhase, lh, model, nothing)
         @test lh.reward.value == 6
     end
 end
