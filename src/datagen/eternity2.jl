@@ -1,6 +1,6 @@
-using Distributions
-
 #We generate random eternity2 feasible puzzles
+
+#First, we create the pieces, randomly simpling the color of the edges. Then, we shuffle the pieces
 
 struct Eternity2Generator <: AbstractModelGenerator
     n::Int
@@ -119,11 +119,3 @@ function fill_with_generator!(cpmodel::CPModel, gen::Eternity2Generator; seed=no
 
     return nothing
 end
-
-
-"""
-    arraybuffer_dims(gen::NQueensGenerator, t::Type{DefaultStateRepresentation})
-
-Returns the size of the state representation in its matrix form, useful when construcing the trajectory for the RL agent
-"""
-arraybuffer_dims(gen::NQueensGenerator, t::Type{DefaultStateRepresentation{F}}) where {F} = (10+gen.board_size*4+3, 10+gen.board_size*4+3+3+feature_length(gen, t))
