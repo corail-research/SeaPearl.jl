@@ -1,7 +1,6 @@
 using Distributions
 
-#Defining a generator does not make a lot of sense, since for a chosen board_size, there is only one possible instance.
-#We define it to se how much our agent can learn on a single instance.
+#We generate random eternity2 feasible puzzles
 
 struct Eternity2Generator <: AbstractModelGenerator
     n::Int
