@@ -1,3 +1,8 @@
+"""
+    Timeline(tasks::Array{Task}) 
+
+Timeline data structure presented in 
+"""
 mutable struct Timeline
     timePoints::Array{Int}
     timePointsCapacity::Array{Int}
@@ -31,6 +36,11 @@ mutable struct Timeline
     end
 end
 
+"""
+    scheduleTask(timeline::Timeline, task::Task)
+
+    Scheduled the task on the timeline at the earliest moment 
+"""
 function scheduleTask(timeline::Timeline, task::Task)
     timeToSchedule = task.processingTime
     timePoint = SeaPearl.greatest!(timeline.disjointSet, timeline.mapTaskIndexTimePoint[task.id])
@@ -49,6 +59,11 @@ function scheduleTask(timeline::Timeline, task::Task)
     return timeline.timePoints[timePoint + 1] - timeline.timePointsCapacity[timePoint]
 end
 
+"""
+    earliestCompletionTime(timeline::Timeline)
+
+    Return the earliest completion time of the timeline with the tasks scheduled.
+"""
 function earliestCompletionTime(timeline::Timeline)
     if timeline.lastestDecrementedTimePoint >= 0
         return timeline.timePoints[timeline.lastestDecrementedTimePoint + 1] - timeline.timePointsCapacity[timeline.lastestDecrementedTimePoint]

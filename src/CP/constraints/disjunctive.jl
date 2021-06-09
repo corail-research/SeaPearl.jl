@@ -85,7 +85,8 @@ end
 """
     function propagate!(constraint::Disjunctive, toPropagate::Set{Constraint}, prunedDomains::CPModification)
         S_i + p_i <= S_j or S_j + p_j <= S_i
-disjunctive propagate function. The implementation is the timetabling as described in this paper : http://www2.ift.ulaval.ca/~quimper/publications/TimeLineProject.pdf
+disjunctive propagate function. 
+    There is two possibles filterings algorithme : timetabling and detectable precedences.
 """
 
 function propagate!(constraint::Disjunctive, toPropagate::Set{Constraint}, prunedDomains::CPModification)
@@ -100,7 +101,10 @@ function propagate!(constraint::Disjunctive, toPropagate::Set{Constraint}, prune
     end
 end
 
-
+"""
+    function timeTabling!(constraint::Disjunctive, toPropagate::Set{Constraint}, prunedDomains::CPModification)
+        The implementation is the timetabling as described in this paper : http://www2.ift.ulaval.ca/~quimper/publications/TimeLineProject.pdf
+"""
 function timeTabling!(constraint::Disjunctive, toPropagate::Set{Constraint}, prunedDomains::CPModification)
     NumberOfTaskWithCompulsaryPart = 1
     lowerBoundCompulsaryPart = []
@@ -177,7 +181,10 @@ function timeTabling!(constraint::Disjunctive, toPropagate::Set{Constraint}, pru
 end
 
 
-
+"""
+    function detectablePrecedence!(constraint::Disjunctive, toPropagate::Set{Constraint}, prunedDomains::CPModification)
+        The implementation is the detectable precedences as described in this paper : http://www2.ift.ulaval.ca/~quimper/publications/TimeLineProject.pdf
+"""
 function detectablePrecedence!(constraint::Disjunctive, toPropagate::Set{Constraint}, prunedDomains::CPModification)
     timeline = SeaPearl.Timeline(constraint.tasks)
     orderedTaskByLST = sort(constraint.tasks, by = x-> x.earliestStartingTime.domain.max.value)
