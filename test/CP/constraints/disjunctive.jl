@@ -490,7 +490,7 @@
         status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection)
 
         @test status == :Optimal
-        @test length(model.solutions) == 2
+        @test length(model.statistics.solutions) == 2
         @test 1 in task1.domain
         @test 3 in task2.domain
         @test 6 in task3.domain
@@ -533,11 +533,11 @@
                                                             trailer, [SeaPearl.algoDetectablePrecedence]))
         end
 
-        model.objective = objectif
+        SeaPearl.addObjective!(model, objectif)
         variableSelection = SeaPearl.MinDomainVariableSelection{false}()
         status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection,)
 
         @test status == :Optimal
-        @test (model.solutions[end]["obj"]) == 5
+        @test (model.statistics.solutions[end]["obj"]) == 5
     end
 end
