@@ -90,8 +90,9 @@ function (valueSelection::LearnedHeuristic)(PHASE::DecisionPhase, model::CPModel
     end
 
     action = valueSelection.agent(env) # Choose action
-    @async valueSelection.agent(RL.PRE_ACT_STAGE, env, action) # Store state and action
-    
+    # TODO: swap to async computation once in deployment
+    #@async valueSelection.agent(RL.PRE_ACT_STAGE, env, action) # Store state and action
+    valueSelection.agent(RL.PRE_ACT_STAGE, env, action)
     return action_to_value(valueSelection, action, state(env), model)
 end
 
