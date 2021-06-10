@@ -144,12 +144,14 @@ the appropriated size to store all the graphs in 3D tensors.
 """
 function Flux.functor(::Type{Vector{DefaultTrajectoryState}}, v)
     maxNode = Base.maximum(s -> nv(s.fg), v)
+    maxEdge = Base.maximum(s -> ne(s.fg), v)
+    maxGlobal = Base.maximum(s -> length(s.fg.gf), v)
     batchSize = length(v)
 
     adjacencies = zeros(eltype(v[1].fg.nf), maxNode, maxNode, batchSize)
     nodeFeatures = zeros(eltype(v[1].fg.nf), size(v[1].fg.nf, 1), maxNode, batchSize)
-    edgeFeatures = zeros(eltype(v[1].fg.ef), size(v[1].fg.ef, 1), maxNode, batchSize)
-    globalFeatures = zeros(eltype(v[1].fg.gf), size(v[1].fg.gf, 1), batchSize)
+    edgeFeatures = zeros(eltype(v[1].fg.ef), size(v[1].fg.ef, 1), maxEdge, batchSize)
+    globalFeatures = zeros(eltype(v[1].fg.gf), maxGlobal, batchSize)
     variables = ones(Int, batchSize)
     
     Zygote.ignore() do
@@ -169,7 +171,7 @@ function Flux.functor(::Type{Vector{DefaultTrajectoryState}}, v)
         nodeFeatures = ls[2],
         edgeFeatures = ls[3],
         globalFeatures = ls[4],
-        variables)
+        variables = variables)
 end
 
 DefaultStateRepresentation(m::CPModel) = DefaultStateRepresentation{DefaultFeaturization, DefaultTrajectoryState}(m::CPModel)
