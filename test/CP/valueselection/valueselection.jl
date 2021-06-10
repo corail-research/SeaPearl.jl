@@ -5,5 +5,5 @@ using Flux
     include("../../RL/RL.jl")
     include("classic/basicheuristic.jl")
     include("learning/learning.jl")
-    include("searchmetrics.jl")
+    include("learning/searchmetrics.jl")
 end

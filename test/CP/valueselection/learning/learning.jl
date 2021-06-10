@@ -1,24 +1,43 @@
 @testset "learning.jl" begin
 
+
+    approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
+    target_approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
+    gnnlayers = 1
+    approximator_model = SeaPearl.FlexGNN(
+        graphChain = Flux.Chain(
+            GeometricFlux.GraphConv(3 => 64, Flux.leakyrelu),
+            [approximator_GNN for i = 1:gnnlayers]...
+        ),
+        nodeChain = Flux.Chain(
+            Flux.Dense(64, 32, Flux.leakyrelu),
+            Flux.Dense(32, 32, Flux.leakyrelu),
+            Flux.Dense(32, 16, Flux.leakyrelu),
+        ),
+        outputLayer = Flux.Dense(16, 4),
+    ) |> gpu
+    target_approximator_model = SeaPearl.FlexGNN(
+        graphChain = Flux.Chain(
+            GeometricFlux.GraphConv(3 => 64, Flux.leakyrelu),
+            [target_approximator_GNN for i = 1:gnnlayers]...
+        ),
+        nodeChain = Flux.Chain(
+            Flux.Dense(64, 32, Flux.leakyrelu),
+            Flux.Dense(32, 32, Flux.leakyrelu),
+            Flux.Dense(32, 16, Flux.leakyrelu),
+        ),
+        outputLayer = Flux.Dense(16, 4),
+    ) |> gpu
+                
     agent = RL.Agent(
         policy = RL.QBasedPolicy(
             learner = RL.DQNLearner(
                 approximator = RL.NeuralNetworkApproximator(
-                    model = Chain(
-                        Flux.flatten,
-                        Dense(11*17, 20, Flux.relu),
-                        Dense(20, 20, Flux.relu),
-                        Dense(20, 4, Flux.relu)
-                    ),
+                    model = approximator_model,
                     optimizer = ADAM(0.001f0)
                 ),
                 target_approximator = RL.NeuralNetworkApproximator(
-                    model = Chain(
-                        Flux.flatten,
-                        Dense(11*17, 20, Flux.relu),
-                        Dense(20, 20, Flux.relu),
-                        Dense(20, 4, Flux.relu)
-                    ),
+                    model = target_approximator_model,
                     optimizer = ADAM(0.001f0)
                 ),
                 loss_func = Flux.Losses.huber_loss,
@@ -44,14 +63,15 @@
         ),
         trajectory = RL.CircularArraySLARTTrajectory(
             capacity = 500,
-            state = Matrix{Float32} => (11, 17, 1),
+            state = SeaPearl.DefaultTrajectoryState[] => (),
+            action = Int => (),
             legal_actions_mask = Vector{Bool} => (4, ),
         )
     )
 
     include("searchmetrics.jl")
     include("rewards/rewards.jl")
-    include("lh_utils.jl")
+    include("utils.jl")
     include("learnedheuristic.jl")
 
     LearnedHeristicBasicConstructor = SeaPearl.LearnedHeuristic(agent)
