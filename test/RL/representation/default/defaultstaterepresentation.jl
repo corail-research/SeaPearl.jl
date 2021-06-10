@@ -10,12 +10,12 @@ adj = [0 1 0 1;
     @testset "DefaultStateRepresentation structure" begin
         g = SeaPearl.CPLayerGraph()
         features = [1.0f0 1.0f0; 2.0f0 2.0f0]
-        variable_id = 1
-        dsr = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization}(g, features, variable_id, [1, 2, 3])
+        variableIdx = 1
+        dsr = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization}(g, features, variableIdx, [1, 2, 3])
 
         @test dsr.cplayergraph == g
         @test dsr.features == features
-        @test dsr.variable_id == 1
+        @test dsr.variableIdx == 1
 
     end
 
@@ -44,8 +44,8 @@ adj = [0 1 0 1;
         @test dsr.features == Float32[  1 1 0 0 0 0
                                         0 0 1 1 0 0
                                         0 0 0 0 1 1]
-        @test dsr.variable_id == 3
-        @test SeaPearl.cpVertexFromIndex(SeaPearl.CPLayerGraph(model), dsr.variable_id).variable == model.variables["x"]
+        @test dsr.variableIdx == 3
+        @test SeaPearl.cpVertexFromIndex(SeaPearl.CPLayerGraph(model), dsr.variableIdx).variable == model.variables["x"]
     end
 
     @testset "update_representation!()" begin
@@ -73,8 +73,8 @@ adj = [0 1 0 1;
                                                         0 0 1 1 0 0
                                                         0 0 0 0 1 1]
 
-        @test dsr.variable_id == 3
-        @test SeaPearl.cpVertexFromIndex(SeaPearl.CPLayerGraph(model), dsr.variable_id).variable == model.variables["x"]
+        @test dsr.variableIdx == 3
+        @test SeaPearl.cpVertexFromIndex(SeaPearl.CPLayerGraph(model), dsr.variableIdx).variable == model.variables["x"]
 
         SeaPearl.assign!(y, 2)
         g = SeaPearl.CPLayerGraph(model)
@@ -91,8 +91,8 @@ adj = [0 1 0 1;
         @test dsr.features == Float32[   1 1 0 0 0 0
                                                         0 0 1 1 0 0
                                                         0 0 0 0 1 1]
-        @test dsr.variable_id == 4
-        @test SeaPearl.cpVertexFromIndex(g, dsr.variable_id).variable == model.variables["y"]
+        @test dsr.variableIdx == 4
+        @test SeaPearl.cpVertexFromIndex(g, dsr.variableIdx).variable == model.variables["y"]
 
     end
 
@@ -124,7 +124,7 @@ adj = [0 1 0 1;
     end
 
     #TODO update this test
-    @testset "branchingvariable_id() from array" begin
+    @testset "branchingvariableIdx() from array" begin
 
         array = Float32[    1 0 0 1 1 0 0 0 0 1 0 0 0 0
                             1 0 0 1 1 0 0 0 0 1 0 0 0 0
@@ -135,7 +135,7 @@ adj = [0 1 0 1;
                             0 0 0 0 0 0 0 0 0 0 0 0 0 0
                             0 0 0 0 0 0 0 0 0 0 0 0 0 0]
 
-        var_id = SeaPearl.branchingvariable_id(array, SeaPearl.DefaultStateRepresentation)
+        var_id = SeaPearl.branchingvariableIdx(array, SeaPearl.DefaultStateRepresentation)
 
         @test var_id == 3
 

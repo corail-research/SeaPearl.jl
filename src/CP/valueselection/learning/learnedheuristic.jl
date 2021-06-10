@@ -1,6 +1,3 @@
-
-include("searchmetrics.jl")
-
 """
 abstract type AbstractReward end
 
@@ -39,11 +36,6 @@ mutable struct LearnedHeuristic{SR<:AbstractStateRepresentation, R<:AbstractRewa
     LearnedHeuristic{SR, R, A}(agent::RL.Agent) where {SR, R, A}= new{SR, R, A}(agent, nothing, nothing, nothing, nothing, nothing, nothing)
 end
 
-LearnedHeuristic(agent::RL.Agent) = LearnedHeuristic{DefaultStateRepresentation, DefaultReward, FixedOutput}(agent)
-
-include("rewards/rewards.jl")
-include("lh_utils.jl")
-
 """
     (valueSelection::LearnedHeuristic)(::InitializingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
 
@@ -60,7 +52,6 @@ function (valueSelection::LearnedHeuristic)(::InitializingPhase, model::CPModel,
     # Reset the agent, useful for things like recurrent networks
     Flux.reset!(valueSelection.agent)
 
-    ###TODO: We should investigate why this line must be removed
     valueSelection.agent(RL.PRE_EPISODE_STAGE, env)
 end
 
@@ -99,7 +90,7 @@ function (valueSelection::LearnedHeuristic)(PHASE::DecisionPhase, model::CPModel
     end
 
     action = valueSelection.agent(env) # Choose action
-    valueSelection.agent(RL.PRE_ACT_STAGE, env, action) # Store state and action
+    @async valueSelection.agent(RL.PRE_ACT_STAGE, env, action) # Store state and action
     
     return action_to_value(valueSelection, action, state(env), model)
 end
@@ -118,7 +109,7 @@ function (valueSelection::LearnedHeuristic)(PHASE::EndingPhase, model::CPModel, 
 
     valueSelection.agent(RL.POST_ACT_STAGE, env) # get terminal and reward
 
-    ###TODO: We should investigate why this line must be removed
     valueSelection.agent(RL.POST_EPISODE_STAGE, env)  # let the agent see the last observation
+    CUDA.reclaim()
 end
 

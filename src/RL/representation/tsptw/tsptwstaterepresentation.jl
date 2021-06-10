@@ -98,7 +98,7 @@ function build_edge_feature_aux(i, js, weighted_adj::AbstractMatrix)
     hcat([weighted_adj[i, j] for j = js]...)
 end
 
-function branchingvariable_id(array::Array{Float32, 2}, ::Type{TsptwStateRepresentation})::Int64
+function branchingvariableIdx(array::Array{Float32, 2}, ::Type{TsptwStateRepresentation})::Int64
     findfirst(x -> x == 1, array[:, end-1])
 end
 

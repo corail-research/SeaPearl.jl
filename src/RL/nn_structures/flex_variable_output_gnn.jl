@@ -27,7 +27,7 @@ wears_mask(s::FlexVariableOutputGNN) = false
 
 function (nn::FlexVariableOutputGNN)(x::AbstractArray{Float32,2})
     # get informations from the CPGraph (input) 
-    variableId = branchingvariable_id(x, nn.state_rep)
+    variableId = branchingvariableIdx(x, nn.state_rep)
     fg = featuredgraph(x, nn.state_rep)
 
     # chain working on the graph

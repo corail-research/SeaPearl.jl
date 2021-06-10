@@ -19,13 +19,14 @@ struct DecisionPhase <: LearningPhase end
 struct EndingPhase <: LearningPhase end
 
 include("../../RL/RL.jl")
+include("searchmetrics.jl")
 
 abstract type ValueSelection end
 
-include("basicheuristic.jl")
+include("classic/basicheuristic.jl")
 
 abstract type ActionOutput end
 struct VariableOutput <: ActionOutput end
 struct FixedOutput <: ActionOutput end
 
-include("learnedheuristic.jl")
+include("learning/learning.jl")

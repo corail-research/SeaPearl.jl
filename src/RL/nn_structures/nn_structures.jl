@@ -9,6 +9,7 @@ abstract type NNStructure end
 
 Make NNStructure able to work with batches.
 """
+(nn::NNStructure)(ts::AbstractTrajectoryState) = throw(ErrorException("missing function (::$(typeof(nn)))(::$(typeof(ts)))."))
 function (nn::NNStructure)(x::AbstractVector{<:TabularTrajectoryState})
     batch_size = size(x, 3)
     qval = [nn(x[:, :, i]) for i in 1:batch_size]
@@ -23,8 +24,6 @@ end
 include("flexGNN.jl")
 include("flex_variable_output_gnn.jl")
 include("weighted_graph_gat.jl")
-
-abstract type NNArgs end
 
 struct ModelNotImplementedError{M} <: Exception
     m::M

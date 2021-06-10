@@ -51,7 +51,7 @@
                                                             0 0 1 1 0 0
                                                             0 0 0 0 1 1]
         
-        @test lh.current_state.variable_id == 3
+        @test lh.current_state.variableIdx == 3
 
         SeaPearl.assign!(x, 2)
         SeaPearl.sync_state!(lh, model, y)
@@ -67,7 +67,7 @@
                                                             0 0 1 1 0 0
                                                             0 0 0 0 1 1]
         
-        @test lh.current_state.variable_id == 4
+        @test lh.current_state.variableIdx == 4
     end
 
     @testset "get_observation!()" begin

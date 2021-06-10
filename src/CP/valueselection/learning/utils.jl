@@ -88,48 +88,6 @@ function get_observation!(lh::LearnedHeuristic, model::CPModel, x::AbstractIntVa
     return CPEnv(reward, done, state, action_space_index, legal_actions, legal_actions_mask)
 end
 
-struct CPEnv{ST <: AbstractTrajectoryState} <: AbstractEnv
-    reward::Float32
-    terminal::Bool
-    state::ST
-    actions_index::Vector{Int}
-    legal_actions::Vector{Int}
-    legal_actions_mask::Vector{Bool}
-end
-
-# TODO: move this function somewhere cleaner
-function (learner::DQNLearner)(env::CPEnv{ST}) where {ST <: NonTabularTrajectoryState}
-    env |>
-    state |>
-    x ->
-        send_to_device(device(learner), x) |>
-        learner.approximator |>
-        vec |>
-        send_to_host
-end
-
-RLBase.action_space(env::CPEnv) = env.actions_index
-RLBase.legal_action_space(env::CPEnv) = env.legal_actions
-RLBase.legal_action_space_mask(env::CPEnv) = env.legal_actions_mask
-RLBase.reward(env::CPEnv) = env.reward
-RLBase.is_terminated(env::CPEnv) = env.terminal
-RLBase.state(env::CPEnv) = env.state
-RLBase.ActionStyle(::CPEnv) = FULL_ACTION_SET
-
-
-struct unmaskedCPEnv <: AbstractEnv
-    reward::Float32
-    terminal::Bool
-    state::AbstractTrajectoryState
-    actions_index::Array{Int64, 1}
-end
-
-RLBase.action_space(env::unmaskedCPEnv) = env.actions_index
-RLBase.reward(env::unmaskedCPEnv) = env.reward
-RLBase.is_terminated(env::unmaskedCPEnv) = env.terminal
-RLBase.state(env::unmaskedCPEnv) = env.state
-RLBase.ActionStyle(::unmaskedCPEnv) = MINIMAL_ACTION_SET
-
 """
     set_metrics!(PHASE::T, lh::LearnedHeuristic, model::CPModel, symbol::Union{Nothing, Symbol}, x::Union{Nothing, AbstractIntVar}) where T <: LearningPhase 
 
@@ -161,10 +119,7 @@ end
 
 Mapping action taken to corresponding value when handling VariableOutput type of ActionOutput.
 """
-function action_to_value(vs::LearnedHeuristic{SR, R, VariableOutput}, action::Int64, state::AbstractTrajectoryState, model::CPModel) where {
-    SR <: DefaultStateRepresentation,
-    R <: AbstractReward
-}
+function action_to_value(vs::LearnedHeuristic{SR, R, VariableOutput}, action::Int64, state::AbstractTrajectoryState, model::CPModel) where {SR <: DefaultStateRepresentation, R}
     value_id = from_order_to_id(state, action, SR)
     cp_vertex = cpVertexFromIndex(vs.current_state.cplayergraph, value_id)
     @assert isa(cp_vertex, ValueVertex)
@@ -172,10 +127,7 @@ function action_to_value(vs::LearnedHeuristic{SR, R, VariableOutput}, action::In
 end
 
 """
-function action_to_value(vs::LearnedHeuristic{SR, R, VariableOutput}, action::Int64, state::AbstractArray, model::CPModel) where {
-    SR <: TsptwStateRepresentation,
-    R <: AbstractReward
-}
+function action_to_value(vs::LearnedHeuristic{SR, R, VariableOutput}, action::Int64, state::AbstractArray, model::CPModel) where {SR <: DefaultStateRepresentation, R}
     return from_order_to_id(state, action, SR)
 end
 """
@@ -185,10 +137,7 @@ end
 
 Mapping index of Q-value vector to value in the action space when using a FixedOutput.
 """
-function action_to_value(vs::LearnedHeuristic{SR, R, FixedOutput}, action::Int64, state::AbstractTrajectoryState, model::CPModel) where {
-    SR <: AbstractStateRepresentation,
-    R <: AbstractReward
-}
+function action_to_value(vs::LearnedHeuristic{SR, R, FixedOutput}, action::Int64, state::AbstractTrajectoryState, model::CPModel) where {SR <: DefaultStateRepresentation, R}
     return vs.action_space[action]
 end
 
