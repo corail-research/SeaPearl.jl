@@ -91,4 +91,3 @@ feature_length(::Type{<:FeaturizedStateRepresentation}) = throw(ErrorException("
 
 include("default/defaultstaterepresentation.jl")
 #include("tsptw/tsptwstaterepresentation.jl")
-include("geometricflux.jl")
