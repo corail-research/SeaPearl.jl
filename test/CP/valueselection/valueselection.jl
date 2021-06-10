@@ -3,7 +3,7 @@ using Flux
 @testset "valueselection.jl" begin 
 
     include("../../RL/RL.jl")
-    include("basicheuristic.jl")
-    include("learnedheuristic.jl")
-
+    include("classic/basicheuristic.jl")
+    include("learning/learning.jl")
+    include("searchmetrics.jl")
 end

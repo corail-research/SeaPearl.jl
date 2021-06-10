@@ -4,15 +4,28 @@ end
 
 TestReward(model::SeaPearl.CPModel) = TestReward(0)
 
-function SeaPearl.set_reward!(::SeaPearl.DecisionPhase, lh::SeaPearl.LearnedHeuristic{SR, TestReward, A}, model::SeaPearl.CPModel) where {
+function SeaPearl.set_reward!(::Type{SeaPearl.DecisionPhase}, lh::SeaPearl.LearnedHeuristic{SR, TestReward, A}, model::SeaPearl.CPModel) where {
     SR <: SeaPearl.AbstractStateRepresentation, 
     A <: SeaPearl.ActionOutput
 }
     lh.reward.value += 3
     nothing
 end
-
-function SeaPearl.set_reward!(::SeaPearl.EndingPhase, lh::SeaPearl.LearnedHeuristic{SR, TestReward, A}, model::SeaPearl.CPModel, symbol::Union{Nothing, Symbol}) where {
+function SeaPearl.set_reward!(::Type{SeaPearl.StepPhase}, lh::SeaPearl.LearnedHeuristic{SR, TestReward, A}, model::SeaPearl.CPModel) where {
+    SR <: SeaPearl.AbstractStateRepresentation, 
+    A <: SeaPearl.ActionOutput
+}
+    lh.reward.value += 3
+    nothing
+end
+function SeaPearl.set_reward!(::Type{SeaPearl.DecisionPhase}, lh::SeaPearl.LearnedHeuristic{SR, TestReward, A}, model::SeaPearl.CPModel) where {
+    SR <: SeaPearl.AbstractStateRepresentation, 
+    A <: SeaPearl.ActionOutput
+}
+    lh.reward.value += 3
+    nothing
+end
+function SeaPearl.set_reward!(::Type{SeaPearl.EndingPhase}, lh::SeaPearl.LearnedHeuristic{SR, TestReward, A}, model::SeaPearl.CPModel, symbol::Union{Nothing, Symbol}) where {
     SR <: SeaPearl.AbstractStateRepresentation, 
     A <: SeaPearl.ActionOutput
 }
