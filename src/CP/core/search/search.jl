@@ -10,10 +10,15 @@ Perform a search following a specific strategy in the `model` using `variableHeu
 at each branching and using `valueSelection` to choose how the branching will be done. 
 
 """
+function initroot!(toCall::Stack{Function}, ::Type{F}, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection) where F <: SearchStrategy
+    throw(ErrorException("Search Strategy $(F) not implemented."))
+end 
+
+
 function search!(model::CPModel, ::Type{Strategy}, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection=BasicHeuristic(); out_solver::Bool=false) where Strategy <: SearchStrategy
 
     # create env and get first observation
-    valueSelection(InitializingPhase(), model, nothing, nothing)
+    valueSelection(InitializingPhase, model)
 
     toCall = Stack{Function}()
     # Starting at the root node with an empty stack
@@ -27,7 +32,7 @@ function search!(model::CPModel, ::Type{Strategy}, variableHeuristic::AbstractVa
 
         if currentStatus != :SavingState
             # set reward and metrics
-            valueSelection(StepPhase(), model, nothing, currentStatus)
+            valueSelection(StepPhase, model, currentStatus)
         end
 
         currentProcedure = pop!(toCall)
@@ -35,7 +40,7 @@ function search!(model::CPModel, ::Type{Strategy}, variableHeuristic::AbstractVa
     end
 
     # set final reward and last observation
-    valueSelection(EndingPhase(), model, nothing, nothing)
+    valueSelection(EndingPhase, model, currentStatus)
 
     if currentStatus == :NodeLimitStop || currentStatus == :SolutionLimitStop || (out_solver & (currentStatus in [:Infeasible, :FoundSolution]))
         return currentStatus

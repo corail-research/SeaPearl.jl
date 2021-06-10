@@ -10,6 +10,7 @@ Used to customize the reward function. If you want to use your own reward, you h
 Then, when creating the `LearnedHeuristic`, you define it using `LearnedHeuristic{CustomReward}(agent::RL.Agent)`
 and your functions will be called instead of the default ones.
 """  
+
 abstract type AbstractReward end
 
 """
@@ -43,7 +44,7 @@ Update the part of the LearnedHeuristic which act like an RL environment, by ini
 initial observation with a false variable. A fixPoint! will be called before the LearnedHeuristic takes its first decision.
 Finally, makes the agent call the process of the RL pre_episode_stage (basically making sure that the buffer is empty). 
 """
-function (valueSelection::LearnedHeuristic)(::InitializingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
+function (valueSelection::LearnedHeuristic)(::Type{InitializingPhase}, model::CPModel)
     # create the environment
     update_with_cpmodel!(valueSelection, model)
     false_x = first(values(branchable_variables(model)))
@@ -63,10 +64,10 @@ we put a set_metrics! function here. As those metrics could be used to design a 
 ATM, the metrics are updated after the reward assignment as the current_status given totally decribes the changes that are to be made. 
 Another possibility would be to have old and new metrics in memory. 
 """
-function (valueSelection::LearnedHeuristic)(PHASE::StepPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
+function (valueSelection::LearnedHeuristic)(PHASE::Type{StepPhase}, model::CPModel, current_status::Union{Nothing, Symbol})
     set_reward!(PHASE, valueSelection, model, current_status)
     # incremental metrics, set after reward is updated
-    set_metrics!(PHASE, valueSelection, model, current_status, nothing)
+    set_metrics!(PHASE, valueSelection.search_metrics, model, current_status)
     nothing
 end
 
@@ -77,9 +78,9 @@ Observe, store useful informations in the buffer with agent(POST_ACT_STAGE, ...)
 The metrics that aren't updated in the StepPhase, which are more related to variables domains, are updated here. Once updated, they can 
 be used in the other set_reward! function as the reward of the last action will only be collected in the RL.POST_ACT_STAGE.
 """
-function (valueSelection::LearnedHeuristic)(PHASE::DecisionPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
+function (valueSelection::LearnedHeuristic)(PHASE::Type{DecisionPhase}, model::CPModel, x::Union{Nothing, AbstractIntVar})
     # domain change metrics, set before reward is updated
-    set_metrics!(PHASE, valueSelection, model, nothing, x)
+    set_metrics!(PHASE, valueSelection.search_metrics, model, x)
     set_reward!(PHASE, valueSelection, model)
 
     env = get_observation!(valueSelection, model, x)
@@ -101,7 +102,7 @@ end
 
 Set the final reward, do last observation.
 """
-function (valueSelection::LearnedHeuristic)(PHASE::EndingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
+function (valueSelection::LearnedHeuristic)(PHASE::Type{EndingPhase}, model::CPModel, current_status::Union{Nothing, Symbol})
     # the RL EPISODE stops
     set_reward!(PHASE, valueSelection, model, current_status)
     false_x = first(values(branchable_variables(model)))

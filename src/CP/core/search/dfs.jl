@@ -4,7 +4,7 @@
 Used as a generic function to instantiate the research based on a specific Strategy <: SearchStrategy. 
     
 """
-function initroot!(toCall::Stack{Function}, ::Type{DFSearch}, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, newConstraints=nothing)
+function initroot!(toCall::Stack{Function}, ::Type{DFSearch}, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
     return expandDfs!(toCall, model, variableHeuristic, valueSelection)
 end
 
@@ -40,9 +40,8 @@ function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
 
     # Variable selection
     x = variableHeuristic(model)
-
     # Value selection
-    v = valueSelection(DecisionPhase(), model, x, nothing)
+    v = valueSelection(DecisionPhase, model, x)
 
     #println("Value : ", v, " assigned to : ", x.id)
 

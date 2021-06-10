@@ -1,3 +1,4 @@
+using LightGraphs
 
 abstract type Constraint end
 abstract type OnePropagationConstraint <: Constraint end

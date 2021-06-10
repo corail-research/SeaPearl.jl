@@ -69,7 +69,7 @@ end
 
 Set the search metrics thanks to informations from the CPModel and the current status during the StepPhase.
 """
-function set_metrics!(::StepPhase, search_metrics::SearchMetrics, model::CPModel, symbol::Union{Nothing, Symbol}, x::Union{Nothing, AbstractIntVar})
+function set_metrics!(::Type{StepPhase}, search_metrics::SearchMetrics, model::CPModel, symbol::Union{Nothing, Symbol} )
     search_metrics.total_steps += 1
     search_metrics.total_states += 1
     search_metrics.last_backtrack += 1
@@ -119,7 +119,7 @@ end
 
 Set the search metrics thanks to informations from the CPModel and the current status during the DecisionPhase
 """
-function set_metrics!(::DecisionPhase, search_metrics::SearchMetrics, model::CPModel, symbol::Union{Nothing, Symbol}, x::Union{Nothing, AbstractIntVar})
+function set_metrics!(::Type{DecisionPhase}, search_metrics::SearchMetrics, model::CPModel, x::Union{Nothing, AbstractIntVar})
     search_metrics.total_decisions += 1
     search_metrics.domains_product = search_metrics.new_domains_product
     search_metrics.new_domains_product = domains_cartesian_product(model)

@@ -1,6 +1,7 @@
 using Flux
 using Zygote
 using CUDA
+using GraphSignals
 
 abstract type NNStructure end
 

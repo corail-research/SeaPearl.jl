@@ -7,7 +7,7 @@ initroot!(toCall::Stack{Function}, ::Type{DFSearch},model::CPModel, variableHeur
 generic function to instantiate the research based on a specific Strategy <: SearchStrategy. The max discrepancy correspond to the number or branchable variables at 
 the beginning of the search. Calls to expandIlds! with a decreasing discrepancy is stacked in the toCall Stack. 
 """
-function initroot!(toCall::Stack{Function}, ::Type{ILDSearch}, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, newConstraints=nothing)
+function initroot!(toCall::Stack{Function}, ::Type{ILDSearch}, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
     isboundedlist = [!isbound(v) for (k,v) in model.variables]
     @assert !isempty(isboundedlist) "initialisation failed : no declared variables"
     depth = sum(isboundedlist)
@@ -40,7 +40,7 @@ function expandIlds!(toCall::Stack{Function}, discrepancy::Int64, previousdepth:
         return :SolutionLimitStop
     end
     # Fix-point algorithm
-    feasible, pruned = fixPoint!(model, newConstraints,prunedDomains)
+    feasible, pruned = fixPoint!(model, newConstraints, prunedDomains)
     if !feasible
         return :Infeasible
     end
@@ -56,7 +56,7 @@ function expandIlds!(toCall::Stack{Function}, discrepancy::Int64, previousdepth:
     # Variable selection
     x = variableHeuristic(model)
     # Value selection
-    v = valueSelection(DecisionPhase(), model, x, nothing)
+    v = valueSelection(DecisionPhase, model, x)
     if (discrepancy>=0)   
         push!(toCall, (model) -> (restoreState!(model.trailer); :BackTracking))
         push!(toCall, (model) -> (
