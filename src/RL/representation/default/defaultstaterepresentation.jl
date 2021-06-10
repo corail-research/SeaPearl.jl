@@ -3,48 +3,54 @@ include("cp_layer/cp_layer.jl")
 """
     DefaultStateRepresentation{F, TS}
 
-This is the default representation used by SeaPearl unless the user define his own and give
-the information to his LearnedHeurstic when defining it. 
+This is the default representation used by SeaPearl unless the user define his own.
+
+It consists in a tripartite graph representation of the CP Model, with features associated with each node
+and an index specifying the variable that should be branched on.
 """
 mutable struct DefaultStateRepresentation{F, TS} <: FeaturizedStateRepresentation{F, TS}
     cplayergraph::CPLayerGraph
     features::Union{Nothing, AbstractArray{Float32, 2}}
-    variable_id::Union{Nothing, Int64}
+    variableIdx::Union{Nothing, Int64}
 end
 
 function DefaultStateRepresentation{F, TS}(model::CPModel) where {F, TS}
     g = CPLayerGraph(model)
     sr = DefaultStateRepresentation{F, TS}(g, nothing, nothing)
-
     sr.features = featurize(sr)
-    sr
+    return sr
 end
 
 """ 
-    function update_representation!(sr::DefaultStateRepresentation, model::CPModel, x::AbstractIntVar)
+    update_representation!(sr::DefaultStateRepresentation, model::CPModel, x::AbstractIntVar)
 
-While working with DefaultStateRepresentation, at each step of the research node, only the variable_id need to be updated. 
-features don't need to be updated as they encode the initial problem and the CPLayerGraph is automatically updated as it is linked to the CPModel. 
+Update the StateRepesentation according to its Type and Featurization.
 """
 function update_representation!(sr::DefaultStateRepresentation, model::CPModel, x::AbstractIntVar)
     update_features!(sr, model)
-    sr.variable_id = indexFromCpVertex(sr.cplayergraph, VariableVertex(x))
-    sr
+    sr.variableIdx = indexFromCpVertex(sr.cplayergraph, VariableVertex(x))
+    return sr
 end
 
-function trajectoryState(sr::DefaultStateRepresentation{F, TS}) where {F, TS}
-    return TS(sr)
-end
+"""
+    trajectoryState(sr::DefaultStateRepresentation{F, TS})
+    
+Return a TrajectoryState based on the present state represented by `sr`.
+
+The type of the returned object is defined by the `TS` parametric type defined in `sr`.
+"""
+trajectoryState(sr::DefaultStateRepresentation{F, TS}) where {F, TS} = TS(sr)
 
 struct DefaultFeaturization <: AbstractFeaturization end
 
 """
-    function featurize(sr::DefaultStateRepresentation{DefaultFeaturization, TS})
+    featurize(sr::DefaultStateRepresentation{DefaultFeaturization, TS})
 
-Create features for every node of the graph. Supposed to be overwritten. 
-Default behavior is to call `default_featurize` which consists in 3D One-hot vector that encodes whether the node represents a Constraint, a Variable or a Value 
+Create features for every node of the graph. Supposed to be overwritten.
+
+Default behavior consists in a 3D One-hot vector that encodes whether the node represents a Constraint, a Variable or a Value.
 """
-function featurize(sr::DefaultStateRepresentation{DefaultFeaturization, TS}) where TS
+function featurize(sr::FeaturizedStateRepresentation{DefaultFeaturization, TS}) where TS
     g = sr.cplayergraph
     features = zeros(Float32, 3, nv(g))
     for i in 1:nv(g)
@@ -62,33 +68,108 @@ function featurize(sr::DefaultStateRepresentation{DefaultFeaturization, TS}) whe
     features
 end
 
-function update_features!(::DefaultStateRepresentation{DefaultFeaturization, TS}, ::CPModel) where TS end
+"""
+    feature_length(gen::AbstractModelGenerator, ::Type{FeaturizedStateRepresentation})
+
+Returns the length of the feature vector, for the `DefaultFeaturization`.
+"""
+feature_length(::Type{<:FeaturizedStateRepresentation{DefaultFeaturization, TS}}) where TS = 3
 
 """
-    feature_length(gen::AbstractModelGenerator, ::Type{DefaultStateRepresentation{DefaultFeaturization}})
+    DefaultTrajectoryState
 
-Returns the length of the feature vector, useful for SeaPearl to choose the size of the container
+The most basic state representation, with a featured graph and the index of the variable to branch on.
 """
-feature_length(gen::SeaPearl.AbstractModelGenerator, ::Type{DefaultStateRepresentation{DefaultFeaturization, TS}}) where TS = 3
-
 struct DefaultTrajectoryState <: NonTabularTrajectoryState
     fg::GraphSignals.FeaturedGraph
-    variabeIdx::Int
+    variableIdx::Int
 end
 
-struct BatchedDefaultTrajectoryState{S, T} <: NonTabularTrajectoryState
-    adjacencies::AbstractArray{S, 3}
-    features::AbstractArray{T, 3}
-    variables::AbstractVector{Int}
+"""
+    BatchedDefaultTrajectoryState
+
+The batched version of the `DefaultTrajectoryState`.
+
+It contains all the information that would be stored in a `FeaturedGraph` but reorganised to enable simultaneous 
+computation on a few graphs.
+"""
+Base.@kwdef struct BatchedDefaultTrajectoryState <: NonTabularTrajectoryState
+    adjacencies::Union{AbstractArray, Nothing} = nothing
+    nodeFeatures::Union{AbstractArray, Nothing} = nothing
+    edgeFeatures::Union{AbstractArray, Nothing} = nothing
+    globalFeatures::Union{AbstractArray, Nothing} = nothing
+    variables::Union{AbstractVector{Int}, Nothing} = nothing
 end
 
 function DefaultTrajectoryState(sr::DefaultStateRepresentation{F, DefaultTrajectoryState}) where {F}
-    if isnothing(sr.variable_id)
+    if isnothing(sr.variableIdx)
         throw(ErrorException("Unable to build a DefaultTrajectoryState, when the branching variable is nothing."))
     end
-    adj = adjacency_matrix(sr.cplayergraph)
+    adj = Matrix(adjacency_matrix(sr.cplayergraph))
     fg = FeaturedGraph(adj; nf=sr.features)
-    return DefaultTrajectoryState(fg, sr.variable_id)
+    return DefaultTrajectoryState(fg, sr.variableIdx)
+end
+
+"""
+    Flux.functor(::Type{DefaultTrajectoryState}, s)
+
+Utility function used to load data on the working device.
+
+To be noted: this behavior isn't standard, as the function returned creates a `BatchedDefaultTrajectoryState`
+rather than a `DefaultTrajectoryState`. This behavior makes it possible to dynamically split the matrices of insterest
+from the `FeaturedGraph` wrapper.
+"""
+function Flux.functor(::Type{DefaultTrajectoryState}, s)
+    adj = Flux.unsqueeze(adjacency_matrix(s.fg), 3)
+    nf = Flux.unsqueeze(s.fg.nf, 3)
+    ef = Flux.unsqueeze(s.fg.ef, 3)
+    gf = Flux.unsqueeze(s.fg.gf, 2)
+    return (adj, nf, ef, gf), ls -> BatchedDefaultTrajectoryState(
+        adjacencies = ls[1],
+        nodeFeatures = ls[2],
+        edgeFeatures = ls[3],
+        globalFeatures = ls[4],
+        variables = [s.variableIdx]
+    )
+end
+
+"""
+    Flux.functor(::Type{Vector{DefaultTrajectoryState}}, s)
+
+Utility function used to load data on the working device.
+
+To be noted: this behavior isn't standard, as the function returned creates a `BatchedDefaultTrajectoryState`
+rather than a `Vector{DefaultTrajectoryState}`. This behavior makes it possible to dynamically creates matrices of 
+the appropriated size to store all the graphs in 3D tensors.
+"""
+function Flux.functor(::Type{Vector{DefaultTrajectoryState}}, v)
+    maxNode = Base.maximum(s -> nv(s.fg), v)
+    batchSize = length(v)
+
+    adjacencies = zeros(eltype(v[1].fg.nf), maxNode, maxNode, batchSize)
+    nodeFeatures = zeros(eltype(v[1].fg.nf), size(v[1].fg.nf, 1), maxNode, batchSize)
+    edgeFeatures = zeros(eltype(v[1].fg.ef), size(v[1].fg.ef, 1), maxNode, batchSize)
+    globalFeatures = zeros(eltype(v[1].fg.gf), size(v[1].fg.gf, 1), batchSize)
+    variables = ones(Int, batchSize)
+    
+    Zygote.ignore() do
+        # TODO: this could probably be optimized
+        foreach(enumerate(v)) do (idx, state)
+            adj = adjacency_matrix(state.fg)
+            adjacencies[1:size(adj,1),1:size(adj,2),idx] = adj
+            nodeFeatures[1:size(state.fg.nf, 1),1:size(state.fg.nf, 2),idx] = state.fg.nf
+            edgeFeatures[1:size(state.fg.ef, 1),1:size(state.fg.ef, 2),idx] = state.fg.ef
+            globalFeatures[1:size(state.fg.gf, 1),idx] = state.fg.gf
+            variables[idx] = state.variableIdx
+        end
+    end
+    
+    return (adjacencies, nodeFeatures, edgeFeatures, globalFeatures), ls -> BatchedDefaultTrajectoryState(
+        adjacencies = ls[1], 
+        nodeFeatures = ls[2],
+        edgeFeatures = ls[3],
+        globalFeatures = ls[4],
+        variables)
 end
 
 DefaultStateRepresentation(m::CPModel) = DefaultStateRepresentation{DefaultFeaturization, DefaultTrajectoryState}(m::CPModel)
