@@ -1,5 +1,6 @@
 module SeaPearl
 
+using Random
 using ReinforcementLearning
 const RL = ReinforcementLearning
 
@@ -12,10 +13,5 @@ include("datagen/datagen.jl")
 include("experiment/experiment.jl")
 
 greet() = print("Hello World!")
-
-export
-
-#Graph
-edges, has_edge, nv, ne, CPLayerGraph
 
 end # module

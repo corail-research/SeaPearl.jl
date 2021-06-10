@@ -1,4 +1,3 @@
-using LightGraphs
 
 const Solution = Dict{String, Union{Int, Bool, Set{Int}}}
 

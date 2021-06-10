@@ -78,9 +78,9 @@ lh = SeaPearl.LearnedHeuristic{SeaPearl.TsptwStateRepresentation{SeaPearl.TsptwF
         println(model.variables["a_1"])
 
         x = first(values(SeaPearl.branchable_variables(model)))
-        SeaPearl.set_metrics!(SeaPearl.DecisionPhase(), lh, model, nothing, x)
+        SeaPearl.set_metrics!(SeaPearl.DecisionPhase, lh.search_metrics, model, x)
 
-        SeaPearl.set_reward!(SeaPearl.DecisionPhase(), lh, model)
+        SeaPearl.set_reward!(SeaPearl.DecisionPhase, lh, model)
         # @test lh.reward.value == 0.9887827f0
     end
 

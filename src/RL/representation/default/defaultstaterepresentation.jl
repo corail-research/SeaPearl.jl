@@ -41,6 +41,20 @@ The type of the returned object is defined by the `TS` parametric type defined i
 """
 trajectoryState(sr::DefaultStateRepresentation{F, TS}) where {F, TS} = TS(sr)
 
+
+function print_tripartite(sr::DefaultStateRepresentation)
+    cpmodel = sr.cplayergraph
+    n = cpmodel.totalLength
+    nodefillc = []
+    for id in 1:n
+        v = cpmodel.idToNode[id]
+        if isa(v, VariableVertex) push!(nodefillc,"red")
+        elseif isa(v, ValueVertex) push!(nodefillc,"blue")
+        else  push!(nodefillc,"black") end
+    end
+    gplot(cpmodel;nodefillc=nodefillc)
+end
+
 struct DefaultFeaturization <: AbstractFeaturization end
 
 """
@@ -175,5 +189,3 @@ function Flux.functor(::Type{Vector{DefaultTrajectoryState}}, v)
 end
 
 DefaultStateRepresentation(m::CPModel) = DefaultStateRepresentation{DefaultFeaturization, DefaultTrajectoryState}(m::CPModel)
-
-

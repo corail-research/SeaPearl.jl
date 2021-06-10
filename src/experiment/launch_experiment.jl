@@ -1,3 +1,4 @@
+using ProgressBars
 
 """
     launch_experiment!(;

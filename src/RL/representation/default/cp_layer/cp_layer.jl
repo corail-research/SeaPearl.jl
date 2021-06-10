@@ -1,4 +1,3 @@
-using LightGraphs
 
 include("types.jl")
 include("accessors.jl")

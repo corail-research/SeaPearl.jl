@@ -1,6 +1,3 @@
-using Zygote
-using Flux: @functor
-
 prelu(x, α) = x > 0 ? x : α*x
 
 
@@ -41,7 +38,7 @@ function EdgeFtLayer(;v_dim::Pair{<:Integer,<:Integer}, e_dim::Pair{<:Integer,<:
     EdgeFtLayer(W_a, W_T, b_T, W_e, W_ee, init(1)[1])
 end
 
-@functor EdgeFtLayer
+Flux.@functor EdgeFtLayer
 
 
 function (g::EdgeFtLayer)(fg::FeaturedGraph)

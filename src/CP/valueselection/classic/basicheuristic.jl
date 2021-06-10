@@ -10,6 +10,8 @@ To create one, the user just as to give it a function which map an `AbstractIntV
 """
 mutable struct BasicHeuristic <: ValueSelection
     selectValue::Function
+    search_metrics::Union{Nothing, SearchMetrics}
+
 end
 
 """
@@ -17,8 +19,8 @@ end
     
 Create the default `BasicHeuristic` that selects the maximum value of the domain
 """
-BasicHeuristic() = BasicHeuristic((x; cpmodel=nothing) -> maximum(x.domain))
-
+BasicHeuristic() = BasicHeuristic((x; cpmodel=nothing) -> maximum(x.domain), nothing)
+BasicHeuristic(selectValue::Function) = BasicHeuristic(selectValue, nothing)
 """
     (valueSelection::BasicHeuristic)(::LearningPhase, model, x, current_status)
 
@@ -26,9 +28,9 @@ Explains what the basicHeurstic should do at each step of the solving. This is u
 BasicHeuristic and LearnedHeuristic. In the case of the BasicHeuristic, it is only called in the DecisionPhase where the selectValue function is used
 to choose the value assigned. 
 """
-(valueSelection::BasicHeuristic)(::InitializingPhase, model::Union{Nothing, CPModel}=nothing, x::Union{Nothing, AbstractIntVar}=nothing, current_status::Union{Nothing, Symbol}=nothing) = nothing
-(valueSelection::BasicHeuristic)(::StepPhase, model::Union{Nothing, CPModel}=nothing, x::Union{Nothing, AbstractIntVar}=nothing, current_status::Union{Nothing, Symbol}=nothing) = nothing
-(valueSelection::BasicHeuristic)(::DecisionPhase, model::Union{Nothing, CPModel}=nothing, x::Union{Nothing, AbstractIntVar}=nothing, current_status::Union{Nothing, Symbol}=nothing) = valueSelection.selectValue(x; cpmodel=model)
-(valueSelection::BasicHeuristic)(::EndingPhase, model::Union{Nothing, CPModel}=nothing, x::Union{Nothing, AbstractIntVar}=nothing, current_status::Union{Nothing, Symbol}=nothing) = nothing
+(valueSelection::BasicHeuristic)(::Type{InitializingPhase}, model::Union{Nothing, CPModel}=nothing) = (valueSelectionsearch_metrics = SearchMetrics(model))
+(valueSelection::BasicHeuristic)(::Type{StepPhase}, model::Union{Nothing, CPModel}=nothing, current_status::Union{Nothing, Symbol}=nothing) = nothing
+(valueSelection::BasicHeuristic)(::Type{DecisionPhase}, model::Union{Nothing, CPModel}=nothing, x::Union{Nothing, AbstractIntVar}=nothing) = valueSelection.selectValue(x; cpmodel=model)
+(valueSelection::BasicHeuristic)(::Type{EndingPhase}, model::Union{Nothing, CPModel}=nothing, current_status::Union{Nothing, Symbol}=nothing) = nothing
 
 wears_mask(valueSelection::BasicHeuristic) = true

@@ -10,7 +10,6 @@ mutable struct TsptwReward <: AbstractReward
     positiver::Float32
     normalizer::Float32
     max_dist::Float32
-
 end
 
 """
@@ -44,11 +43,22 @@ set_reward!(::StepPhase, lh::LearnedHeuristic{SR, R::TsptwReward, A}, model::CPM
 
 Change the "current_reward" attribute of the LearnedHeuristic at the StepPhase.
 """
-function set_reward!(::StepPhase, lh::LearnedHeuristic{SR, TsptwReward, A}, model::CPModel, symbol::Union{Nothing, Symbol}) where {
+function set_reward!(::Type{StepPhase}, lh::LearnedHeuristic{SR, TsptwReward, A}, model::CPModel, symbol::Union{Nothing, Symbol}) where {
     SR <: AbstractStateRepresentation,
     A <: ActionOutput
-}
-    nothing
+}    
+    if symbol == :Infeasible  
+        lh.reward.value -= 10
+
+    elseif symbol == :FoundSolution
+        lh.reward.value -= 1
+
+    elseif symbol == :Feasible 
+        lh.reward.value -= 1
+
+    elseif symbol == :BackTracking
+        lh.reward.value -= 1
+    end
 end
 
 """
@@ -57,7 +67,7 @@ end
 Change the current reward at the DecisionPhase. This is called right before making the next decision, so you know you have the very last state before the new decision
 and every computation like fixPoints and backtracking has been done.
 """
-function set_reward!(::DecisionPhase, lh::LearnedHeuristic{SR, TsptwReward, A}, model::CPModel) where {
+function set_reward!(::Type{DecisionPhase}, lh::LearnedHeuristic{SR, TsptwReward, A}, model::CPModel) where {
     SR <: AbstractStateRepresentation,
     A <: ActionOutput
 }   
@@ -87,10 +97,9 @@ end
 Increment the current reward at the EndingPhase. Called when the search is finished by an optimality proof or by a limit in term of nodes or 
 in terms of number of solution. This is useful to add some general results to the reward like the number of ndoes visited during the episode for instance. 
 """
-function set_reward!(::EndingPhase, lh::LearnedHeuristic{SR, TsptwReward, A}, model::CPModel, symbol::Union{Nothing, Symbol}) where {
+function set_reward!(::Type{EndingPhase}, lh::LearnedHeuristic{SR, TsptwReward, A}, model::CPModel, symbol::Union{Nothing, Symbol}) where {
     SR <: AbstractStateRepresentation, 
     A <: ActionOutput
 }
     # lh.reward.value += 1.
-    nothing
 end

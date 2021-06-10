@@ -1,4 +1,3 @@
-using ProgressBars
 include("metrics/metrics.jl")
 include("evaluation.jl")
 include("launch_experiment.jl")

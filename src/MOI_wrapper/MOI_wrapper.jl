@@ -1,9 +1,9 @@
 using MathOptInterface
+using JuMP
 
 const MOI = MathOptInterface
 const MOIU = MathOptInterface.Utilities
 
-using JuMP
 
 """
 WIP 
