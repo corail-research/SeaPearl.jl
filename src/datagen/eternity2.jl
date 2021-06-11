@@ -6,9 +6,6 @@ struct Eternity2Generator <: AbstractModelGenerator
     n::Int
     m::Int
     k::Int
-    function Eternity2Generator(n,m,k)
-        new(n,m,k)
-    end
 end
 
 

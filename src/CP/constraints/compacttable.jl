@@ -299,7 +299,7 @@ function propagate!(constraint::TableConstraint, toPropagate::Set{Constraint}, p
     if !constraint.active.value
         return true
     end
-
+    
     initialPrunedValues = nothing
     if !constraint.initialized.value
         initialPrunedValues = Vector{Vector{Int}}(undef, length(constraint.scope))
@@ -320,6 +320,14 @@ function propagate!(constraint::TableConstraint, toPropagate::Set{Constraint}, p
         if (variable.id in keys(prunedDomains))
             push!(constraint.modifiedVariables, idx)
             prunedValues[idx] = prunedDomains[variable.id]
+        end
+    end
+            
+    # Sometime an assignment has already been pruned before the initialization eventhough  
+    # it doesn't have a support .In that case it shouldn't be used to update the table.
+    for variable in constraint.modifiedVariables
+        filter!(prunedValues[variable]) do value
+            haskey(constraint.supports, variable => value)
         end
     end
 
