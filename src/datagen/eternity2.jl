@@ -30,8 +30,8 @@ function fill_with_generator!(cpmodel::CPModel, gen::Eternity2Generator; seed=no
     k=gen.k
     colors=1:k
 
-    src_v = Matrix{Int8}(undef,n,m+1) #horizontal edges
-    src_h = Matrix{Int8}(undef,n+1,m) #vertical edges
+    src_v = Matrix{Int}(undef,n,m+1) #horizontal edges
+    src_h = Matrix{Int}(undef,n+1,m) #vertical edges
     fill!(src_h,0)
     fill!(src_v,0)
 

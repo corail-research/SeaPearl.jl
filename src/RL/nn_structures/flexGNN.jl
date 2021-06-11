@@ -6,7 +6,7 @@
     )
 
 This structure is here to provide a flexible way to create a nn model which respect this approach:
-Making modification on the graph, then extract one node feature and modify it. 
+Making modification on the graph, then extract one node feature and modify it.
 """
 Base.@kwdef struct FlexGNN <: NNStructure
     graphChain::Flux.Chain
@@ -21,12 +21,16 @@ function (nn::FlexGNN)(states::BatchedDefaultTrajectoryState)
 
     variableIdx = states.variables
     batchSize = length(variableIdx)
-    
+
     # chain working on the graph(s)
     _, nodeFeatures = nn.graphChain(states)
 
-    # extract the feature(s) of the variable(s) we're working on 
-    indices = [CartesianIndex(t) for t in zip(variableIdx, 1:batchSize)]
+    # extract the feature(s) of the variable(s) we're working on
+    indices = nothing
+    Zygote.ignore() do
+        indices = CartesianIndex.(zip(variableIdx, 1:batchSize))
+    end
+
     variableFeature = nodeFeatures[:, indices]
 
     # chain working on the node(s) feature(s)
