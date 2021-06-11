@@ -140,7 +140,7 @@ function LightGraphs.SimpleGraph(cplayergraph::CPLayerGraph)
     graph = Graph(edges(cplayergraph))
     n = nv(cplayergraph)
     if nv(graph) < n
-        add_vertices!(graph, n - nv)
+        add_vertices!(graph, n - nv(graph))
     end
     return graph
 end
