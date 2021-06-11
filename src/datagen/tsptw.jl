@@ -213,10 +213,3 @@ function find_tsptw_dist_matrix(cpmodel::CPModel)
     end
     throw(ErrorException("The model given to find_tsptw_dist_matrix does not seem to be a TSPTW instance."))
 end
-
-"""
-    arraybuffer_dims(gen::TsptwGenerator, t::Type{TsptwStateRepresentation})
-
-Returns the size of the state representation in its matrix form, useful when construcing the trajectory for the RL agent
-"""
-arraybuffer_dims(gen::TsptwGenerator, t::Type{TsptwStateRepresentation{F}}) where {F} = (gen.n_city, gen.n_city+2+feature_length(gen, t))
