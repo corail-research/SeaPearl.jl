@@ -73,6 +73,7 @@
     include("rewards/rewards.jl")
     include("utils.jl")
     include("learnedheuristic.jl")
+    include("searchmetrics.jl")
 
     LearnedHeristicBasicConstructor = SeaPearl.LearnedHeuristic(agent)
     @test isa(LearnedHeristicBasicConstructor,SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}, SeaPearl.DefaultReward, SeaPearl.FixedOutput})
