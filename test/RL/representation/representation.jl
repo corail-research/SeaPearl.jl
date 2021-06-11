@@ -1,5 +1,5 @@
 struct UnimplementedFeaturization <: SeaPearl.AbstractFeaturization end
-struct TestFeatState{F} <: SeaPearl.FeaturizedStateRepresentation{F} end
+struct TestFeatState{F,TS} <: SeaPearl.FeaturizedStateRepresentation{F,TS} end
 
 struct TestFeaturization <: SeaPearl.AbstractFeaturization end
 

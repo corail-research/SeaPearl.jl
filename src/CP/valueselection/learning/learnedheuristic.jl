@@ -112,6 +112,7 @@ function (valueSelection::LearnedHeuristic)(PHASE::Type{EndingPhase}, model::CPM
     valueSelection.agent(RL.POST_ACT_STAGE, env) # get terminal and reward
 
     valueSelection.agent(RL.POST_EPISODE_STAGE, env)  # let the agent see the last observation
-    CUDA.reclaim()
+    #TODO filter when CUDA is not used
+    #CUDA.reclaim()
 end
 
