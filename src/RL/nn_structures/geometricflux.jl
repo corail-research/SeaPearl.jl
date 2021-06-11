@@ -18,3 +18,19 @@ function (g::GeometricFlux.GraphConv)(A::R, X::T) where{R<:AbstractArray, T<:Abs
 end
 (g::GeometricFlux.GraphConv)(A::T, X::T) where {T <: AbstractMatrix} = A, g.σ.(g.weight1 * X .+ g.weight2 * X * A .+ g.bias)
 (g::GeometricFlux.GraphConv)(A::T, X::T) where {T <: AbstractArray{<:Real, 3}} = A, g.σ.(g.weight1 ⊠ X .+ g.weight2 ⊠ X ⊠ A .+ g.bias)
+
+struct GraphNorm <: GeometricFlux.GraphNet
+    batchNormLayer::Flux.BatchNorm
+
+    GraphNorm(channels::Integer, σ = identity; initβ = zeros, initγ = ones, ϵ = Float32(1e-8), momentum = Float32(.1)) = new(Flux.BatchNorm(channels, σ; initβ = initβ, initγ = initγ, ϵ = ϵ, momentum = momentum))
+    GraphNorm(bn::Flux.BatchNorm) = new(bn)
+end
+
+Flux.@functor GraphNorm
+(gn::GraphNorm)(t::Tuple{AbstractArray, AbstractArray}) = gn(t...)
+(gn::GraphNorm)(A::T, X::T) where {T <: AbstractMatrix} = A, gn.batchNormLayer(X)
+function (gn::GraphNorm)(A::T, X::T) where {T <: AbstractArray{<:Real, 3}}
+    initsize = size(X)
+    Y = reshape(X, initsize[1:end - 2]..., :)
+    return A, reshape(gn.batchNormLayer(Y), initsize)
+end

@@ -7,7 +7,7 @@ The `TrajectoryState` is a component of the `AbstractStateRepresentation` specif
 this representation in the `trajectory` of the RL agent for learning.
 
 It might be necessary to implement your own when defining a new state representation or
-when another data formatting is necessary for learning. To implement a subtype of 
+when another data formatting is necessary for learning. To implement a subtype of
 `AbstractTrajectoryState` one must provide:
 - a struct subtype of `TabularTrajectoryState` or `NonTabularTrajectoryState` depending on you usage.
 - a constructor with signature `YourTrajectoryState(sr::DefaultStateRepresentation)` when using `DefaultStateRepresentation`, otherwise it depends on your state representation implementation.
@@ -40,11 +40,11 @@ abstract type NonTabularTrajectoryState <: AbstractTrajectoryState end
 """
     AbstractStateRepresentation{TS}
 
-The AbstractStateRepresentation is the abstract type of the structures representing the internal state of the 
-CPModel and eventually the state of the search in a way that will be as expressive as possible. 
+The AbstractStateRepresentation is the abstract type of the structures representing the internal state of the
+CPModel and eventually the state of the search in a way that will be as expressive as possible.
 
 It requires a specific `AbstractTrajectoryState` to make the bridge between the internal state representation
-and one the RL agent can use to decide of the value to be assigned when branching. 
+and one the RL agent can use to decide of the value to be assigned when branching.
 
 A user can use the `DefaultStateRepresentation` with the `DefaultTrajectoryState` provided by the package but
 he has the possibility to define his own.
@@ -79,16 +79,15 @@ abstract type AbstractFeaturization end
 
 Abstract subtype of `AbstractStateRepresentation` specializing the type of features used in the representation.
 
-When a user wants to try a new featurization with the same organisation of the featurized elements, instead of 
-having to completely redefine a new type of AbstractStateRepresentation, he can keep the same and 
-just use a new `AbstractFeaturization`. 
+When a user wants to try a new featurization with the same organisation of the featurized elements, instead of
+having to completely redefine a new type of AbstractStateRepresentation, he can keep the same and
+just use a new `AbstractFeaturization`.
 """
 abstract type FeaturizedStateRepresentation{F <: AbstractFeaturization, TS} <: AbstractStateRepresentation{TS} end
 
 featurize(sr::FeaturizedStateRepresentation) = throw(ErrorException("missing function featurize(::$(typeof(sr)))."))
 function update_features!(::FeaturizedStateRepresentation, ::CPModel) end
-feature_length(::Type{<:FeaturizedStateRepresentation}) = throw(ErrorException("missing function feature_length(::$(typeof(sr)))."))
+feature_length(sr::Type{<:FeaturizedStateRepresentation}) = throw(ErrorException("missing function feature_length(::$(sr))."))
 
 include("default/defaultstaterepresentation.jl")
 #include("tsptw/tsptwstaterepresentation.jl")
-include("geometricflux.jl")

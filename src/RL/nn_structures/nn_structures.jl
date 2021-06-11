@@ -22,6 +22,7 @@ function (nn::NNStructure)(x::AbstractVector{<:NonTabularTrajectoryState})
     return hcat(qval...)
 end
 
+include("geometricflux.jl")
 include("flexGNN.jl")
 include("flex_variable_output_gnn.jl")
 include("weighted_graph_gat.jl")
