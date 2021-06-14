@@ -184,17 +184,4 @@ end
         @test_throws ErrorException SeaPearl.find_tsptw_dist_matrix(model2)
     end
 
-    @testset "arraybuffer_dims(::TsptwGenerator)" begin
-        trailer = SeaPearl.Trailer()
-        model = SeaPearl.CPModel(trailer)
-
-        n_city = 21
-        grid_size = 150
-        max_tw_gap = 3
-        max_tw = 8
-
-        generator = SeaPearl.TsptwGenerator(n_city, grid_size, max_tw_gap, max_tw)
-
-        @test SeaPearl.arraybuffer_dims(generator, SeaPearl.TsptwStateRepresentation{SeaPearl.TsptwFeaturization}) == (21, 29)
-    end
 end

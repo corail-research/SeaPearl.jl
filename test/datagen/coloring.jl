@@ -37,21 +37,6 @@ using Random
             
         
     end
-
-    @testset "arraybuffer_dims(::HomogenousGraphColoringGenerator)" begin
-        trailer = SeaPearl.Trailer()
-        model = SeaPearl.CPModel(trailer)
-
-        nb_nodes = 10
-        probability = 0.5
-
-        generator = SeaPearl.HomogenousGraphColoringGenerator(nb_nodes, probability)
-
-        @test SeaPearl.arraybuffer_dims(generator, SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization}) == (1000, 1006)
-    end
-
-    
-
     
     @testset "fill_with_generator!(::ClusterizedGraphColoringGenerator)" begin
         trailer = SeaPearl.Trailer()
@@ -74,21 +59,6 @@ using Random
         end
             
         
-    end
-
-    
-
-    @testset "arraybuffer_dims(::ClusterizedGraphColoringGenerator)" begin
-        trailer = SeaPearl.Trailer()
-        model = SeaPearl.CPModel(trailer)
-
-        n = 10
-        k = 5
-        p = 0.5
-
-        generator = SeaPearl.ClusterizedGraphColoringGenerator(n, k, p)
-
-        @test SeaPearl.arraybuffer_dims(generator, SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization}) == (201, 207)
     end
 
 end

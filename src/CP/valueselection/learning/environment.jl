@@ -39,3 +39,5 @@ function (learner::DQNLearner)(env::CPEnv{ST}) where {ST <: NonTabularTrajectory
         vec |>
         send_to_host
 end
+
+#TODO add function function (learner::DQNLearner)(env::unmaskedCPEnv{ST})
