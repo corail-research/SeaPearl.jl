@@ -317,9 +317,9 @@ function propagate!(constraint::TableConstraint, toPropagate::Set{Constraint}, p
     prunedValues = Vector{Vector{Int}}(undef, length(constraint.scope))
     empty!(constraint.modifiedVariables)
     for (idx, variable) in enumerate(constraint.scope)
-        if (variable.id in keys(prunedDomains))
+        if haskey(prunedDomains, variable.id)
             push!(constraint.modifiedVariables, idx)
-            prunedValues[idx] = prunedDomains[variable.id]
+            prunedValues[idx] = copy(prunedDomains[variable.id])
         end
     end
             
