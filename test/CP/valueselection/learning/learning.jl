@@ -1,4 +1,5 @@
 @testset "learning.jl" begin
+    using GeometricFlux
 
 
     approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
