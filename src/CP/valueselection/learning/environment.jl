@@ -1,4 +1,6 @@
-struct CPEnv{TS <: AbstractTrajectoryState} <: AbstractEnv
+abstract type AbstractCPEnv{TS <: AbstractTrajectoryState} <: AbstractEnv end
+
+struct CPEnv{TS} <: AbstractCPEnv{TS}
     reward::Float32
     terminal::Bool
     state::TS
@@ -16,10 +18,10 @@ RLBase.state(env::CPEnv) = env.state
 RLBase.ActionStyle(::CPEnv) = FULL_ACTION_SET
 RLBase.state_space(::SeaPearl.CPEnv, ::Observation{Any}, ::DefaultPlayer) = nothing
 
-struct unmaskedCPEnv <: AbstractEnv
+struct unmaskedCPEnv{TS} <: AbstractCPEnv{TS}
     reward::Float32
     terminal::Bool
-    state::AbstractTrajectoryState
+    state::TS
     actions_index::Array{Int64, 1}
 end
 
@@ -30,7 +32,7 @@ RLBase.state(env::unmaskedCPEnv) = env.state
 RLBase.ActionStyle(::unmaskedCPEnv) = MINIMAL_ACTION_SET
 RLBase.state_space(::unmaskedCPEnv, ::Observation{Any}, ::DefaultPlayer) = nothing
 
-function (learner::DQNLearner)(env::CPEnv{ST}) where {ST <: NonTabularTrajectoryState}
+function (learner::DQNLearner)(env::AbstractCPEnv{TS}) where {TS <: NonTabularTrajectoryState}
     env |>
     state |>
     x ->
@@ -39,5 +41,3 @@ function (learner::DQNLearner)(env::CPEnv{ST}) where {ST <: NonTabularTrajectory
         vec |>
         send_to_host
 end
-
-#TODO add function function (learner::DQNLearner)(env::unmaskedCPEnv{ST})
