@@ -1,6 +1,3 @@
-using SeaPearl
-using LightGraphs
-
 @testset "arrayOfEveryValue()" begin
     trailer = SeaPearl.Trailer()
 

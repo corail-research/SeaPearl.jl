@@ -1,5 +1,3 @@
-using SeaPearl
-
 @testset "notequal.jl" begin
     @testset "NotEqualConstant()" begin
         trailer = SeaPearl.Trailer()

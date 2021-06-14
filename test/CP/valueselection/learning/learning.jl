@@ -1,6 +1,3 @@
-using GeometricFlux
-
-
 approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
 target_approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
 gnnlayers = 1

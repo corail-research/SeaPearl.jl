@@ -1,5 +1,3 @@
-using LightGraphs
-
 @testset "alldifferent.jl" begin
     @testset "AllDifferent(::Vector{AbstractIntVar}, ::Trailer)" begin
         trailer = SeaPearl.Trailer()

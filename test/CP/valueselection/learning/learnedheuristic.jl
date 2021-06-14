@@ -1,6 +1,3 @@
-using Flux
-
-
 @testset "learnedheuristic.jl" begin
 
     @testset "LearnedHeuristic" begin 

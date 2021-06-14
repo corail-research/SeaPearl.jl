@@ -1,5 +1,3 @@
-using DataStructures
-
 @testset "dfs.jl" begin
     @testset "expandDfs!()" begin
         ### Checking status ###

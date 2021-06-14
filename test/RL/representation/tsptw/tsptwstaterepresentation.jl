@@ -1,6 +1,3 @@
-using GeometricFlux
-using GraphSignals
-
 @testset "tsptwstaterepresentation.jl" begin
     @testset "Constructor" begin
         trailer = SeaPearl.Trailer()

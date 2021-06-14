@@ -1,4 +1,3 @@
-using SeaPearl
 using Random
 
 @testset "RL.jl" begin

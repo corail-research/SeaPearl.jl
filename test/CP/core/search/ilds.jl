@@ -1,5 +1,3 @@
-using DataStructures
-
 @testset "ilds.jl" begin
     @testset "expandIlds!()" begin
         ### Checking status ###

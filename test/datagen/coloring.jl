@@ -1,5 +1,3 @@
-using Random
-
 @testset "coloring.jl" begin
     @testset "fill_with_generator!(::LegacyGraphColoringGenerator)" begin
         trailer = SeaPearl.Trailer()

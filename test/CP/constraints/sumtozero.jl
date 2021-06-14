@@ -1,5 +1,3 @@
-using SeaPearl
-
 @testset "sumtozero.jl" begin
     @testset "SumToZero()" begin
         trailer = SeaPearl.Trailer()

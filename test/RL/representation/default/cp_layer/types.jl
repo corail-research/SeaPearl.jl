@@ -1,5 +1,3 @@
-using SeaPearl
-
 @testset "CPLayerGraph()" begin
     trailer = SeaPearl.Trailer()
     model = SeaPearl.CPModel(trailer)

@@ -1,5 +1,3 @@
-using SeaPearl
-
 @testset "greaterorqual.jl" begin
     @testset "GreaterOrEqualConstant()" begin
         trailer = SeaPearl.Trailer()

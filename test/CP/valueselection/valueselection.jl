@@ -1,5 +1,3 @@
-using Flux
-
 @testset "valueselection.jl" begin 
 
     include("../../RL/RL.jl")

@@ -1,5 +1,3 @@
-using SeaPearl
-
 @testset "fixPoint.jl" begin
     @testset "fixPoint!()" begin
         trailer = SeaPearl.Trailer()

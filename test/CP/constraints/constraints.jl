@@ -1,4 +1,3 @@
-
 @testset "constraints" begin
     include("algorithms/matching.jl")
     include("algorithms/rsparsebitset.jl")
