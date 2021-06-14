@@ -23,7 +23,7 @@ function (nn::FlexGNN)(states::BatchedDefaultTrajectoryState)
     batchSize = length(variableIdx)
 
     # chain working on the graph(s)
-    _, nodeFeatures = nn.graphChain(states)
+    nodeFeatures = nn.graphChain(states).nodeFeatures
 
     # extract the feature(s) of the variable(s) we're working on
     indices = nothing

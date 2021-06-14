@@ -107,11 +107,11 @@ The batched version of the `DefaultTrajectoryState`.
 It contains all the information that would be stored in a `FeaturedGraph` but reorganised to enable simultaneous 
 computation on a few graphs.
 """
-Base.@kwdef struct BatchedDefaultTrajectoryState <: NonTabularTrajectoryState
-    adjacencies::Union{AbstractArray, Nothing} = nothing
-    nodeFeatures::Union{AbstractArray, Nothing} = nothing
-    edgeFeatures::Union{AbstractArray, Nothing} = nothing
-    globalFeatures::Union{AbstractArray, Nothing} = nothing
+Base.@kwdef struct BatchedDefaultTrajectoryState{T} <: NonTabularTrajectoryState
+    adjacencies::Union{AbstractArray{T, 3}, Nothing} = nothing
+    nodeFeatures::Union{AbstractArray{T, 3}, Nothing} = nothing
+    edgeFeatures::Union{AbstractArray{T, 3}, Nothing} = nothing
+    globalFeatures::Union{AbstractArray{T, 2}, Nothing} = nothing
     variables::Union{AbstractVector{Int}, Nothing} = nothing
 end
 
@@ -138,7 +138,7 @@ function Flux.functor(::Type{DefaultTrajectoryState}, s)
     nf = Flux.unsqueeze(s.fg.nf, 3)
     ef = Flux.unsqueeze(s.fg.ef, 3)
     gf = Flux.unsqueeze(s.fg.gf, 2)
-    return (adj, nf, ef, gf), ls -> BatchedDefaultTrajectoryState(
+    return (adj, nf, ef, gf), ls -> BatchedDefaultTrajectoryState{Float32}(
         adjacencies = ls[1],
         nodeFeatures = ls[2],
         edgeFeatures = ls[3],
@@ -180,7 +180,7 @@ function Flux.functor(::Type{Vector{DefaultTrajectoryState}}, v)
         end
     end
     
-    return (adjacencies, nodeFeatures, edgeFeatures, globalFeatures), ls -> BatchedDefaultTrajectoryState(
+    return (adjacencies, nodeFeatures, edgeFeatures, globalFeatures), ls -> BatchedDefaultTrajectoryState{Float32}(
         adjacencies = ls[1], 
         nodeFeatures = ls[2],
         edgeFeatures = ls[3],
