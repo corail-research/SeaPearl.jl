@@ -10,7 +10,7 @@ It might be necessary to implement your own when defining a new state representa
 when another data formatting is necessary for learning. To implement a subtype of
 `AbstractTrajectoryState` one must provide:
 - a struct subtype of `TabularTrajectoryState` or `NonTabularTrajectoryState` depending on you usage.
-- a constructor with signature `YourTrajectoryState(sr::DefaultStateRepresentation)` when using `DefaultStateRepresentation`, otherwise it depends on your state representation implementation.
+- a constructor with signature `YourTrajectoryState(sr::YourStateRepresentation)`.
 - a function `Flux.functor(::Type{YourTrajectoryState}, ts)` (see Flux.functor for further information).
 - an NN model taking a `YourTrajectoryState` instance as an input.
 """
@@ -36,6 +36,7 @@ This type is th only one currently used, but it will certainly be a lot clearer 
 distinguish between array based representations, and more exotic ones (e.g. graphs, named tuples...).
 """
 abstract type NonTabularTrajectoryState <: AbstractTrajectoryState end
+abstract type GraphTrajectoryState <: NonTabularTrajectoryState end
 
 """
     AbstractStateRepresentation{TS}
@@ -58,6 +59,15 @@ Look at the DefaultStateRepresentation to get inspired.
 """
 abstract type AbstractStateRepresentation{TS <: AbstractTrajectoryState} end
 update_representation!(sr::AbstractStateRepresentation, m::CPModel, x::AbstractIntVar) = throw(ErrorException("missing function update_representation!(::$(typeof(sr)), ::$(typeof(m)), ::$(typeof(x)))."))
+
+"""
+    trajectoryState(sr::AbstractStateRepresentation{TS})
+    
+Return a TrajectoryState based on the present state represented by `sr`.
+
+The type of the returned object is defined by the `TS` parametric type defined in `sr`.
+"""
+trajectoryState(sr::AbstractStateRepresentation{TS}) where {TS} = TS(sr)
 
 
 """
@@ -89,5 +99,6 @@ featurize(sr::FeaturizedStateRepresentation) = throw(ErrorException("missing fun
 function update_features!(::FeaturizedStateRepresentation, ::CPModel) end
 feature_length(sr::Type{<:FeaturizedStateRepresentation}) = throw(ErrorException("missing function feature_length(::$(sr))."))
 
+include("defaulttrajectorystate.jl")
 include("default/defaultstaterepresentation.jl")
-#include("tsptw/tsptwstaterepresentation.jl")
+include("tsptw/tsptwstaterepresentation.jl")

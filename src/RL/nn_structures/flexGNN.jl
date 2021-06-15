@@ -9,8 +9,8 @@ This structure is here to provide a flexible way to create a nn model which resp
 Making modification on the graph, then extract one node feature and modify it.
 """
 Base.@kwdef struct FlexGNN <: NNStructure
-    graphChain::Flux.Chain
-    nodeChain::Flux.Chain
+    graphChain::Flux.Chain = Flux.Chain()
+    nodeChain::Flux.Chain = Flux.Chain()
     outputLayer::Flux.Dense
 end
 
@@ -23,7 +23,7 @@ function (nn::FlexGNN)(states::BatchedDefaultTrajectoryState)
     batchSize = length(variableIdx)
 
     # chain working on the graph(s)
-    nodeFeatures = nn.graphChain(states).nodeFeatures
+    nodeFeatures = nn.graphChain(states.fg).nf
 
     # extract the feature(s) of the variable(s) we're working on
     indices = nothing

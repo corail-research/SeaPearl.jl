@@ -7,14 +7,13 @@ Thus we propose our own version of the GeometricFlux API, using only matrices as
 make it possible to compute GNNs on many graphs simultaneously.
 """
 
-function (g::GeometricFlux.GraphConv)(fgs::BatchedDefaultTrajectoryState{Float32}) 
-    A, X = fgs.adjacencies, fgs.nodeFeatures
-    return BatchedDefaultTrajectoryState{Float32}(
-        adjacencies = fgs.adjacencies,
-        nodeFeatures = g.σ.(g.weight1 ⊠ X .+ g.weight2 ⊠ X ⊠ A .+ g.bias),
-        edgeFeatures = fgs.edgeFeatures,
-        globalFeatures = fgs.globalFeatures,
-        variables = fgs.variables
+function (g::GeometricFlux.GraphConv)(fgs::BatchedFeaturedGraph{Float32}) 
+    A, X = fgs.graph, fgs.nf
+    return BatchedFeaturedGraph{Float32}(
+        fgs.graph;
+        nf = g.σ.(g.weight1 ⊠ X .+ g.weight2 ⊠ X ⊠ A .+ g.bias),
+        ef = fgs.ef,
+        gf = fgs.gf
     )
 end
 
@@ -26,14 +25,13 @@ struct GraphNorm <: GeometricFlux.GraphNet
 end
 
 Flux.@functor GraphNorm
-function (gn::GraphNorm)(fgs::BatchedDefaultTrajectoryState{Float32})
-    X = fgs.nodeFeatures
+function (gn::GraphNorm)(fgs::BatchedFeaturedGraph{Float32})
+    X = fgs.nf
     Y = reshape(X, size(X)[1:end - 2]..., :)
-    return BatchedDefaultTrajectoryState{Float32}(
-        adjacencies = fgs.adjacencies,
-        nodeFeatures = reshape(gn.batchNormLayer(Y), size(X)),
-        edgeFeatures = fgs.edgeFeatures,
-        globalFeatures = fgs.globalFeatures,
-        variables = fgs.variables
+    return BatchedFeaturedGraph{Float32}(
+        fgs.graph;
+        nf = reshape(gn.batchNormLayer(Y), size(X)),
+        ef = fgs.ef,
+        gf = fgs.gf,
     )
 end
