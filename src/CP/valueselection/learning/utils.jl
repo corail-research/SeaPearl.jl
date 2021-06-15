@@ -102,7 +102,7 @@ function wears_mask(valueSelection::LearnedHeuristic)
     if (hasfield(typeof(valueSelection.agent.policy.learner.approximator),:actor))
         wears_mask(valueSelection.agent.policy.learner.approximator.actor)      #A2C
     else
-        wears_mask(valueSelection.agent.policy.approximator.model)              #DQN
+        wears_mask(valueSelection.agent.policy.learner.approximator.model)              #DQN
     end
 end
 
