@@ -99,6 +99,6 @@ featurize(sr::FeaturizedStateRepresentation) = throw(ErrorException("missing fun
 function update_features!(::FeaturizedStateRepresentation, ::CPModel) end
 feature_length(sr::Type{<:FeaturizedStateRepresentation}) = throw(ErrorException("missing function feature_length(::$(sr))."))
 
-include("defaulttrajectorystate.jl")
+include("default/defaulttrajectorystate.jl")
 include("default/defaultstaterepresentation.jl")
 include("tsptw/tsptwstaterepresentation.jl")

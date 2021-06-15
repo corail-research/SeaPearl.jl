@@ -1,5 +1,3 @@
-using FillArrays
-
 include("cp_layer/cp_layer.jl")
 
 """
