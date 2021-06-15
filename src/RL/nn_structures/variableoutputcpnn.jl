@@ -1,5 +1,5 @@
 """
-    FlexVariableOutputGNN(;
+    VariableOutputCPNN(;
         graphChain::Flux.Chain
         nodeChain::Flux.Chain
         outputLayer::Flux.Dense
@@ -8,18 +8,18 @@
 This structure is here to provide a flexible way to create a nn model which respect this approach:
 Making modification on the graph, then extract one node feature and modify it. 
 """
-Base.@kwdef struct FlexVariableOutputGNN <: NNStructure
+Base.@kwdef struct VariableOutputCPNN <: NNStructure
     graphChain::Flux.Chain = Flux.Chain()
     nodeChain::Flux.Chain = Flux.Chain()
     outputLayer::Flux.Dense
 end
 
 # Enable the `|> gpu` syntax from Flux
-Flux.@functor FlexVariableOutputGNN
+Flux.@functor VariableOutputCPNN
 
-wears_mask(s::FlexVariableOutputGNN) = false
+wears_mask(s::VariableOutputCPNN) = false
 
-function (nn::FlexVariableOutputGNN)(state::GraphTrajectoryState)
+function (nn::VariableOutputCPNN)(state::GraphTrajectoryState)
 
     variableIdx = state.variableIdx
     possibleValuesIdx = state.possibleValuesIdx

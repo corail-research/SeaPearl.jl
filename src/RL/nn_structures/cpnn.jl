@@ -1,5 +1,5 @@
 """
-    FlexGNN(;
+    CPNN(;
         graphChain::Flux.Chain
         nodeChain::Flux.Chain
         outputLayer::Flux.Dense
@@ -8,16 +8,16 @@
 This structure is here to provide a flexible way to create a nn model which respect this approach:
 Making modification on the graph, then extract one node feature and modify it.
 """
-Base.@kwdef struct FlexGNN <: NNStructure
+Base.@kwdef struct CPNN <: NNStructure
     graphChain::Flux.Chain = Flux.Chain()
     nodeChain::Flux.Chain = Flux.Chain()
     outputLayer::Flux.Dense
 end
 
 # Enable the `|> gpu` syntax from Flux
-Flux.@functor FlexGNN
+Flux.@functor CPNN
 
-function (nn::FlexGNN)(states::BatchedDefaultTrajectoryState)
+function (nn::CPNN)(states::BatchedDefaultTrajectoryState)
 
     variableIdx = states.variables
     batchSize = length(variableIdx)
