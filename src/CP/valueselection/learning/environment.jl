@@ -1,6 +1,9 @@
 abstract type AbstractCPEnv{TS <: AbstractTrajectoryState} <: AbstractEnv end
 
 struct CPEnv{TS} <: AbstractCPEnv{TS}
+using Distributions: Categorical
+
+struct CPEnv{TS <: AbstractTrajectoryState} <: AbstractEnv
     reward::Float32
     terminal::Bool
     state::TS
@@ -40,4 +43,39 @@ function (learner::DQNLearner)(env::AbstractCPEnv{TS}) where {TS <: NonTabularTr
         learner.approximator |>
         vec |>
         send_to_host
+end
+
+function (learner::A2CLearner)(env::CPEnv{ST}) where {ST <: NonTabularTrajectoryState}
+    env |>
+    state |>
+    x ->
+        send_to_device(device(learner), x) |>
+        learner.approximator.actor |>
+        vec |>
+        send_to_host
+end
+
+function Array(state::T) where {T<:NonTabularTrajectoryState}
+    state
+end
+
+function RLBase.prob(p::PPOPolicy, env::CPEnv{ST}) where {ST <: NonTabularTrajectoryState}
+    s = state(env)
+    mask = isnothing(legal_action_space_mask(env)) ? nothing : legal_action_space_mask(env)
+    prob(p, s, mask)
+end
+
+function RLBase.prob(p::PPOPolicy{<:ActorCritic,Categorical}, state::DefaultTrajectoryState, mask::Union{Nothing,AbstractArray})
+    output = zeros(length(mask))
+    logits =
+        p.approximator.actor(send_to_device(device(p.approximator), state)) |> vec |>
+        send_to_host 
+    output[findall(mask)] = softmax(logits[findall(mask)])
+    if p.update_step < p.n_random_start
+        
+            Categorical(fill(1 / length(x), length(x)); check_args = false)
+        
+    else
+        Categorical(x; check_args = false)
+    end
 end
