@@ -1,9 +1,8 @@
+using Distributions: Categorical
+
 abstract type AbstractCPEnv{TS <: AbstractTrajectoryState} <: AbstractEnv end
 
 struct CPEnv{TS} <: AbstractCPEnv{TS}
-using Distributions: Categorical
-
-struct CPEnv{TS <: AbstractTrajectoryState} <: AbstractEnv
     reward::Float32
     terminal::Bool
     state::TS
