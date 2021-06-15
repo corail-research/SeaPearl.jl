@@ -16,12 +16,12 @@ creating temporary files for efficiency purpose.
 
 This generator create graps for the Eternity2 problem.
 """
-function fill_with_generator!(cpmodel::CPModel, gen::Eternity2Generator; seed=nothing)
+function fill_with_generator!(cpmodel::CPModel, gen::Eternity2Generator; seed=123)
     cpmodel.limit.numberOfSolutions = 1
     if !isnothing(seed)
         Random.seed!(seed)
     end
-
+    rng = MersenneTwister(seed)
     n=gen.n
     m=gen.m
     k=gen.k
@@ -32,17 +32,17 @@ function fill_with_generator!(cpmodel::CPModel, gen::Eternity2Generator; seed=no
     fill!(src_h,0)
     fill!(src_v,0)
 
-    shuff = shuffle(1:n*m)
+    shuff = shuffle(rng,1:n*m)
 
     for i in 2:n
         for j in 1:m
-            src_h[i,j]=rand(colors)
+            src_h[i,j]=rand(rng,colors)
         end
     end
 
     for i in 1:n
         for j in 2:m
-            src_v[i,j]=rand(colors)
+            src_v[i,j]=rand(rng,colors)
         end
     end
 
