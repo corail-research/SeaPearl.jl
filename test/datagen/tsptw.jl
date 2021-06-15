@@ -81,7 +81,7 @@ end
         13 13 18 28 20 11 15 28 15 4 10 17 10 40 25 17 9 3 8 0 19;
         12 31 29 27 10 30 4 27 35 18 27 36 26 21 33 32 10 21 25 19 0]
 
-        time_windows = [0         408;
+        timeWindows = [0         408;
         62        68;
         181       205;
         306       324;
@@ -103,12 +103,12 @@ end
         9         21;
         275       300]
 
-        dist, time_windows = SeaPearl.fill_with_generator!(model, generator; dist=dist, time_windows=time_windows)
+        dist, timeWindows = SeaPearl.fill_with_generator!(model, generator; dist=dist, timeWindows=timeWindows)
 
         foundDist, foundTW, foundPos, foundgrid_size = model.adhocInfo
 
         @test foundDist == dist
-        @test foundTW == time_windows
+        @test foundTW == timeWindows
         @test foundgrid_size == grid_size
 
         variableheuristic = TsptwVariableSelection{false}()
@@ -118,7 +118,7 @@ end
         SeaPearl.search!(model, SeaPearl.DFSearch, variableheuristic, valueheuristic)
 
         # println("dist", dist)
-        # println("time_windows", time_windows)
+        # println("timeWindows", timeWindows)
 
         @test length(model.statistics.solutions) >= 1
 
@@ -154,7 +154,7 @@ end
 
         generator = SeaPearl.TsptwGenerator(n_city, grid_size, max_tw_gap, max_tw)
 
-        dist, time_windows = SeaPearl.fill_with_generator!(model, generator; seed=42)
+        dist, timeWindows = SeaPearl.fill_with_generator!(model, generator; seed=42)
 
         variableheuristic = TsptwVariableSelection{false}()
         my_heuristic(x::SeaPearl.IntVar; cpmodel=nothing) = minimum(x.domain)
@@ -176,7 +176,7 @@ end
 
         generator = SeaPearl.TsptwGenerator(n_city, grid_size, max_tw_gap, max_tw)
 
-        dist, time_windows = SeaPearl.fill_with_generator!(model, generator; seed=42)
+        dist, timeWindows = SeaPearl.fill_with_generator!(model, generator; seed=42)
 
         @test SeaPearl.find_tsptw_dist_matrix(model) == dist
 

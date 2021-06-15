@@ -9,35 +9,37 @@ This structure is here to provide a flexible way to create a nn model which resp
 Making modification on the graph, then extract one node feature and modify it. 
 """
 Base.@kwdef struct FlexVariableOutputGNN <: NNStructure
-    graphChain::Flux.Chain
-    nodeChain::Flux.Chain
+    graphChain::Flux.Chain = Flux.Chain()
+    nodeChain::Flux.Chain = Flux.Chain()
     outputLayer::Flux.Dense
-    state_rep::Type{<:AbstractStateRepresentation}
 end
 
 # Enable the `|> gpu` syntax from Flux
 Flux.@functor FlexVariableOutputGNN
 
-functor(::Type{FlexVariableOutputGNN}, c) = (c.graphChain, c.nodeChain, c.outputLayer), ls -> FlexVariableOutputGNN(ls...)
-
 wears_mask(s::FlexVariableOutputGNN) = false
 
+function (nn::FlexVariableOutputGNN)(state::GraphTrajectoryState)
 
-function (nn::FlexVariableOutputGNN)(x::AbstractArray{Float32,2})
-    # get informations from the CPGraph (input) 
-    variableId = branchingvariableIdx(x, nn.state_rep)
-    fg = featuredgraph(x, nn.state_rep)
+    variableIdx = state.variableIdx
+    possibleValuesIdx = state.possibleValuesIdx
 
-    # chain working on the graph
-    fg = nn.graphChain(fg)
+    # chain working on the graph(s)
+    nodeFeatures = nn.graphChain(state.fg).nf
 
-    # extract the feature of the variable we're working on 
-    var_feature = GraphSignals.node_feature(fg)[:, variableId]
-    var_feature = nn.nodeChain(var_feature)
+    # extract the feature(s) of the variable(s) we're working on
+    variableFeatures = nodeFeatures[:, variableIdx]
+    valueFeatures = nodeFeatures[:, possibleValuesIdx]
 
-    val_feature = view(GraphSignals.node_feature(fg), :, possible_value_ids(x, nn.state_rep))
-    # println("possible_value_ids(x, nn.state_rep)", possible_value_ids(x, nn.state_rep))
+    # chain working on the node(s) feature(s)
+    chainOutput = nn.nodeChain(hcat(variableFeatures, valueFeatures))
 
-    toReturn = [nn.outputLayer(vcat(nn.nodeChain(valf), var_feature))[1] for valf in [val_feature[:, i] for i in 1:size(val_feature, 2)]]
-    return toReturn
+    variableOutput = chainOutput[:, 1]
+    valueOutput = chainOutput[:, 2:end]
+
+
+    finalInput = vcat(repeat(variableOutput, 1, length(possibleValuesIdx)), valueOutput)
+
+    output = dropdims(nn.outputLayer(finalInput); dims = 1)
+    return output
 end
