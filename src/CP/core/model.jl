@@ -2,11 +2,12 @@
 const Solution = Dict{String, Union{Int, Bool, Set{Int}}}
 
 mutable struct Statistics
-    numberOfNodes           ::Int
-    numberOfSolutions       ::Int
-    solutions               ::Vector{Solution}
-    nodevisitedpersolution  ::Vector{Int}
-    objectives              ::Union{Nothing, Vector{Int}}
+    numberOfNodes                   ::Int
+    numberOfSolutions               ::Int
+    numberOfInfeasibleSolutions     ::Int
+    solutions                       ::Vector{Solution}
+    nodevisitedpersolution          ::Vector{Int}
+    objectives                      ::Union{Nothing, Vector{Int}}
 end
 
 mutable struct Limit
@@ -36,7 +37,7 @@ mutable struct CPModel
     statistics              ::Statistics
     limit                   ::Limit
     adhocInfo               ::Any
-    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Constraint[], trailer, nothing, nothing, Statistics(0, 0,Solution[],Int[],nothing), Limit(nothing, nothing))
+    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Constraint[], trailer, nothing, nothing, Statistics(0, 0, 0,Solution[],Int[],nothing), Limit(nothing, nothing))
 end
 
 CPModel() = CPModel(Trailer())
