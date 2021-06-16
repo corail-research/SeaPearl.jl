@@ -1,6 +1,3 @@
-using Flux
-using Zygote
-using CUDA
 using GraphSignals
 
 abstract type NNStructure end
@@ -24,6 +21,7 @@ end
 
 include("geometricflux.jl")
 include("cpnn.jl")
+include("fullfeaturedcpnn.jl")
 include("variableoutputcpnn.jl")
 include("weighted_graph_gat.jl")
 
