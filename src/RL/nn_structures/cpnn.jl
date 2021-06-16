@@ -2,6 +2,7 @@
     CPNN(;
         graphChain::Flux.Chain
         nodeChain::Flux.Chain
+        globalChain::Flux.Chain = Flux.Chain()
         outputLayer::Flux.Dense
     )
 
@@ -11,6 +12,7 @@ Making modification on the graph, then extract one node feature and modify it.
 Base.@kwdef struct CPNN <: NNStructure
     graphChain::Flux.Chain = Flux.Chain()
     nodeChain::Flux.Chain = Flux.Chain()
+    globalChain::Flux.Chain = Flux.Chain()
     outputLayer::Flux.Dense
 end
 
@@ -23,7 +25,9 @@ function (nn::CPNN)(states::BatchedDefaultTrajectoryState)
     batchSize = length(variableIdx)
 
     # chain working on the graph(s)
+
     nodeFeatures = nn.graphChain(states.fg).nf
+    globalFeature = nn.graphChain(states.fg).gf
 
     # extract the feature(s) of the variable(s) we're working on
     indices = nothing
@@ -35,9 +39,9 @@ function (nn::CPNN)(states::BatchedDefaultTrajectoryState)
 
     # chain working on the node(s) feature(s)
     chainOutput = nn.nodeChain(variableFeature)
-
+    chainGlobalOutput = nn.globalChain(globalFeature)
     # output layer
-    output = nn.outputLayer(chainOutput)
+    output = nn.outputLayer(vcat(chainOutput,chainGlobalOutput))
 
     return output
 end

@@ -11,13 +11,15 @@ and an index specifying the variable that should be branched on.
 mutable struct DefaultStateRepresentation{F, TS} <: FeaturizedStateRepresentation{F, TS}
     cplayergraph::CPLayerGraph
     features::Union{Nothing, AbstractArray{Float32, 2}}
+    globalFeature::Union{Nothing, AbstractArray{Float32, 1}}
     variableIdx::Union{Nothing, Int64}
 end
 
 function DefaultStateRepresentation{F, TS}(model::CPModel) where {F, TS}
     g = CPLayerGraph(model)
-    sr = DefaultStateRepresentation{F, TS}(g, nothing, nothing)
+    sr = DefaultStateRepresentation{F, TS}(g, nothing, nothing,nothing)
     sr.features = featurize(sr)
+    sr.globalFeature = globalFeaturize(sr)
     return sr
 end
 
@@ -26,11 +28,11 @@ function DefaultTrajectoryState(sr::DefaultStateRepresentation{F, DefaultTraject
         throw(ErrorException("Unable to build a DefaultTrajectoryState, when the branching variable is nothing."))
     end
     adj = Matrix(adjacency_matrix(sr.cplayergraph))
-    fg = FeaturedGraph(adj; nf=sr.features)
+    fg = FeaturedGraph(adj; nf=sr.features, gf=sr.globalFeature)
     return DefaultTrajectoryState(fg, sr.variableIdx)
 end
 
-""" 
+"""
     update_representation!(sr::DefaultStateRepresentation, model::CPModel, x::AbstractIntVar)
 
 Update the StateRepesentation according to its Type and Featurization.
@@ -68,7 +70,7 @@ function featurize(sr::FeaturizedStateRepresentation{DefaultFeaturization, TS}) 
     features = zeros(Float32, 3, nv(g))
     for i in 1:nv(g)
         cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
-        if isa(cp_vertex, ConstraintVertex)    
+        if isa(cp_vertex, ConstraintVertex)
             features[1, i] = 1.0f0
         end
         if isa(cp_vertex, VariableVertex)
@@ -81,11 +83,15 @@ function featurize(sr::FeaturizedStateRepresentation{DefaultFeaturization, TS}) 
     features
 end
 
+function globalFeaturize(sr::FeaturizedStateRepresentation{DefaultFeaturization, TS}) where TS end
+
 """
     feature_length(gen::AbstractModelGenerator, ::Type{FeaturizedStateRepresentation})
 
 Returns the length of the feature vector, for the `DefaultFeaturization`.
 """
 feature_length(::Type{<:FeaturizedStateRepresentation{DefaultFeaturization, TS}}) where TS = 3
+
+globalFeature_length(::Type{<:FeaturizedStateRepresentation{DefaultFeaturization, TS}}) where TS = 0
 
 DefaultStateRepresentation(m::CPModel) = DefaultStateRepresentation{DefaultFeaturization, DefaultTrajectoryState}(m::CPModel)
