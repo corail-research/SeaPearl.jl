@@ -1,8 +1,8 @@
-@testset "flexGNN.jl" begin
+@testset "cpnn.jl" begin
 
     @testset "constructor" begin 
 
-        modelNN = SeaPearl.FlexGNN(
+        modelNN = SeaPearl.CPNN(
             graphChain = Flux.Chain(
                 GeometricFlux.GraphConv(3 => 3),
                 GeometricFlux.GraphConv(3 => 3),
@@ -41,12 +41,12 @@
         SeaPearl.update_representation!(stateRepresentation, model, x)
         batchedTrajectoryStateSingle =SeaPearl.trajectoryState(stateRepresentation)|> cpu
 
-        @test size(modelNN(batchedTrajectoryStateSingle)) == (4, 1) #the flexGNN output is a matrix 
+        @test size(modelNN(batchedTrajectoryStateSingle)) == (4, 1) #the CPNN output is a matrix 
 
         trajectoryVector = [SeaPearl.trajectoryState(stateRepresentation),SeaPearl.trajectoryState(stateRepresentation)]
         batchedTrajectoryState =trajectoryVector|> cpu
 
-        @test size(modelNN(batchedTrajectoryState)) == (4, 2) #the flexGNN output is a matrix 
+        @test size(modelNN(batchedTrajectoryState)) == (4, 2) #the CPNN output is a matrix 
 
     end
 

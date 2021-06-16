@@ -1,4 +1,4 @@
-include("algorithms/rsparsebitset.jl")
+include("datasstructures/rsparsebitset.jl")
 
 """
     TableConstraint

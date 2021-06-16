@@ -225,7 +225,7 @@
         approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
         target_approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
         gnnlayers = 1
-        approximator_model = SeaPearl.FlexGNN(
+        approximator_model = SeaPearl.CPNN(
             graphChain = Flux.Chain(
                 GeometricFlux.GraphConv(3 => 64, Flux.leakyrelu),
                 [approximator_GNN for i = 1:gnnlayers]...
@@ -237,7 +237,7 @@
             ),
             outputLayer = Flux.Dense(16, 4),
         ) |> gpu
-        target_approximator_model = SeaPearl.FlexGNN(
+        target_approximator_model = SeaPearl.CPNN(
             graphChain = Flux.Chain(
                 GeometricFlux.GraphConv(3 => 64, Flux.leakyrelu),
                 [target_approximator_GNN for i = 1:gnnlayers]...
@@ -340,7 +340,7 @@
         approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
         target_approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
         gnnlayers = 1
-        approximator_model = SeaPearl.FlexGNN(
+        approximator_model = SeaPearl.CPNN(
             graphChain = Flux.Chain(
                 GeometricFlux.GraphConv(3 => 64, Flux.leakyrelu),
                 [approximator_GNN for i = 1:gnnlayers]...
@@ -352,7 +352,7 @@
             ),
             outputLayer = Flux.Dense(16, 4),
         ) |> gpu
-        target_approximator_model = SeaPearl.FlexGNN(
+        target_approximator_model = SeaPearl.CPNN(
             graphChain = Flux.Chain(
                 GeometricFlux.GraphConv(3 => 64, Flux.leakyrelu),
                 [target_approximator_GNN for i = 1:gnnlayers]...

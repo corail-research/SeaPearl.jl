@@ -12,14 +12,14 @@
 
         SeaPearl.fill_with_generator!(model, generator; seed=42)
 
-        dist, time_windows, pos = model.adhocInfo
+        dist, timeWindows, pos = model.adhocInfo
 
         # This condition is there because of the way random are generated can change from one version to another
         if VERSION >= v"1.6.0"
             @test dist ==  [0 8 10; 
                             8 0 4; 
                             10 4 0]
-            @test time_windows == [0 10; 8 16; 12 15]
+            @test timeWindows == [0 10; 8 16; 12 15]
             @test pos == [5.331830160438614 1.7293302893695128; 4.540291355871425 9.589258763297348; 0.17686826714964354 9.735659798036858]
             
             sr = SeaPearl.TsptwStateRepresentation(model)
@@ -27,7 +27,7 @@
             @test sr.dist == [  0.0 0.8 1.0
                                 0.8 0.0 0.4
                                 1.0 0.4 0.0]
-            @test trunc.(sr.time_windows; digits=2) == [0.0  0.62
+            @test trunc.(sr.timeWindows; digits=2) == [0.0  0.62
                                                         0.5 1.0
                                                         0.75 0.93]
             @test trunc.(sr.pos; digits=2) == [ 0.53 0.17
@@ -50,14 +50,14 @@
 
         SeaPearl.fill_with_generator!(model, generator; seed=42)
 
-        dist, time_windows, pos = model.adhocInfo
+        dist, timeWindows, pos = model.adhocInfo
 
         # This condition is there because of the way random are generated can change from one version to another
         if VERSION >= v"1.6.0"
             @test dist ==  [0 8 10; 
                             8 0 4; 
                             10 4 0]
-            @test time_windows == [0 10; 8 16; 12 15]
+            @test timeWindows == [0 10; 8 16; 12 15]
             @test pos == [5.331830160438614 1.7293302893695128; 4.540291355871425 9.589258763297348; 0.17686826714964354 9.735659798036858]
             
             sr = SeaPearl.TsptwStateRepresentation(model)
@@ -85,7 +85,7 @@
 
         SeaPearl.fill_with_generator!(model, generator; seed=42)
 
-        dist, time_windows, pos = model.adhocInfo
+        dist, timeWindows, pos = model.adhocInfo
 
         features = Float32[ 0.0 0.8 1.0 0.53 0.17 0.0  0.47 1.0 0.0 0.0 0.0; 
                             0.8 0.0 0.4 0.45 0.95 0.38 0.66 1.0 1.0 0.0 1.0; 
