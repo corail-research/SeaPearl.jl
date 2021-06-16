@@ -5,14 +5,17 @@ struct ILDSearch <: SearchStrategy end
 
 abstract type RBSSearch <: SearchStrategy end
 
-struct staticRBSSearcn <: RBSSearch
+struct staticRBSSearch <: RBSSearch
     L::Int64
+    n::Int64
 end
-struct geometricRBSSearcn <: RBSSearch
+struct geometricRBSSearch <: RBSSearch
     L::Int64
+    n::Int64
     α::Float32
 end
-struct lubiRBSSearcn <: RBSSearch
+struct lubiRBSSearch <: RBSSearch
     L::Int64
+    n::Int64
 
 end
