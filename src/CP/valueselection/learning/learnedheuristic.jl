@@ -47,6 +47,7 @@ Finally, makes the agent call the process of the RL pre_episode_stage (basically
 function (valueSelection::LearnedHeuristic)(::Type{InitializingPhase}, model::CPModel)
     # create the environment
     update_with_cpmodel!(valueSelection, model)
+    # TODO get rid of this => prone to bugs
     false_x = first(values(branchable_variables(model)))
     env = get_observation!(valueSelection, model, false_x)
 

@@ -26,7 +26,7 @@
     approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
     target_approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
     gnnlayers = 1
-    approximator_model = SeaPearl.FlexGNN(
+    approximator_model = SeaPearl.CPNN(
         graphChain = Flux.Chain(
             GeometricFlux.GraphConv(3 => 64, Flux.leakyrelu),
             [approximator_GNN for i = 1:gnnlayers]...
@@ -38,7 +38,7 @@
         ),
         outputLayer = Flux.Dense(16, 4),
     ) |> gpu
-    target_approximator_model = SeaPearl.FlexGNN(
+    target_approximator_model = SeaPearl.CPNN(
         graphChain = Flux.Chain(
             GeometricFlux.GraphConv(3 => 64, Flux.leakyrelu),
             [target_approximator_GNN for i = 1:gnnlayers]...
@@ -115,42 +115,41 @@
     
         Flux.reset!(lh.agent)
         lh.agent(RL.PRE_EPISODE_STAGE, env)
-
         _, _ = SeaPearl.fixPoint!(model)
-
         env = SeaPearl.get_observation!(lh, model, x1)
+
         v1 = lh.agent(env)
         lh.agent(RL.PRE_ACT_STAGE, env, v1)
-
         SeaPearl.assign!(x1, v1)
         _, _ = SeaPearl.fixPoint!(model, SeaPearl.getOnDomainChange(x1))
-
-
         env = SeaPearl.get_observation!(lh, model, x2)
         lh.agent(RL.POST_ACT_STAGE, env)
-
         v2 = lh.agent(env)
         lh.agent(RL.PRE_ACT_STAGE, env, v2)
-
         SeaPearl.assign!(x2, v2)
         _, _ = SeaPearl.fixPoint!(model, SeaPearl.getOnDomainChange(x2))
-
-
         env = SeaPearl.get_observation!(lh, model, x3)
         lh.agent(RL.POST_ACT_STAGE, env)
 
         v3 = lh.agent(env)
         lh.agent(RL.PRE_ACT_STAGE, env, v3)
-
         SeaPearl.assign!(x3, v3)
         _, _ = SeaPearl.fixPoint!(model, SeaPearl.getOnDomainChange(x3))
-
-
         env = SeaPearl.get_observation!(lh, model, x4)
         lh.agent(RL.POST_ACT_STAGE, env)
 
         v4 = lh.agent(env)
         lh.agent(RL.PRE_ACT_STAGE, env, v4)
+        SeaPearl.assign!(x4, v4)
+        _, _ = SeaPearl.fixPoint!(model, SeaPearl.getOnDomainChange(x4))
+        env = SeaPearl.get_observation!(lh, model, x4)
+        lh.agent(RL.POST_ACT_STAGE, env)
+
+        @test length(lh.agent.trajectory[:state]) == 4
+        @test size(lh.agent.trajectory[:legal_actions_mask]) == (4,4)
+        @test length(lh.agent.trajectory[:action]) == 4
+        @test length(lh.agent.trajectory[:reward]) == 4
+        @test length(lh.agent.trajectory[:terminal]) == 4
 
     end
 

@@ -23,8 +23,8 @@ function (nn::NNStructure)(x::AbstractVector{<:NonTabularTrajectoryState})
 end
 
 include("geometricflux.jl")
-include("flexGNN.jl")
-include("flex_variable_output_gnn.jl")
+include("cpnn.jl")
+include("variableoutputcpnn.jl")
 include("weighted_graph_gat.jl")
 
 struct ModelNotImplementedError{M} <: Exception

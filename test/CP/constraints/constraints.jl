@@ -1,8 +1,8 @@
 @testset "constraints" begin
     include("algorithms/matching.jl")
-    include("algorithms/rsparsebitset.jl")
     include("absolute.jl")
     include("datasstructures/disjointSet.jl")
+    include("datasstructures/rsparsebitset.jl")
     include("disjunctive.jl")
     include("alldifferent.jl")
     include("compacttable.jl")

@@ -109,10 +109,9 @@ Return the ids of the valid indexes from the Array representation of the Abstrac
 ActionOutput of variable size (VariableOutput).
 """
 #TODO repair TSPTW
-function from_order_to_id(state::AbstractArray, value_order::Int64, SR::Type{<:AbstractStateRepresentation})
-    value_vector = state[:, end]
-    valid_indexes = findall((x) -> x == 1, value_vector)
-    return valid_indexes[value_order]
+function from_order_to_id(state::AbstractTrajectoryState, value_order::Int64, SR::Type{<:AbstractStateRepresentation})
+    @assert !isnothing(state.possibleValuesIdx)
+    return state.possibleValuesIdx[value_order]
 end
 
 """
@@ -128,11 +127,9 @@ function action_to_value(vs::LearnedHeuristic{SR, R, VariableOutput}, action::In
     return cp_vertex.value
 end
 
-"""
-function action_to_value(vs::LearnedHeuristic{SR, R, VariableOutput}, action::Int64, state::AbstractArray, model::CPModel) where {SR <: DefaultStateRepresentation, R}
+function action_to_value(vs::LearnedHeuristic{SR, R, VariableOutput}, action::Int64, state::AbstractTrajectoryState, model::CPModel) where {SR <: TsptwStateRepresentation, R}
     return from_order_to_id(state, action, SR)
 end
-"""
 
 """
     action_to_value(vs::LearnedHeuristic{SR, R, FixedOutput}, action::Int64, state::AbstractArray, model::CPModel)
