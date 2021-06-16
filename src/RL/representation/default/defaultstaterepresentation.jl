@@ -12,11 +12,16 @@ mutable struct DefaultStateRepresentation{F, TS} <: FeaturizedStateRepresentatio
     cplayergraph::CPLayerGraph
     features::Union{Nothing, AbstractArray{Float32, 2}}
     variableIdx::Union{Nothing, Int64}
+    allValuesIdx::Union{Nothing, Vector{Int64}}
 end
 
-function DefaultStateRepresentation{F, TS}(model::CPModel) where {F, TS}
+function DefaultStateRepresentation{F, TS}(model::CPModel; action_space=nothing) where {F, TS}
     g = CPLayerGraph(model)
-    sr = DefaultStateRepresentation{F, TS}(g, nothing, nothing)
+    allValuesIdx = nothing
+    if !isnothing(action_space)
+        allValuesIdx = indexFromCpVertex.([g], ValueVertex.(action_space))
+    end
+    sr = DefaultStateRepresentation{F, TS}(g, nothing, nothing, allValuesIdx)
     sr.features = featurize(sr)
     return sr
 end
@@ -27,7 +32,7 @@ function DefaultTrajectoryState(sr::DefaultStateRepresentation{F, DefaultTraject
     end
     adj = Matrix(adjacency_matrix(sr.cplayergraph))
     fg = FeaturedGraph(adj; nf=sr.features)
-    return DefaultTrajectoryState(fg, sr.variableIdx)
+    return DefaultTrajectoryState(fg, sr.variableIdx, sr.allValuesIdx)
 end
 
 """ 

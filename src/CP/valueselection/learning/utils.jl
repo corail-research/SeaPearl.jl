@@ -27,7 +27,7 @@ function update_with_cpmodel!(lh::LearnedHeuristic{SR, R, A}, model::CPModel) wh
 
     lh.action_space = valuesOfVariables
     # state rep construction
-    lh.current_state = SR(model)
+    lh.current_state = SR(model; action_space=lh.action_space)
 
     # create and initialize the reward
     lh.reward = R(model)

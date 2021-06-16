@@ -11,7 +11,7 @@ Making modification on the graph, then extract one node feature and modify it.
 Base.@kwdef struct VariableOutputCPNN <: NNStructure
     graphChain::Flux.Chain = Flux.Chain()
     nodeChain::Flux.Chain = Flux.Chain()
-    outputLayer::Flux.Dense
+    outputChain::Union{Flux.Dense, Flux.Chain} = Flux.Chain()
 end
 
 # Enable the `|> gpu` syntax from Flux
@@ -40,6 +40,6 @@ function (nn::VariableOutputCPNN)(state::GraphTrajectoryState)
 
     finalInput = vcat(repeat(variableOutput, 1, length(possibleValuesIdx)), valueOutput)
 
-    output = dropdims(nn.outputLayer(finalInput); dims = 1)
+    output = dropdims(nn.outputChain(finalInput); dims = 1)
     return output
 end
