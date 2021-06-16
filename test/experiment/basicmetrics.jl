@@ -133,7 +133,7 @@ agent = RL.Agent(
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
         metrics  = SeaPearl.BasicMetrics(model, basicheuristic)
-        dt = @elapsed SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection(), basicheuristic) 
+        dt = @elapsed SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection(), basicheuristic) 
         metrics(model,dt)
 
         @test metrics.nodeVisited[1] == [2,3]
@@ -154,7 +154,7 @@ agent = RL.Agent(
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
         metrics  = SeaPearl.BasicMetrics(model, learnedheuristic)
-        dt = @elapsed SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection(), learnedheuristic) 
+        dt = @elapsed SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection(), learnedheuristic) 
         
         metrics(model,dt)
 
@@ -179,7 +179,7 @@ agent = RL.Agent(
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
         SeaPearl.addObjective!(model,y)
         metrics  = SeaPearl.BasicMetrics(model, basicheuristic)
-        dt = @elapsed SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection(), basicheuristic) 
+        dt = @elapsed SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection(), basicheuristic) 
         metrics(model,dt)
 
         @test metrics.nodeVisited[1] == [2, 3] #only one soluion found due to Objective prunning 
@@ -201,7 +201,7 @@ agent = RL.Agent(
         SeaPearl.addObjective!(model,y)
 
         metrics  = SeaPearl.BasicMetrics(model, learnedheuristic)
-        dt = @elapsed SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection(), learnedheuristic) 
+        dt = @elapsed SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection(), learnedheuristic) 
         
         metrics(model,dt)
 
