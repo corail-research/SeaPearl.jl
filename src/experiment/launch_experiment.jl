@@ -29,13 +29,13 @@ function launch_experiment!(
         valueSelectionArray::Array{T, 1}, 
         generator::AbstractModelGenerator,
         nbEpisodes::Int64,
-        strategy::Type{DFSearch},
+        strategy::S,
         variableHeuristic::AbstractVariableSelection,
         out_solver::Bool,
         verbose::Bool;
         metrics::Union{Nothing, AbstractMetrics}=nothing,
         evaluator::Union{Nothing, AbstractEvaluator}=SameInstancesEvaluator(valueSelectionArray,generator)
-    ) where T <: ValueSelection
+    ) where{T <: ValueSelection, S <: SearchStrategy}
 
     nbHeuristics = length(valueSelectionArray)
 

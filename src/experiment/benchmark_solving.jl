@@ -19,13 +19,13 @@ This function might evolve for a more precise one which will provide better anal
 function benchmark_solving(;
         valueSelectionArray::Union{T, Array{T, 1}}, 
         generator::AbstractModelGenerator,
-        strategy::Type{DFSearch}=DFSearch,
+        strategy::S=DFSearch,
         variableHeuristic::AbstractVariableSelection=MinDomainVariableSelection(),
         out_solver::Bool=false, 
         metricsFun=((;kwargs...) -> nothing),
         verbose::Bool=true,
         evaluator::Union{Nothing, AbstractEvaluator}
-    ) where T <: ValueSelection
+    ) where{T <: ValueSelection,S <: SearchStrategy}
     println("Benchmarking...")
     if isa(valueSelectionArray, T)
         valueSelectionArray = [valueSelectionArray]
@@ -38,7 +38,7 @@ function benchmark_solving(;
                 @warn "This learned heuristic was trained on a different problem type."
             end
 
-            if valueSelection.fitted_strategy != strategy
+            if valueSelection.fitted_strategy != typeof(strategy)
                 @warn "This learned heuristic was trained with a different search strategy."
             end
 

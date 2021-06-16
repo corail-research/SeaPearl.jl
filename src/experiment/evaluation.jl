@@ -22,7 +22,7 @@ function SameInstancesEvaluator(valueSelectionArray::Array{H, 1}, generator::Abs
     SameInstancesEvaluator(instances, metrics, evalFreq, nbInstances, size(valueSelectionArray,1))
 end
 
-function evaluate(eval::SameInstancesEvaluator, variableHeuristic::AbstractVariableSelection, strategy::Type{<:SearchStrategy}; verbose=true)
+function evaluate(eval::SameInstancesEvaluator, variableHeuristic::AbstractVariableSelection, strategy::S; verbose=true) where{S<:SearchStrategy}
 
     for j in 1:eval.nbHeuristics
         testmode!(eval.metrics[1,j].heuristic, true)

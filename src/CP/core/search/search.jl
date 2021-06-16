@@ -4,26 +4,29 @@ include("ilds.jl")
 include("rbs.jl")
 include("strategies.jl")
 
-"""
-    search!(model::CPModel, ::Type{Strategy}, variableHeuristic, valueSelection::ValueSelection=BasicHeuristic())
 
+"""
+    initroot!(toCall::Stack{Function}, ::F, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection) where F <: SearchStrategy
+Initialisation function that fill the toCall Stack according to a certain strategy. 
+    """
+function initroot!(toCall::Stack{Function}, ::F, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection) where F <: SearchStrategy
+    throw(ErrorException("Search Strategy $(F) not implemented."))
+end 
+
+"""
+search!(model::CPModel, strategy::S, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection=BasicHeuristic(); out_solver::Bool=false) where S <: SearchStrategy
 Perform a search following a specific strategy in the `model` using `variableHeuristic` to choose which domain will be changed
 at each branching and using `valueSelection` to choose how the branching will be done. 
 
 """
-function initroot!(toCall::Stack{Function}, ::Type{F}, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection) where F <: SearchStrategy
-    throw(ErrorException("Search Strategy $(F) not implemented."))
-end 
-
-
-function search!(model::CPModel, ::Type{Strategy}, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection=BasicHeuristic(); out_solver::Bool=false) where Strategy <: SearchStrategy
+function search!(model::CPModel, strategy::S, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection=BasicHeuristic(); out_solver::Bool=false) where S <: SearchStrategy
 
     # create env and get first observation
     valueSelection(InitializingPhase, model)
 
     toCall = Stack{Function}()
     # Starting at the root node with an empty stack
-    currentStatus = initroot!(toCall, Strategy,  model, variableHeuristic, valueSelection)
+    currentStatus = initroot!(toCall, strategy,  model, variableHeuristic, valueSelection)
     
     while !isempty(toCall)
         # Stop right away if reached a limit
