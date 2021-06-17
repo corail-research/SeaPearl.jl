@@ -13,7 +13,7 @@ approximator_model = SeaPearl.CPNN(
         Flux.Dense(32, 32, Flux.leakyrelu),
         Flux.Dense(32, 16, Flux.leakyrelu),
     ),
-    outputLayer = Flux.Dense(16, 3),
+    outputChain = Flux.Dense(16, 3),
 ) |> gpu
 target_approximator_model = SeaPearl.CPNN(
     graphChain = Flux.Chain(
@@ -25,7 +25,7 @@ target_approximator_model = SeaPearl.CPNN(
         Flux.Dense(32, 32, Flux.leakyrelu),
         Flux.Dense(32, 16, Flux.leakyrelu),
     ),
-    outputLayer = Flux.Dense(16, 3),
+    outputChain = Flux.Dense(16, 3),
 ) |> gpu
 
 

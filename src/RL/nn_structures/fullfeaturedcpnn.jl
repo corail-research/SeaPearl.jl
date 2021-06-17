@@ -2,7 +2,7 @@
     FullFeaturedCPNN(;
         graphChain::Flux.Chain
         nodeChain::Flux.Chain
-        outputLayer::Flux.Dense
+        outputChain::Flux.Dense
     )
 
 This structure is here to provide a flexible way to create a nn model which respect this approach:
@@ -17,6 +17,7 @@ end
 # Enable the `|> gpu` syntax from Flux
 Flux.@functor FullFeaturedCPNN
 
+# TODO make it possible to use global features
 function (nn::FullFeaturedCPNN)(states::BatchedDefaultTrajectoryState)
     @assert !isnothing(states.allValuesIdx)
 

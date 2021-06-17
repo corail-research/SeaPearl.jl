@@ -11,8 +11,8 @@ approximator_model = SeaPearl.CPNN(
         Flux.Dense(32, 32, Flux.leakyrelu),
         Flux.Dense(32, 16, Flux.leakyrelu),
     ),
-    outputLayer = Flux.Dense(16, 4),
-) |> gpu
+    outputChain = Flux.Dense(16, 4),
+) |> cpu
 target_approximator_model = SeaPearl.CPNN(
     graphChain = Flux.Chain(
         GeometricFlux.GraphConv(3 => 64, Flux.leakyrelu),
@@ -23,8 +23,8 @@ target_approximator_model = SeaPearl.CPNN(
         Flux.Dense(32, 32, Flux.leakyrelu),
         Flux.Dense(32, 16, Flux.leakyrelu),
     ),
-    outputLayer = Flux.Dense(16, 4),
-) |> gpu
+    outputChain = Flux.Dense(16, 4),
+) |> cpu
             
 agent = RL.Agent(
     policy = RL.QBasedPolicy(
@@ -55,7 +55,6 @@ agent = RL.Agent(
             step = 1,
             is_break_tie = false, 
             #is_training = true,
-            rng = MersenneTwister(33)
         )
     ),
     trajectory = RL.CircularArraySLARTTrajectory(
@@ -67,11 +66,10 @@ agent = RL.Agent(
 )
 
 @testset "learning.jl" begin
-    include("searchmetrics.jl")
+    include("environment.jl")
     include("rewards/rewards.jl")
     include("utils.jl")
     include("learnedheuristic.jl")
-    include("searchmetrics.jl")
 
     LearnedHeristicBasicConstructor = SeaPearl.LearnedHeuristic(agent)
     @test isa(LearnedHeristicBasicConstructor,SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}, SeaPearl.DefaultReward, SeaPearl.FixedOutput})

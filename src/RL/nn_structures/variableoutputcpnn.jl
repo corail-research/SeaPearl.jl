@@ -2,7 +2,7 @@
     VariableOutputCPNN(;
         graphChain::Flux.Chain
         nodeChain::Flux.Chain
-        outputLayer::Flux.Dense
+        outputChain::Flux.Dense
     )
 
 This structure is here to provide a flexible way to create a nn model which respect this approach:

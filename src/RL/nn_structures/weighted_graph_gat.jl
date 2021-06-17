@@ -58,7 +58,7 @@ function GeometricFlux.propagate(g::EdgeFtLayer, fg::FeaturedGraph, aggr=+)
     # For the edge features, we only take what is necessary
     ef = E[out_channel_v+1:end, :]
 
-    GraphSignals.FeaturedGraph(graph(fg), nf=nf, ef=ef)
+    GeometricFlux.FeaturedGraph(graph(fg), nf=nf, ef=ef)
 end
 
 function GeometricFlux.message(l::EdgeFtLayer, x_i::AbstractVector, x_j::AbstractVector, e_ij::AbstractVector)

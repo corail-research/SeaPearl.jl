@@ -20,7 +20,7 @@
             Flux.Dense(32, 32, Flux.leakyrelu),
             Flux.Dense(32, 16, Flux.leakyrelu),
         ),
-        outputLayer = Flux.Dense(16, generator.nb_nodes),
+        outputChain = Flux.Dense(16, generator.nb_nodes),
     ) |> gpu
     target_approximator_model = SeaPearl.CPNN(
         graphChain = Flux.Chain(
@@ -32,7 +32,7 @@
             Flux.Dense(32, 32, Flux.leakyrelu),
             Flux.Dense(32, 16, Flux.leakyrelu),
         ),
-        outputLayer = Flux.Dense(16, generator.nb_nodes),
+        outputChain = Flux.Dense(16, generator.nb_nodes),
     ) |> gpu
 
     # Agent definition
@@ -118,7 +118,7 @@ end
             Flux.Dense(32, 32, Flux.leakyrelu),
             Flux.Dense(32, 16, Flux.leakyrelu),
         ),
-        outputLayer = Flux.Dense(16, generator.nb_nodes),
+        outputChain = Flux.Dense(16, generator.nb_nodes),
     ) |> gpu
     target_approximator_model = SeaPearl.CPNN(
         graphChain = Flux.Chain(
@@ -130,7 +130,7 @@ end
             Flux.Dense(32, 32, Flux.leakyrelu),
             Flux.Dense(32, 16, Flux.leakyrelu),
         ),
-        outputLayer = Flux.Dense(16, generator.nb_nodes),
+        outputChain = Flux.Dense(16, generator.nb_nodes),
     ) |> gpu
 
     # Agent definition

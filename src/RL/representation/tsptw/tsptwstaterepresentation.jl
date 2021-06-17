@@ -41,7 +41,7 @@ function TsptwTrajectoryState(sr::TsptwStateRepresentation{F, TsptwTrajectorySta
     n = size(sr.dist, 1)
     adj = ones(Int, n, n) - I
     edgeFeatures = build_edge_feature(adj, sr.dist)
-    fg = GraphSignals.FeaturedGraph(adj; nf=sr.features, ef=edgeFeatures)
+    fg = GeometricFlux.FeaturedGraph(adj; nf=sr.features, ef=edgeFeatures)
     return TsptwTrajectoryState(fg, sr.variableIdx, sr.possibleValuesIdx)
 end
 
