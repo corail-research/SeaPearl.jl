@@ -7,12 +7,12 @@ adj = [0 1 0 1;
     
     @testset "DefaultStateRepresentation structure" begin
         g = SeaPearl.CPLayerGraph()
-        features = [1.0f0 1.0f0; 2.0f0 2.0f0]
+        nodeFeatures = [1.0f0 1.0f0; 2.0f0 2.0f0]
         variableIdx = 1
-        dsr = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}(g, features, variableIdx)
+        dsr = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}(g, nodeFeatures, nothing, variableIdx, nothing)
 
         @test dsr.cplayergraph == g
-        @test dsr.features == features
+        @test dsr.nodeFeatures == nodeFeatures
         @test dsr.variableIdx == 1
 
     end
@@ -39,7 +39,7 @@ adj = [0 1 0 1;
                                                                                 0 0 0 1 0 0
                                                                                 0 0 1 1 0 0]
 
-        @test dsr.features == Float32[  1 1 0 0 0 0
+        @test dsr.nodeFeatures == Float32[  1 1 0 0 0 0
                                         0 0 1 1 0 0
                                         0 0 0 0 1 1]
         @test dsr.variableIdx == 3
@@ -67,7 +67,7 @@ adj = [0 1 0 1;
                                                     0 0 1 1 0 0
                                                     0 0 1 1 0 0]
 
-        @test dsr.features == Float32[   1 1 0 0 0 0
+        @test dsr.nodeFeatures == Float32[   1 1 0 0 0 0
                                                         0 0 1 1 0 0
                                                         0 0 0 0 1 1]
 
@@ -86,7 +86,7 @@ adj = [0 1 0 1;
                                                     0 0 1 1 0 0
                                                     0 0 1 0 0 0]
 
-        @test dsr.features == Float32[   1 1 0 0 0 0
+        @test dsr.nodeFeatures == Float32[   1 1 0 0 0 0
                                                         0 0 1 1 0 0
                                                         0 0 0 0 1 1]
         @test dsr.variableIdx == 4
@@ -115,8 +115,6 @@ adj = [0 1 0 1;
 
     end
 
-
-    
     @testset "BatchedDefaultTrajectoryState constructor" begin
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
@@ -134,11 +132,11 @@ adj = [0 1 0 1;
         dts = SeaPearl.DefaultTrajectoryState(dsr)  #creates the DefaultTrajectoryState object
 
         batchedDtsSingle = dts |> cpu   
-        @test batchedDtsSingle.adjacencies[:,:,1]== adjacency_matrix(dts.fg)
-        @test batchedDtsSingle.nodeFeatures[:,:,1] == dts.fg.nf
-        @test batchedDtsSingle.edgeFeatures[:,:,1] == dts.fg.ef
-        @test batchedDtsSingle.globalFeatures[:,1] == dts.fg.gf
-        @test batchedDtsSingle.variables[1] == dts.variableIdx
+        @test batchedDtsSingle.fg.graph[:,:,1]== adjacency_matrix(dts.fg)
+        @test batchedDtsSingle.fg.nf[:,:,1] == dts.fg.nf
+        @test batchedDtsSingle.fg.ef[:,:,1] == dts.fg.ef
+        @test batchedDtsSingle.fg.gf[:,1] == dts.fg.gf
+        @test batchedDtsSingle.variableIdx[1] == dts.variableIdx
 
         SeaPearl.assign!(x, 2)
         SeaPearl.fixPoint!(model, SeaPearl.getOnDomainChange(x))
@@ -147,10 +145,10 @@ adj = [0 1 0 1;
 
 
         batchedDts = [dts,dts2] |> cpu   
-        @test size(batchedDts.adjacencies,3) == 2
-        @test size(batchedDts.nodeFeatures,3) == 2
-        @test size(batchedDts.edgeFeatures,3) == 2
-        @test size(batchedDts.globalFeatures,2) == 2
-        @test size(batchedDts.variables,1) == 2
+        @test size(batchedDts.fg.graph,3) == 2
+        @test size(batchedDts.fg.nf,3) == 2
+        @test size(batchedDts.fg.ef,3) == 2
+        @test size(batchedDts.fg.gf,2) == 2
+        @test size(batchedDts.variableIdx,1) == 2
     end
 end

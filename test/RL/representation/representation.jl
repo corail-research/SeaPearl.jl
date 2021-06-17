@@ -10,8 +10,10 @@ end
 @testset "representation.jl" begin
 
     include("default/cp_layer/cp_layer.jl")
+    include("default/defaulttrajectorystate.jl")
     include("default/defaultstaterepresentation.jl")
-    #include("tsptw/tsptwstaterepresentation.jl")
+    include("tsptw/tsptwtrajectorystate.jl")
+    include("tsptw/tsptwstaterepresentation.jl")
 
     @testset "Unimplemented featurization" begin
         @test_throws ErrorException SeaPearl.featurize(TestFeatState{UnimplementedFeaturization,SeaPearl.DefaultTrajectoryState}())

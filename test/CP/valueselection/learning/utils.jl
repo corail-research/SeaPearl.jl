@@ -47,7 +47,7 @@
                                                         0 0 1 1 0 0
                                                         0 0 1 1 0 0]
 
-        @test lh.current_state.features == Float32[ 1 1 0 0 0 0
+        @test lh.current_state.nodeFeatures == Float32[ 1 1 0 0 0 0
                                                             0 0 1 1 0 0
                                                             0 0 0 0 1 1]
         
@@ -63,7 +63,7 @@
                                                         0 0 1 1 0 0
                                                         0 0 0 1 0 0]
 
-        @test lh.current_state.features == Float32[ 1 1 0 0 0 0
+        @test lh.current_state.nodeFeatures == Float32[ 1 1 0 0 0 0
                                                             0 0 1 1 0 0
                                                             0 0 0 0 1 1]
         
