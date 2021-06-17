@@ -39,7 +39,7 @@ function (nn::CPNN)(states::BatchedDefaultTrajectoryState)
     # chain working on the node(s) feature(s)
     chainNodeOutput = nn.nodeChain(variableFeature)
 
-    if isa(globalFeatures, Fill)
+    if sizeof(globalFeatures) == 0
         # output layers
         output = nn.outputChain(chainNodeOutput)
         return output
