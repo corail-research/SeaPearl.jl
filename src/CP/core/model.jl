@@ -221,6 +221,7 @@ function Base.isempty(model::CPModel)::Bool
         && isnothing(model.statistics.objectives)
         && model.statistics.numberOfNodes == 0
         && model.statistics.numberOfSolutions == 0
+        && model.statistics.numberOfInfeasibleSolutions == 0
         && isnothing(model.limit.numberOfNodes)
         && isnothing(model.limit.numberOfSolutions)
     )
@@ -243,6 +244,7 @@ function Base.empty!(model::CPModel)
     model.statistics.objectives = nothing
     model.statistics.numberOfNodes = 0
     model.statistics.numberOfSolutions = 0
+    model.statistics.numberOfInfeasibleSolutions = 0
     model.limit.numberOfNodes = nothing
     model.limit.numberOfSolutions = nothing
     model
@@ -269,6 +271,7 @@ function reset_model!(model::CPModel)
     end
     model.statistics.numberOfNodes = 0
     model.statistics.numberOfSolutions = 0
+    model.statistics.numberOfInfeasibleSolutions = 0
 
 end
 

@@ -109,6 +109,7 @@
         @test model.objectiveBound == 2
         @test model.statistics.numberOfSolutions == 1
         @test model.statistics.objectives[1] == 3
+        @test model.statistics.numberOfInfeasibleSolutions == 0 
 
     end
 
