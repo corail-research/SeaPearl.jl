@@ -46,11 +46,11 @@ It contains all the information that would be stored in a `FeaturedGraph` but re
 computation on a few graphs.
 """
 Base.@kwdef struct BatchedDefaultTrajectoryState{T} <: NonTabularTrajectoryState
-    fg::BatchedFeaturedGraph
+    fg::BatchedFeaturedGraph{T}
     variableIdx::AbstractVector{Int}
     allValuesIdx::Union{AbstractMatrix{Int}, Nothing} = nothing
 end
-BatchedDefaultTrajectoryState(fg, var, val) = BatchedDefaultTrajectoryState{Float32}(fg, var, val)
+BatchedDefaultTrajectoryState(fg, var, val) = BatchedDefaultTrajectoryState{Float32}(fg=fg, variableIdx=var, allValuesIdx=val)
 
 """
     Flux.functor(::Type{DefaultTrajectoryState}, s)
@@ -107,7 +107,7 @@ function Flux.functor(::Type{Vector{DefaultTrajectoryState}}, v)
     Zygote.ignore() do
         # TODO: this could probably be optimized
         foreach(enumerate(v)) do (idx, state)
-            adj[1:size(adj,1),1:size(adj,2),idx] = adjacency_matrix(state.fg)
+            adj[1:size(state.fg.graph,1),1:size(state.fg.graph,2),idx] = adjacency_matrix(state.fg.graph)
             nf[1:size(state.fg.nf, 1),1:size(state.fg.nf, 2),idx] = state.fg.nf
             ef[1:size(state.fg.ef, 1),1:size(state.fg.ef, 2),idx] = state.fg.ef
             gf[1:size(state.fg.gf, 1),idx] = state.fg.gf

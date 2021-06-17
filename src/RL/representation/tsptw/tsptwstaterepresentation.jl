@@ -15,7 +15,7 @@ mutable struct TsptwStateRepresentation{F, TS} <: FeaturizedStateRepresentation{
     dist::Matrix
     timeWindows::Matrix
     pos::Matrix
-    features::Union{Nothing, AbstractMatrix{Float32}}
+    nodeFeatures::Union{Nothing, AbstractMatrix{Float32}}
     variableIdx::Union{Nothing, Int64}
     possibleValuesIdx::Union{Nothing, AbstractVector{Int64}}
 end
@@ -23,7 +23,7 @@ end
 function TsptwStateRepresentation{F, TS}(model::CPModel) where {F, TS}
     dist, timeWindows, pos = get_tsptw_info(model)
     sr = TsptwStateRepresentation{F, TS}(dist, timeWindows, pos, nothing, nothing, nothing)
-    sr.features = featurize(sr)
+    sr.nodeFeatures = featurize(sr)
     return sr
 end
 
@@ -41,7 +41,7 @@ function TsptwTrajectoryState(sr::TsptwStateRepresentation{F, TsptwTrajectorySta
     n = size(sr.dist, 1)
     adj = ones(Int, n, n) - I
     edgeFeatures = build_edge_feature(adj, sr.dist)
-    fg = GeometricFlux.FeaturedGraph(adj; nf=sr.features, ef=edgeFeatures)
+    fg = GeometricFlux.FeaturedGraph(adj; nf=sr.nodeFeatures, ef=edgeFeatures)
     return TsptwTrajectoryState(fg, sr.variableIdx, sr.possibleValuesIdx)
 end
 
@@ -85,34 +85,34 @@ end
 """
     function featurize(sr::TsptwStateRepresentation{TsptwFeaturization})
 
-Create features for every node of the graph. Supposed to be overwritten. 
+Create nodeFeatures for every node of the graph. Supposed to be overwritten. 
 Tsptw behavior is to call `Tsptw_featurize`.
 """
 function featurize(sr::FeaturizedStateRepresentation{TsptwFeaturization, TS}) where TS
     n = size(sr.dist, 1)
-    features = zeros(Float32, 6, n)
+    nodeFeatures = zeros(Float32, 6, n)
     for i in 1:n
         if !isnothing(sr.possibleValuesIdx) && !(i in sr.possibleValuesIdx)
-            features[5, i] = 1.
+            nodeFeatures[5, i] = 1.
         end
         if i == sr.variableIdx
-            features[6, i] = 1.
+            nodeFeatures[6, i] = 1.
         end
     end
 
-    features[1:2, :] = transpose(sr.pos)
-    features[3:4, :] = transpose(sr.timeWindows)
-    return features
+    nodeFeatures[1:2, :] = transpose(sr.pos)
+    nodeFeatures[3:4, :] = transpose(sr.timeWindows)
+    return nodeFeatures
 end
 
 function update_features!(sr::FeaturizedStateRepresentation{TsptwFeaturization, TS}, model::CPModel) where TS
-    sr.features[5, :] .= 0
+    sr.nodeFeatures[5, :] .= 0
     if !isnothing(sr.possibleValuesIdx)
-        sr.features[5, sr.possibleValuesIdx] .= 1
+        sr.nodeFeatures[5, sr.possibleValuesIdx] .= 1
     end
-    sr.features[6, :] .= 0
+    sr.nodeFeatures[6, :] .= 0
     if !isnothing(sr.variableIdx)
-        sr.features[6, sr.variableIdx] = 1
+        sr.nodeFeatures[6, sr.variableIdx] = 1
     end
     return 
 end
