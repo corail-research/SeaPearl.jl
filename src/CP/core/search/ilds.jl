@@ -4,8 +4,8 @@
 """
 initroot!(toCall::Stack{Function}, ::ILDSearch, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
 
-generic function to instantiate the research based on a specific Strategy <: SearchStrategy. The max discrepancy correspond to the number or branchable variables at 
-the beginning of the search. Calls to expandIlds! with a decreasing discrepancy is stacked in the toCall Stack. 
+generic function to instantiate the research based on a specific Strategy <: SearchStrategy. The max discrepancy correspond to the number of branchable variables 
+at the beginning of the search. Calls to expandIlds! with a decreasing discrepancy is stacked in the toCall Stack. 
 """
 function initroot!(toCall::Stack{Function}, ::ILDSearch , model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
     isboundedlist = [!isbound(v) for (k,v) in model.variables]
