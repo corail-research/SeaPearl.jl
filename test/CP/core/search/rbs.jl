@@ -50,6 +50,8 @@
 
 
         ### Checking stack ###
+        search=SeaPearl.staticRBSearch(10, 10, SeaPearl.InfeasibleNodeCriteria())
+
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
         
@@ -60,7 +62,7 @@
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
-        @test SeaPearl.expandRbs!(toCall, model, 1, search.criteria, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Feasible
+        @test SeaPearl.expandRbs!(toCall, model, 10, search.criteria, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Feasible
         @test length(toCall) == 6
 
         @test pop!(toCall)(model) == :SavingState
@@ -366,7 +368,7 @@
         variableSelection = SeaPearl.MinDomainVariableSelection()
 
         # launch the search 
-        SeaPearl.search!(model, SeaPearl.geometricRBSearch(3,10,1.1), variableSelection, valueSelection)
+        SeaPearl.search!(model, SeaPearl.geometricRBSearch(3,10,1.1,SeaPearl.InfeasibleNodeCriteria()), variableSelection, valueSelection)
 
         possible_solutions = [
             Dict("x1" => 1, "x2" => 2, "x3" => 3, "x4" => 1),
@@ -474,7 +476,7 @@
         variableSelection = SeaPearl.MinDomainVariableSelection()
 
         # launch the search 
-        SeaPearl.search!(model, SeaPearl.geometricRBSearch(3,10,1.1), variableSelection, valueSelection; out_solver=true)
+        SeaPearl.search!(model, SeaPearl.geometricRBSearch(3,10,1.1,SeaPearl.InfeasibleNodeCriteria()), variableSelection, valueSelection; out_solver=true)
 
         possible_solutions = [
             Dict("x1" => 1, "x2" => 2, "x3" => 3, "x4" => 1),

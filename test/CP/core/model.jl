@@ -221,6 +221,7 @@
         @test SeaPearl.length(x.domain) == 1
         SeaPearl.reset_model!(model)
         @test SeaPearl.length(x.domain) == 4
+        #TODO add reset_model test 
     end
     @testset "restart_search" begin
         
@@ -238,7 +239,7 @@
         push!(model.constraints, SeaPearl.NotEqual(y, z, trailer))
         push!(model.constraints, SeaPearl.NotEqual(x, z, trailer))
 
-        SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Optimal
+        SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) 
         @test model.statistics.numberOfInfeasibleSolutionsBeforeRestart == 2
         @test model.statistics.numberOfNodesBeforeRestart == 3
         @test model.statistics.numberOfSolutionsBeforeRestart == 0
