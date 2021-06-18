@@ -11,7 +11,7 @@ staticRBSearch : At each restart, the number of infeasible solution before resta
 function initroot!(toCall::Stack{Function}, strategy::staticRBSearch, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
     nodeLimit = strategy.L
     for i in strategy.n:-1:2 
-        push!(toCall, (model) -> (model.statistics.numberOfInfeasibleSolutions = 0 ;expandRbs!(toCall, model, nodeLimit, variableHeuristic, valueSelection)))
+        push!(toCall, (model) -> (restoreInitialState!(model.trailer) ;expandRbs!(toCall, model, nodeLimit, variableHeuristic, valueSelection)))
     end
     return expandRbs!(toCall, model, nodeLimit, variableHeuristic, valueSelection)
 end
@@ -30,8 +30,8 @@ initial number of infeasible solution for the first search.
 function initroot!(toCall::Stack{Function}, strategy::geometricRBSearch, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
     nodeLimit = strategy.L
     for i in strategy.n:-1:2 
-        nodeLimit = Int.(ceil(strategy.L*strategy.α^i))
-        push!(toCall, (model) -> (model.statistics.numberOfInfeasibleSolutions = 0 ;expandRbs!(toCall, model, nodeLimit, variableHeuristic, valueSelection)))
+        Limit = convert(Int64,ceil(strategy.L*strategy.α^(i-1)))
+        push!(toCall, (model) -> (restoreInitialState!(model.trailer) ;expandRbs!(toCall, model, Limit, variableHeuristic, valueSelection)))
     end
     return expandRbs!(toCall, model, strategy.L, variableHeuristic, valueSelection)
 end
@@ -51,8 +51,8 @@ and gives theoretical improvement on the search in the general case.
 function initroot!(toCall::Stack{Function}, strategy::lubyRBSearch, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
     searchFactor = Luby(strategy.n)
     for i in strategy.n:-1:2 
-        nodeLimit = L
-        push!(toCall, (model) -> (model.statistics.numberOfInfeasibleSolutions = 0 ;expandRbs!(toCall, model, nodeLimit*searchFactor[i], variableHeuristic, valueSelection)))
+        Limit = strategy.L*searchFactor[i]
+        push!(toCall, (model) -> (restoreInitialState!(model.trailer); expandRbs!(toCall, model,Limit, variableHeuristic, valueSelection)))
     end
     return expandRbs!(toCall, model, strategy.L*searchFactor[1], variableHeuristic, valueSelection)
 end
@@ -77,10 +77,10 @@ able to backtrack thanks to the trailer.
 The Search stops as long as the search reached the limit of infeasible solution allowed before restart.
 """
 function expandRbs!(toCall::Stack{Function}, model::CPModel, nodeLimit::Int64, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, newConstraints=nothing; prunedDomains::Union{CPModification,Nothing}=nothing)
-
+    
     # Dealing with limits
     model.statistics.numberOfNodes += 1
-
+    #print("nodeLimit : ", nodeLimit, " ")
     if !belowNodeLimit(model)
         return :NodeLimitStop
     end

@@ -14,7 +14,7 @@ function initroot!(toCall::Stack{Function}, ::ILDSearch , model::CPModel, variab
     
     # Note that toCall stack is a LIFO data structure, expandIlds with a discrepancy threshold of 0 will be the first one to execute (then with 1, 2, 3, etc.)
     for k in depth:-1:1
-        push!(toCall, (model) -> (expandIlds!(toCall,k,depth, nothing, model, variableHeuristic, valueSelection)))
+        push!(toCall, (model) -> (restoreInitialState!(model.trailer); expandIlds!(toCall,k,depth, nothing, model, variableHeuristic, valueSelection)))
     end
     return expandIlds!(toCall,0,depth, nothing, model, variableHeuristic, valueSelection,nothing)
 end
