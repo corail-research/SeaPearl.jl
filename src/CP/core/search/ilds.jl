@@ -14,7 +14,7 @@ function initroot!(toCall::Stack{Function}, ::ILDSearch , model::CPModel, variab
     
     # Note that toCall stack is a LIFO data structure, expandIlds with a discrepancy threshold of 0 will be the first one to execute (then with 1, 2, 3, etc.)
     for k in depth:-1:1
-        push!(toCall, (model) -> (restoreInitialState!(model.trailer); expandIlds!(toCall,k,depth, nothing, model, variableHeuristic, valueSelection)))
+        push!(toCall, (model) -> (restart_search!(model); expandIlds!(toCall,k,depth, nothing, model, variableHeuristic, valueSelection)))
     end
     return expandIlds!(toCall,0,depth, nothing, model, variableHeuristic, valueSelection,nothing)
 end
@@ -33,6 +33,8 @@ This implementation is based on this paper : Improved Limited Discrepancy Search
 function expandIlds!(toCall::Stack{Function}, discrepancy::Int64, previousdepth::Int64, direction::Union{Nothing, Symbol} , model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, newConstraints=nothing; prunedDomains::Union{CPModification,Nothing}=nothing)
     # Dealing with limits
     model.statistics.numberOfNodes += 1
+    model.statistics.numberOfNodesBeforeRestart += 1
+
     if !belowNodeLimit(model)
         return :NodeLimitStop
     end
@@ -43,6 +45,8 @@ function expandIlds!(toCall::Stack{Function}, discrepancy::Int64, previousdepth:
     feasible, pruned = fixPoint!(model, newConstraints, prunedDomains)
     if !feasible
         model.statistics.numberOfInfeasibleSolutions += 1
+        model.statistics.numberOfInfeasibleSolutionsBeforeRestart += 1
+
         return :Infeasible
     end
     if solutionFound(model)

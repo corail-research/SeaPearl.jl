@@ -11,7 +11,7 @@ staticRBSearch : At each restart, the number of infeasible solution before resta
 function initroot!(toCall::Stack{Function}, strategy::staticRBSearch, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
     nodeLimit = strategy.L
     for i in strategy.n:-1:2 
-        push!(toCall, (model) -> (restoreInitialState!(model.trailer) ;expandRbs!(toCall, model, nodeLimit, variableHeuristic, valueSelection)))
+        push!(toCall, (model) -> (restart_search!(model) ;expandRbs!(toCall, model, nodeLimit, variableHeuristic, valueSelection)))
     end
     return expandRbs!(toCall, model, nodeLimit, variableHeuristic, valueSelection)
 end
@@ -31,7 +31,7 @@ function initroot!(toCall::Stack{Function}, strategy::geometricRBSearch, model::
     nodeLimit = strategy.L
     for i in strategy.n:-1:2 
         Limit = convert(Int64,ceil(strategy.L*strategy.α^(i-1)))
-        push!(toCall, (model) -> (restoreInitialState!(model.trailer) ;expandRbs!(toCall, model, Limit, variableHeuristic, valueSelection)))
+        push!(toCall, (model) -> (restart_search!(model) ;expandRbs!(toCall, model, Limit, variableHeuristic, valueSelection)))
     end
     return expandRbs!(toCall, model, strategy.L, variableHeuristic, valueSelection)
 end
@@ -44,15 +44,15 @@ function that expand the search tree. In restart based strategy, we fill the Sta
 to the number of infeasiblesolution that can be reached before restarting the search a the top of the tree with a possibly different nodeLimit. This search 
 strategy requires the use of a stochastic variable/value heuristic, otherwise, at each restart the search will end-up on the exact previous solutions. 
 
-lubyRBSearch : At each restart, the number of infeasible solution before restart is increased by a factor Luby[i]. strategy.L states the 
-initial number of infeasible solution for the first search. The Luby sequence is a sequence of the following form: 1,1,2,1,1,2,4,1,1,2,1,1,2,4,8, . .
+lubyRBSearch : At each restart, the number of infeasible solution before restart is increased by the factor Luby[i]. strategy.L states the 
+initial number of infeasible solution limit for the first search. The Luby sequence is a sequence of the following form: 1,1,2,1,1,2,4,1,1,2,1,1,2,4,8, . .
 and gives theoretical improvement on the search in the general case.
 """
 function initroot!(toCall::Stack{Function}, strategy::lubyRBSearch, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
     searchFactor = Luby(strategy.n)
     for i in strategy.n:-1:2 
         Limit = strategy.L*searchFactor[i]
-        push!(toCall, (model) -> (restoreInitialState!(model.trailer); expandRbs!(toCall, model,Limit, variableHeuristic, valueSelection)))
+        push!(toCall, (model) -> (restart_search!(model); expandRbs!(toCall, model,Limit, variableHeuristic, valueSelection)))
     end
     return expandRbs!(toCall, model, strategy.L*searchFactor[1], variableHeuristic, valueSelection)
 end
@@ -74,13 +74,15 @@ Add procedures to `toCall`, that, called in the stack order (LIFO) with the `mod
 Some procedures will contain a call to `expandRbs!` itself. Each `expandRbs!` call is wrapped around a `saveState!` and a `restoreState!` to be
 able to backtrack thanks to the trailer. 
 
-The Search stops as long as the search reached the limit of infeasible solution allowed before restart.
+The Search stops as long as the search reached the limit on a given criteria.
+.
 """
-function expandRbs!(toCall::Stack{Function}, model::CPModel, nodeLimit::Int64, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, newConstraints=nothing; prunedDomains::Union{CPModification,Nothing}=nothing)
+function expandRbs!(toCall::Stack{Function}, model::CPModel, nodeLimit::Int64, criteria::T ,variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, newConstraints=nothing; prunedDomains::Union{CPModification,Nothing}=nothing) where T <: expandCriteria
     
     # Dealing with limits
     model.statistics.numberOfNodes += 1
-    #print("nodeLimit : ", nodeLimit, " ")
+    model.statistics.numberOfNodesBeforeRestart += 1
+
     if !belowNodeLimit(model)
         return :NodeLimitStop
     end
@@ -92,6 +94,8 @@ function expandRbs!(toCall::Stack{Function}, model::CPModel, nodeLimit::Int64, v
     feasible, pruned = fixPoint!(model, newConstraints, prunedDomains)
     if !feasible
         model.statistics.numberOfInfeasibleSolutions += 1
+        model.statistics.numberOfInfeasibleSolutionsBeforeRestart += 1
+
         return :Infeasible
     end
     if solutionFound(model)
@@ -105,7 +109,7 @@ function expandRbs!(toCall::Stack{Function}, model::CPModel, nodeLimit::Int64, v
     v = valueSelection(DecisionPhase, model, x)
 
     #println("Value : ", v, " assigned to : ", x.id)
-    if  model.statistics.numberOfInfeasibleSolutions < nodeLimit 
+    if  criteria(model,limit)  
         push!(toCall, (model) -> (restoreState!(model.trailer); :BackTracking))
         push!(toCall, (model) -> (
             prunedDomains = CPModification();

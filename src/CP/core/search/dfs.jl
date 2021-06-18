@@ -21,6 +21,8 @@ function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
 
     # Dealing with limits
     model.statistics.numberOfNodes += 1
+    model.statistics.numberOfNodesBeforeRestart += 1
+    
     if !belowNodeLimit(model)
         return :NodeLimitStop
     end
@@ -32,6 +34,8 @@ function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
     feasible, pruned = fixPoint!(model, newConstraints, prunedDomains)
     if !feasible
         model.statistics.numberOfInfeasibleSolutions += 1
+        model.statistics.numberOfInfeasibleSolutionsBeforeRestart += 1
+
         return :Infeasible
     end
     if solutionFound(model)
