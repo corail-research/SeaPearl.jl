@@ -45,10 +45,13 @@ function (g::EdgeFtLayer)(fg::FeaturedGraph)
     Zygote.ignore() do
         GraphSignals.check_num_node(graph(fg), node_feature(fg))
     end
-    fg_ = GeometricFlux.propagate(g, fg, +)
+
+    # TODO: when upgrading to the newer version of GeometricFlux, replace `:add` by `+`
+    fg_ = GeometricFlux.propagate(g, fg, :add)
 end
 
-function GeometricFlux.propagate(g::EdgeFtLayer, fg::FeaturedGraph, aggr=+)
+# TODO: when upgrading to the newer version of GeometricFlux, replace `:add` by `+`
+function GeometricFlux.propagate(g::EdgeFtLayer, fg::FeaturedGraph, aggr::Symbol=:add)
     E, X, u = GeometricFlux.propagate(g, adjacency_list(fg), fg.ef, fg.nf, fg.gf, aggr)
     out_channel_v = size(g.W_a, 1)
 
@@ -80,7 +83,8 @@ end
 GeometricFlux.update_batch_edge(g::EdgeFtLayer, adj, E::AbstractMatrix, X::AbstractMatrix, u) = GeometricFlux.update_batch_edge(g, adj, E, X)
 
 function GeometricFlux.apply_batch_message(g::EdgeFtLayer, i, js, edge_idx, E::AbstractMatrix, X::AbstractMatrix)
-    mailbox = hcat([GeometricFlux.message(g, GeometricFlux._view(X, i), GeometricFlux._view(X, j), E[:, edge_idx[(i, j)]]) for j = js]...)
+    # TODO: when upgrading to the newer version of GeometricFlux, replace `get_feature` by `_view`
+    mailbox = hcat([GeometricFlux.message(g, GeometricFlux.get_feature(X, i), GeometricFlux.get_feature(X, j), E[:, edge_idx[(i, j)]]) for j = js]...)
 
     # Get each part of the message separately
     out_channel_v = size(g.W_a, 1)
