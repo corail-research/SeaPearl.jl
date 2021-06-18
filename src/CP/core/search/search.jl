@@ -42,8 +42,8 @@ function search!(model::CPModel, strategy::S, variableHeuristic::AbstractVariabl
         currentProcedure = pop!(toCall)
         currentStatus = currentProcedure(model)
     end
-
     # set final reward and last observation
+    removeSolutionDoublons(model)
     valueSelection(EndingPhase, model, currentStatus)
 
     if currentStatus == :NodeLimitStop || currentStatus == :SolutionLimitStop || (out_solver & (currentStatus in [:Infeasible, :FoundSolution]))
@@ -56,4 +56,10 @@ function search!(model::CPModel, strategy::S, variableHeuristic::AbstractVariabl
     end
 
     return :Infeasible
+end
+
+function removeSolutionDoublons(model::CPModel)
+    unique!(model.statistics.solutions) #remove all doublons
+    model.statistics.numberOfSolutions=length(model.statistics.solutions)
+    
 end

@@ -12,7 +12,7 @@ end
 
 mutable struct Limit
     numberOfNodes       ::Union{Int, Nothing}
-    numberOfSolutions   ::Union{Int, Nothing}
+    numberOfSolutions   ::Union{Int, Nothing}  #the limit can be triggered by set of non-unique solutions
 end
 
 """
