@@ -11,9 +11,9 @@ staticRBSearch : At each restart, the number of infeasible solution before resta
 function initroot!(toCall::Stack{Function}, strategy::staticRBSearch, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
     nodeLimit = strategy.L
     for i in strategy.n:-1:2 
-        push!(toCall, (model) -> (restart_search!(model) ;expandRbs!(toCall, model, nodeLimit, variableHeuristic, valueSelection)))
+        push!(toCall, (model) -> (restart_search!(model) ;expandRbs!(toCall, model, nodeLimit, strategy.criteria, variableHeuristic, valueSelection)))
     end
-    return expandRbs!(toCall, model, nodeLimit, variableHeuristic, valueSelection)
+    return expandRbs!(toCall, model, nodeLimit, strategy.criteria, variableHeuristic, valueSelection)
 end
 
 """
@@ -31,9 +31,9 @@ function initroot!(toCall::Stack{Function}, strategy::geometricRBSearch, model::
     nodeLimit = strategy.L
     for i in strategy.n:-1:2 
         Limit = convert(Int64,ceil(strategy.L*strategy.α^(i-1)))
-        push!(toCall, (model) -> (restart_search!(model) ;expandRbs!(toCall, model, Limit, variableHeuristic, valueSelection)))
+        push!(toCall, (model) -> (restart_search!(model) ;expandRbs!(toCall, model, Limit, strategy.criteria, variableHeuristic, valueSelection)))
     end
-    return expandRbs!(toCall, model, strategy.L, variableHeuristic, valueSelection)
+    return expandRbs!(toCall, model, strategy.L, strategy.criteria, variableHeuristic, valueSelection)
 end
 
 """
@@ -52,9 +52,9 @@ function initroot!(toCall::Stack{Function}, strategy::lubyRBSearch, model::CPMod
     searchFactor = Luby(strategy.n)
     for i in strategy.n:-1:2 
         Limit = strategy.L*searchFactor[i]
-        push!(toCall, (model) -> (restart_search!(model); expandRbs!(toCall, model,Limit, variableHeuristic, valueSelection)))
+        push!(toCall, (model) -> (restart_search!(model); expandRbs!(toCall, model,Limit, strategy.criteria ,variableHeuristic, valueSelection)))
     end
-    return expandRbs!(toCall, model, strategy.L*searchFactor[1], variableHeuristic, valueSelection)
+    return expandRbs!(toCall, model, strategy.L*searchFactor[1], strategy.criteria, variableHeuristic, valueSelection)
 end
 
 function Luby(n::Int64)
@@ -95,7 +95,6 @@ function expandRbs!(toCall::Stack{Function}, model::CPModel, nodeLimit::Int64, c
     if !feasible
         model.statistics.numberOfInfeasibleSolutions += 1
         model.statistics.numberOfInfeasibleSolutionsBeforeRestart += 1
-
         return :Infeasible
     end
     if solutionFound(model)
@@ -109,19 +108,19 @@ function expandRbs!(toCall::Stack{Function}, model::CPModel, nodeLimit::Int64, c
     v = valueSelection(DecisionPhase, model, x)
 
     #println("Value : ", v, " assigned to : ", x.id)
-    if  criteria(model,limit)  
+    if  criteria(model, nodeLimit)  
         push!(toCall, (model) -> (restoreState!(model.trailer); :BackTracking))
         push!(toCall, (model) -> (
             prunedDomains = CPModification();
             addToPrunedDomains!(prunedDomains, x, remove!(x.domain, v));
-            expandRbs!(toCall, model, nodeLimit, variableHeuristic, valueSelection, getOnDomainChange(x); prunedDomains=prunedDomains)
+            expandRbs!(toCall, model, nodeLimit, criteria, variableHeuristic, valueSelection, getOnDomainChange(x); prunedDomains=prunedDomains)
         ))
         push!(toCall, (model) -> (saveState!(model.trailer); :SavingState))
         push!(toCall, (model) -> (restoreState!(model.trailer); :BackTracking))
         push!(toCall, (model) -> (
             prunedDomains = CPModification();
             addToPrunedDomains!(prunedDomains, x, assign!(x, v));
-            expandRbs!(toCall, model, nodeLimit, variableHeuristic, valueSelection, getOnDomainChange(x); prunedDomains=prunedDomains)
+            expandRbs!(toCall, model, nodeLimit, criteria, variableHeuristic, valueSelection, getOnDomainChange(x); prunedDomains=prunedDomains)
         ))
         push!(toCall, (model) -> (saveState!(model.trailer); :SavingState))
     end 

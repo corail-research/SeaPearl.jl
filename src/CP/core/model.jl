@@ -270,9 +270,6 @@ to use the same CPModel instance to compare different given heuristics.
 """
 function reset_model!(model::CPModel)
     restoreInitialState!(model.trailer)
-    for (id, x) in model.variables
-        reset_domain!(x.domain)
-    end
     model.objectiveBound = nothing
     empty!(model.statistics.solutions)
     empty!(model.statistics.nodevisitedpersolution)
@@ -295,6 +292,7 @@ Usefull when dealing with restart based search : ILDS or RBS. Reset to zero usef
 the restart criteria. 
 """
 function restart_search!(model::CPModel)
+    restoreInitialState!(model.trailer)
     model.statistics.numberOfInfeasibleSolutionsBeforeRestart = 0
     model.statistics.numberOfSolutionsBeforeRestart = 0
     model.statistics.numberOfNodesBeforeRestart = 0
