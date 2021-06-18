@@ -110,7 +110,9 @@
         @test model.statistics.numberOfSolutions == 1
         @test model.statistics.objectives[1] == 3
         @test model.statistics.numberOfInfeasibleSolutions == 0 
-
+        @test model.statistics.numberOfSolutionsBeforeRestart == 1
+        @test model.statistics.numberOfInfeasibleSolutionsBeforeRestart == 0
+        @test model.statistics.numberOfNodesBeforeRestart == 0
     end
 
     @testset "tightenObjective!()" begin
@@ -219,5 +221,32 @@
         @test SeaPearl.length(x.domain) == 1
         SeaPearl.reset_model!(model)
         @test SeaPearl.length(x.domain) == 4
+    end
+    @testset "restart_search" begin
+        
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+        
+        x = SeaPearl.IntVar(1, 2, "x", trailer)
+        y = SeaPearl.IntVar(1, 2, "y", trailer)
+        z = SeaPearl.IntVar(1, 2, "z", trailer)
+
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y)
+        SeaPearl.addVariable!(model, z)
+        push!(model.constraints, SeaPearl.NotEqual(x, y, trailer))
+        push!(model.constraints, SeaPearl.NotEqual(y, z, trailer))
+        push!(model.constraints, SeaPearl.NotEqual(x, z, trailer))
+
+        SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Optimal
+        @test model.statistics.numberOfInfeasibleSolutionsBeforeRestart == 2
+        @test model.statistics.numberOfNodesBeforeRestart == 3
+        @test model.statistics.numberOfSolutionsBeforeRestart == 0
+
+        SeaPearl.restart_search!(model)
+
+        @test model.statistics.numberOfInfeasibleSolutionsBeforeRestart == 0
+        @test model.statistics.numberOfNodesBeforeRestart == 0
+        @test model.statistics.numberOfSolutionsBeforeRestart == 0
     end
 end
