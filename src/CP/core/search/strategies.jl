@@ -29,17 +29,17 @@ end
 struct VisitedNodeCriteria <: expandCriteria end
 
 function (criteria::VisitedNodeCriteria)(model::CPModel, limit::Int64)::Bool
-    return model.statistics.numberOfNodesBeforeRestart <= limit
+    return model.statistics.numberOfNodesBeforeRestart <= limit   #CAUTION : Here the inequality is large
 end
 
 struct InfeasibleNodeCriteria <: expandCriteria end 
 
 function (criteria::InfeasibleNodeCriteria)(model::CPModel, limit::Int64)::Bool
-    return model.statistics.numberOfInfeasibleSolutionsBeforeRestart <= limit
+    return model.statistics.numberOfInfeasibleSolutionsBeforeRestart < limit
 end
 
 struct SolutionFoundCriteria <: expandCriteria end 
 
 function (criteria::SolutionFoundCriteria)(model::CPModel, limit::Int64)::Bool
-    return model.statistics.numberOfSolutionsBeforeRestart <= limit
+    return model.statistics.numberOfSolutionsBeforeRestart < limit
 end

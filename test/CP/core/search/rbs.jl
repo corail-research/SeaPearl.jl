@@ -159,6 +159,72 @@
 
         @test SeaPearl.Luby(31)==[1,1,2,1,1,2,4,1,1,2,1,1,2,4,8,1,1,2,1,1,2,4,1,1,2,1,1,2,4,8,16]
     end
+
+
+    @testset "Stopping Criteria" begin
+        @testset "InfeasibleNodeCriteria" begin 
+
+            search = SeaPearl.staticRBSearch(1, 0, SeaPearl.InfeasibleNodeCriteria())
+
+            trailer = SeaPearl.Trailer()
+            model = SeaPearl.CPModel(trailer)
+            
+            x = SeaPearl.IntVar(2, 2, "x", trailer)
+            y = SeaPearl.IntVar(3, 3, "y", trailer)
+            SeaPearl.addVariable!(model, x)
+            SeaPearl.addVariable!(model, y)
+            push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+
+            toCall = Stack{Function}()
+            @test SeaPearl.expandRbs!(toCall, model, 1, search.criteria, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Infeasible
+            @test search.criteria(model,1) == false
+        end 
+        @testset "VisitedNodeCriteria" begin 
+
+            search = SeaPearl.staticRBSearch(1, 0, SeaPearl.VisitedNodeCriteria())
+
+            trailer = SeaPearl.Trailer()
+            model = SeaPearl.CPModel(trailer)
+            
+            x = SeaPearl.IntVar(2, 3, "x", trailer)
+            y = SeaPearl.IntVar(2, 3, "y", trailer)
+            SeaPearl.addVariable!(model, x)
+            SeaPearl.addVariable!(model, y)
+            push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+
+            toCall = Stack{Function}()
+            @test SeaPearl.expandRbs!(toCall, model, 1, search.criteria, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Feasible
+            @test search.criteria(model,1) == true    #only one node has been visited
+            pop!(toCall)(model) # :SavingState
+            pop!(toCall)(model) # expandRbs!(...)
+            @test search.criteria(model,1) == false
+        end
+
+        @testset "SolutionFoundCriteria" begin 
+
+            search = SeaPearl.staticRBSearch(2, 0, SeaPearl.SolutionFoundCriteria())
+
+            trailer = SeaPearl.Trailer()
+            model = SeaPearl.CPModel(trailer)
+            
+            x = SeaPearl.IntVar(2, 3, "x", trailer)
+            y = SeaPearl.IntVar(2, 3, "y", trailer)
+            SeaPearl.addVariable!(model, x)
+            SeaPearl.addVariable!(model, y)
+            push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+
+            toCall = Stack{Function}()
+            @test SeaPearl.expandRbs!(toCall, model, 2, search.criteria, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Feasible
+            @test search.criteria(model,2) == true    #only one node has been visited
+            pop!(toCall)(model) # :SavingState 
+            @test pop!(toCall)(model) == :FoundSolution
+            @test search.criteria(model,2) == true
+            pop!(toCall)(model) # :Backtrack
+            pop!(toCall)(model) # :SavingState
+            @test pop!(toCall)(model) == :FoundSolution
+            @test search.criteria(model,2) == false
+        end
+    end
     
     @testset "search!(::RBSearch)" begin
         ### Checking status ###
@@ -284,6 +350,7 @@
     @testset "search!() with PPO/RBS" begin
 
     using Random
+    numInFeatures = 3
     approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
     target_approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
     gnnlayers = 10
@@ -392,6 +459,7 @@
 
    
         using Random
+        numInFeatures = 3
         approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
         target_approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
         gnnlayers = 10
@@ -493,10 +561,6 @@
         for solution in model.statistics.solutions
             @test solution in possible_solutions
         end
-
-    end
-
-    @testset "advanced test for RBS" begin 
 
     end
 
