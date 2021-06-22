@@ -32,16 +32,10 @@ mutable struct LearnedHeuristic{SR<:AbstractStateRepresentation, R<:AbstractRewa
     action_space::Union{Nothing, Array{Int64,1}}
     current_state::Union{Nothing, SR}
     reward::Union{Nothing, R}
-    cpnodes_max::Union{Nothing, Int64}
     search_metrics::Union{Nothing, SearchMetrics}
 
-    LearnedHeuristic{SR, R, A}(agent::RL.Agent, cpnodes_max=nothing) where {SR, R, A}= new{SR, R, A}(agent, nothing, nothing, nothing, nothing, nothing, cpnodes_max, nothing)
+    LearnedHeuristic{SR, R, A}(agent::RL.Agent) where {SR, R, A}= new{SR, R, A}(agent, nothing, nothing, nothing, nothing, nothing, nothing)
 end
-
-LearnedHeuristic(agent::RL.Agent, cpnodes_max=nothing) = LearnedHeuristic{DefaultStateRepresentation, DefaultReward, FixedOutput}(agent, cpnodes_max)
-
-include("rewards/rewards.jl") #LearnedHeuristic needs to be declared before the declaration
-include("lh_utils.jl")
 
 """
     (valueSelection::LearnedHeuristic)(::InitializingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
@@ -53,14 +47,14 @@ Finally, makes the agent call the process of the RL pre_episode_stage (basically
 function (valueSelection::LearnedHeuristic)(::Type{InitializingPhase}, model::CPModel)
     # create the environment
     update_with_cpmodel!(valueSelection, model)
+    # FIXME get rid of this => prone to bugs
     false_x = first(values(branchable_variables(model)))
-    obs = get_observation!(valueSelection, model, false_x)
+    env = get_observation!(valueSelection, model, false_x)
 
     # Reset the agent, useful for things like recurrent networks
     Flux.reset!(valueSelection.agent)
 
-    ###TODO: We should investigate why this line must be removed
-    # valueSelection.agent(RL.PRE_EPISODE_STAGE, obs)
+    valueSelection.agent(RL.PRE_EPISODE_STAGE, env)
 end
 
 """
@@ -98,8 +92,9 @@ function (valueSelection::LearnedHeuristic)(PHASE::Type{DecisionPhase}, model::C
     end
 
     action = valueSelection.agent(env) # Choose action
-    valueSelection.agent(RL.PRE_ACT_STAGE, env, action) # Store state and action
-    
+    # TODO: swap to async computation once in deployment
+    #@async valueSelection.agent(RL.PRE_ACT_STAGE, env, action) # Store state and action
+    valueSelection.agent(RL.PRE_ACT_STAGE, env, action)
     return action_to_value(valueSelection, action, state(env), model)
 end
 
@@ -112,12 +107,15 @@ function (valueSelection::LearnedHeuristic)(PHASE::Type{EndingPhase}, model::CPM
     # the RL EPISODE stops
     set_reward!(PHASE, valueSelection, model, current_status)
     false_x = first(values(branchable_variables(model)))
-    obs = get_observation!(valueSelection, model, false_x, true)
+    env = get_observation!(valueSelection, model, false_x, true)
     #println("EndingPhase  ", obs.reward, " ", obs.terminal, " ", obs.legal_actions, " ", obs.legal_actions_mask)
 
-    valueSelection.agent(RL.POST_ACT_STAGE, obs) # get terminal and reward
+    valueSelection.agent(RL.POST_ACT_STAGE, env) # get terminal and reward
 
-    ###TODO: We should investigate why this line must be removed
-    # valueSelection.agent(RL.POST_EPISODE_STAGE, obs)  # let the agent see the last observation
+    valueSelection.agent(RL.POST_EPISODE_STAGE, env)  # let the agent see the last observation
+    
+    if CUDA.has_cuda()
+        CUDA.reclaim()
+    end
 end
 

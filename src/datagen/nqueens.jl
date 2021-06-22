@@ -53,11 +53,3 @@ function fill_with_generator!(cpmodel::CPModel, gen::NQueensGenerator; seed=noth
     return nothing
     #return model
 end
-
-
-"""
-    arraybuffer_dims(gen::NQueensGenerator, t::Type{DefaultStateRepresentation})
-
-Returns the size of the state representation in its matrix form, useful when construcing the trajectory for the RL agent
-"""
-arraybuffer_dims(gen::NQueensGenerator, t::Type{DefaultStateRepresentation{F}}) where {F} = (10+gen.board_size*4+3, 10+gen.board_size*4+3+3+feature_length(gen, t))

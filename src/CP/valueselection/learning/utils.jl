@@ -27,7 +27,7 @@ function update_with_cpmodel!(lh::LearnedHeuristic{SR, R, A}, model::CPModel) wh
 
     lh.action_space = valuesOfVariables
     # state rep construction
-    lh.current_state = SR(model)
+    lh.current_state = SR(model; action_space=lh.action_space)
 
     # create and initialize the reward
     lh.reward = R(model)
@@ -79,47 +79,24 @@ function get_observation!(lh::LearnedHeuristic, model::CPModel, x::AbstractIntVa
 
     # synchronize state: 
     sync_state!(lh, model, x)
-
-    state = to_arraybuffer(lh.current_state, lh.cpnodes_max)
+    state = trajectoryState(lh.current_state)
 
     if !wears_mask(lh)
-        return unmaskedCPEnv(reward, done, state,action_space_index)
+        return unmaskedCPEnv(reward, done, state, action_space_index)
     end
     # return the observation as a named tuple (useful for interface understanding)
     return CPEnv(reward, done, state, action_space_index, legal_actions, legal_actions_mask)
 end
 
-struct CPEnv <: AbstractEnv
-    reward
-    terminal
-    state
-    actions_index
-    legal_actions
-    legal_actions_mask
+"""
+    set_metrics!(PHASE::T, lh::LearnedHeuristic, model::CPModel, symbol::Union{Nothing, Symbol}, x::Union{Nothing, AbstractIntVar}) where T <: LearningPhase 
+
+Call set_metrics!(::SearchMetrics, ...) on env.search_metrics to simplify synthax.
+Could also add it to basicheuristic !
+"""
+function set_metrics!(PHASE::T, lh::LearnedHeuristic, model::CPModel, symbol::Union{Nothing, Symbol}, x::Union{Nothing, AbstractIntVar}) where T <: LearningPhase
+    set_metrics!(PHASE, lh.search_metrics, model, symbol, x::Union{Nothing, AbstractIntVar})
 end
-
-RLBase.action_space(env::CPEnv) = env.actions_index
-RLBase.legal_action_space(env::CPEnv) = env.legal_actions
-RLBase.legal_action_space_mask(env::CPEnv) = env.legal_actions_mask
-RLBase.reward(env::CPEnv) = env.reward
-RLBase.is_terminated(env::CPEnv) = env.terminal
-RLBase.state(env::CPEnv) = env.state
-RLBase.ActionStyle(::CPEnv) = FULL_ACTION_SET
-
-
-struct unmaskedCPEnv <: AbstractEnv
-    reward
-    terminal
-    state
-    actions_index
-end
-
-RLBase.action_space(env::unmaskedCPEnv) = env.actions_index
-RLBase.reward(env::unmaskedCPEnv) = env.reward
-RLBase.is_terminated(env::unmaskedCPEnv) = env.terminal
-RLBase.state(env::unmaskedCPEnv) = env.state
-RLBase.ActionStyle(::unmaskedCPEnv) = MINIMAL_ACTION_SET
-
 
 wears_mask(valueSelection::LearnedHeuristic) = wears_mask(valueSelection.agent.policy.learner.approximator.model)
 
@@ -131,10 +108,9 @@ wears_mask(valueSelection::LearnedHeuristic) = wears_mask(valueSelection.agent.p
 Return the ids of the valid indexes from the Array representation of the AbstractStateRepresentation. Used to be able to work with 
 ActionOutput of variable size (VariableOutput).
 """
-function from_order_to_id(state::AbstractArray, value_order::Int64, SR::Type{<:AbstractStateRepresentation})
-    value_vector = state[:, end]
-    valid_indexes = findall((x) -> x == 1, value_vector)
-    return valid_indexes[value_order]
+function from_order_to_id(state::AbstractTrajectoryState, value_order::Int64, SR::Type{<:AbstractStateRepresentation})
+    @assert !isnothing(state.possibleValuesIdx)
+    return state.possibleValuesIdx[value_order]
 end
 
 """
@@ -142,20 +118,14 @@ end
 
 Mapping action taken to corresponding value when handling VariableOutput type of ActionOutput.
 """
-function action_to_value(vs::LearnedHeuristic{SR, R, VariableOutput}, action::Int64, state::AbstractArray, model::CPModel) where {
-    SR <: DefaultStateRepresentation,
-    R <: AbstractReward
-}
+function action_to_value(vs::LearnedHeuristic{SR, R, VariableOutput}, action::Int64, state::AbstractTrajectoryState, model::CPModel) where {SR <: DefaultStateRepresentation, R}
     value_id = from_order_to_id(state, action, SR)
     cp_vertex = cpVertexFromIndex(vs.current_state.cplayergraph, value_id)
     @assert isa(cp_vertex, ValueVertex)
     return cp_vertex.value
 end
 
-function action_to_value(vs::LearnedHeuristic{SR, R, VariableOutput}, action::Int64, state::AbstractArray, model::CPModel) where {
-    SR <: TsptwStateRepresentation,
-    R <: AbstractReward
-}
+function action_to_value(vs::LearnedHeuristic{SR, R, VariableOutput}, action::Int64, state::AbstractTrajectoryState, model::CPModel) where {SR <: TsptwStateRepresentation, R}
     return from_order_to_id(state, action, SR)
 end
 
@@ -164,10 +134,7 @@ end
 
 Mapping index of Q-value vector to value in the action space when using a FixedOutput.
 """
-function action_to_value(vs::LearnedHeuristic{SR, R, FixedOutput}, action::Int64, state::AbstractArray, model::CPModel) where {
-    SR <: AbstractStateRepresentation,
-    R <: AbstractReward
-}
+function action_to_value(vs::LearnedHeuristic{SR, R, FixedOutput}, action::Int64, state::AbstractTrajectoryState, model::CPModel) where {SR <: DefaultStateRepresentation, R}
     return vs.action_space[action]
 end
 

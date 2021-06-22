@@ -1,23 +1,23 @@
-include("algorithms/rsparsebitset.jl")
+include("datasstructures/rsparsebitset.jl")
 
 """
     TableConstraint
 
 Efficient implentation of the constraint enforcing: ∃ j ∈ ⟦1,m⟧, such that ∀ i ∈ ⟦1,n⟧ xᵢ=table[i,j].
 
-The datastructure and the functions using it are inspired by: 
-Demeulenaere J. et al. (2016) Compact-Table: Efficiently Filtering Table Constraints with Reversible Sparse Bit-Sets. 
-In: Rueher M. (eds) Principles and Practice of Constraint Programming. CP 2016. Lecture Notes in Computer Science, vol 9892. Springer, Cham. 
+The datastructure and the functions using it are inspired by:
+Demeulenaere J. et al. (2016) Compact-Table: Efficiently Filtering Table Constraints with Reversible Sparse Bit-Sets.
+In: Rueher M. (eds) Principles and Practice of Constraint Programming. CP 2016. Lecture Notes in Computer Science, vol 9892. Springer, Cham.
 https://doi.org/10.1007/978-3-319-44953-1_14
 
-  
-    TableConstraint(scope, active, table, currentTable, modifiedVariables, unfixedVariables, supports, residues) 
+
+    TableConstraint(scope, active, table, currentTable, modifiedVariables, unfixedVariables, supports, residues)
 
 TableConstraint default constructor.
 
 # Arguments
 - `scope::Vector{<:AbstractIntVar}`: the ordered variables present in the table.
-- `table::Matrix{Int}`: the original table describing the constraint (impossible assignment are filtered). 
+- `table::Matrix{Int}`: the original table describing the constraint (impossible assignment are filtered).
 - `currentTable::RSparseBitSet{UInt64}`: the reversible representation of the table.
 - `modifiedVariables::Vector{Int}`: vector with the indexes of the variables modified since the last propagation.
 - `unfixedVariables::Vector{Int}`: vector with the indexes of the variables which are not binding.
@@ -31,7 +31,7 @@ Create a CompactTable constraint from the `variables`, with values given in `tab
 
 This constructor gives full control on both `table` and `supports`. The attributes are not duplicated and remains
 linked to the variables given to the constructor. It should be used only to avoid duplication of `table` when using
-the same table constraint many times with different variables. *WARNING*: all variables must have the same domain; 
+the same table constraint many times with different variables. *WARNING*: all variables must have the same domain;
 `table` and `supports` must be cleaned.
 
 # Arguments
@@ -55,28 +55,28 @@ struct TableConstraint <: Constraint
 
     function TableConstraint(variables::Vector{<:AbstractIntVar}, table::Matrix{Int}, supports::Dict{Pair{Int,Int},BitVector}, trailer)
         @assert length(variables) == size(table, 1)
-    
+
         nVariables, nTuples = size(table)
-  
+
         constraint = new(
             variables,
             StateObject{Bool}(true, trailer),
             StateObject{Bool}(false, trailer),
-            table, 
+            table,
             RSparseBitSet{UInt64}(nTuples, trailer),
             Set{Int}(),
             Set(collect(1:nVariables)),
             supports,
             buildResidues(supports)
         )
-    
+
         for variable in variables
             addOnDomainChange!(variable, constraint)
         end
-    
+
         return constraint
     end
-    
+
 end
 
 """
@@ -111,7 +111,7 @@ function TableConstraint(variables::Vector{<:AbstractIntVar}, table::Matrix{Int}
         variables,
         active,
         initialized,
-        cleanedTable, 
+        cleanedTable,
         currentTable,
         modifiedVariables,
         unfixedVariables,
@@ -134,7 +134,7 @@ Convert a Julia BitVector to a vector preformatted for the RSparseBitSet{UInt64}
 # Arguments
 - `bitset::BitVector`: the BitVector to convert.
 """
-function bitVectorToUInt64Vector(bitset::BitVector)::Vector{UInt64} 
+function bitVectorToUInt64Vector(bitset::BitVector)::Vector{UInt64}
     return [bitreverse(chunk) for chunk in bitset.chunks]
 end
 
@@ -229,7 +229,7 @@ function initialPruning!(constraint::TableConstraint, prunedValues::Vector{Vecto
             push!(prunedValues[idx], value)
         end
     end
-    return  
+    return
 end
 
 """
@@ -299,7 +299,7 @@ function propagate!(constraint::TableConstraint, toPropagate::Set{Constraint}, p
     if !constraint.active.value
         return true
     end
-
+    
     initialPrunedValues = nothing
     if !constraint.initialized.value
         initialPrunedValues = Vector{Vector{Int}}(undef, length(constraint.scope))
@@ -317,9 +317,17 @@ function propagate!(constraint::TableConstraint, toPropagate::Set{Constraint}, p
     prunedValues = Vector{Vector{Int}}(undef, length(constraint.scope))
     empty!(constraint.modifiedVariables)
     for (idx, variable) in enumerate(constraint.scope)
-        if (variable.id in keys(prunedDomains))
+        if haskey(prunedDomains, variable.id)
             push!(constraint.modifiedVariables, idx)
-            prunedValues[idx] = prunedDomains[variable.id]
+            prunedValues[idx] = copy(prunedDomains[variable.id])
+        end
+    end
+            
+    # Sometime an assignment has already been pruned before the initialization eventhough  
+    # it doesn't have a support .In that case it shouldn't be used to update the table.
+    for variable in constraint.modifiedVariables
+        filter!(prunedValues[variable]) do value
+            haskey(constraint.supports, variable => value)
         end
     end
 
@@ -373,3 +381,5 @@ end
 function Base.show(io::IO, con::TableConstraint)
     print(io, string(typeof(con)), ": (", join([x.id for x in con.scope], ", "), ") in ", con.table, ", active = ", con.active)
 end
+
+variablesArray(constraint::TableConstraint) = constraint.scope

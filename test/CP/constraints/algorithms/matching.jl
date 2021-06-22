@@ -1,5 +1,3 @@
-using LightGraphs
-
 @testset "matching.jl" begin
     @testset "randomMatching(::Graph{Int}, ::Int)::Matching{Int}" begin
         bipartite = Graph(10)

@@ -1,5 +1,3 @@
-using SeaPearl
-
 @testset "sumlessthan.jl" begin
     @testset "SumLessThan()" begin
         trailer = SeaPearl.Trailer()

@@ -7,8 +7,6 @@
     include("core/fixPoint.jl")
     include("core/cpModification.jl")
 
-    include("core/search/strategies.jl")
-
     include("variableselection/variableselection.jl")
 
     include("valueselection/valueselection.jl")
