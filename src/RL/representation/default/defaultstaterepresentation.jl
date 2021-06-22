@@ -24,7 +24,7 @@ function DefaultStateRepresentation{F, TS}(model::CPModel; action_space=nothing)
     end
     sr = DefaultStateRepresentation{F, TS}(g, nothing, nothing, nothing, allValuesIdx)
     sr.nodeFeatures = featurize(sr)
-    sr.globalFeatures = globalFeaturize(sr)
+    sr.globalFeatures = global_featurize(sr)
     return sr
 end
 
@@ -89,15 +89,11 @@ function featurize(sr::FeaturizedStateRepresentation{DefaultFeaturization, TS}) 
     features
 end
 
-function globalFeaturize(sr::FeaturizedStateRepresentation{DefaultFeaturization, TS}) where TS end
-
 """
     feature_length(gen::AbstractModelGenerator, ::Type{FeaturizedStateRepresentation})
 
 Returns the length of the feature vector, for the `DefaultFeaturization`.
 """
 feature_length(::Type{<:FeaturizedStateRepresentation{DefaultFeaturization, TS}}) where TS = 3
-
-global_feature_length(::Type{<:FeaturizedStateRepresentation{DefaultFeaturization, TS}}) where TS = 0
 
 DefaultStateRepresentation(m::CPModel) = DefaultStateRepresentation{DefaultFeaturization, DefaultTrajectoryState}(m::CPModel)

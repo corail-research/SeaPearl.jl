@@ -96,8 +96,10 @@ just use a new `AbstractFeaturization`.
 abstract type FeaturizedStateRepresentation{F <: AbstractFeaturization, TS} <: AbstractStateRepresentation{TS} end
 
 featurize(sr::FeaturizedStateRepresentation) = throw(ErrorException("missing function featurize(::$(typeof(sr)))."))
+function global_featurize(sr::FeaturizedStateRepresentation) end
 function update_features!(::FeaturizedStateRepresentation, ::CPModel) end
 feature_length(sr::Type{<:FeaturizedStateRepresentation}) = throw(ErrorException("missing function feature_length(::$(sr))."))
+global_feature_length(sr::Type{<:FeaturizedStateRepresentation}) = 0
 
 include("default/defaulttrajectorystate.jl")
 include("default/defaultstaterepresentation.jl")
