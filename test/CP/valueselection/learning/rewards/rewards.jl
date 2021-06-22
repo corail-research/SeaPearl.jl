@@ -36,8 +36,7 @@ end
 @testset "rewards.jl" begin 
 
     include("defaultreward.jl")
-    #TODO repair tsptw testset
-    #include("tsptwreward.jl")
+    include("tsptwreward.jl")
 
     @testset "Custom reward" begin
         @testset "set_reward(StepPhase)" begin

@@ -1,5 +1,6 @@
 include("coloring.jl")
 include("knapsack.jl")
-#TODO repair tspw staterepresentation
-#include("tsptw.jl")
+include("tsptw.jl")
 include("nqueens.jl")
+# TODO: create a latin_square testset
+# inlcude("latin.jl")
