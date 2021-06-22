@@ -274,7 +274,7 @@ function reset_model!(model::CPModel)
     empty!(model.statistics.solutions)
     empty!(model.statistics.nodevisitedpersolution)
     if !isnothing(model.objective)
-        @assert !isnothing(model.statistics.objectives)   "did you used SeaPearl.addObjective! to declare your objective function ? "
+        @assert !isnothing(model.statistics.objectives)   "did you used SeaPearl.addObjective! to declare your objective function ?"
         empty!(model.statistics.objectives)
     end
     model.statistics.numberOfNodes = 0

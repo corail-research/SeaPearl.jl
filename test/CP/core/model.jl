@@ -216,12 +216,17 @@
 
         x = SeaPearl.IntVar(2, 5, "x", trailer)
         SeaPearl.addVariable!(model, x)
-        SeaPearl.assign!(x, 3)
+        SeaPearl.addObjective!(model, x)
 
+        SeaPearl.assign!(x, 3)
+        SeaPearl.fixPoint!(model)
+        SeaPearl.triggerFoundSolution!(model)
+        
         @test SeaPearl.length(x.domain) == 1
+        @test model.objectiveBound == 2
         SeaPearl.reset_model!(model)
         @test SeaPearl.length(x.domain) == 4
-        #TODO add reset_model test 
+        @test isnothing(model.objectiveBound)
     end
     @testset "restart_search" begin
         
