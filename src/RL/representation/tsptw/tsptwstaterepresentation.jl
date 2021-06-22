@@ -20,7 +20,7 @@ mutable struct TsptwStateRepresentation{F, TS} <: FeaturizedStateRepresentation{
     possibleValuesIdx::Union{Nothing, AbstractVector{Int64}}
 end
 
-function TsptwStateRepresentation{F, TS}(model::CPModel) where {F, TS}
+function TsptwStateRepresentation{F, TS}(model::CPModel; action_space=nothing) where {F, TS}
     dist, timeWindows, pos = get_tsptw_info(model)
     sr = TsptwStateRepresentation{F, TS}(dist, timeWindows, pos, nothing, nothing, nothing)
     sr.nodeFeatures = featurize(sr)

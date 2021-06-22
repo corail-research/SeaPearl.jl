@@ -52,7 +52,7 @@ he has the possibility to define his own.
 
 To define a new one, the user must provide:
 - a new structure, subtype of `AbstractStateRepresentation` with the appropriate subtype of `AbstractTrajectoryState` and all its dependencies.
-- a constructor from a `CPModel`.
+- a constructor from a `CPModel`, with keyword argument `action_space`.
 - a function `update_representation!(::AbstractStateRepresentation, ::CPModel, ::AbstractIntVar)` to update the state representation at each step.
 
 Look at the DefaultStateRepresentation to get inspired.
