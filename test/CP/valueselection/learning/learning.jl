@@ -73,12 +73,12 @@ agent = RL.Agent(
 
     LearnedHeristicBasicConstructor = SeaPearl.LearnedHeuristic(agent)
     @test isa(LearnedHeristicBasicConstructor,SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}, SeaPearl.DefaultReward, SeaPearl.FixedOutput})
-    @test LearnedHeristicBasicConstructor.fitted_problem == nothing
-    @test LearnedHeristicBasicConstructor.fitted_strategy == nothing
-    @test LearnedHeristicBasicConstructor.action_space == nothing
-    @test LearnedHeristicBasicConstructor.current_state == nothing
-    @test LearnedHeristicBasicConstructor.reward == nothing
-    @test LearnedHeristicBasicConstructor.search_metrics == nothing
+    @test isnothing(LearnedHeristicBasicConstructor.fitted_problem)
+    @test isnothing(LearnedHeristicBasicConstructor.fitted_strategy)
+    @test isnothing(LearnedHeristicBasicConstructor.action_space)
+    @test isnothing(LearnedHeristicBasicConstructor.current_state)
+    @test isnothing(LearnedHeristicBasicConstructor.reward)
+    @test isnothing(LearnedHeristicBasicConstructor.search_metrics)
 
 
 end
