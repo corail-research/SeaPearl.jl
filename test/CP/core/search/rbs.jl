@@ -357,7 +357,7 @@
     seed = 123
     rng = MersenneTwister(seed)
     
-    actor_approximator = SeaPearl.FlexGNN(
+    actor_approximator = SeaPearl.CPNN(
         graphChain = Flux.Chain(
             GeometricFlux.GraphConv(numInFeatures => 64, Flux.leakyrelu),
             [approximator_GNN for i = 1:gnnlayers]...
@@ -367,9 +367,9 @@
             Flux.Dense(32, 32, Flux.leakyrelu; initW = glorot_uniform(rng)),
             Flux.Dense(32, 16, Flux.leakyrelu; initW = glorot_uniform(rng)),
         ),
-        outputLayer = Flux.Dense(16, 4; initW = glorot_uniform(rng)),
+        outputChain = Flux.Dense(16, 4; initW = glorot_uniform(rng)),
     ) 
-    critic_approximator = SeaPearl.FlexGNN(
+    critic_approximator = SeaPearl.CPNN(
         graphChain = Flux.Chain(
             GeometricFlux.GraphConv(numInFeatures => 64, Flux.leakyrelu),
             [target_approximator_GNN for i = 1:gnnlayers]...
@@ -379,7 +379,7 @@
             Flux.Dense(32, 32, Flux.leakyrelu; initW = glorot_uniform(rng)),
             Flux.Dense(32, 16, Flux.leakyrelu; initW = glorot_uniform(rng)),
         ),
-        outputLayer = Flux.Dense(16, 1; initW = glorot_uniform(rng)),
+        outputChain = Flux.Dense(16, 1; initW = glorot_uniform(rng)),
     ) 
         
                 
@@ -466,7 +466,7 @@
         seed = 123
         rng = MersenneTwister(seed)
         
-        actor_approximator = SeaPearl.FlexGNN(
+        actor_approximator = SeaPearl.CPNN(
             graphChain = Flux.Chain(
                 GeometricFlux.GraphConv(numInFeatures => 64, Flux.leakyrelu),
                 [approximator_GNN for i = 1:gnnlayers]...
@@ -476,9 +476,9 @@
                 Flux.Dense(32, 32, Flux.leakyrelu; initW = glorot_uniform(rng)),
                 Flux.Dense(32, 16, Flux.leakyrelu; initW = glorot_uniform(rng)),
             ),
-            outputLayer = Flux.Dense(16, 4; initW = glorot_uniform(rng)),
+            outputChain = Flux.Dense(16, 4; initW = glorot_uniform(rng)),
         ) 
-        critic_approximator = SeaPearl.FlexGNN(
+        critic_approximator = SeaPearl.CPNN(
             graphChain = Flux.Chain(
                 GeometricFlux.GraphConv(numInFeatures => 64, Flux.leakyrelu),
                 [target_approximator_GNN for i = 1:gnnlayers]...
@@ -488,7 +488,7 @@
                 Flux.Dense(32, 32, Flux.leakyrelu; initW = glorot_uniform(rng)),
                 Flux.Dense(32, 16, Flux.leakyrelu; initW = glorot_uniform(rng)),
             ),
-            outputLayer = Flux.Dense(16, 1; initW = glorot_uniform(rng)),
+            outputChain = Flux.Dense(16, 1; initW = glorot_uniform(rng)),
         ) 
             
                     
