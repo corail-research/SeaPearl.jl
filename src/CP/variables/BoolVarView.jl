@@ -87,3 +87,5 @@ function Base.iterate(dom::BoolDomainViewNot, state=1)
     value, newState = returned
     return !value, newState
 end
+
+parentValue(::BoolVarViewNot, v::Bool) = ! v
