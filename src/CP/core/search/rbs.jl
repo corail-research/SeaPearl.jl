@@ -1,70 +1,57 @@
 """
-    initroot!(toCall::Stack{Function}, ::Type{DFSearch},model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, newConstraints=nothing)
+    function generateLimitList(strategy::staticRBSearch)
 
-Used as a generic function to instantiate the research. It fills the toCall Stack in a certains order based on a specific Strategy <: SearchStrategy with 
-function that expand the search tree. In restart based strategy, we fill the Stack with calls to expandRbs with different nodeLimit. The nodeLimit corresponds 
-to the number of infeasiblesolution that can be reached before restarting the search a the top of the tree with a possibly different nodeLimit. This search 
-strategy requires the use of a stochastic variable/value heuristic, otherwise, at each restart the search will end-up on the exact previous solutions. 
-
+Used as a generic function to generate limits for each search. 
 staticRBSearch : At each restart, the number of infeasible solution before restart is fixed and equal to strategy.L.   
 """
-function initroot!(toCall::Stack{Function}, strategy::staticRBSearch, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
-    nodeLimit = strategy.L
-    for i in strategy.n:-1:2 
-        push!(toCall, (model) -> (restart_search!(model) ;expandRbs!(toCall, model, nodeLimit, strategy.criteria, variableHeuristic, valueSelection)))
-    end
-    return expandRbs!(toCall, model, nodeLimit, strategy.criteria, variableHeuristic, valueSelection)
+function generateLimitList(strategy::staticRBSearch{C})    where C <: ExpandCriteria
+    return fill(strategy.L,strategy.n)
 end
 
 """
-    initroot!(toCall::Stack{Function}, ::Type{DFSearch},model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, newConstraints=nothing)
+    function generateLimitList(strategy::geometricRBSearch)
 
-Used as a generic function to instantiate the research. It fills the toCall Stack in a certains order based on a specific Strategy <: SearchStrategy with 
-function that expand the search tree. In restart based strategy, we fill the Stack with calls to expandRbs with different nodeLimit. The nodeLimit corresponds 
-to the number of infeasiblesolution that can be reached before restarting the search a the top of the tree with a possibly different nodeLimit. This search 
-strategy requires the use of a stochastic variable/value heuristic, otherwise, at each restart the search will end-up on the exact previous solutions. 
-
+Used as a generic function to generate limits for each search.  
 geometricRBSearch : At each restart, the number of infeasible solution before restart is increased by the geometric factor strategy.α. strategy.L states the 
 initial number of infeasible solution for the first search.  
 """
-function initroot!(toCall::Stack{Function}, strategy::geometricRBSearch, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
-    nodeLimit = strategy.L
-    for i in strategy.n:-1:2 
-        Limit = convert(Int64,ceil(strategy.L*strategy.α^(i-1)))
-        push!(toCall, (model) -> (restart_search!(model) ;expandRbs!(toCall, model, Limit, strategy.criteria, variableHeuristic, valueSelection)))
-    end
-    return expandRbs!(toCall, model, strategy.L, strategy.criteria, variableHeuristic, valueSelection)
+function generateLimitList(strategy::geometricRBSearch{C})   where C <: ExpandCriteria
+    output=fill(strategy.L,strategy.n)
+    return Int.(map(x -> ceil((x[2]*strategy.α^(x[1]-1))),enumerate(output)))
 end
 
 """
-    initroot!(toCall::Stack{Function}, ::Type{DFSearch},model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, newConstraints=nothing)
+    function generateLimitList(strategy::lubyRBSearch)
 
-Used as a generic function to instantiate the research. It fills the toCall Stack in a certains order based on a specific Strategy <: SearchStrategy with 
-function that expand the search tree. In restart based strategy, we fill the Stack with calls to expandRbs with different nodeLimit. The nodeLimit corresponds 
-to the number of infeasiblesolution that can be reached before restarting the search a the top of the tree with a possibly different nodeLimit. This search 
-strategy requires the use of a stochastic variable/value heuristic, otherwise, at each restart the search will end-up on the exact previous solutions. 
-
+Used as a generic function to generate limits for each search.
 lubyRBSearch : At each restart, the number of infeasible solution before restart is increased by the factor Luby[i]. strategy.L states the 
 initial number of infeasible solution limit for the first search. The Luby sequence is a sequence of the following form: 1,1,2,1,1,2,4,1,1,2,1,1,2,4,8, . .
 and gives theoretical improvement on the search in the general case.
 """
-function initroot!(toCall::Stack{Function}, strategy::lubyRBSearch, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
-    searchFactor = Luby(strategy.n)
-    for i in strategy.n:-1:2 
-        Limit = strategy.L*searchFactor[i]
-        push!(toCall, (model) -> (restart_search!(model); expandRbs!(toCall, model,Limit, strategy.criteria ,variableHeuristic, valueSelection)))
-    end
-    return expandRbs!(toCall, model, strategy.L*searchFactor[1], strategy.criteria, variableHeuristic, valueSelection)
-end
-
-function Luby(n::Int64)
-    output=zeros(n)
-    K=map(x -> 2^x-1,1:n)   
-    lowerbound= K[(map(x->findfirst(K->K>x,K),1:n).-1)]
-    for x in 1:n 
+function generateLimitList(strategy::lubyRBSearch{C})  where C <: ExpandCriteria
+    output=zeros(strategy.n)
+    K=map(x -> 2^x-1,1:strategy.n)   
+    lowerbound= K[(map(x->findfirst(K->K>x,K),1:strategy.n).-1)]
+    for x in 1:strategy.n 
     output[x]= (x in K) ? (x+1)/2 : output[x-lowerbound[x]]
     end
-    return Int.(output)
+    return Int.(output.*strategy.L)
+end
+
+"""
+        function initroot!(toCall::Stack{Function}, strategy::S, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection) where {S <: RBSearch}
+
+It fills the toCall Stack in a certains order based on a specific Strategy <: RBSearch with 
+function that expand the search tree. In restart based strategy, we fill the Stack with calls to expandRbs with different nodeLimit. The nodeLimit corresponds 
+to the number of infeasiblesolution that can be reached before restarting the search a the top of the tree with a possibly different nodeLimit. This search 
+strategy requires the use of a stochastic variable/value heuristic, otherwise, at each restart the search will end-up on the exact previous solutions.
+"""
+function initroot!(toCall::Stack{Function}, strategy::RBSearch{C}, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection) where C <: ExpandCriteria
+    nodeLimitList = generateLimitList(strategy)
+    for i in strategy.n:-1:2 
+        push!(toCall, (model) -> (restart_search!(model) ; expandRbs!(toCall, model, nodeLimitList[i], strategy, variableHeuristic, valueSelection)))
+    end
+    return expandRbs!(toCall, model, nodeLimitList[1], strategy, variableHeuristic, valueSelection)
 end
 
 """
@@ -77,7 +64,7 @@ able to backtrack thanks to the trailer.
 The Search stops as long as the search reached the limit on a given criteria.
 .
 """
-function expandRbs!(toCall::Stack{Function}, model::CPModel, nodeLimit::Int64, criteria::T ,variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, newConstraints=nothing; prunedDomains::Union{CPModification,Nothing}=nothing) where T <: expandCriteria
+function expandRbs!(toCall::Stack{Function}, model::CPModel, nodeLimit::Int64, criteria::RBSearch{C}  ,variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, newConstraints=nothing; prunedDomains::Union{CPModification,Nothing}=nothing) where C <: ExpandCriteria
     
     # Dealing with limits
     model.statistics.numberOfNodes += 1
