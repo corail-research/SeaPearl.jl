@@ -177,7 +177,7 @@
 
             toCall = Stack{Function}()
             @test SeaPearl.expandRbs!(toCall, model, 1, search.criteria, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Infeasible
-            @test search.criteria(model,1) == false
+            @test search.criteria(model,1) == false #one infeasible state has been reached, so the search stops. 
         end 
         @testset "VisitedNodeCriteria" begin 
 
@@ -215,14 +215,14 @@
 
             toCall = Stack{Function}()
             @test SeaPearl.expandRbs!(toCall, model, 2, search.criteria, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Feasible
-            @test search.criteria(model,2) == true    #only one node has been visited
+            @test search.criteria(model,2) == true    
             pop!(toCall)(model) # :SavingState 
             @test pop!(toCall)(model) == :FoundSolution
-            @test search.criteria(model,2) == true
+            @test search.criteria(model,2) == true  #One solution found
             pop!(toCall)(model) # :Backtrack
             pop!(toCall)(model) # :SavingState
             @test pop!(toCall)(model) == :FoundSolution
-            @test search.criteria(model,2) == false
+            @test search.criteria(model,2) == false #Two solution found
         end
     end
     
@@ -494,7 +494,7 @@
                     
         UPDATE_FREQ = 1
     
-        # Agent definition
+        # Agent definition   //     PPO
         agent = RL.Agent(
             policy = RL.QBasedPolicy(
                 learner = RL.A2CLearner(
@@ -544,7 +544,7 @@
         variableSelection = SeaPearl.MinDomainVariableSelection()
 
         # launch the search 
-        SeaPearl.search!(model, SeaPearl.geometricRBSearch(3,10,1.1,SeaPearl.InfeasibleNodeCriteria()), variableSelection, valueSelection; out_solver=true)
+        SeaPearl.search!(model, SeaPearl.geometricRBSearch(3,10,1.1,SeaPearl.InfeasibleNodeCriteria()), variableSelection, valueSelection; out_solver=true) #In simple example, we never get an infeasible state 
 
         possible_solutions = [
             Dict("x1" => 1, "x2" => 2, "x3" => 3, "x4" => 1),
