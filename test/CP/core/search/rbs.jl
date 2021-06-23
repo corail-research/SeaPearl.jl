@@ -3,12 +3,12 @@
         ### Checking status ###
         # :NodeLimitStop
 
-        search=SeaPearl.staticRBSearch(10, 10, SeaPearl.InfeasibleNodeCriteria())
+        search=SeaPearl.staticRBSearch{SeaPearl.InfeasibleNodeCriteria}(10, 10)
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
         model.limit.numberOfNodes = 1
         toCall = Stack{Function}()
-        @test SeaPearl.expandRbs!(toCall, model, 1, search.criteria, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :NodeLimitStop
+        @test SeaPearl.expandRbs!(toCall, model, 1, search, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :NodeLimitStop
         @test isempty(toCall)
 
         # :SolutionLimitStop
@@ -17,7 +17,7 @@
         model.limit.numberOfSolutions = 0
         
         toCall = Stack{Function}()
-        @test SeaPearl.expandRbs!(toCall, model, 1, search.criteria, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :SolutionLimitStop
+        @test SeaPearl.expandRbs!(toCall, model, 1, search, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :SolutionLimitStop
         @test isempty(toCall)
 
         # :Infeasible
@@ -31,7 +31,7 @@
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
-        @test SeaPearl.expandRbs!(toCall, model, 1, search.criteria, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Infeasible
+        @test SeaPearl.expandRbs!(toCall, model, 1, search, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Infeasible
         @test isempty(toCall)
 
         # :Feasible
@@ -45,12 +45,12 @@
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
-        @test SeaPearl.expandRbs!(toCall, model, 1, search.criteria, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :FoundSolution
+        @test SeaPearl.expandRbs!(toCall, model, 1, search, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :FoundSolution
         @test isempty(toCall)
 
 
         ### Checking stack ###
-        search=SeaPearl.staticRBSearch(10, 10, SeaPearl.InfeasibleNodeCriteria())
+        search=SeaPearl.staticRBSearch{SeaPearl.InfeasibleNodeCriteria}(10, 10)
 
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
@@ -62,7 +62,7 @@
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
-        @test SeaPearl.expandRbs!(toCall, model, 10, search.criteria, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Feasible
+        @test SeaPearl.expandRbs!(toCall, model, 10, search, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Feasible
         @test length(toCall) == 6
 
         @test pop!(toCall)(model) == :SavingState
@@ -96,12 +96,12 @@
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
-        @test SeaPearl.initroot!(toCall, SeaPearl.staticRBSearch(10, 5,SeaPearl.VisitedNodeCriteria()), model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :FoundSolution
+        @test SeaPearl.initroot!(toCall, SeaPearl.staticRBSearch{SeaPearl.VisitedNodeCriteria}(10, 5), model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :FoundSolution
         @test length(toCall) == 4
-        @test pop!(toCall).nodeLimit == 10
-        @test pop!(toCall).nodeLimit == 10
-        @test pop!(toCall).nodeLimit == 10
-        @test pop!(toCall).nodeLimit == 10
+        @test pop!(toCall).nodeLimitList[2] == 10
+        @test pop!(toCall).nodeLimitList[3] == 10
+        @test pop!(toCall).nodeLimitList[4] == 10
+        @test pop!(toCall).nodeLimitList[5] == 10
 
     end
 
@@ -117,12 +117,12 @@
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
-        @test SeaPearl.initroot!(toCall, SeaPearl.geometricRBSearch(10, 5, 1.1, SeaPearl.VisitedNodeCriteria()), model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic())== :FoundSolution
+        @test SeaPearl.initroot!(toCall, SeaPearl.geometricRBSearch{SeaPearl.VisitedNodeCriteria}(10, 5, 1.1), model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic())== :FoundSolution
         @test length(toCall) == 4
-        @test pop!(toCall).Limit == 11
-        @test pop!(toCall).Limit == 13
-        @test pop!(toCall).Limit == 14
-        @test pop!(toCall).Limit == 15
+        @test pop!(toCall).nodeLimitList[2] == 11
+        @test pop!(toCall).nodeLimitList[3] == 13
+        @test pop!(toCall).nodeLimitList[4] == 14
+        @test pop!(toCall).nodeLimitList[5] == 15
 
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
@@ -134,7 +134,7 @@
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
-        @test SeaPearl.initroot!(toCall, SeaPearl.geometricRBSearch(10, 1, 1.1, SeaPearl.VisitedNodeCriteria()), model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic())== :FoundSolution
+        @test SeaPearl.initroot!(toCall, SeaPearl.geometricRBSearch{SeaPearl.VisitedNodeCriteria}(10, 1, 1.1), model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic())== :FoundSolution
         @test isempty(toCall) 
     end
 
@@ -150,21 +150,21 @@
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
-        @test SeaPearl.initroot!(toCall, SeaPearl.lubyRBSearch(10,5, SeaPearl.VisitedNodeCriteria()), model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic())== :FoundSolution
+        @test SeaPearl.initroot!(toCall, SeaPearl.lubyRBSearch{SeaPearl.VisitedNodeCriteria}(10,5), model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic())== :FoundSolution
         @test length(toCall) == 4
-        @test pop!(toCall).Limit == 10
-        @test pop!(toCall).Limit == 20
-        @test pop!(toCall).Limit == 10
-        @test pop!(toCall).Limit == 10
+        @test pop!(toCall).nodeLimitList[2] == 10
+        @test pop!(toCall).nodeLimitList[3] == 20
+        @test pop!(toCall).nodeLimitList[4] == 10
+        @test pop!(toCall).nodeLimitList[5] == 10
 
-        @test SeaPearl.Luby(31)==[1,1,2,1,1,2,4,1,1,2,1,1,2,4,8,1,1,2,1,1,2,4,1,1,2,1,1,2,4,8,16]
+        @test SeaPearl.generateLimitList(SeaPearl.lubyRBSearch{SeaPearl.VisitedNodeCriteria}(10,31))==[10,10,20,10,10,20,40,10,10,20,10,10,20,40,80,10,10,20,10,10,20,40,10,10,20,10,10,20,40,80,160]
     end
 
 
     @testset "Stopping Criteria" begin
         @testset "InfeasibleNodeCriteria" begin 
 
-            search = SeaPearl.staticRBSearch(1, 0, SeaPearl.InfeasibleNodeCriteria())
+            criteria = SeaPearl.staticRBSearch{SeaPearl.InfeasibleNodeCriteria}(1, 0)
 
             trailer = SeaPearl.Trailer()
             model = SeaPearl.CPModel(trailer)
@@ -176,12 +176,12 @@
             push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
             toCall = Stack{Function}()
-            @test SeaPearl.expandRbs!(toCall, model, 1, search.criteria, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Infeasible
-            @test search.criteria(model,1) == false #one infeasible state has been reached, so the search stops. 
+            @test SeaPearl.expandRbs!(toCall, model, 1, criteria, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Infeasible
+            @test criteria(model,1) == false #one infeasible state has been reached, so the search stops. 
         end 
         @testset "VisitedNodeCriteria" begin 
 
-            search = SeaPearl.staticRBSearch(1, 0, SeaPearl.VisitedNodeCriteria())
+            criteria = SeaPearl.staticRBSearch{SeaPearl.VisitedNodeCriteria}(1, 0)
 
             trailer = SeaPearl.Trailer()
             model = SeaPearl.CPModel(trailer)
@@ -193,16 +193,16 @@
             push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
             toCall = Stack{Function}()
-            @test SeaPearl.expandRbs!(toCall, model, 1, search.criteria, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Feasible
-            @test search.criteria(model,1) == true    #only one node has been visited
+            @test SeaPearl.expandRbs!(toCall, model, 1, criteria, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Feasible
+            @test criteria(model,1) == true    #only one node has been visited
             pop!(toCall)(model) # :SavingState
             pop!(toCall)(model) # expandRbs!(...)
-            @test search.criteria(model,1) == false
+            @test criteria(model,1) == false
         end
 
         @testset "SolutionFoundCriteria" begin 
 
-            search = SeaPearl.staticRBSearch(2, 0, SeaPearl.SolutionFoundCriteria())
+            criteria = SeaPearl.staticRBSearch{SeaPearl.SolutionFoundCriteria}(2, 0)
 
             trailer = SeaPearl.Trailer()
             model = SeaPearl.CPModel(trailer)
@@ -214,15 +214,15 @@
             push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
             toCall = Stack{Function}()
-            @test SeaPearl.expandRbs!(toCall, model, 2, search.criteria, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Feasible
-            @test search.criteria(model,2) == true    
+            @test SeaPearl.expandRbs!(toCall, model, 2, criteria, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Feasible
+            @test criteria(model,2) == true    
             pop!(toCall)(model) # :SavingState 
             @test pop!(toCall)(model) == :FoundSolution
-            @test search.criteria(model,2) == true  #One solution found
+            @test criteria(model,2) == true  #One solution found
             pop!(toCall)(model) # :Backtrack
             pop!(toCall)(model) # :SavingState
             @test pop!(toCall)(model) == :FoundSolution
-            @test search.criteria(model,2) == false #Two solution found
+            @test criteria(model,2) == false #Two solution found
         end
     end
     
@@ -232,7 +232,7 @@
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
         model.limit.numberOfNodes = 1
-        @test SeaPearl.search!(model, SeaPearl.staticRBSearch(10,10, SeaPearl.VisitedNodeCriteria()), SeaPearl.MinDomainVariableSelection()) == :NodeLimitStop
+        @test SeaPearl.search!(model, SeaPearl.staticRBSearch{SeaPearl.VisitedNodeCriteria}(10,10), SeaPearl.MinDomainVariableSelection()) == :NodeLimitStop
 
         # :SolutionLimitStop
         trailer = SeaPearl.Trailer()
@@ -243,7 +243,7 @@
         y = SeaPearl.IntVar(2, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        @test SeaPearl.search!(model, SeaPearl.staticRBSearch(10,10, SeaPearl.VisitedNodeCriteria()), SeaPearl.MinDomainVariableSelection()) == :SolutionLimitStop
+        @test SeaPearl.search!(model, SeaPearl.staticRBSearch{SeaPearl.VisitedNodeCriteria}(10,10), SeaPearl.MinDomainVariableSelection()) == :SolutionLimitStop
 
         # :Infeasible
         trailer = SeaPearl.Trailer()
@@ -255,7 +255,7 @@
         SeaPearl.addVariable!(model, y)
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
-        @test SeaPearl.search!(model, SeaPearl.staticRBSearch(10,10, SeaPearl.VisitedNodeCriteria()), SeaPearl.MinDomainVariableSelection()) == :Infeasible
+        @test SeaPearl.search!(model, SeaPearl.staticRBSearch{SeaPearl.VisitedNodeCriteria}(10,10), SeaPearl.MinDomainVariableSelection()) == :Infeasible
 
         # :Optimal
         trailer = SeaPearl.Trailer()
@@ -266,7 +266,7 @@
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
-        @test SeaPearl.search!(model, SeaPearl.staticRBSearch(10,10, SeaPearl.VisitedNodeCriteria()), SeaPearl.MinDomainVariableSelection()) == :Optimal
+        @test SeaPearl.search!(model, SeaPearl.staticRBSearch{SeaPearl.VisitedNodeCriteria}(10,10), SeaPearl.MinDomainVariableSelection()) == :Optimal
         @test length(model.statistics.solutions) == 1
 
 
@@ -280,7 +280,7 @@
         SeaPearl.addVariable!(model, y)
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
-        @test SeaPearl.search!(model, SeaPearl.staticRBSearch(10,10, SeaPearl.VisitedNodeCriteria()), SeaPearl.MinDomainVariableSelection()) == :Optimal
+        @test SeaPearl.search!(model, SeaPearl.staticRBSearch{SeaPearl.VisitedNodeCriteria}(10,10), SeaPearl.MinDomainVariableSelection()) == :Optimal
         @test length(model.statistics.solutions) == 2
         @test model.statistics.solutions[1] == Dict("x" => 3,"y" => 3)
         @test model.statistics.solutions[2] == Dict("x" => 2,"y" => 2)
@@ -298,7 +298,7 @@
         SeaPearl.addVariable!(model, y)
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
-        @test SeaPearl.search!(model, SeaPearl.staticRBSearch(10,10, SeaPearl.VisitedNodeCriteria()), SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Optimal
+        @test SeaPearl.search!(model, SeaPearl.staticRBSearch{SeaPearl.VisitedNodeCriteria}(10,10), SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Optimal
         @test model.statistics.solutions[1] == Dict("x" => 3,"y" => 3)
         @test model.statistics.solutions[2] == Dict("x" => 2,"y" => 2)
 
@@ -311,7 +311,7 @@
         push!(model.constraints, SeaPearl.Equal(x, y, model.trailer))
 
         my_heuristic(x::SeaPearl.IntVar; cpmodel=nothing) = minimum(x.domain)
-        @test SeaPearl.search!(model, SeaPearl.staticRBSearch(10,10, SeaPearl.VisitedNodeCriteria()), SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(my_heuristic)) == :Optimal
+        @test SeaPearl.search!(model, SeaPearl.staticRBSearch{SeaPearl.VisitedNodeCriteria}(10,10), SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(my_heuristic)) == :Optimal
         @test model.statistics.solutions[1] == Dict("x" => 2,"y" => 2)
         @test model.statistics.solutions[2] == Dict("x" => 3,"y" => 3)
 
@@ -327,8 +327,7 @@
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
-
-        @test SeaPearl.search!(model, SeaPearl.staticRBSearch(10,10, SeaPearl.VisitedNodeCriteria()), SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(); out_solver=true) == :FoundSolution
+        @test SeaPearl.search!(model, SeaPearl.staticRBSearch{SeaPearl.VisitedNodeCriteria}(10,10), SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(); out_solver=true) == :FoundSolution
         @test length(model.statistics.solutions) == 1
         @test model.statistics.solutions[1] == Dict("x" => 3,"y" => 3)
 
@@ -341,7 +340,7 @@
         push!(model.constraints, SeaPearl.Equal(x, y, model.trailer))
 
         my_heuristic(x::SeaPearl.IntVar; cpmodel=nothing) = minimum(x.domain)
-        @test SeaPearl.search!(model, SeaPearl.staticRBSearch(10,10, SeaPearl.VisitedNodeCriteria()), SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(my_heuristic); out_solver=true) == :FoundSolution
+        @test SeaPearl.search!(model, SeaPearl.staticRBSearch{SeaPearl.VisitedNodeCriteria}(10,10), SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(my_heuristic); out_solver=true) == :FoundSolution
         @test length(model.statistics.solutions) == 1
         @test model.statistics.solutions[1] == Dict("x" => 2,"y" => 2)
 
@@ -435,7 +434,7 @@
         variableSelection = SeaPearl.MinDomainVariableSelection()
 
         # launch the search 
-        SeaPearl.search!(model, SeaPearl.geometricRBSearch(3,10,1.1,SeaPearl.InfeasibleNodeCriteria()), variableSelection, valueSelection)
+        SeaPearl.search!(model, SeaPearl.geometricRBSearch{SeaPearl.InfeasibleNodeCriteria}(3,10,1.1), variableSelection, valueSelection)
 
         possible_solutions = [
             Dict("x1" => 1, "x2" => 2, "x3" => 3, "x4" => 1),
@@ -544,7 +543,7 @@
         variableSelection = SeaPearl.MinDomainVariableSelection()
 
         # launch the search 
-        SeaPearl.search!(model, SeaPearl.geometricRBSearch(3,10,1.1,SeaPearl.InfeasibleNodeCriteria()), variableSelection, valueSelection; out_solver=true) #In simple example, we never get an infeasible state 
+        SeaPearl.search!(model, SeaPearl.geometricRBSearch{SeaPearl.InfeasibleNodeCriteria}(3,10,1.1), variableSelection, valueSelection; out_solver=true) #In simple example, we never get an infeasible state 
 
         possible_solutions = [
             Dict("x1" => 1, "x2" => 2, "x3" => 3, "x4" => 1),

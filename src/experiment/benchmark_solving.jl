@@ -19,7 +19,7 @@ This function might evolve for a more precise one which will provide better anal
 function benchmark_solving(;
         valueSelectionArray::Union{T, Array{T, 1}}, 
         generator::AbstractModelGenerator,
-        strategy::S=DFSearch,
+        strategy::S=DFSearch(),
         variableHeuristic::AbstractVariableSelection=MinDomainVariableSelection(),
         out_solver::Bool=false, 
         metricsFun=((;kwargs...) -> nothing),
