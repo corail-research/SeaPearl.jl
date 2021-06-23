@@ -1,7 +1,6 @@
 
 include("dfs.jl")
 include("ilds.jl")
-include("strategies.jl")
 
 """
     search!(model::CPModel, ::Type{Strategy}, variableHeuristic, valueSelection::ValueSelection=BasicHeuristic())

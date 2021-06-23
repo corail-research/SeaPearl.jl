@@ -1,6 +1,10 @@
-struct LatinGenerator <: AbstractModelGenerator
+mutable struct LatinGenerator <: AbstractModelGenerator
     N::Int
     p::Float64
+    A::Union{Nothing,Matrix{Int}}
+    function LatinGenerator(N,p)
+        new(N,p,nothing)
+    end
 end
 
 """
@@ -31,8 +35,11 @@ function fill_with_generator!(cpmodel::CPModel, gen::LatinGenerator; seed=nothin
     N = gen.N
     p = gen.p
     cpmodel.limit.numberOfSolutions = 1
-    A = Matrix{Int}(undef,N,N)
-    for i in 1:N A[i,:]= [(i+j-2)%N + 1 for j in 1:N] end
+    if isnothing(gen.A)
+        gen.A = Matrix{Int}(undef,N,N)
+        for i in 1:N gen.A[i,:]= [(i+j-2)%N + 1 for j in 1:N] end
+    end
+    A = gen.A
     if !isnothing(seed)
         Random.seed!(seed)
     end
@@ -40,13 +47,13 @@ function fill_with_generator!(cpmodel::CPModel, gen::LatinGenerator; seed=nothin
         x,y,z = rand(1:N,3)
         proper_move(A,x,y,z,z)
     end
-
+    B = copy(A)
     n = floor(Int,p*N^2)
     indicies = shuffle(1:N^2)[1:n]
     for x in indicies
         i = div(x-1,N) + 1
         j = (x-1)%N + 1
-        A[i,j] = 0
+        B[i,j] = 0
     end
 
     puzzle = Matrix{SeaPearl.AbstractIntVar}(undef, N,N)
@@ -54,7 +61,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::LatinGenerator; seed=nothin
         for j in 1:N
             puzzle[i,j] = SeaPearl.IntVar(1, N, "puzzle_"*string(i)*","*string(j), cpmodel.trailer)
             SeaPearl.addVariable!(cpmodel, puzzle[i,j]; branchable=true)
-            if A[i,j]>0 push!(cpmodel.constraints,SeaPearl.EqualConstant(puzzle[i,j], A[i,j], cpmodel.trailer)) end
+            if B[i,j]>0 push!(cpmodel.constraints,SeaPearl.EqualConstant(puzzle[i,j], B[i,j], cpmodel.trailer)) end
         end
     end
     for i in 1:N
