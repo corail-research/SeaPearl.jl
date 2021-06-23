@@ -1,3 +1,4 @@
+using ProgressBars
 
 """
     launch_experiment!(;
@@ -75,7 +76,7 @@ function launch_experiment!(
         end
 
         if !isnothing(evaluator) && (i % evaluator.evalFreq == 0)
-            evaluate(evaluator, variableHeuristic, strategy)
+            evaluate(evaluator, variableHeuristic, strategy; verbose = verbose)
         end
         verbose && println()
     end

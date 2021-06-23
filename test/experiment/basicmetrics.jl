@@ -1,26 +1,33 @@
-using Flux
-using GeometricFlux
 #agent declaration
-approximator_model = SeaPearl.FlexGNN(
+approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
+target_approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
+gnnlayers = 10
+numInFeatures = 3
+approximator_model = SeaPearl.CPNN(
     graphChain = Flux.Chain(
-        GeometricFlux.GATConv(3 => 10, heads=2, concat=true),
-        GeometricFlux.GATConv(20 => 20, heads=2, concat=false),
+        GeometricFlux.GraphConv(numInFeatures => 64, Flux.leakyrelu),
+        [approximator_GNN for i = 1:gnnlayers]...
     ),
     nodeChain = Flux.Chain(
-        Flux.Dense(20, 20),
+        Flux.Dense(64, 32, Flux.leakyrelu),
+        Flux.Dense(32, 32, Flux.leakyrelu),
+        Flux.Dense(32, 16, Flux.leakyrelu),
     ),
-    outputLayer = Flux.Dense(20, 2)
-)
-target_approximator_model = SeaPearl.FlexGNN(
+    outputChain = Flux.Dense(16, 3),
+) |> gpu
+target_approximator_model = SeaPearl.CPNN(
     graphChain = Flux.Chain(
-        GeometricFlux.GATConv(3 => 10, heads=2, concat=true),
-        GeometricFlux.GATConv(20 => 20, heads=2, concat=false),
+        GeometricFlux.GraphConv(numInFeatures => 64, Flux.leakyrelu),
+        [target_approximator_GNN for i = 1:gnnlayers]...
     ),
     nodeChain = Flux.Chain(
-        Flux.Dense(20, 20),
+        Flux.Dense(64, 32, Flux.leakyrelu),
+        Flux.Dense(32, 32, Flux.leakyrelu),
+        Flux.Dense(32, 16, Flux.leakyrelu),
     ),
-    outputLayer = Flux.Dense(20,  2)
-)
+    outputChain = Flux.Dense(16, 3),
+) |> gpu
+
 
 agent = RL.Agent(
     policy = RL.QBasedPolicy(
@@ -55,8 +62,8 @@ agent = RL.Agent(
         )
     ),
     trajectory = RL.CircularArraySARTTrajectory(
-        capacity = 8000,
-        state = Matrix{Float32} => (5,11),
+        capacity = 10,
+        state = SeaPearl.DefaultTrajectoryState[] => (),
     )   
 )
 
@@ -98,7 +105,7 @@ agent = RL.Agent(
         @test typeof(metrics) ==  SeaPearl.BasicMetrics{SeaPearl.DontTakeObjective, SeaPearl.BasicHeuristic}
 
         metrics  = SeaPearl.BasicMetrics(cpmodel, learnedheuristic)
-        @test typeof(metrics) ==  SeaPearl.BasicMetrics{SeaPearl.DontTakeObjective, SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation, SeaPearl.DefaultReward, SeaPearl.FixedOutput}} 
+        @test typeof(metrics) ==  SeaPearl.BasicMetrics{SeaPearl.DontTakeObjective, SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}, SeaPearl.DefaultReward, SeaPearl.FixedOutput}} 
         @test isnothing(metrics.totalReward) == false
         @test isnothing(metrics.loss) == false 
 
@@ -109,7 +116,7 @@ agent = RL.Agent(
         @test isnothing(metrics.scores) == false
 
         metrics  = SeaPearl.BasicMetrics(cpmodel, learnedheuristic)
-        @test typeof(metrics) ==  SeaPearl.BasicMetrics{SeaPearl.TakeObjective, SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation, SeaPearl.DefaultReward, SeaPearl.FixedOutput}} 
+        @test typeof(metrics) ==  SeaPearl.BasicMetrics{SeaPearl.TakeObjective, SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}, SeaPearl.DefaultReward, SeaPearl.FixedOutput}} 
 
     end
 
@@ -230,6 +237,15 @@ agent = RL.Agent(
         push!(metrics.meanNodeVisitedUntilOptimality, 10)
         push!(metrics.meanNodeVisitedUntilOptimality, 10)
         
+        push!(metrics.meanNodeVisitedUntilfirstSolFound, 10)
+        push!(metrics.meanNodeVisitedUntilfirstSolFound, 10)
+        push!(metrics.meanNodeVisitedUntilfirstSolFound, 10)
+        push!(metrics.meanNodeVisitedUntilfirstSolFound, 10)
+        push!(metrics.meanNodeVisitedUntilfirstSolFound, 0)
+        push!(metrics.meanNodeVisitedUntilfirstSolFound, 0)
+        push!(metrics.meanNodeVisitedUntilfirstSolFound, 0)
+        push!(metrics.meanNodeVisitedUntilfirstSolFound, 0)
+
         metrics.nbEpisodes = 8
         SeaPearl.computemean!(metrics)
         @test metrics.meanNodeVisitedUntilfirstSolFound == [10.0, 7.5, 5.0, 2.5, 0.0]

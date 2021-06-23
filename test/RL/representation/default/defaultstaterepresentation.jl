@@ -1,5 +1,3 @@
-using GraphSignals
-
 adj = [0 1 0 1;
        1 0 1 0;
        0 1 0 1;
@@ -9,14 +7,13 @@ adj = [0 1 0 1;
     
     @testset "DefaultStateRepresentation structure" begin
         g = SeaPearl.CPLayerGraph()
-        features = [1.0f0 1.0f0; 2.0f0 2.0f0]
-        variable_id = 1
-        dsr = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization}(g, features, variable_id, [1, 2, 3])
+        nodeFeatures = [1.0f0 1.0f0; 2.0f0 2.0f0]
+        variableIdx = 1
+        dsr = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}(g, nodeFeatures, nothing, variableIdx, nothing)
 
         @test dsr.cplayergraph == g
-        @test dsr.features == features
-        @test dsr.variable_id == 1
-        @test dsr.possible_value_ids == [1, 2, 3]
+        @test dsr.nodeFeatures == nodeFeatures
+        @test dsr.variableIdx == 1
 
     end
 
@@ -42,12 +39,11 @@ adj = [0 1 0 1;
                                                                                 0 0 0 1 0 0
                                                                                 0 0 1 1 0 0]
 
-        @test dsr.features == Float32[  1 1 0 0 0 0
+        @test dsr.nodeFeatures == Float32[  1 1 0 0 0 0
                                         0 0 1 1 0 0
                                         0 0 0 0 1 1]
-        @test dsr.variable_id == 3
-        @test dsr.possible_value_ids == [6]
-        @test SeaPearl.cpVertexFromIndex(SeaPearl.CPLayerGraph(model), dsr.variable_id).variable == model.variables["x"]
+        @test dsr.variableIdx == 3
+        @test SeaPearl.cpVertexFromIndex(SeaPearl.CPLayerGraph(model), dsr.variableIdx).variable == model.variables["x"]
     end
 
     @testset "update_representation!()" begin
@@ -71,13 +67,12 @@ adj = [0 1 0 1;
                                                     0 0 1 1 0 0
                                                     0 0 1 1 0 0]
 
-        @test dsr.features == Float32[   1 1 0 0 0 0
+        @test dsr.nodeFeatures == Float32[   1 1 0 0 0 0
                                                         0 0 1 1 0 0
                                                         0 0 0 0 1 1]
 
-        @test dsr.variable_id == 3
-        @test dsr.possible_value_ids == [5, 6]
-        @test SeaPearl.cpVertexFromIndex(SeaPearl.CPLayerGraph(model), dsr.variable_id).variable == model.variables["x"]
+        @test dsr.variableIdx == 3
+        @test SeaPearl.cpVertexFromIndex(SeaPearl.CPLayerGraph(model), dsr.variableIdx).variable == model.variables["x"]
 
         SeaPearl.assign!(y, 2)
         g = SeaPearl.CPLayerGraph(model)
@@ -91,114 +86,69 @@ adj = [0 1 0 1;
                                                     0 0 1 1 0 0
                                                     0 0 1 0 0 0]
 
-        @test dsr.features == Float32[   1 1 0 0 0 0
+        @test dsr.nodeFeatures == Float32[   1 1 0 0 0 0
                                                         0 0 1 1 0 0
                                                         0 0 0 0 1 1]
-        @test dsr.variable_id == 4
-        @test dsr.possible_value_ids == [5]
-        @test SeaPearl.cpVertexFromIndex(g, dsr.variable_id).variable == model.variables["y"]
+        @test dsr.variableIdx == 4
+        @test SeaPearl.cpVertexFromIndex(g, dsr.variableIdx).variable == model.variables["y"]
 
     end
 
-    @testset "featuredgraph() from array" begin
 
-        array = Float32[    1 0 0 1 1 0 0 0 0 1 0 0 0 0
-                            1 0 0 1 1 0 0 0 0 1 0 0 0 0
-                            1 1 1 0 0 1 1 0 0 0 1 0 1 0
-                            1 1 1 0 0 1 1 0 0 0 1 0 0 0
-                            1 0 0 1 1 0 0 0 0 0 0 1 0 0
-                            1 0 0 1 1 0 0 0 0 0 0 1 0 1
-                            0 0 0 0 0 0 0 0 0 0 0 0 0 0
-                            0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-
-        fg = SeaPearl.featuredgraph(array, SeaPearl.DefaultStateRepresentation)
-
-        @test Matrix(GraphSignals.graph(fg)) == Float32[ 0 0 1 1 0 0
-                                                            0 0 1 1 0 0
-                                                            1 1 0 0 1 1
-                                                            1 1 0 0 1 1
-                                                            0 0 1 1 0 0
-                                                            0 0 1 1 0 0]
-
-        @test GraphSignals.node_feature(fg) == Float32[   1 1 0 0 0 0
-                                                        0 0 1 1 0 0
-                                                        0 0 0 0 1 1]
-
-    end
-
-    @testset "branchingvariable_id() from array" begin
-
-        array = Float32[    1 0 0 1 1 0 0 0 0 1 0 0 0 0
-                            1 0 0 1 1 0 0 0 0 1 0 0 0 0
-                            1 1 1 0 0 1 1 0 0 0 1 0 1 0
-                            1 1 1 0 0 1 1 0 0 0 1 0 0 0
-                            1 0 0 1 1 0 0 0 0 0 0 1 0 0
-                            1 0 0 1 1 0 0 0 0 0 0 1 0 1
-                            0 0 0 0 0 0 0 0 0 0 0 0 0 0
-                            0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-
-        var_id = SeaPearl.branchingvariable_id(array, SeaPearl.DefaultStateRepresentation)
-
-        @test var_id == 3
-
-    end
-
-    @testset "possible_value_ids()" begin
-        array = Float32[1 0 0 1 1 0 0 0 0 1 0 0 0 1
-                        1 0 0 1 1 0 0 0 0 1 0 0 0 0
-                        1 1 1 0 0 1 1 0 0 0 1 0 1 0
-                        1 1 1 0 0 1 1 0 0 0 1 0 0 0
-                        1 0 0 1 1 0 0 0 0 0 0 1 0 0
-                        1 0 0 1 1 0 0 0 0 0 0 1 0 1
-                        0 0 0 0 0 0 0 0 0 0 0 0 0 0
-                        0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-        @test SeaPearl.possible_value_ids(array, SeaPearl.DefaultStateRepresentation) == [1, 6]
-    end
-
-    @testset "to_arraybuffer()" begin
-
+    @testset "trajectoryState constructor" begin
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
-
+    
         x = SeaPearl.IntVar(2, 3, "x", trailer)
         y = SeaPearl.IntVar(2, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
         push!(model.constraints, SeaPearl.NotEqual(x, y, trailer))
+    
 
         dsr = SeaPearl.DefaultStateRepresentation(model)
-        SeaPearl.update_representation!(dsr, model, x)
+        SeaPearl.update_representation!(dsr, model, x) #add x as the branching variable
+        dts = SeaPearl.DefaultTrajectoryState(dsr)  #creates the DefaultTrajectoryState object
 
-        max_cpnodes = 8
-
-        @test SeaPearl.to_arraybuffer(dsr, max_cpnodes) == Float32[   1 0 0 1 1 0 0 0 0 1 0 0 0 0
-                                                            1 0 0 1 1 0 0 0 0 1 0 0 0 0
-                                                            1 1 1 0 0 1 1 0 0 0 1 0 1 0
-                                                            1 1 1 0 0 1 1 0 0 0 1 0 0 0
-                                                            1 0 0 1 1 0 0 0 0 0 0 1 0 1
-                                                            1 0 0 1 1 0 0 0 0 0 0 1 0 1
-                                                            0 0 0 0 0 0 0 0 0 0 0 0 0 0
-                                                            0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+        @test dts.variableIdx == SeaPearl.indexFromCpVertex(dsr.cplayergraph, SeaPearl.VariableVertex(x))
 
     end
 
-    @testset "possible_values()" begin
+    @testset "BatchedDefaultTrajectoryState constructor" begin
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
-
+    
         x = SeaPearl.IntVar(2, 3, "x", trailer)
-        y = SeaPearl.IntVar(3, 3, "y", trailer)
+        y = SeaPearl.IntVar(2, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
         push!(model.constraints, SeaPearl.NotEqual(x, y, trailer))
+    
 
-        g = SeaPearl.CPLayerGraph(model)
+        dsr = SeaPearl.DefaultStateRepresentation(model)
+        SeaPearl.update_representation!(dsr, model, x) #add x as the branching variable
+        dts = SeaPearl.DefaultTrajectoryState(dsr)  #creates the DefaultTrajectoryState object
+
+        batchedDtsSingle = dts |> cpu   
+        @test batchedDtsSingle.fg.graph[:,:,1]== adjacency_matrix(dts.fg)
+        @test batchedDtsSingle.fg.nf[:,:,1] == dts.fg.nf
+        @test batchedDtsSingle.fg.ef[:,:,1] == dts.fg.ef
+        @test batchedDtsSingle.fg.gf[:,1] == dts.fg.gf
+        @test batchedDtsSingle.variableIdx[1] == dts.variableIdx
+
+        SeaPearl.assign!(x, 2)
+        SeaPearl.fixPoint!(model, SeaPearl.getOnDomainChange(x))
+        SeaPearl.update_representation!(dsr, model, x) #add x as the branching variable
+        dts2 = SeaPearl.DefaultTrajectoryState(dsr)  #creates the DefaultTrajectoryState object
 
 
-        @test SeaPearl.possible_values(SeaPearl.indexFromCpVertex(g, SeaPearl.VariableVertex(y)), g) == [6]
-        @test SeaPearl.possible_values(SeaPearl.indexFromCpVertex(g, SeaPearl.VariableVertex(x)), g) == [5, 6]
+        batchedDts = [dts,dts2] |> cpu   
+        @test size(batchedDts.fg.graph,3) == 2
+        @test size(batchedDts.fg.nf,3) == 2
+        @test size(batchedDts.fg.ef,3) == 2
+        @test size(batchedDts.fg.gf,2) == 2
+        @test size(batchedDts.variableIdx,1) == 2
     end
-
 end

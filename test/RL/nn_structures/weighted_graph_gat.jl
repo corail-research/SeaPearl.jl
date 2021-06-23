@@ -1,5 +1,3 @@
-using Zygote
-
 in_channel_v = 6
 out_channel_v = 30
 in_channel_e = 1

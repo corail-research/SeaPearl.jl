@@ -1,5 +1,3 @@
-using Distributions
-
 struct KnapsackGenerator <: AbstractModelGenerator
     nb_items::Int
     max_weight::Int
@@ -95,11 +93,3 @@ function fill_with_generator!(cpmodel::CPModel, gen::KnapsackGenerator; seed=not
 end
 
 feature_length(gen::KnapsackGenerator,  t::Type{DefaultStateRepresentation{F}}) where {F} = 10  
-
-
-"""
-    arraybuffer_dims(gen::KnapsackGenerator, t::Type{DefaultStateRepresentation})
-
-Returns the size of the state representation in its matrix form, useful when construcing the trajectory for the RL agent
-"""
-arraybuffer_dims(gen::KnapsackGenerator, t::Type{DefaultStateRepresentation{F}}) where {F} = (gen.nb_items^2,gen.nb_items^2+ 3 + feature_length(gen, t))

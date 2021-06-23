@@ -1,4 +1,3 @@
-using LightGraphs
 
 const Solution = Dict{String, Union{Int, Bool, Set{Int}}}
 
@@ -42,8 +41,6 @@ end
 
 CPModel() = CPModel(Trailer())
 
-const CPModification = Dict{String, Union{Array{Int}, Array{Bool}, SetModification}}
-
 """
     addVariable!(model::CPModel, x::AbstractVar; branchable=true)
 
@@ -85,65 +82,6 @@ function branchable_variables(model::CPModel)
         end
     end
     to_return
-end
-
-"""
-    merge!(prunedDomains::CPModification, newPrunedDomains::CPModification)
-
-Merge `newPrunedDomains` into `prunedDomains`, concatenating the arrays if concerning the same variable.
-"""
-function merge!(prunedDomains::CPModification, newPrunedDomains::CPModification)
-    for k in keys(newPrunedDomains)
-        if haskey(prunedDomains, k)
-            prunedDomains[k] = vcat(prunedDomains[k], newPrunedDomains[k])
-        else
-            prunedDomains[k] = newPrunedDomains[k]
-        end
-    end
-end
-
-"""
-    addToPrunedDomains!(prunedDomains::CPModification, x::IntVar, pruned::Array{Int})
-
-Update the `CPModification` by adding the pruned integers.
-
-# Arguments
-- `prunedDomains::CPModification`: the `CPModification` you want to update.
-- `x::IntVar`: the variable that had its domain pruned.
-- `pruned::Array{Int}`: the pruned integers.
-"""
-function addToPrunedDomains!(prunedDomains::CPModification, x::Union{AbstractIntVar, AbstractBoolVar}, pruned::Union{Array{Int}, Array{Bool}, BitArray})
-    if isempty(pruned)
-        return
-    end
-    if haskey(prunedDomains, x.id)
-        prunedDomains[x.id] = vcat(prunedDomains[x.id], Array(pruned))
-    else
-        prunedDomains[x.id] = Array(pruned)
-    end
-end
-
-"""
-    addToPrunedDomains!(prunedDomains::CPModification, x::IntVar, pruned::Array{Int})
-
-Update the `CPModification` by adding modified set values.
-
-# Arguments
-- `prunedDomains::CPModification`: the `CPModification` you want to update.
-- `x::IntSetVar`: the variable that had its values changed.
-- `modification::SetModification`: the modified values.
-"""
-function addToPrunedDomains!(prunedDomains::CPModification, x::IntSetVar, modification::SetModification)
-    if isempty(modification.required) && isempty(modification.excluded)
-        return
-    end
-
-    if haskey(prunedDomains, x.id)
-        mergeSetModifications!(prunedDomains[x.id], modification)
-    else
-        prunedDomains[x.id] = modification
-    end
-    return
 end
 
 """

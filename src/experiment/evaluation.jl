@@ -22,7 +22,7 @@ function SameInstancesEvaluator(valueSelectionArray::Array{H, 1}, generator::Abs
     SameInstancesEvaluator(instances, metrics, evalFreq, nbInstances, size(valueSelectionArray,1))
 end
 
-function evaluate(eval::SameInstancesEvaluator, variableHeuristic::AbstractVariableSelection, strategy::Type{<:SearchStrategy})
+function evaluate(eval::SameInstancesEvaluator, variableHeuristic::AbstractVariableSelection, strategy::Type{<:SearchStrategy}; verbose=true)
 
     for j in 1:eval.nbHeuristics
         testmode!(eval.metrics[1,j].heuristic, true)
@@ -33,7 +33,7 @@ function evaluate(eval::SameInstancesEvaluator, variableHeuristic::AbstractVaria
             dt = @elapsed search!(model, strategy, variableHeuristic, eval.metrics[1,j].heuristic)
             eval.metrics[i,j](model,dt)
 
-            println(typeof(eval.metrics[1,j].heuristic), " evaluated with: ", model.statistics.numberOfNodes, " nodes, taken ", dt, "s")
+            verbose && println(typeof(eval.metrics[1,j].heuristic), " evaluated with: ", model.statistics.numberOfNodes, " nodes, taken ", dt, "s")
         end 
         testmode!(eval.metrics[1,j].heuristic, false)
     end

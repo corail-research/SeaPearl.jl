@@ -30,7 +30,7 @@ dist = [0 19 17 34 7 20 10 17 28 15 23 29 23 29 21 20 9 16 21 13 12;
         13 13 18 28 20 11 15 28 15 4 10 17 10 40 25 17 9 3 8 0 19;
         12 31 29 27 10 30 4 27 35 18 27 36 26 21 33 32 10 21 25 19 0]
 
-time_windows = [0         408;
+timeWindows = [0         408;
         62        68;
         181       205;
         306       324;
@@ -52,8 +52,8 @@ time_windows = [0         408;
         9         21;
         275       300]
 
-dist, time_windows = SeaPearl.fill_with_generator!(model, generator; dist=dist, time_windows=time_windows)
-lh = SeaPearl.LearnedHeuristic{SeaPearl.TsptwStateRepresentation{SeaPearl.TsptwFeaturization}, SeaPearl.TsptwReward, SeaPearl.FixedOutput}(agent)
+dist, timeWindows = SeaPearl.fill_with_generator!(model, generator; dist=dist, timeWindows=timeWindows)
+lh = SeaPearl.LearnedHeuristic{SeaPearl.TsptwStateRepresentation{SeaPearl.TsptwFeaturization, SeaPearl.TsptwTrajectoryState}, SeaPearl.TsptwReward, SeaPearl.FixedOutput}(agent)
 
 @testset "TsptwReward" begin
     @testset "set_reward!(DecisionPhase)" begin
@@ -78,9 +78,9 @@ lh = SeaPearl.LearnedHeuristic{SeaPearl.TsptwStateRepresentation{SeaPearl.TsptwF
         println(model.variables["a_1"])
 
         x = first(values(SeaPearl.branchable_variables(model)))
-        SeaPearl.set_metrics!(SeaPearl.DecisionPhase(), lh, model, nothing, x)
+        SeaPearl.set_metrics!(SeaPearl.DecisionPhase, lh.search_metrics, model, x)
 
-        SeaPearl.set_reward!(SeaPearl.DecisionPhase(), lh, model)
+        SeaPearl.set_reward!(SeaPearl.DecisionPhase, lh, model)
         # @test lh.reward.value == 0.9887827f0
     end
 

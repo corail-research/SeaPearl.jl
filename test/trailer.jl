@@ -1,5 +1,3 @@
-using SeaPearl
-
 @testset "trailer.jl" begin
 
     @testset "StateObject{Int}()" begin

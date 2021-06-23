@@ -261,3 +261,7 @@ function updateMinFromRemovedVal!(dom::IntDomainViewOffset, v::Int)
         updateMinFromRemovedVal!(dom.orig, v - dom.c)
     end
 end
+
+parentValue(y::IntVarViewMul, v::Int) = v ÷ y.a
+parentValue(y::IntVarViewOffset, v::Int) = v - y.c
+parentValue(::IntVarViewOpposite, v::Int) = - v
