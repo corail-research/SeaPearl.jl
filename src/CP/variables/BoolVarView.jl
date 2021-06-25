@@ -43,6 +43,8 @@ Return the size of `dom`.
 """
 Base.length(dom::BoolDomainView) = length(dom.orig)
 
+id(dom::BoolVarView) = id(dom.x)
+
 """
     Base.in(value::Bool, dom::BoolDomainViewNot)
 
