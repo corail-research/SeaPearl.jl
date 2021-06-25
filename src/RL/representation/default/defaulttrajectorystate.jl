@@ -62,7 +62,7 @@ rather than a `DefaultTrajectoryState`. This behavior makes it possible to dynam
 from the `FeaturedGraph` wrapper.
 """
 function Flux.functor(::Type{DefaultTrajectoryState}, s)
-    adj = Flux.unsqueeze(adjacency_matrix(s.fg), 3)
+    adj = Flux.unsqueeze(s.fg.graph, 3)
     nf = Flux.unsqueeze(s.fg.nf, 3)
     ef = Flux.unsqueeze(s.fg.ef, 3)
     gf = Flux.unsqueeze(s.fg.gf, 2)
@@ -87,8 +87,8 @@ rather than a `Vector{DefaultTrajectoryState}`. This behavior makes it possible 
 the appropriated size to store all the graphs in 3D tensors.
 """
 function Flux.functor(::Type{Vector{DefaultTrajectoryState}}, v)
-    maxNode = Base.maximum(s -> nv(s.fg), v)
-    maxEdge = Base.maximum(s -> ne(s.fg), v)
+    maxNode = Base.maximum(s -> size(s.fg.nf, 2), v)
+    maxEdge = Base.maximum(s -> size(s.fg.ef, 2), v)
     maxGlobal = Base.maximum(s -> length(s.fg.gf), v)
     batchSize = length(v)
 
@@ -107,7 +107,7 @@ function Flux.functor(::Type{Vector{DefaultTrajectoryState}}, v)
     Zygote.ignore() do
         # TODO: this could probably be optimized
         foreach(enumerate(v)) do (idx, state)
-            adj[1:size(state.fg.graph,1),1:size(state.fg.graph,2),idx] = adjacency_matrix(state.fg.graph)
+            adj[1:size(state.fg.graph,1),1:size(state.fg.graph,2),idx] = state.fg.graph
             nf[1:size(state.fg.nf, 1),1:size(state.fg.nf, 2),idx] = state.fg.nf
             ef[1:size(state.fg.ef, 1),1:size(state.fg.ef, 2),idx] = state.fg.ef
             gf[1:size(state.fg.gf, 1),idx] = state.fg.gf
