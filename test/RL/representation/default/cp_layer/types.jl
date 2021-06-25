@@ -7,9 +7,9 @@
     z = SeaPearl.IntVarViewOpposite(y, "-y")
     SeaPearl.addVariable!(model, x)
     SeaPearl.addVariable!(model, y)
-    push!(model.constraints, SeaPearl.Equal(x, y, trailer))
-    push!(model.constraints, SeaPearl.NotEqual(x, y, trailer))
-    push!(model.constraints, SeaPearl.NotEqual(z, y, trailer))
+    SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
+    SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x, y, trailer))
+    SeaPearl.addConstraint!(model, SeaPearl.NotEqual(z, y, trailer))
 
     g = SeaPearl.CPLayerGraph(model)
 

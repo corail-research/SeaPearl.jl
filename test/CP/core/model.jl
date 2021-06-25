@@ -82,8 +82,8 @@
 
         constraint = SeaPearl.EqualConstant(x, 3, trailer)
         constraint2 = SeaPearl.Equal(x, y, trailer)
-        push!(model.constraints, constraint)
-        push!(model.constraints, constraint2)
+        SeaPearl.addConstraint!(model, constraint)
+        SeaPearl.addConstraint!(model, constraint2)
 
         SeaPearl.fixPoint!(model)
 
@@ -240,9 +240,9 @@
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
         SeaPearl.addVariable!(model, z)
-        push!(model.constraints, SeaPearl.NotEqual(x, y, trailer))
-        push!(model.constraints, SeaPearl.NotEqual(y, z, trailer))
-        push!(model.constraints, SeaPearl.NotEqual(x, z, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.NotEqual(y, z, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x, z, trailer))
 
         SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) 
         @test model.statistics.numberOfInfeasibleSolutionsBeforeRestart == 2
@@ -268,18 +268,19 @@
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
         SeaPearl.addVariable!(model, z)
-        push!(model.constraints, SeaPearl.NotEqual(x, y, trailer))
-        push!(model.constraints, SeaPearl.NotEqual(y, z, trailer))
 
-        constraint = model.constraints[1]
+        SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.NotEqual(y, z, trailer))
 
-        SeaPearl.triggerInfeasible!(constraint, model)
+
         @test model.statistics.infeasibleStatusPerVariable["x"] == 1
         @test model.statistics.infeasibleStatusPerVariable["y"] == 2
-
-        constraint = model.constraints[2]
-        SeaPearl.triggerInfeasible!(constraint, model)
-        @test model.statistics.infeasibleStatusPerVariable["y"] == 3
         @test model.statistics.infeasibleStatusPerVariable["z"] == 1
+
+        constraint = model.constraints[1]
+        SeaPearl.triggerInfeasible!(constraint, model)
+        @test model.statistics.infeasibleStatusPerVariable["x"] == 2
+        @test model.statistics.infeasibleStatusPerVariable["y"] == 3
+        
     end
 end

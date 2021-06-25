@@ -130,7 +130,7 @@ agent = RL.Agent(
         y = SeaPearl.IntVar(2, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
 
         metrics  = SeaPearl.BasicMetrics(model, basicheuristic)
         dt = @elapsed SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection(), basicheuristic) 
@@ -151,7 +151,7 @@ agent = RL.Agent(
         y = SeaPearl.IntVar(2, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
 
         metrics  = SeaPearl.BasicMetrics(model, learnedheuristic)
         dt = @elapsed SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection(), learnedheuristic) 
@@ -176,7 +176,7 @@ agent = RL.Agent(
         y = SeaPearl.IntVar(2, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
         SeaPearl.addObjective!(model,y)
         metrics  = SeaPearl.BasicMetrics(model, basicheuristic)
         dt = @elapsed SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection(), basicheuristic) 
@@ -197,7 +197,7 @@ agent = RL.Agent(
         y = SeaPearl.IntVar(2, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
         SeaPearl.addObjective!(model,y)
 
         metrics  = SeaPearl.BasicMetrics(model, learnedheuristic)

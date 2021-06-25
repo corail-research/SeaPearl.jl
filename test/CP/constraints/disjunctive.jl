@@ -235,7 +235,7 @@
 
         tasks = Vector{SeaPearl.IntVar}([task1, task2, task3])
         processing_time = [p1, p2, p3]
-        push!(model.constraints,SeaPearl.Disjunctive(tasks, processing_time, trailer))
+        SeaPearl.addConstraint!(model,SeaPearl.Disjunctive(tasks, processing_time, trailer))
 
         variableSelection = SeaPearl.MinDomainVariableSelection{false}()
         status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection)
@@ -257,7 +257,7 @@
         p3 = 3
         tasks = Vector{SeaPearl.IntVar}([task1, task2, task3])
         processing_time = [p1, p2, p3]
-        push!(model.constraints,SeaPearl.Disjunctive(tasks, processing_time, trailer))
+        SeaPearl.addConstraint!(model,SeaPearl.Disjunctive(tasks, processing_time, trailer))
         SeaPearl.addVariable!(model, task1)
         SeaPearl.addVariable!(model, task2)
         SeaPearl.addVariable!(model, task3)
@@ -343,7 +343,7 @@
         p3 = 3
         tasks = Vector{SeaPearl.IntVar}([task1, task2, task3])
         processing_time = [p1, p2, p3]
-        push!(model.constraints,SeaPearl.Disjunctive(tasks, processing_time, trailer))
+        SeaPearl.addConstraint!(model,SeaPearl.Disjunctive(tasks, processing_time, trailer))
 
         variableSelection = SeaPearl.MinDomainVariableSelection{false}()
         status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection)
@@ -375,7 +375,7 @@
         p3 = 3
         tasks = Vector{SeaPearl.IntVar}([task1, task2, task3])
         processing_time = [p1, p2, p3]
-        push!(model.constraints,SeaPearl.Disjunctive(tasks, processing_time, trailer))
+        SeaPearl.addConstraint!(model,SeaPearl.Disjunctive(tasks, processing_time, trailer))
 
         variableSelection = SeaPearl.MinDomainVariableSelection{false}()
         status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection)
@@ -410,17 +410,17 @@
                 tasks[i,j] = SeaPearl.IntVar(0, timeLimit, "task_"*string(i)*"_"*string(j), trailer)
                 endTask[i,j] = SeaPearl.IntVarViewOffset(tasks[i,j], processingTime[i,j], "end_"*string(i)*"_"*string(j))
                 SeaPearl.addVariable!(model, tasks[i,j])
-                push!(model.constraints, SeaPearl.LessOrEqual(endTask[i,j], objectif, trailer))
+                SeaPearl.addConstraint!(model, SeaPearl.LessOrEqual(endTask[i,j], objectif, trailer))
             end
         end
 
         for i in 1:nbTask
-            push!(model.constraints, SeaPearl.Disjunctive([tasks[i,j] for j in 1:nbMachine], 
+            SeaPearl.addConstraint!(model, SeaPearl.Disjunctive([tasks[i,j] for j in 1:nbMachine], 
                                                             [processingTime[i,j] for j in 1:nbMachine],
                                                             trailer))
         end
         for j in 1:nbMachine
-            push!(model.constraints, SeaPearl.Disjunctive([tasks[i,j] for i in 1:nbTask], 
+            SeaPearl.addConstraint!(model, SeaPearl.Disjunctive([tasks[i,j] for i in 1:nbTask], 
                                                             [processingTime[i,j] for i in 1:nbTask],
                                                             trailer))
         end

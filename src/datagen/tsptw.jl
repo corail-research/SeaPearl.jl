@@ -129,48 +129,48 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
 
     ## Constraints
     # Initialization
-    push!(cpmodel.constraints, EqualConstant(t[1], 0, cpmodel.trailer))
-    push!(cpmodel.constraints, EqualConstant(v[1], 1, cpmodel.trailer))
-    push!(cpmodel.constraints, EqualConstant(c[1], 0, cpmodel.trailer))
-    push!(cpmodel.constraints, SetEqualConstant(m[1], Set{Int}(collect(2:gen.n_city)), cpmodel.trailer))
+    SeaPearl.addConstraint!(cpmodel, EqualConstant(t[1], 0, cpmodel.trailer))
+    SeaPearl.addConstraint!(cpmodel, EqualConstant(v[1], 1, cpmodel.trailer))
+    SeaPearl.addConstraint!(cpmodel, EqualConstant(c[1], 0, cpmodel.trailer))
+    SeaPearl.addConstraint!(cpmodel, SetEqualConstant(m[1], Set{Int}(collect(2:gen.n_city)), cpmodel.trailer))
 
     # Variable definition
     for i in 1:(gen.n_city - 1)
         # m[i+1] = m[i] \ a[i]
-        push!(cpmodel.constraints, SetDiffSingleton(m[i+1], m[i], a[i], cpmodel.trailer))
+        SeaPearl.addConstraint!(cpmodel, SetDiffSingleton(m[i+1], m[i], a[i], cpmodel.trailer))
 
         # v[i+1] = a[i]
-        push!(cpmodel.constraints, Equal(v[i+1], a[i], cpmodel.trailer))
+        SeaPearl.addConstraint!(cpmodel, Equal(v[i+1], a[i], cpmodel.trailer))
 
         # t[i+1] = max(lowers[i], lower_ai[i])
-        push!(cpmodel.constraints, BinaryMaximumBC(t[i+1], lowers[i], lower_ai[i], cpmodel.trailer))
+        SeaPearl.addConstraint!(cpmodel, BinaryMaximumBC(t[i+1], lowers[i], lower_ai[i], cpmodel.trailer))
 
         # c[i + 1] = c[i] + d[i]
-        push!(cpmodel.constraints, SumToZero(AbstractIntVar[c[i], d[i], IntVarViewOpposite(c[i+1], "-c_"*string(i+1))], cpmodel.trailer))
+        SeaPearl.addConstraint!(cpmodel, SumToZero(AbstractIntVar[c[i], d[i], IntVarViewOpposite(c[i+1], "-c_"*string(i+1))], cpmodel.trailer))
 
         # upper_ai = timeWindows[a_i, 2]
-        push!(cpmodel.constraints, Element1D(timeWindows[:, 2], a[i], upper_ai[i], cpmodel.trailer))
+        SeaPearl.addConstraint!(cpmodel, Element1D(timeWindows[:, 2], a[i], upper_ai[i], cpmodel.trailer))
 
         # lower_ai = timeWindows[a_i, 1]
-        push!(cpmodel.constraints, Element1D(timeWindows[:, 1], a[i], lower_ai[i], cpmodel.trailer))
+        SeaPearl.addConstraint!(cpmodel, Element1D(timeWindows[:, 1], a[i], lower_ai[i], cpmodel.trailer))
 
         # d[i] = dist[v[i], a[i]]
-        push!(cpmodel.constraints, Element2D(dist, v[i], a[i], d[i], cpmodel.trailer))
+        SeaPearl.addConstraint!(cpmodel, Element2D(dist, v[i], a[i], d[i], cpmodel.trailer))
         # lowers[i] = t[i] + d[i]
-        push!(cpmodel.constraints, SumToZero(AbstractIntVar[t[i], d[i], IntVarViewOpposite(lowers[i], "-td_"*string(i))], cpmodel.trailer))
+        SeaPearl.addConstraint!(cpmodel, SumToZero(AbstractIntVar[t[i], d[i], IntVarViewOpposite(lowers[i], "-td_"*string(i))], cpmodel.trailer))
     end
     # d[n] = dist[a[n-1], 1]
-    push!(cpmodel.constraints, Element2D(dist, a[gen.n_city-1], one_var, d[gen.n_city], cpmodel.trailer))
+    SeaPearl.addConstraint!(cpmodel, Element2D(dist, a[gen.n_city-1], one_var, d[gen.n_city], cpmodel.trailer))
     # total_cost = c[n] + d[n]
-    push!(cpmodel.constraints, SumToZero(AbstractIntVar[c[gen.n_city], d[gen.n_city], IntVarViewOpposite(total_cost, "-total_cost")], cpmodel.trailer))
+    SeaPearl.addConstraint!(cpmodel, SumToZero(AbstractIntVar[c[gen.n_city], d[gen.n_city], IntVarViewOpposite(total_cost, "-total_cost")], cpmodel.trailer))
 
     # Validity constraints
     for i in 1:(gen.n_city - 1)
         # a[i] ∈ m[i]
-        push!(cpmodel.constraints, InSet(a[i], m[i], cpmodel.trailer))
+        SeaPearl.addConstraint!(cpmodel, InSet(a[i], m[i], cpmodel.trailer))
 
         # lowers[i] <= upper_ai
-        push!(cpmodel.constraints, LessOrEqual(lowers[i], upper_ai[i], cpmodel.trailer))
+        SeaPearl.addConstraint!(cpmodel, LessOrEqual(lowers[i], upper_ai[i], cpmodel.trailer))
     end
 
     # Pruning constraints
@@ -178,15 +178,15 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
         for i in 1:gen.n_city
             for j in 1:gen.n_city
                 # still_time[i, j] = t[i] < upper_tw[j]
-                push!(cpmodel.constraints, isLessOrEqual(still_time[i, j], t[i], upper_tw_minus_1[j], cpmodel.trailer))
+                SeaPearl.addConstraint!(cpmodel, isLessOrEqual(still_time[i, j], t[i], upper_tw_minus_1[j], cpmodel.trailer))
 
                 # j_in_m_i[i, j] = j_index[j] ∈ m[i]
-                push!(cpmodel.constraints, ReifiedInSet(j_index[j], m[i], j_in_m_i[i, j], cpmodel.trailer))
+                SeaPearl.addConstraint!(cpmodel, ReifiedInSet(j_index[j], m[i], j_in_m_i[i, j], cpmodel.trailer))
 
                 # t[i] >= upper[j] ⟹ j ∉ m[i]
                 # ≡ t[i] < upper[j] ⋁ j ∉ m[i]
                 # ≡ still_time[i, j] ⋁ ¬j_in_m_i[i, j]
-                push!(cpmodel.constraints, BinaryOr(still_time[i, j], BoolVarViewNot(j_in_m_i[i, j], "¬"*string(j)*"_in_m_"*string(i)), cpmodel.trailer))
+                SeaPearl.addConstraint!(cpmodel, BinaryOr(still_time[i, j], BoolVarViewNot(j_in_m_i[i, j], "¬"*string(j)*"_in_m_"*string(i)), cpmodel.trailer))
             end
         end
     end

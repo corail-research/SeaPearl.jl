@@ -221,9 +221,9 @@
             #SeaPearl.addVariable!(model, rows_minus[i]; branchable=false)
         end
 
-        push!(model.constraints, SeaPearl.AllDifferent(rows, trailer))
-        push!(model.constraints, SeaPearl.AllDifferent(rows_plus, trailer))
-        push!(model.constraints, SeaPearl.AllDifferent(rows_minus, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.AllDifferent(rows, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.AllDifferent(rows_plus, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.AllDifferent(rows_minus, trailer))
 
         variableSelection = SeaPearl.MinDomainVariableSelection{false}()
         status = SeaPearl.solve!(model; variableHeuristic=variableSelection)
@@ -254,9 +254,9 @@
             #SeaPearl.addVariable!(model, rows_minus[i]; branchable=false)
         end
 
-        push!(model.constraints, SeaPearl.AllDifferent(rows, trailer))
-        push!(model.constraints, SeaPearl.AllDifferent(rows_plus, trailer))
-        push!(model.constraints, SeaPearl.AllDifferent(rows_minus, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.AllDifferent(rows, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.AllDifferent(rows_plus, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.AllDifferent(rows_minus, trailer))
 
         variableSelection = SeaPearl.MinDomainVariableSelection{false}()
         status = SeaPearl.solve!(model; variableHeuristic=variableSelection)

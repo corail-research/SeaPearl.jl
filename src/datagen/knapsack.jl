@@ -64,11 +64,11 @@ function fill_with_generator!(cpmodel::CPModel, gen::KnapsackGenerator; seed=not
     SeaPearl.addVariable!(cpmodel, minusTotalWeight;branchable=false)
     push!(varsWeight, minusTotalWeight)
     weightEquality = SeaPearl.SumToZero(varsWeight, cpmodel.trailer)
-    push!(cpmodel.constraints, weightEquality)
+    SeaPearl.addConstraint!(cpmodel, weightEquality)
 
     # Making sure it is below the capacity
     weightConstraint = SeaPearl.LessOrEqualConstant(totalWeight, capacity, cpmodel.trailer)
-    push!(cpmodel.constraints, weightConstraint)
+    SeaPearl.addConstraint!(cpmodel, weightConstraint)
 
     ### Objective ### minimize: -sum(v[i]*x_a[i])
 
@@ -84,7 +84,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::KnapsackGenerator; seed=not
     SeaPearl.addVariable!(cpmodel, totalValue;branchable=false)
     push!(varsValue, totalValue)
     valueEquality = SeaPearl.SumToZero(varsValue, cpmodel.trailer)
-    push!(cpmodel.constraints, valueEquality)
+    SeaPearl.addConstraint!(cpmodel, valueEquality)
 
     # Setting it as the objective
     SeaPearl.addObjective!(cpmodel,totalValue)

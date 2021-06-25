@@ -48,7 +48,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::LegacyGraphColoringGenerato
     for i in 1:length(connexions)
         neighbors = Distributions.sample([j for j in 1:length(connexions) if j != i && connexions[i] > 0], connexions[i], replace=false)
         for j in neighbors
-            push!(cpmodel.constraints, SeaPearl.NotEqual(x[i], x[j], cpmodel.trailer))
+            SeaPearl.addConstraint!(cpmodel, SeaPearl.NotEqual(x[i], x[j], cpmodel.trailer))
         end
     end
 
@@ -56,7 +56,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::LegacyGraphColoringGenerato
     numberOfColors = SeaPearl.IntVar(1, nb_nodes, "numberOfColors", cpmodel.trailer)
     SeaPearl.addVariable!(cpmodel, numberOfColors)
     for var in x
-        push!(cpmodel.constraints, SeaPearl.LessOrEqual(var, numberOfColors, cpmodel.trailer))
+        SeaPearl.addConstraint!(cpmodel, SeaPearl.LessOrEqual(var, numberOfColors, cpmodel.trailer))
     end
     cpmodel.objective = numberOfColors
 
@@ -104,7 +104,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::HomogenousGraphColoringGene
     for i in 1:n
         for j in 1:n
             if i != j && rand() <= p
-                push!(cpmodel.constraints, SeaPearl.NotEqual(x[i], x[j], cpmodel.trailer))
+                SeaPearl.addConstraint!(cpmodel, SeaPearl.NotEqual(x[i], x[j], cpmodel.trailer))
             end
         end
     end
@@ -113,7 +113,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::HomogenousGraphColoringGene
     numberOfColors = SeaPearl.IntVar(1, n, "numberOfColors", cpmodel.trailer)
     SeaPearl.addVariable!(cpmodel, numberOfColors)
     for var in x
-        push!(cpmodel.constraints, SeaPearl.LessOrEqual(var, numberOfColors, cpmodel.trailer))
+        SeaPearl.addConstraint!(cpmodel, SeaPearl.LessOrEqual(var, numberOfColors, cpmodel.trailer))
     end
     SeaPearl.addObjective!(cpmodel,numberOfColors)
     nothing
@@ -174,7 +174,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::ClusterizedGraphColoringGen
     for i in 1:n
         for j in 1:n
             if i != j && assigned_colors[i] != assigned_colors[j] && rand() <= p
-                push!(cpmodel.constraints, SeaPearl.NotEqual(x[i], x[j], cpmodel.trailer))
+                SeaPearl.addConstraint!(cpmodel, SeaPearl.NotEqual(x[i], x[j], cpmodel.trailer))
             end
         end
     end
@@ -183,7 +183,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::ClusterizedGraphColoringGen
     numberOfColors = SeaPearl.IntVar(1, n, "numberOfColors", cpmodel.trailer)
     SeaPearl.addVariable!(cpmodel, numberOfColors)
     for var in x
-        push!(cpmodel.constraints, SeaPearl.LessOrEqual(var, numberOfColors, cpmodel.trailer))
+        SeaPearl.addConstraint!(cpmodel, SeaPearl.LessOrEqual(var, numberOfColors, cpmodel.trailer))
     end
     SeaPearl.addObjective!(cpmodel,numberOfColors)
     nothing
