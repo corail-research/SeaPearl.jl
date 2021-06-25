@@ -255,4 +255,31 @@
         @test model.statistics.numberOfNodesBeforeRestart == 0
         @test model.statistics.numberOfSolutionsBeforeRestart == 0
     end
+
+    @testset "triggerInfeasible!" begin
+        
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+        
+        x = SeaPearl.IntVar(1, 2, "x", trailer)
+        y = SeaPearl.IntVar(1, 2, "y", trailer)
+        z = SeaPearl.IntVar(1, 2, "z", trailer)
+
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y)
+        SeaPearl.addVariable!(model, z)
+        push!(model.constraints, SeaPearl.NotEqual(x, y, trailer))
+        push!(model.constraints, SeaPearl.NotEqual(y, z, trailer))
+
+        constraint = model.constraints[1]
+
+        SeaPearl.triggerInfeasible!(constraint, model)
+        @test model.statistics.infeasibleStatusPerVariable["x"] == 1
+        @test model.statistics.infeasibleStatusPerVariable["y"] == 2
+
+        constraint = model.constraints[2]
+        SeaPearl.triggerInfeasible!(constraint, model)
+        @test model.statistics.infeasibleStatusPerVariable["y"] == 3
+        @test model.statistics.infeasibleStatusPerVariable["z"] == 1
+    end
 end

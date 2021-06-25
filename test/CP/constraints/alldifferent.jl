@@ -264,4 +264,15 @@
         @test status == :Optimal
         @test length(model.statistics.solutions) == 40
     end
+
+    @testset "variablesArray()" begin 
+        trailer = SeaPearl.Trailer()
+        x = SeaPearl.IntVar(1, 3, "x", trailer)
+        y = SeaPearl.IntVar(2, 3, "y", trailer)
+        z = SeaPearl.IntVar(2, 3, "Z", trailer)
+        vec = Vector{SeaPearl.IntVar}([x, y, z])
+
+        constraint = SeaPearl.AllDifferent(vec, trailer)
+        @test length(SeaPearl.variablesArray(constraint)) == 3
+    end
 end
