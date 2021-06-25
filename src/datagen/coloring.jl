@@ -119,6 +119,14 @@ function fill_with_generator!(cpmodel::CPModel, gen::HomogenousGraphColoringGene
     nothing
 end
 
+"""
+    struct ClusterizedGraphColoringGenerator <: AbstractModelGenerator
+
+    Generator of Graph Coloring instances : 
+    - n is the number of nodes
+    - k is the number of color
+    - p is the edge density of the graph
+"""
 struct ClusterizedGraphColoringGenerator <: AbstractModelGenerator
     n::Int64
     k::Int64

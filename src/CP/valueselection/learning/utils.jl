@@ -98,9 +98,13 @@ function set_metrics!(PHASE::T, lh::LearnedHeuristic, model::CPModel, symbol::Un
     set_metrics!(PHASE, lh.search_metrics, model, symbol, x::Union{Nothing, AbstractIntVar})
 end
 
-wears_mask(valueSelection::LearnedHeuristic) = wears_mask(valueSelection.agent.policy.learner.approximator.model)
-
-
+function wears_mask(valueSelection::LearnedHeuristic) 
+    if (hasfield(typeof(valueSelection.agent.policy.learner.approximator),:actor))
+        wears_mask(valueSelection.agent.policy.learner.approximator.actor)      #A2C
+    else
+        wears_mask(valueSelection.agent.policy.learner.approximator.model)              #DQN
+    end
+end
 
 """
     from_order_to_id(state::AbstractArray, value_order::Int64)

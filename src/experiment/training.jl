@@ -3,13 +3,13 @@
         valueSelectionArray::Union{T, Array{T, 1}}, 
         generator::AbstractModelGenerator,
         nbEpisodes::Int64=10,
-        strategy::Type{DFSearch}=DFSearch,
-        variableHeuristic=selectVariable)
+        strategy::S=DFSearch(),
+        variableHeuristic::AbstractVariableSelection=MinDomainVariableSelection(),
         out_solver::Bool=false,
         verbose::Bool=true,
-        evaluator::Union{Nothing, AbstractEvaluator}, 
+        evaluator::Union{Nothing, AbstractEvaluator},
         metrics::Union{Nothing,AbstractMetrics}=nothing
-        ) where T <: ValueSelection
+    ) where{ T <: ValueSelection, S <: SearchStrategy}
 
 Training the given LearnedHeuristics and using the Basic ones to compare performances. 
 This function managed the training mode of the LearnedHeuristic before and after a call to `launch_experiment!`.
@@ -21,13 +21,13 @@ function train!(;
         valueSelectionArray::Union{T, Array{T, 1}}, 
         generator::AbstractModelGenerator,
         nbEpisodes::Int64=10,
-        strategy::Type{DFSearch}=DFSearch,
+        strategy::S=DFSearch(),
         variableHeuristic::AbstractVariableSelection=MinDomainVariableSelection(),
         out_solver::Bool=false,
         verbose::Bool=true,
         evaluator::Union{Nothing, AbstractEvaluator},
         metrics::Union{Nothing,AbstractMetrics}=nothing
-    ) where T <: ValueSelection
+    ) where{ T <: ValueSelection, S <: SearchStrategy}
 
     if isa(valueSelectionArray, T)
         valueSelectionArray = [valueSelectionArray]
@@ -36,7 +36,7 @@ function train!(;
     for valueSelection in valueSelectionArray
         if isa(valueSelection, LearnedHeuristic)
             valueSelection.fitted_problem = typeof(generator)
-            valueSelection.fitted_strategy = strategy
+            valueSelection.fitted_strategy = typeof(strategy)
             # we could add more information later ...
 
             # make sure it is in training mode

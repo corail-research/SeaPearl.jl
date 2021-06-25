@@ -54,7 +54,9 @@ function (metrics::BasicMetrics{DontTakeObjective, <:BasicHeuristic})(model::CPM
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
     push!(metrics.meanNodeVisitedUntilOptimality,model.statistics.numberOfNodes)
-    push!(metrics.meanNodeVisitedUntilfirstSolFound,model.statistics.nodevisitedpersolution[1])
+    if ! isempty(model.statistics.nodevisitedpersolution)    #infeasible case
+        push!(metrics.meanNodeVisitedUntilfirstSolFound,model.statistics.nodevisitedpersolution[1])
+    end    
     push!(metrics.timeneeded,dt)
     return
 end 
@@ -73,10 +75,14 @@ function (metrics::BasicMetrics{TakeObjective, <:BasicHeuristic})(model::CPModel
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
     push!(metrics.meanNodeVisitedUntilOptimality,model.statistics.numberOfNodes)
-    push!(metrics.meanNodeVisitedUntilfirstSolFound,model.statistics.nodevisitedpersolution[1])
+    if ! isempty(model.statistics.nodevisitedpersolution)    #infeasible case
+        push!(metrics.meanNodeVisitedUntilfirstSolFound,model.statistics.nodevisitedpersolution[1])
+    end
     push!(metrics.timeneeded,dt)
-    push!(metrics.scores,copy(model.statistics.objectives ./ model.statistics.objectives[size(model.statistics.objectives,1)]))
-    return
+    if ! isempty(model.statistics.objectives)
+        push!(metrics.scores,copy(model.statistics.objectives ./ model.statistics.objectives[size(model.statistics.objectives,1)]))
+    end
+
 end 
 
 """
@@ -94,7 +100,9 @@ function (metrics::BasicMetrics{DontTakeObjective, <:LearnedHeuristic})(model::C
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
     push!(metrics.meanNodeVisitedUntilOptimality,model.statistics.numberOfNodes)
-    push!(metrics.meanNodeVisitedUntilfirstSolFound,model.statistics.nodevisitedpersolution[1])
+    if ! isempty(model.statistics.nodevisitedpersolution)    #infeasible case
+        push!(metrics.meanNodeVisitedUntilfirstSolFound,model.statistics.nodevisitedpersolution[1])
+    end
     push!(metrics.timeneeded,dt)
     push!(metrics.totalReward,last_episode_total_reward(metrics.heuristic.agent.trajectory))
     push!(metrics.loss,metrics.heuristic.agent.policy.learner.loss)

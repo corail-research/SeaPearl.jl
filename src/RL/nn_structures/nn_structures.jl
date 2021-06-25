@@ -1,4 +1,6 @@
-using GraphSignals
+using Flux
+using Zygote
+using CUDA
 
 abstract type NNStructure end
 

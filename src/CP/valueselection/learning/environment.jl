@@ -1,3 +1,5 @@
+using Distributions: Categorical
+
 abstract type AbstractCPEnv{TS <: AbstractTrajectoryState} <: AbstractEnv end
 
 struct CPEnv{TS} <: AbstractCPEnv{TS}
@@ -40,4 +42,18 @@ function (learner::DQNLearner)(env::AbstractCPEnv{TS}) where {TS <: NonTabularTr
         learner.approximator |>
         vec |>
         send_to_host
+end
+
+function (learner::A2CLearner)(env::AbstractCPEnv{ST}) where {ST <: NonTabularTrajectoryState}
+    env |>
+    state |>
+    x ->
+        send_to_device(device(learner), x) |>
+        learner.approximator.actor |>
+        vec |>
+        send_to_host
+end
+
+function Array(state::T) where {T<:NonTabularTrajectoryState}
+    state
 end

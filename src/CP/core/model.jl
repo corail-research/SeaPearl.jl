@@ -1,17 +1,22 @@
 
 const Solution = Dict{String, Union{Int, Bool, Set{Int}}}
 
+#TODO add documentation for BeforeRestart
 mutable struct Statistics
-    numberOfNodes           ::Int
-    numberOfSolutions       ::Int
-    solutions               ::Vector{Solution}
-    nodevisitedpersolution  ::Vector{Int}
-    objectives              ::Union{Nothing, Vector{Int}}
+    numberOfNodes                           ::Int
+    numberOfSolutions                       ::Int
+    numberOfInfeasibleSolutions             ::Int
+    numberOfSolutionsBeforeRestart          ::Int
+    numberOfInfeasibleSolutionsBeforeRestart::Int
+    numberOfNodesBeforeRestart              ::Int
+    solutions                               ::Vector{Solution}
+    nodevisitedpersolution                  ::Vector{Int}
+    objectives                              ::Union{Nothing, Vector{Int}}
 end
 
 mutable struct Limit
     numberOfNodes       ::Union{Int, Nothing}
-    numberOfSolutions   ::Union{Int, Nothing}
+    numberOfSolutions   ::Union{Int, Nothing}  #the limit can be triggered by set of non-unique solutions
 end
 
 """
@@ -36,7 +41,7 @@ mutable struct CPModel
     statistics              ::Statistics
     limit                   ::Limit
     adhocInfo               ::Any
-    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Constraint[], trailer, nothing, nothing, Statistics(0, 0,Solution[],Int[],nothing), Limit(nothing, nothing))
+    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Constraint[], trailer, nothing, nothing, Statistics(0, 0, 0, 0, 0, 0, Solution[],Int[],nothing), Limit(nothing, nothing))
 end
 
 CPModel() = CPModel(Trailer())
@@ -107,6 +112,7 @@ function triggerFoundSolution!(model::CPModel)
     @assert solutionFound(model)
 
     model.statistics.numberOfSolutions += 1
+    model.statistics.numberOfSolutionsBeforeRestart += 1
 
     # Adding the solution
     solution = Solution()
@@ -159,6 +165,10 @@ function Base.isempty(model::CPModel)::Bool
         && isnothing(model.statistics.objectives)
         && model.statistics.numberOfNodes == 0
         && model.statistics.numberOfSolutions == 0
+        && model.statistics.numberOfInfeasibleSolutions == 0
+        && model.statistics.numberOfInfeasibleSolutionsBeforeRestart == 0
+        && model.statistics.numberOfSolutionsBeforeRestart == 0
+        && model.statistics.numberOfNodesBeforeRestart == 0
         && isnothing(model.limit.numberOfNodes)
         && isnothing(model.limit.numberOfSolutions)
     )
@@ -181,6 +191,10 @@ function Base.empty!(model::CPModel)
     model.statistics.objectives = nothing
     model.statistics.numberOfNodes = 0
     model.statistics.numberOfSolutions = 0
+    model.statistics.numberOfInfeasibleSolutions = 0
+    model.statistics.numberOfInfeasibleSolutionsBeforeRestart = 0
+    model.statistics.numberOfSolutionsBeforeRestart = 0
+    model.statistics.numberOfNodesBeforeRestart = 0
     model.limit.numberOfNodes = nothing
     model.limit.numberOfSolutions = nothing
     model
@@ -195,19 +209,32 @@ to use the same CPModel instance to compare different given heuristics.
 """
 function reset_model!(model::CPModel)
     restoreInitialState!(model.trailer)
-    for (id, x) in model.variables
-        reset_domain!(x.domain)
-    end
     model.objectiveBound = nothing
     empty!(model.statistics.solutions)
     empty!(model.statistics.nodevisitedpersolution)
     if !isnothing(model.objective)
-        @assert !isnothing(model.statistics.objectives)   "did you used SeaPearl.addObjective! to declare your objective function ? "
+        @assert !isnothing(model.statistics.objectives)   "did you used SeaPearl.addObjective! to declare your objective function ?"
         empty!(model.statistics.objectives)
     end
     model.statistics.numberOfNodes = 0
     model.statistics.numberOfSolutions = 0
+    model.statistics.numberOfInfeasibleSolutions = 0
+    model.statistics.numberOfInfeasibleSolutionsBeforeRestart = 0
+    model.statistics.numberOfSolutionsBeforeRestart = 0
+    model.statistics.numberOfNodesBeforeRestart = 0
+end
 
+"""
+restart_search!(model::CPModel)
+
+Usefull when dealing with restart based search : ILDS or RBS. Reset to zero usefull statistics on the search that can be used to define 
+the restart criteria. 
+"""
+function restart_search!(model::CPModel)
+    restoreInitialState!(model.trailer)
+    model.statistics.numberOfInfeasibleSolutionsBeforeRestart = 0
+    model.statistics.numberOfSolutionsBeforeRestart = 0
+    model.statistics.numberOfNodesBeforeRestart = 0
 end
 
 """

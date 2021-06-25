@@ -115,7 +115,7 @@ end
         my_heuristic(x::SeaPearl.IntVar; cpmodel=nothing) = minimum(x.domain)
         valueheuristic = SeaPearl.BasicHeuristic(my_heuristic)
 
-        SeaPearl.search!(model, SeaPearl.DFSearch, variableheuristic, valueheuristic)
+        SeaPearl.search!(model, SeaPearl.DFSearch(), variableheuristic, valueheuristic)
 
         # println("dist", dist)
         # println("timeWindows", timeWindows)
@@ -160,7 +160,7 @@ end
         my_heuristic(x::SeaPearl.IntVar; cpmodel=nothing) = minimum(x.domain)
         valueheuristic = SeaPearl.BasicHeuristic(my_heuristic)
 
-        SeaPearl.search!(model, SeaPearl.DFSearch, variableheuristic, valueheuristic)
+        SeaPearl.search!(model, SeaPearl.DFSearch(), variableheuristic, valueheuristic)
 
         #TODO findout why sometimes no solution are found in the randomly generated problem  
         @test length(model.statistics.solutions) >= 1
