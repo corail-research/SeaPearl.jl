@@ -72,8 +72,10 @@ end
 function addConstraint!(model::CPModel,constraint::Constraint)
     push!(model.constraints,constraint)
     for var in variablesArray(constraint)
-        @assert !haskey(model.statistics.infeasibleStatusPerVariable, id(var)) "You forget to add the variable $(id(var)) to the model"
-        model.statistics.infeasibleStatusPerVariable[id(var)]+=1
+        if haskey(model.branchable, id(var))
+            @assert haskey(model.statistics.infeasibleStatusPerVariable, id(var)) "You forget to add the variable $(id(var)) to the model"
+            model.statistics.infeasibleStatusPerVariable[id(var)]+=1
+        end
     end   
 end
 
@@ -142,13 +144,15 @@ end
 """
     triggerInfeasible!(constraint::Constraint, model::CPModel)
 
-this function increments by one the statistic infeasibleStatusPerVariable for each variable involved in the constraint _constraint_. infeasibleStatusPerVariable
+this function increments by one the statistic infeasibleStatusPerVariable for each variable involved in the constraint. infeasibleStatusPerVariable
 keeps in track for each variable the number of times the variable was involved in a constraint that led to an infeasible state during a fixpoint. This statistic 
 is used by the failure-based variable selection heuristic. 
 """
 function triggerInfeasible!(constraint::Constraint, model::CPModel)
     for var in variablesArray(constraint)
-        model.statistics.infeasibleStatusPerVariable[id(var)]=length(getOnDomainChange(var))
+        if haskey(model.branchable, id(var))
+            model.statistics.infeasibleStatusPerVariable[id(var)]+=1
+        end
     end
 end
 
@@ -238,7 +242,9 @@ function reset_model!(model::CPModel)
     model.objectiveBound = nothing
     empty!(model.statistics.solutions)
     empty!(model.statistics.nodevisitedpersolution)
-    empty!(model.statistics.infeasibleStatusPerVariable)
+    for (key, value) in model.statistics.infeasibleStatusPerVariable
+        model.statistics.infeasibleStatusPerVariable[key]=length(getOnDomainChange(model.variables[key]))  #the degree is reset to the initial value : the number of constraints the variable is involved in. 
+    end   
     if !isnothing(model.objective)
         @assert !isnothing(model.statistics.objectives)   "did you used SeaPearl.addObjective! to declare your objective function ?"
         empty!(model.statistics.objectives)
