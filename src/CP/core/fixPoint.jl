@@ -39,6 +39,7 @@ function fixPoint!(model::CPModel, new_constraints::Union{Array{Constraint}, Not
     while !isempty(toPropagate)
         constraint = pop!(toPropagate)
         if !propagate!(constraint, toPropagate, prunedDomains)
+            triggerInfeasible!(constraint, model)   
             return false, prunedDomains
         end
     end
