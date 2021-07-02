@@ -35,7 +35,7 @@ struct RSparseBitSet{T}
     end
 end
 
-const RSparseBitSet(size::Int, trailer) = RSparseBitSet{UInt64}(size::Int, trailer)
+RSparseBitSet(size::Int, trailer) = RSparseBitSet{UInt64}(size::Int, trailer)
 
 
 """
@@ -104,6 +104,27 @@ function intersectIndex(set::RSparseBitSet{T}, m::Vector{T})::Int where T <: Uns
     return -1
 end
 
+"""
+    bitVectorToUInt64Vector(bitset)::Vector{UInt64}
+
+Convert a Julia BitVector to a vector preformatted for the RSparseBitSet{UInt64}.
+
+# Arguments
+- `bitset::BitVector`: the BitVector to convert.
+"""
+function bitVectorToUInt64Vector(bitset::BitVector)::Vector{UInt64}
+    return [bitreverse(chunk) for chunk in bitset.chunks]
+end
+
+function Base.BitVector(set::RSparseBitSet{UInt64})
+    bitvector = BitVector(undef, 8*sizeof(UInt64)*length(set.words))
+    bitvector .= false
+    for i = set.limit.value:-1:1
+        offset = set.index[i]
+        bitvector.chunks[offset] = bitreverse(set.words[offset].value)
+    end
+    return bitvector
+end
 
 function Base.isempty(set::RSparseBitSet{T})::Bool where T <: Unsigned
     return set.limit.value == 0

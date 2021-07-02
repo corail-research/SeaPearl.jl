@@ -1,3 +1,7 @@
+using SeaPearl
+using LightGraphs
+using Test
+
 @testset "alldifferent.jl" begin
     @testset "AllDifferent(::Vector{AbstractIntVar}, ::Trailer)" begin
         trailer = SeaPearl.Trailer()
@@ -28,7 +32,9 @@
         vec = Vector{SeaPearl.IntVar}([x, y, z])
 
         constraint = SeaPearl.AllDifferent(vec, trailer)
-        SeaPearl.setValue!(constraint.edgesState[Edge(1, 6)], SeaPearl.removed)
+        removed = BitVector(undef, constraint.numberOfEdges) .= false
+        removed[constraint.edgeToIndex[Edge(1, 6)]] = true
+        SeaPearl.updateremaining!(constraint, removed)
         graph, digraph = SeaPearl.initializeGraphs!(constraint)
 
         @test Edge(1, 4) in edges(graph)
@@ -57,22 +63,6 @@
         @test Edge(2, 6) in edgeset
         @test Edge(1, 5) in edgeset
     end
-    @testset "getAllEdges(::DiGraph, ::Vector{Int}, ::Vector{Int})" begin
-        bipartite = DiGraph(7)
-        add_edge!(bipartite, 4, 1)
-        add_edge!(bipartite, 5, 1)
-        add_edge!(bipartite, 1, 6)
-        add_edge!(bipartite, 2, 5)
-        add_edge!(bipartite, 6, 2)
-        add_edge!(bipartite, 3, 7)
-        edgeset = SeaPearl.getAllEdges(bipartite, [1, 2], [5, 6])
-
-        @test length(edgeset) == 4
-        @test Edge(1, 5) in edgeset
-        @test Edge(1, 6) in edgeset
-        @test Edge(2, 5) in edgeset
-        @test Edge(2, 6) in edgeset
-    end
     @testset "removeEdges!(::AllDifferent, ::Vector{Vector{Int}}, ::Graph, ::DiGraph)" begin
 
         trailer = SeaPearl.Trailer()
@@ -90,7 +80,7 @@
         graph, digraph = SeaPearl.initializeGraphs!(constraint)
         matching = SeaPearl.Matching(6, [Pair(1, 7), Pair(2, 8), Pair(3, 9), Pair(4, 10), Pair(5, 11), Pair(6, 12)])
         for (idx, match) in enumerate(matching.matches)
-            constraint.matching[idx] = SeaPearl.StateObject{Pair{Int, Int}}(match, trailer)
+            constraint.matching[idx] = SeaPearl.StateObject{Tuple{Int, Int, Bool}}((match..., false), trailer)
         end
         SeaPearl.setValue!(constraint.initialized, true)
         SeaPearl.buildDigraph!(digraph, graph, matching)
@@ -181,7 +171,7 @@
         @test SeaPearl.propagate!(con2, toPropagate, modif)
 
         SeaPearl.withNewState!(trailer) do
-            SeaPearl.assign!(rows[1].domain, 1)
+            SeaPearl.addToPrunedDomains!(modif, rows[1], SeaPearl.assign!(rows[1].domain, 1))
             toPropagate = Set{SeaPearl.Constraint}([con1, con2, con3])
 
             @test SeaPearl.propagate!(con1, toPropagate, modif)
@@ -190,7 +180,7 @@
         end
         modif = SeaPearl.CPModification()
         SeaPearl.withNewState!(trailer) do
-            SeaPearl.assign!(rows[1].domain, 2)
+            SeaPearl.addToPrunedDomains!(modif, rows[1], SeaPearl.assign!(rows[1].domain, 2))
             toPropagate = Set{SeaPearl.Constraint}([con1, con2, con3])
 
             @test SeaPearl.propagate!(con1, toPropagate, modif)

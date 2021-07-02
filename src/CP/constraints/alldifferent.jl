@@ -21,11 +21,14 @@ struct AllDifferent <: Constraint
     x::Array{<:AbstractIntVar}
     active::StateObject{Bool}
     initialized::StateObject{Bool}
-    matching::Vector{StateObject{Pair{Int, Int}}}
-    edgesState::Dict{Edge{Int}, StateObject{State}}
+    matching::Vector{StateObject{Tuple{Int, Int, Bool}}}
+    remainingEdges::RSparseBitSet{UInt64}
+    edgeToIndex::Dict{Edge{Int}, Int}
+    indexToEdge::Vector{Edge{Int}}
     nodesMin::Int
     numberOfVars::Int
     numberOfVals::Int
+    numberOfEdges::Int
 
     function AllDifferent(x::Array{<:AbstractIntVar}, trailer)::AllDifferent
         max = Base.maximum(var -> maximum(var.domain), x)
@@ -34,24 +37,34 @@ struct AllDifferent <: Constraint
         active = StateObject{Bool}(true, trailer)
         initialized = StateObject{Bool}(false, trailer)
         numberOfVars = length(x)
-        matching = Vector{StateObject{Pair{Int, Int}}}(undef, numberOfVars)
+        numberOfEdges = sum(var -> length(var.domain), x)
+        matching = Vector{StateObject{Tuple{Int, Int, Bool}}}(undef, numberOfVars)
         for i = 1:numberOfVars
-            matching[i] = StateObject{Pair{Int, Int}}(Pair(0, 0), trailer)
+            matching[i] = StateObject{Tuple{Int, Int, Bool}}((0, 0, false), trailer)
         end
-        edgesState = Dict{Edge{Int}, StateObject{State}}()
+        remainingEdges = RSparseBitSet{UInt64}(numberOfEdges, trailer)
+        edgeToIndex = Dict{Edge{Int}, Int}()
+        indexToEdge = Vector{Edge{Int}}(undef, numberOfEdges)
         constraint = new(x,
             active,
             initialized,
             matching,
-            edgesState,
+            remainingEdges,
+            edgeToIndex,
+            indexToEdge,
             min,
             numberOfVars,
-            range)
+            range,
+            numberOfEdges
+        )
+        counter = 1
         for (idx, var) in enumerate(x)
             addOnDomainChange!(var, constraint)
             for val in var.domain
                 dst = numberOfVars + val - min + 1
-                constraint.edgesState[Edge(idx, dst)] = StateObject(unused, trailer)
+                constraint.edgeToIndex[Edge(idx, dst)] = counter
+                constraint.indexToEdge[counter] = Edge(idx, dst)
+                counter += 1
             end
         end
         return constraint
@@ -86,18 +99,45 @@ function orderEdge(e::Edge{Int})::Edge{Int}
     return Edge(src, dst)
 end
 
+function updateremaining!(constraint::AllDifferent, removed::BitVector)
+    clearMask!(constraint.remainingEdges)
+    addToMask!(constraint.remainingEdges, bitVectorToUInt64Vector(removed))
+    reverseMask!(constraint.remainingEdges)
+    intersectWithMask!(constraint.remainingEdges)
+end
+
+function updatevital!(constraint::AllDifferent, vital::BitVector)
+    for match in constraint.matching
+        e = Edge(match.value[1], match.value[2])
+        idx = constraint.edgeToIndex[e]
+        setValue!(match, (e.src, e.dst, vital[idx]))
+    end
+end
+
+function getvital(constraint)
+    vital = BitVector(undef, constraint.numberOfEdges) .= false
+    for match in constraint.matching
+        if match.value[3]
+            vital[constraint.edgeToIndex[Edge(match.value[1], match.value[2])]] = true
+        end
+    end
+    return vital
+end
+
+
 """
     initializeGraphs!(constraint)
 
-Return the graph and the empty direct graph of a variable-value problem.
+Return the graph and the empty directed graph of a variable-value problem.
 """
 function initializeGraphs!(con::AllDifferent)::Pair{Graph{Int}, DiGraph{Int}}
-    graph = Graph(con.numberOfVars + con.numberOfVals)
+    numberOfNodes = con.numberOfVars + con.numberOfVals
+    edgeFilter = BitVector(con.remainingEdges)[1:con.numberOfEdges]
+    allEdges = con.indexToEdge[edgeFilter]
+    graph = Graph(allEdges)
     digraph = DiGraph(nv(graph))
-    for (e, status) in con.edgesState
-        if status.value != removed
-            add_edge!(graph, e.src, e.dst)
-        end
+    if nv(graph) < numberOfNodes
+        add_vertices!(graph, numberOfNodes - nv(graph))
     end
     return Pair(graph, digraph)
 end
@@ -119,20 +159,7 @@ function getAllEdges(digraph::DiGraph{Int}, parents::Vector{Int})::Set{Edge{Int}
     return edgeSet
 end
 
-"""
-    getAllEdges(digraph, vars, vals)
-
-Return all the edges in a strongly connected component vars ∪ vars.
-"""
-function getAllEdges(digraph::DiGraph{Int}, vars::Vector{Int}, vals::Vector{Int})::Set{Edge{Int}}
-    edgeSet = Set{Edge{Int}}()
-    for var in vars
-        for val in intersect(union(inneighbors(digraph, var), outneighbors(digraph, var)), vals)
-            push!(edgeSet, orderEdge(Edge(var, val)))
-        end
-    end
-    return edgeSet
-end
+remapedge(edge::Edge{Int}, component::Vector{Int}) = Edge(component[edge.src], component[edge.dst])
 
 """
     removeEdges!(constraint, prunedValue, graph, digraph)
@@ -145,11 +172,11 @@ Following exactly the procedure in the function with the same name in the origin
 paper.
 """
 function removeEdges!(constraint::AllDifferent, prunedValues::Vector{Vector{Int}}, graph::Graph{Int}, digraph::DiGraph{Int})
-    for e in edges(graph)
-        if constraint.edgesState[orderEdge(e)] != removed
-            setValue!(constraint.edgesState[orderEdge(e)], unused)
-        end
-    end
+
+    unused = BitVector(constraint.remainingEdges)[1:constraint.numberOfEdges]
+    vital = BitVector(undef, constraint.numberOfEdges) .= false
+    removed = BitVector(undef, constraint.numberOfEdges) .= .~ unused
+    used = BitVector(undef, constraint.numberOfEdges) .= false
 
     allValues = constraint.numberOfVars+1:nv(digraph)
     freeValues = filter(v -> indegree(digraph,v) == 0, allValues)
@@ -157,44 +184,45 @@ function removeEdges!(constraint::AllDifferent, prunedValues::Vector{Vector{Int}
     seen = fill(false, constraint.numberOfVals)
     components = filter(comp -> length(comp)>1, strongly_connected_components(digraph))
     for component in components
-        variables = filter(v -> v <= constraint.numberOfVars, component)
-        values = filter(v -> v > constraint.numberOfVars, component)
-        edgeSet = getAllEdges(digraph, variables, values)
-        for e in edgeSet
-            setValue!(constraint.edgesState[e], used)
-        end
+        edgeSet = orderEdge.(remapedge.(edges(digraph[component]), [component]))
+        edgeIndices = getindex.([constraint.edgeToIndex], edgeSet)
+        used[edgeIndices] .= true
+        unused[edgeIndices] .= false
     end
+
     for node in freeValues
         if seen[node - constraint.numberOfVars]
             continue
         end
         parents = bfs_parents(digraph, node; dir=:out)
         edgeSet = getAllEdges(digraph, parents)
-        for e in edgeSet
-            setValue!(constraint.edgesState[e], used)
-        end
+        edgeIndices = getindex.([constraint.edgeToIndex], edgeSet)
+        used[edgeIndices] .= true
+        unused[edgeIndices] .= false
         reached = filter(v -> parents[v] > 0, allValues)
-        for val in reached
-            seen[val - constraint.numberOfVars] = true
-        end
+        seen[reached .- constraint.numberOfVars] .= true
     end
 
-    for pair in constraint.matching
+    edgeIndices = map(constraint.matching) do pair
         var, val = pair.value
         e = Edge(var, val)
-        if constraint.edgesState[e].value == unused
-            setValue!(constraint.edgesState[e], vital)
-        end
+        return constraint.edgeToIndex[e]
     end
+    vital[edgeIndices] .= true .& unused[edgeIndices]
+    unused[edgeIndices] .= false
 
-    rest = findall(state -> state.value == unused, constraint.edgesState)
-    for e in rest
-        rem_edge!(graph, e)
-        rem_edge!(digraph, Edge(e.dst, e.src))
-        setValue!(constraint.edgesState[e], removed)
-        var, val = e.src < e.dst ? (e.src, e.dst) : (e.dst, e.src)
+    rest = constraint.indexToEdge[unused]
+    reversedRest = map(e -> Edge(e.dst, e.src), rest)
+    rem_edge!.([graph], rest)
+    rem_edge!.([digraph], reversedRest)
+    removed[unused] .= true
+    foreach(rest) do e
+        var, val = e.src, e.dst
         push!(prunedValues[var], nodeToVal(constraint, val))
     end
+
+    updateremaining!(constraint, removed)
+    updatevital!(constraint, vital)
 end
 
 """
@@ -202,11 +230,11 @@ end
 
 Return all the pruned values not already encoded in the constraint state.
 """
-function updateEdgesState!(constraint::AllDifferent)
+function updateEdgesState!(constraint::AllDifferent, prunedDomains::CPModification)
     modif = Set{Edge}()
-    for (edge, state) in constraint.edgesState
-        if state.value != removed && !(nodeToVal(constraint, edge.dst)  in constraint.x[edge.src].domain)
-            push!(modif, edge)
+    for (idx, var) in enumerate(constraint.x)
+        if haskey(prunedDomains, var.id)
+            union!(modif, Edge.([idx], valToNode.([constraint], prunedDomains[var.id])))
         end
     end
     return modif
@@ -231,27 +259,30 @@ function propagate!(constraint::AllDifferent, toPropagate::Set{Constraint}, prun
             return false
         end
         for (idx, match) in enumerate(matching.matches)
-            setValue!(constraint.matching[idx], match)
+            setValue!(constraint.matching[idx], (match..., false))
         end
         setValue!(constraint.initialized, true)
     #    Otherwise just read the stored values
     else
-        matching = Matching{Int}(length(constraint.matching), map(pair -> pair.value, constraint.matching))
+        matching = Matching{Int}(length(constraint.matching), map(match -> (match.value[1] => match.value[2]), constraint.matching))
         buildDigraph!(digraph, graph, matching)
     end
 
-    modifications = updateEdgesState!(constraint)
+    # TODO change this with the CPModification
+    modifications = updateEdgesState!(constraint, prunedDomains)
     prunedValues = Vector{Vector{Int}}(undef, constraint.numberOfVars)
     for i = 1:constraint.numberOfVars
         prunedValues[i] = Int[]
     end
 
-    removeEdges!(constraint, prunedValues, graph, digraph)
+    removed = .~ BitVector(constraint.remainingEdges)[1:constraint.numberOfEdges]
+    vital = getvital(constraint)
     needrematching = false
     for e in modifications
         rev_e = Edge(e.dst, e.src)
+        idx = constraint.edgeToIndex[e]
         if e in edges(graph)
-            if constraint.edgesState[e].value == vital
+            if vital[idx]
                 return false
             elseif e in edges(digraph)
                 needrematching = true
@@ -260,9 +291,12 @@ function propagate!(constraint::AllDifferent, toPropagate::Set{Constraint}, prun
                 rem_edge!(digraph, rev_e)
             end
             rem_edge!(graph, e)
-            setValue!(constraint.edgesState[e], removed)
+            # TODO get rid of edgesState
+            removed[idx] = true
         end
     end
+
+    updateremaining!(constraint, removed)
 
     if needrematching
         matching = maximizeMatching!(digraph, constraint.numberOfVars)
@@ -270,7 +304,7 @@ function propagate!(constraint::AllDifferent, toPropagate::Set{Constraint}, prun
             return false
         end
         for (idx, match) in enumerate(matching.matches)
-            setValue!(constraint.matching[idx], match)
+            setValue!(constraint.matching[idx], (match..., false))
         end
     end
     removeEdges!(constraint, prunedValues, graph, digraph)

@@ -1,3 +1,6 @@
+include("datasstructures/rsparsebitset.jl")
+
+
 include("absolute.jl")
 include("disjunctive.jl")
 include("alldifferent.jl")

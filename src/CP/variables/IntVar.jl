@@ -8,6 +8,7 @@ struct IntVar <: AbstractIntVar
     onDomainChange      ::Array{Constraint}
     domain              ::SeaPearl.IntDomain
     id                  ::String
+    children            ::Set{AbstractIntVar}
 end
 
 """
@@ -21,7 +22,7 @@ function IntVar(min::Int, max::Int, id::String, trailer::Trailer)
 
     dom = IntDomain(trailer, max - min + 1, offset)
 
-    return IntVar(Constraint[], dom, id)
+    return IntVar(Constraint[], dom, id, Set{AbstractIntVar}())
 end
 
 function Base.show(io::IO, var::IntVar)

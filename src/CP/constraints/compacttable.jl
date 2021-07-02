@@ -1,5 +1,3 @@
-include("datasstructures/rsparsebitset.jl")
-
 """
     TableConstraint
 
@@ -124,18 +122,6 @@ function TableConstraint(variables::Vector{<:AbstractIntVar}, table::Matrix{Int}
     end
 
     return constraint
-end
-
-"""
-    bitVectorToUInt64Vector(bitset)::Vector{UInt64}
-
-Convert a Julia BitVector to a vector preformatted for the RSparseBitSet{UInt64}.
-
-# Arguments
-- `bitset::BitVector`: the BitVector to convert.
-"""
-function bitVectorToUInt64Vector(bitset::BitVector)::Vector{UInt64}
-    return [bitreverse(chunk) for chunk in bitset.chunks]
 end
 
 """
