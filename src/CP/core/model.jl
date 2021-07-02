@@ -40,8 +40,9 @@ mutable struct CPModel
     objectiveBound          ::Union{Nothing, Int}
     statistics              ::Statistics
     limit                   ::Limit
+    knownObjective           ::Union{Nothing,int64}
     adhocInfo               ::Any
-    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Constraint[], trailer, nothing, nothing, Statistics(0, 0, 0, 0, 0, 0, Solution[],Int[],nothing), Limit(nothing, nothing))
+    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Constraint[], trailer, nothing, nothing, Statistics(0, 0, 0, 0, 0, 0, Solution[],Int[],nothing), Limit(nothing, nothing), nothing)
 end
 
 CPModel() = CPModel(Trailer())
@@ -62,9 +63,18 @@ function addVariable!(model::CPModel, x::AbstractVar; branchable=true)
     model.variables[x.id] = x
 end
 
+"""
+    addObjective!(model::CPModel, objective::AbstractVar)
+
+Add an Objective variable to the model. This variable is the variable that needs to be minimized suring the solving. 
+"""
 function addObjective!(model::CPModel, objective::AbstractVar)
     model.objective = objective
     model.statistics.objectives = Int[]  #initialisation of the Array that will contain the score of every solution
+end
+
+function addKnownObjective!(model::CPModel, knownObective::Int64)
+    model.knownObjective = knownObective
 end
 
 """
