@@ -40,7 +40,7 @@ mutable struct CPModel
     objectiveBound          ::Union{Nothing, Int}
     statistics              ::Statistics
     limit                   ::Limit
-    knownObjective           ::Union{Nothing,int64}
+    knownObjective           ::Union{Nothing,Int64}
     adhocInfo               ::Any
     CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Constraint[], trailer, nothing, nothing, Statistics(0, 0, 0, 0, 0, 0, Solution[],Int[],nothing), Limit(nothing, nothing), nothing)
 end
@@ -181,6 +181,8 @@ function Base.isempty(model::CPModel)::Bool
         && model.statistics.numberOfNodesBeforeRestart == 0
         && isnothing(model.limit.numberOfNodes)
         && isnothing(model.limit.numberOfSolutions)
+        && isnothing(model.knownObjective)
+
     )
 end
 
@@ -207,6 +209,8 @@ function Base.empty!(model::CPModel)
     model.statistics.numberOfNodesBeforeRestart = 0
     model.limit.numberOfNodes = nothing
     model.limit.numberOfSolutions = nothing
+    model.knownObjective = nothing
+
     model
 end
 

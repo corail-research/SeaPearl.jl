@@ -255,4 +255,14 @@
         @test model.statistics.numberOfNodesBeforeRestart == 0
         @test model.statistics.numberOfSolutionsBeforeRestart == 0
     end
+
+    @testset "addKnownObjective!" begin
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+
+        SeaPearl.addKnownObjective!(model, 1)
+        @test model.knownObective == 1
+        
+
+    end
 end
