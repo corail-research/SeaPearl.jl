@@ -57,23 +57,23 @@ function expandIlds!(toCall::Stack{Function}, discrepancy::Int64, model::CPModel
     x = variableHeuristic(model)
     # Value selection
     v = valueSelection(DecisionPhase, model, x)
- 
+
+    if (discrepancy>0)
     push!(toCall, (model) -> (restoreState!(model.trailer); :BackTracking))
     push!(toCall, (model) -> (
         prunedDomains = CPModification();
         addToPrunedDomains!(prunedDomains, x, remove!(x.domain, v));
-        expandIlds!(toCall,discrepancy, model, variableHeuristic, valueSelection, getOnDomainChange(x),prunedDomains=prunedDomains)
+        expandIlds!(toCall, discrepancy-1, model, variableHeuristic, valueSelection, getOnDomainChange(x), prunedDomains=prunedDomains)
     ))
     push!(toCall, (model) -> (saveState!(model.trailer); :SavingState))
-
-    if (discrepancy>0)   
-        push!(toCall, (model) -> (restoreState!(model.trailer); :BackTracking))
-        push!(toCall, (model) -> (
-            prunedDomains = CPModification();
-            addToPrunedDomains!(prunedDomains, x, assign!(x, v));
-            expandIlds!(toCall,discrepancy-1, model, variableHeuristic, valueSelection, getOnDomainChange(x),prunedDomains=prunedDomains)
-        ))
-        push!(toCall, (model) -> (saveState!(model.trailer); :SavingState))
     end
+       
+    push!(toCall, (model) -> (restoreState!(model.trailer); :BackTracking))
+    push!(toCall, (model) -> (
+        prunedDomains = CPModification();
+        addToPrunedDomains!(prunedDomains, x, assign!(x, v));
+        expandIlds!(toCall, discrepancy, model, variableHeuristic, valueSelection, getOnDomainChange(x), prunedDomains=prunedDomains)
+    ))
+    push!(toCall, (model) -> (saveState!(model.trailer); :SavingState))
     return :Feasible
 end
