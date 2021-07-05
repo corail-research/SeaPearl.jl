@@ -80,10 +80,6 @@ function launch_experiment!(
         end
         verbose && println()
     end
-    for j in 1:nbHeuristics
-        #compute slidding mean for each metrics
-        computemean!(metricsArray[j])  #how to handle non basic metrics here ? 
-    end
     
     if !isnothing(evaluator)
         return metricsArray, evaluator.metrics
