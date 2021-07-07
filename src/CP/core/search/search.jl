@@ -50,11 +50,12 @@ function search!(model::CPModel, strategy::S, variableHeuristic::AbstractVariabl
         return currentStatus
     end
     
-
-    if length(model.statistics.solutions) > 0
+    if isa(strategy, DFSearch) && length(model.statistics.solutions) > 0        #Only the DFS search can give the optimality certificate
         return :Optimal
+    elseif length(model.statistics.solutions) > 0
+        return :NonOptimal
     end
-
+    
     return :Infeasible
 end
 
