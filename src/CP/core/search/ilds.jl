@@ -13,7 +13,7 @@ function initroot!(toCall::Stack{Function}, search::ILDSearch , model::CPModel, 
     for k in search.d:-1:1
         push!(toCall, (model) -> (restart_search!(model); expandIlds!(toCall,k, model, variableHeuristic, valueSelection)))
     end
-    return expandIlds!(toCall,0, model, variableHeuristic, valueSelection,nothing)
+    return expandIlds!(toCall, 0, model, variableHeuristic, valueSelection,nothing)
 end
 
 """
