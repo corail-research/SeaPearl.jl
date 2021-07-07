@@ -266,7 +266,7 @@
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
-        @test SeaPearl.search!(model, SeaPearl.staticRBSearch{SeaPearl.VisitedNodeCriteria}(10,10), SeaPearl.MinDomainVariableSelection()) == :Optimal
+        @test SeaPearl.search!(model, SeaPearl.staticRBSearch{SeaPearl.VisitedNodeCriteria}(10,10), SeaPearl.MinDomainVariableSelection()) == :NonOptimal
         @test length(model.statistics.solutions) == 1
 
 
@@ -280,7 +280,7 @@
         SeaPearl.addVariable!(model, y)
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
-        @test SeaPearl.search!(model, SeaPearl.staticRBSearch{SeaPearl.VisitedNodeCriteria}(10,10), SeaPearl.MinDomainVariableSelection()) == :Optimal
+        @test SeaPearl.search!(model, SeaPearl.staticRBSearch{SeaPearl.VisitedNodeCriteria}(10,10), SeaPearl.MinDomainVariableSelection()) == :NonOptimal
         @test length(model.statistics.solutions) == 2
         @test model.statistics.solutions[1] == Dict("x" => 3,"y" => 3)
         @test model.statistics.solutions[2] == Dict("x" => 2,"y" => 2)
@@ -298,7 +298,7 @@
         SeaPearl.addVariable!(model, y)
         push!(model.constraints, SeaPearl.Equal(x, y, trailer))
 
-        @test SeaPearl.search!(model, SeaPearl.staticRBSearch{SeaPearl.VisitedNodeCriteria}(10,10), SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Optimal
+        @test SeaPearl.search!(model, SeaPearl.staticRBSearch{SeaPearl.VisitedNodeCriteria}(10,10), SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :NonOptimal
         @test model.statistics.solutions[1] == Dict("x" => 3,"y" => 3)
         @test model.statistics.solutions[2] == Dict("x" => 2,"y" => 2)
 
@@ -311,7 +311,7 @@
         push!(model.constraints, SeaPearl.Equal(x, y, model.trailer))
 
         my_heuristic(x::SeaPearl.IntVar; cpmodel=nothing) = minimum(x.domain)
-        @test SeaPearl.search!(model, SeaPearl.staticRBSearch{SeaPearl.VisitedNodeCriteria}(10,10), SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(my_heuristic)) == :Optimal
+        @test SeaPearl.search!(model, SeaPearl.staticRBSearch{SeaPearl.VisitedNodeCriteria}(10,10), SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(my_heuristic)) == :NonOptimal
         @test model.statistics.solutions[1] == Dict("x" => 2,"y" => 2)
         @test model.statistics.solutions[2] == Dict("x" => 3,"y" => 3)
 

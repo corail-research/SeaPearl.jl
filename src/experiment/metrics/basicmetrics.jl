@@ -19,10 +19,10 @@ It satisfies the two AbstractMetrics requirements:
     timeneeded::Vector{Float32}                         ->  contains the computing time required to complete each search (ie. prove optimality).
     scores::Union{Nothing,Vector{Vector{Float32}}}      ->  contains the result of each search in term of relative scores of every solution found 
                                                             compared to the optimal solution.    (only for problem that contains an objective)
-    totalReward::Union{Nothing,Vector{Float32}}        ->  contains the total reward of each search (only if heuristic is a LearnedHeuristic).
+    totalReward::Union{Nothing,Vector{Float32}}         ->  contains the total reward of each search (only if heuristic is a LearnedHeuristic).
     loss::Union{Nothing,Vector{Float32}}                ->  contains the total loss of each search (only if heuristic is a LearnedHeuristic).
     meanOver::Int64                                     ->  width of the windowspan for the moving average.
-    nbEpisodes::Int64                                  ->  counts the number of search the metrics has been called on. 
+    nbEpisodes::Int64                                   ->  counts the number of search the metrics has been called on. 
 """
 mutable struct BasicMetrics{O<:AbstractTakeObjective, H<:ValueSelection} <: AbstractMetrics
     heuristic::H
@@ -39,7 +39,7 @@ mutable struct BasicMetrics{O<:AbstractTakeObjective, H<:ValueSelection} <: Abst
     BasicMetrics{O,H}(heuristic,meanOver) where {O,H}= new{O, H}(heuristic,Vector{Vector{Int64}}(),Float32[],Float32[], Float32[], O==TakeObjective ? Vector{Vector{Float32}}() : nothing, (H == BasicHeuristic) ? nothing : Float32[], (H == BasicHeuristic) ? nothing : Float32[], meanOver,0)
 end
 
-BasicMetrics(model::CPModel, heuristic::ValueSelection; meanOver=20) = BasicMetrics{(!isnothing(model.objective)) ? TakeObjective : DontTakeObjective ,typeof(heuristic)}(heuristic,meanOver)
+BasicMetrics(model::CPModel, heuristic::ValueSelection; meanOver=1) = BasicMetrics{(!isnothing(model.objective)) ? TakeObjective : DontTakeObjective ,typeof(heuristic)}(heuristic,meanOver)
 
 """
     function (metrics::BasicMetrics{DontTakeObjective, BasicHeuristic})(model::CPModel,dt::Float64)

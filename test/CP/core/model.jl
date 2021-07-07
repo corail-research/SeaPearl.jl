@@ -261,8 +261,7 @@
         model = SeaPearl.CPModel(trailer)
 
         SeaPearl.addKnownObjective!(model, 1)
-        @test model.knownObective == 1
-        
+        @test model.knownObjective == 1
 
     end
 end

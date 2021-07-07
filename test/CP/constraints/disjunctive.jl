@@ -238,7 +238,7 @@
         push!(model.constraints,SeaPearl.Disjunctive(tasks, processing_time, trailer))
 
         variableSelection = SeaPearl.MinDomainVariableSelection{false}()
-        status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection)
+        status = SeaPearl.solve!(model; variableHeuristic=variableSelection)
 
         @test status == :Infeasible
         @test length(model.statistics.solutions) == 0
