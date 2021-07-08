@@ -19,16 +19,20 @@ function set_reward!(::Type{StepPhase}, lh::LearnedHeuristic{SR, SmartReward, A}
     A <: ActionOutput
 }
     if symbol == :Infeasible  
-        lh.reward.value -= 2*model.statistics.numberOfNodes
+        println("INFEASIBLE")
+        #lh.reward.value -= last_episode_total_reward(lh.agent.trajectory)
+        lh.reward.value -=100
 
     elseif symbol == :FoundSolution
-        lh.reward.value += 1/model.statistics.numberOfNodes * (model.knownObjective-model.statistics)
+        println("SOLUTION FOUND, score : ",assignedValue(model.objective), " delta : ",10-assignedValue(model.objective))
+        lh.reward.value += isnothing(model.objective) ?  0 : 1000 * (15-assignedValue(model.objective))
+        #lh.reward.value += model.statistics.lastPruning
 
     elseif symbol == :Feasible 
-        lh.reward.value -= 1
+        lh.reward.value -= 0
 
     elseif symbol == :BackTracking
-        lh.reward.value -= 1
+        lh.reward.value -= 0
     end
 end
 
@@ -42,7 +46,9 @@ function set_reward!(::Type{DecisionPhase}, lh::LearnedHeuristic{SR, SmartReward
     SR <: AbstractStateRepresentation,
     A <: ActionOutput
 }
-    lh.reward.value += -1
+    #println("Decision, reward : ",model.statistics.lastPruning)
+
+    #lh.reward.value += model.statistics.lastPruning
 
 end
 
