@@ -83,7 +83,6 @@ agent = RL.Agent(
         @test isnothing(metrics.scores) == true
         @test isnothing(metrics.totalReward) == true
         @test isnothing(metrics.loss) == true
-        @test metrics.meanOver == 20
         @test metrics.nbEpisodes == 0
 
         metrics  = SeaPearl.BasicMetrics(cpmodel, basicheuristic;meanOver=100)
