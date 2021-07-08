@@ -186,5 +186,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::ClusterizedGraphColoringGen
         push!(cpmodel.constraints, SeaPearl.LessOrEqual(var, numberOfColors, cpmodel.trailer))
     end
     SeaPearl.addObjective!(cpmodel,numberOfColors)
+
+    cpmodel.knownObjective = k 
     nothing
 end
