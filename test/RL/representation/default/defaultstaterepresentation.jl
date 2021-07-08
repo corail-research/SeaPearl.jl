@@ -25,8 +25,8 @@ adj = [0 1 0 1;
         y = SeaPearl.IntVar(2, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
-        push!(model.constraints, SeaPearl.NotEqual(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x, y, trailer))
 
         dsr = SeaPearl.DefaultStateRepresentation(model)
         SeaPearl.update_representation!(dsr, model, x)
@@ -54,8 +54,8 @@ adj = [0 1 0 1;
         y = SeaPearl.IntVar(2, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
-        push!(model.constraints, SeaPearl.NotEqual(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x, y, trailer))
 
         dsr = SeaPearl.DefaultStateRepresentation(model)
         SeaPearl.update_representation!(dsr, model, x)
@@ -103,8 +103,8 @@ adj = [0 1 0 1;
         y = SeaPearl.IntVar(2, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
-        push!(model.constraints, SeaPearl.NotEqual(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x, y, trailer))
     
 
         dsr = SeaPearl.DefaultStateRepresentation(model)
@@ -123,8 +123,8 @@ adj = [0 1 0 1;
         y = SeaPearl.IntVar(2, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
-        push!(model.constraints, SeaPearl.NotEqual(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x, y, trailer))
     
 
         dsr = SeaPearl.DefaultStateRepresentation(model)

@@ -3,6 +3,7 @@ const Solution = Dict{String, Union{Int, Bool, Set{Int}}}
 
 #TODO add documentation for BeforeRestart
 mutable struct Statistics
+    infeasibleStatusPerVariable             ::Dict{String, Int}
     numberOfNodes                           ::Int
     numberOfSolutions                       ::Int
     numberOfInfeasibleSolutions             ::Int
@@ -41,7 +42,7 @@ mutable struct CPModel
     statistics              ::Statistics
     limit                   ::Limit
     adhocInfo               ::Any
-    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Constraint[], trailer, nothing, nothing, Statistics(0, 0, 0, 0, 0, 0, Solution[],Int[],nothing), Limit(nothing, nothing))
+    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Constraint[], trailer, nothing, nothing, Statistics(Dict{String, Int}(), 0, 0, 0, 0, 0, 0, Solution[],Int[],nothing), Limit(nothing, nothing))
 end
 
 CPModel() = CPModel(Trailer())
@@ -57,7 +58,8 @@ function addVariable!(model::CPModel, x::AbstractVar; branchable=true)
     @assert !haskey(model.variables, x.id) "The id of the variable must be unique"
 
     @assert !branchable || typeof(x) <: Union{AbstractIntVar, AbstractBoolVar} "You can only branch on Boolean and Integer variables"
-
+    
+    model.statistics.infeasibleStatusPerVariable[id(x)]=0
     model.branchable[x.id] = branchable
     model.variables[x.id] = x
 end
@@ -66,6 +68,17 @@ function addObjective!(model::CPModel, objective::AbstractVar)
     model.objective = objective
     model.statistics.objectives = Int[]  #initialisation of the Array that will contain the score of every solution
 end
+
+function addConstraint!(model::CPModel,constraint::Constraint)
+    push!(model.constraints,constraint)
+    for var in variablesArray(constraint)
+        if haskey(model.branchable, id(var))
+            @assert haskey(model.statistics.infeasibleStatusPerVariable, id(var)) "You forget to add the variable $(id(var)) to the model"
+            model.statistics.infeasibleStatusPerVariable[id(var)]+=1
+        end
+    end   
+end
+
 
 """
     function is_branchable(model::CPModel, x::AbstractVar)
@@ -128,6 +141,21 @@ function triggerFoundSolution!(model::CPModel)
         tightenObjective!(model)
     end
 end
+"""
+    triggerInfeasible!(constraint::Constraint, model::CPModel)
+
+this function increments by one the statistic infeasibleStatusPerVariable for each variable involved in the constraint. infeasibleStatusPerVariable
+keeps in track for each variable the number of times the variable was involved in a constraint that led to an infeasible state during a fixpoint. This statistic 
+is used by the failure-based variable selection heuristic. 
+"""
+function triggerInfeasible!(constraint::Constraint, model::CPModel)
+    for var in variablesArray(constraint)
+        if haskey(model.branchable, id(var))
+            model.statistics.infeasibleStatusPerVariable[id(var)]+=1
+        end
+    end
+end
+
 
 """
     tightenObjective!(model::CPModel)
@@ -162,6 +190,7 @@ function Base.isempty(model::CPModel)::Bool
         && isnothing(model.objectiveBound)
         && isempty(model.statistics.solutions)
         && isempty(model.statistics.nodevisitedpersolution)
+        && isempty(model.statistics.infeasibleStatusPerVariable)
         && isnothing(model.statistics.objectives)
         && model.statistics.numberOfNodes == 0
         && model.statistics.numberOfSolutions == 0
@@ -188,6 +217,7 @@ function Base.empty!(model::CPModel)
     model.objectiveBound = nothing
     empty!(model.statistics.solutions)
     empty!(model.statistics.nodevisitedpersolution)
+    empty!(model.statistics.infeasibleStatusPerVariable)
     model.statistics.objectives = nothing
     model.statistics.numberOfNodes = 0
     model.statistics.numberOfSolutions = 0
@@ -212,6 +242,9 @@ function reset_model!(model::CPModel)
     model.objectiveBound = nothing
     empty!(model.statistics.solutions)
     empty!(model.statistics.nodevisitedpersolution)
+    for (key, value) in model.statistics.infeasibleStatusPerVariable
+        model.statistics.infeasibleStatusPerVariable[key]=length(getOnDomainChange(model.variables[key]))  #the degree is reset to the initial value : the number of constraints the variable is involved in. 
+    end   
     if !isnothing(model.objective)
         @assert !isnothing(model.statistics.objectives)   "did you used SeaPearl.addObjective! to declare your objective function ?"
         empty!(model.statistics.objectives)
@@ -266,3 +299,4 @@ function nb_boundvariables(model::CPModel)
     end
     return nb
 end
+

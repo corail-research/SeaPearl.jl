@@ -37,7 +37,7 @@ model = SeaPearl.CPModel(trailer)
 SeaPearl.addVariable!(...)
 
 #add constraints : 
-push!(model.constraints, SeaPearl.AbstractConstraint(...))
+SeaPearl.addConstraint!(model, SeaPearl.AbstractConstraint(...))
 
 #add optionnal objective function : 
 SeaPearl.addObjective!(model, ObjectiveVar)
