@@ -154,3 +154,5 @@ function propagate!(constraint::Disjunctive, toPropagate::Set{Constraint}, prune
 
     return true
 end
+
+variablesArray(constraint::Disjunctive) = map(x -> x.earliestStartingTime, constraint.tasks)

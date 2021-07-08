@@ -21,7 +21,7 @@
             Flux.Dense(32, 16, Flux.leakyrelu),
         ),
         outputChain = Flux.Dense(16, generator.nb_nodes),
-    ) |> gpu
+    ) 
     target_approximator_model = SeaPearl.CPNN(
         graphChain = Flux.Chain(
             GeometricFlux.GraphConv(numInFeatures => 64, Flux.leakyrelu),
@@ -33,7 +33,7 @@
             Flux.Dense(32, 16, Flux.leakyrelu),
         ),
         outputChain = Flux.Dense(16, generator.nb_nodes),
-    ) |> gpu
+    ) 
 
     # Agent definition
     agent = RL.Agent(
@@ -119,7 +119,7 @@ end
             Flux.Dense(32, 16, Flux.leakyrelu),
         ),
         outputChain = Flux.Dense(16, generator.nb_nodes),
-    ) |> gpu
+    ) 
     target_approximator_model = SeaPearl.CPNN(
         graphChain = Flux.Chain(
             GeometricFlux.GraphConv(numInFeatures => 64, Flux.leakyrelu),
@@ -131,7 +131,7 @@ end
             Flux.Dense(32, 16, Flux.leakyrelu),
         ),
         outputChain = Flux.Dense(16, generator.nb_nodes),
-    ) |> gpu
+    ) 
 
     # Agent definition
     agent = RL.Agent(

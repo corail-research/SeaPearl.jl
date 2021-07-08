@@ -26,7 +26,7 @@
         y = SeaPearl.IntVar(3, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
         @test SeaPearl.expandDfs!(toCall, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Infeasible
@@ -40,7 +40,7 @@
         y = SeaPearl.IntVar(2, 2, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
         @test SeaPearl.expandDfs!(toCall, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :FoundSolution
@@ -55,7 +55,7 @@
         y = SeaPearl.IntVar(2, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
         @test SeaPearl.expandDfs!(toCall, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Feasible
@@ -89,7 +89,7 @@
         y = SeaPearl.IntVar(2, 2, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
         @test SeaPearl.initroot!(toCall, SeaPearl.DFSearch(), model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic())== :FoundSolution
@@ -124,7 +124,7 @@
         y = SeaPearl.IntVar(3, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
 
         @test SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection()) == :Infeasible
 
@@ -136,7 +136,7 @@
         y = SeaPearl.IntVar(2, 2, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
 
         @test SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection()) == :Optimal
         @test length(model.statistics.solutions) == 1
@@ -150,7 +150,7 @@
         y = SeaPearl.IntVar(2, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
 
         @test SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection()) == :Optimal
         @test length(model.statistics.solutions) == 2
@@ -168,7 +168,7 @@
         y = SeaPearl.IntVar(2, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
 
         @test SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Optimal
         @test model.statistics.solutions[1] == Dict("x" => 3,"y" => 3)
@@ -180,7 +180,7 @@
         y = SeaPearl.IntVar(2, 3, "y", model.trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, model.trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, model.trailer))
 
         my_heuristic(x::SeaPearl.IntVar; cpmodel=nothing) = minimum(x.domain)
         @test SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(my_heuristic)) == :Optimal
@@ -198,7 +198,7 @@
         y = SeaPearl.IntVar(2, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
 
         @test SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(); out_solver=true) == :FoundSolution
         @test length(model.statistics.solutions) == 1
@@ -210,7 +210,7 @@
         y = SeaPearl.IntVar(2, 3, "y", model.trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, model.trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, model.trailer))
 
         my_heuristic(x::SeaPearl.IntVar; cpmodel=nothing) = minimum(x.domain)
         @test SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(my_heuristic); out_solver=true) == :FoundSolution
@@ -236,7 +236,7 @@
                 Flux.Dense(32, 16, Flux.leakyrelu),
             ),
             outputChain = Flux.Dense(16, 4),
-        ) |> gpu
+        ) 
         target_approximator_model = SeaPearl.CPNN(
             graphChain = Flux.Chain(
                 GeometricFlux.GraphConv(3 => 64, Flux.leakyrelu),
@@ -248,7 +248,7 @@
                 Flux.Dense(32, 16, Flux.leakyrelu),
             ),
             outputChain = Flux.Dense(16, 4),
-        ) |> gpu
+        ) 
                     
         agent = RL.Agent(
             policy = RL.QBasedPolicy(
@@ -305,9 +305,9 @@
         SeaPearl.addVariable!(model, x3)
         SeaPearl.addVariable!(model, x4)
 
-        push!(model.constraints, SeaPearl.NotEqual(x1, x2, trailer))
-        push!(model.constraints, SeaPearl.NotEqual(x2, x3, trailer))
-        push!(model.constraints, SeaPearl.NotEqual(x3, x4, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x1, x2, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x2, x3, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x3, x4, trailer))
 
         # define the variable selection
         variableSelection = SeaPearl.MinDomainVariableSelection()
@@ -351,7 +351,7 @@
                 Flux.Dense(32, 16, Flux.leakyrelu),
             ),
             outputChain = Flux.Dense(16, 4),
-        ) |> gpu
+        ) 
         target_approximator_model = SeaPearl.CPNN(
             graphChain = Flux.Chain(
                 GeometricFlux.GraphConv(3 => 64, Flux.leakyrelu),
@@ -363,7 +363,7 @@
                 Flux.Dense(32, 16, Flux.leakyrelu),
             ),
             outputChain = Flux.Dense(16, 4),
-        ) |> gpu
+        ) 
                     
         agent = RL.Agent(
             policy = RL.QBasedPolicy(
@@ -421,9 +421,9 @@
         SeaPearl.addVariable!(model, x3)
         SeaPearl.addVariable!(model, x4)
 
-        push!(model.constraints, SeaPearl.NotEqual(x1, x2, trailer))
-        push!(model.constraints, SeaPearl.NotEqual(x2, x3, trailer))
-        push!(model.constraints, SeaPearl.NotEqual(x3, x4, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x1, x2, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x2, x3, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x3, x4, trailer))
 
         # define the variable selection
         variableSelection = SeaPearl.MinDomainVariableSelection()

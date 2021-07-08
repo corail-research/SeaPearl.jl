@@ -37,7 +37,7 @@
             Flux.Dense(32, 16, Flux.leakyrelu),
         ),
         outputChain = Flux.Dense(16, 4),
-    ) |> gpu
+    ) 
     target_approximator_model = SeaPearl.CPNN(
         graphChain = Flux.Chain(
             GeometricFlux.GraphConv(3 => 64, Flux.leakyrelu),
@@ -49,7 +49,7 @@
             Flux.Dense(32, 16, Flux.leakyrelu),
         ),
         outputChain = Flux.Dense(16, 4),
-    ) |> gpu
+    ) 
                 
     agent = RL.Agent(
         policy = RL.QBasedPolicy(
@@ -104,9 +104,9 @@
         SeaPearl.addVariable!(model, x3)
         SeaPearl.addVariable!(model, x4)
 
-        push!(model.constraints, SeaPearl.NotEqual(x1, x2, trailer))
-        push!(model.constraints, SeaPearl.NotEqual(x2, x3, trailer))
-        push!(model.constraints, SeaPearl.NotEqual(x3, x4, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x1, x2, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x2, x3, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x3, x4, trailer))
 
         lh = SeaPearl.LearnedHeuristic(agent)
         SeaPearl.update_with_cpmodel!(lh, model)

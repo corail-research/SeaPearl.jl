@@ -169,8 +169,8 @@
         constraint1 = SeaPearl.TableConstraint([x, y, z, a], table1, trailer)
         constraint2 = SeaPearl.TableConstraint([a, b, c], table2, trailer)
 
-        push!(model.constraints, constraint1)
-        push!(model.constraints, constraint2)
+        SeaPearl.addConstraint!(model, constraint1)
+        SeaPearl.addConstraint!(model, constraint2)
 
         variableSelection = SeaPearl.MinDomainVariableSelection{false}()
         SeaPearl.solve!(model; variableHeuristic=variableSelection)

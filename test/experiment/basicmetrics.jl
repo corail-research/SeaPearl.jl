@@ -14,7 +14,7 @@ approximator_model = SeaPearl.CPNN(
         Flux.Dense(32, 16, Flux.leakyrelu),
     ),
     outputChain = Flux.Dense(16, 3),
-) |> gpu
+) 
 target_approximator_model = SeaPearl.CPNN(
     graphChain = Flux.Chain(
         GeometricFlux.GraphConv(numInFeatures => 64, Flux.leakyrelu),
@@ -26,7 +26,7 @@ target_approximator_model = SeaPearl.CPNN(
         Flux.Dense(32, 16, Flux.leakyrelu),
     ),
     outputChain = Flux.Dense(16, 3),
-) |> gpu
+) 
 
 
 agent = RL.Agent(
@@ -129,7 +129,7 @@ agent = RL.Agent(
         y = SeaPearl.IntVar(2, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
 
         metrics  = SeaPearl.BasicMetrics(model, basicheuristic)
         dt = @elapsed SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection(), basicheuristic) 
@@ -150,7 +150,7 @@ agent = RL.Agent(
         y = SeaPearl.IntVar(2, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
 
         metrics  = SeaPearl.BasicMetrics(model, learnedheuristic)
         dt = @elapsed SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection(), learnedheuristic) 
@@ -175,7 +175,7 @@ agent = RL.Agent(
         y = SeaPearl.IntVar(2, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
         SeaPearl.addObjective!(model,y)
         metrics  = SeaPearl.BasicMetrics(model, basicheuristic)
         dt = @elapsed SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection(), basicheuristic) 
@@ -196,7 +196,7 @@ agent = RL.Agent(
         y = SeaPearl.IntVar(2, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
         SeaPearl.addObjective!(model,y)
 
         metrics  = SeaPearl.BasicMetrics(model, learnedheuristic)

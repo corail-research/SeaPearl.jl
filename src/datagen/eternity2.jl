@@ -108,12 +108,12 @@ function fill_with_generator!(cpmodel::CPModel, gen::Eternity2Generator; seed=12
         r[i,j] = src_v[i,j+1]
 
         vars = SeaPearl.AbstractIntVar[id[i,j], u[i,j], r[i,j],d[i,j], l[i,j], orientation[i,j]]
-        push!(cpmodel.constraints, SeaPearl.TableConstraint(vars, table, cpmodel.trailer))
+        SeaPearl.addConstraint!(cpmodel, SeaPearl.TableConstraint(vars, table, cpmodel.trailer))
 
-        if (j==m) push!(cpmodel.constraints, SeaPearl.EqualConstant(r[i,j], 0, cpmodel.trailer)) end
-        if (j==1) push!(cpmodel.constraints, SeaPearl.EqualConstant(l[i,j], 0, cpmodel.trailer)) end
-        if (i==1) push!(cpmodel.constraints, SeaPearl.EqualConstant(u[i,j], 0, cpmodel.trailer)) end
-        if (i==n) push!(cpmodel.constraints, SeaPearl.EqualConstant(d[i,j], 0, cpmodel.trailer)) end
+        if (j==m) SeaPearl.addConstraint!(cpmodel, SeaPearl.EqualConstant(r[i,j], 0, cpmodel.trailer)) end
+        if (j==1) SeaPearl.addConstraint!(cpmodel, SeaPearl.EqualConstant(l[i,j], 0, cpmodel.trailer)) end
+        if (i==1) SeaPearl.addConstraint!(cpmodel, SeaPearl.EqualConstant(u[i,j], 0, cpmodel.trailer)) end
+        if (i==n) SeaPearl.addConstraint!(cpmodel, SeaPearl.EqualConstant(d[i,j], 0, cpmodel.trailer)) end
     end
 
     return nothing
@@ -206,24 +206,24 @@ function fill_with_generator!(cpmodel::CPModel, gen::Eternity2Generator; seed=12
         r[i,j] = src_v[i,j+1]
 
         vars = SeaPearl.AbstractIntVar[id[i,j], u[i,j], r[i,j],d[i,j], l[i,j]]
-        push!(cpmodel.constraints, SeaPearl.TableConstraint(vars, table, cpmodel.trailer))
+        SeaPearl.addConstraint!(cpmodel, SeaPearl.TableConstraint(vars, table, cpmodel.trailer))
 
-        if (j==m) push!(cpmodel.constraints, SeaPearl.EqualConstant(r[i,j], 0, cpmodel.trailer)) end
-        if (j==1) push!(cpmodel.constraints, SeaPearl.EqualConstant(l[i,j], 0, cpmodel.trailer)) end
-        if (i==1) push!(cpmodel.constraints, SeaPearl.EqualConstant(u[i,j], 0, cpmodel.trailer)) end
-        if (i==n) push!(cpmodel.constraints, SeaPearl.EqualConstant(d[i,j], 0, cpmodel.trailer)) end
+        if (j==m) SeaPearl.addConstraint!(cpmodel, SeaPearl.EqualConstant(r[i,j], 0, cpmodel.trailer)) end
+        if (j==1) SeaPearl.addConstraint!(cpmodel, SeaPearl.EqualConstant(l[i,j], 0, cpmodel.trailer)) end
+        if (i==1) SeaPearl.addConstraint!(cpmodel, SeaPearl.EqualConstant(u[i,j], 0, cpmodel.trailer)) end
+        if (i==n) SeaPearl.addConstraint!(cpmodel, SeaPearl.EqualConstant(d[i,j], 0, cpmodel.trailer)) end
     end
 
     #breaking some symmetries
 
     #if count(==(2),count(==(0),pieces,dims=2))==4
         #index = findfirst(==(2),vec(count(==(0),pieces,dims=2)))
-        #push!(model.constraints,SeaPearl.EqualConstant(id[1,1], index, trailer))
+        #SeaPearl.addConstraint!(model,SeaPearl.EqualConstant(id[1,1], index, trailer))
         #SeaPearl.assign!(id[1,1].domain, index)
     #end
 
 
-    push!(cpmodel.constraints, SeaPearl.AllDifferent(id, cpmodel.trailer))
+    SeaPearl.addConstraint!(cpmodel, SeaPearl.AllDifferent(id, cpmodel.trailer))
     return nothing
 
 end

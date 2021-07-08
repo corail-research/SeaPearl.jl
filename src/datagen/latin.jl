@@ -61,12 +61,12 @@ function fill_with_generator!(cpmodel::CPModel, gen::LatinGenerator; seed=nothin
         for j in 1:N
             puzzle[i,j] = SeaPearl.IntVar(1, N, "puzzle_"*string(i)*","*string(j), cpmodel.trailer)
             SeaPearl.addVariable!(cpmodel, puzzle[i,j]; branchable=true)
-            if B[i,j]>0 push!(cpmodel.constraints,SeaPearl.EqualConstant(puzzle[i,j], B[i,j], cpmodel.trailer)) end
+            if B[i,j]>0 SeaPearl.addConstraint!(cpmodel,SeaPearl.EqualConstant(puzzle[i,j], B[i,j], cpmodel.trailer)) end
         end
     end
     for i in 1:N
-        push!(cpmodel.constraints, SeaPearl.AllDifferent(puzzle[i,:], cpmodel.trailer))
-        push!(cpmodel.constraints, SeaPearl.AllDifferent(puzzle[:,i], cpmodel.trailer))
+        SeaPearl.addConstraint!(cpmodel, SeaPearl.AllDifferent(puzzle[i,:], cpmodel.trailer))
+        SeaPearl.addConstraint!(cpmodel, SeaPearl.AllDifferent(puzzle[:,i], cpmodel.trailer))
     end
     return nothing
 end
