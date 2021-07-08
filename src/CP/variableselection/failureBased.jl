@@ -6,9 +6,9 @@ function (::FailureBasedVariableSelection{false})(cpmodel::CPModel)
     selectedVar = nothing
     minSize = Inf
     for (k, x) in branchable_variables(cpmodel)
-        if x !== cpmodel.objective && !isbound(x) && length(x.domain) / cpmodel.statistics.infeasibleStatusPerVariable[id(x)] <= minSize
+        if x !== cpmodel.objective && !isbound(x) && length(x.domain) / cpmodel.statistics.infeasibleStatusPerVariable[parentId(x)] <= minSize
             selectedVar = x
-            minSize = length(x.domain) / cpmodel.statistics.infeasibleStatusPerVariable[id(x)]
+            minSize = length(x.domain) / cpmodel.statistics.infeasibleStatusPerVariable[parentId(x)]
         end
     end
     if isnothing(selectedVar) && !isbound(cpmodel.objective)
@@ -21,9 +21,9 @@ function (::FailureBasedVariableSelection{true})(cpmodel::CPModel)
     selectedVar = nothing
     minSize = Inf
     for (k, x) in branchable_variables(cpmodel)
-        if !isbound(x) && length(x.domain)/ cpmodel.statistics.infeasibleStatusPerVariable[id(x)] <= minSize
+        if !isbound(x) && length(x.domain)/ cpmodel.statistics.infeasibleStatusPerVariable[parentId(x)] <= minSize
             selectedVar = x
-            minSize = length(x.domain) / cpmodel.statistics.infeasibleStatusPerVariable[id(x)]
+            minSize = length(x.domain) / cpmodel.statistics.infeasibleStatusPerVariable[parentId(x)]
         end
     end
     return selectedVar

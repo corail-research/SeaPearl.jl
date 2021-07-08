@@ -84,7 +84,6 @@ Return the "true" variable behind `x`.
 """
 rootVariable(x::IntVarView) = rootVariable(x.x)
 
-id(x::IntVarView) = id(x.x)
 """
     length(dom::IntDomainView)
 

@@ -24,6 +24,7 @@ Return the `string` identifier of `x`. Every variable must be assigned a unique 
 will be used as a key to identify the variable in the `CPModel` object.
 """
 id(x::AbstractVar) = x.id
+parentId(x::AbstractVar) = rootVariable(x).id
 
 include("IntDomain.jl")
 include("IntVar.jl")
