@@ -12,6 +12,7 @@ mutable struct Statistics
     solutions                               ::Vector{Solution}
     nodevisitedpersolution                  ::Vector{Int}
     objectives                              ::Union{Nothing, Vector{Int}}
+    lastPruning                             ::Union{Nothing, Int}
 end
 
 mutable struct Limit
@@ -42,7 +43,7 @@ mutable struct CPModel
     limit                   ::Limit
     knownObjective           ::Union{Nothing,Int64}
     adhocInfo               ::Any
-    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Constraint[], trailer, nothing, nothing, Statistics(0, 0, 0, 0, 0, 0, Solution[],Int[],nothing), Limit(nothing, nothing), nothing)
+    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Constraint[], trailer, nothing, nothing, Statistics(0, 0, 0, 0, 0, 0, Solution[],Int[], nothing, nothing), Limit(nothing, nothing), nothing)
 end
 
 CPModel() = CPModel(Trailer())
@@ -173,6 +174,7 @@ function Base.isempty(model::CPModel)::Bool
         && isempty(model.statistics.solutions)
         && isempty(model.statistics.nodevisitedpersolution)
         && isnothing(model.statistics.objectives)
+        && isnothing(model.statistics.lastPruning)
         && model.statistics.numberOfNodes == 0
         && model.statistics.numberOfSolutions == 0
         && model.statistics.numberOfInfeasibleSolutions == 0
@@ -201,6 +203,7 @@ function Base.empty!(model::CPModel)
     empty!(model.statistics.solutions)
     empty!(model.statistics.nodevisitedpersolution)
     model.statistics.objectives = nothing
+    model.statistics.lastPruning = nothing
     model.statistics.numberOfNodes = 0
     model.statistics.numberOfSolutions = 0
     model.statistics.numberOfInfeasibleSolutions = 0
@@ -230,6 +233,7 @@ function reset_model!(model::CPModel)
         @assert !isnothing(model.statistics.objectives)   "did you used SeaPearl.addObjective! to declare your objective function ?"
         empty!(model.statistics.objectives)
     end
+    model.statistics.lastPruning = nothing
     model.statistics.numberOfNodes = 0
     model.statistics.numberOfSolutions = 0
     model.statistics.numberOfInfeasibleSolutions = 0
@@ -246,6 +250,7 @@ the restart criteria.
 """
 function restart_search!(model::CPModel)
     restoreInitialState!(model.trailer)
+    model.statistics.lastPruning = nothing
     model.statistics.numberOfInfeasibleSolutionsBeforeRestart = 0
     model.statistics.numberOfSolutionsBeforeRestart = 0
     model.statistics.numberOfNodesBeforeRestart = 0
