@@ -263,6 +263,7 @@
         SeaPearl.addKnownObjective!(model, 1)
         @test model.knownObjective == 1
 
+    end
     @testset "triggerInfeasible!" begin
         
         trailer = SeaPearl.Trailer()
