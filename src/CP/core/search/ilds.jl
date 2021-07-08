@@ -39,6 +39,8 @@ function expandIlds!(toCall::Stack{Function}, discrepancy::Int64, model::CPModel
     end
     # Fix-point algorithm
     feasible, pruned = fixPoint!(model, newConstraints, prunedDomains)
+    model.statistics.lastPruning = sum(map(x-> length(x[2]),collect(pruned)))
+
     if !feasible
         model.statistics.numberOfInfeasibleSolutions += 1
         model.statistics.numberOfInfeasibleSolutionsBeforeRestart += 1
