@@ -64,19 +64,18 @@ function launch_experiment!(
 
         for j in 1:nbHeuristics
             reset_model!(model)
-            for k in 1:restartPerInstances
-                    #reset_model!(model)
-                    restart_search!(model)
-                    dt = @elapsed search!(model, strategy, variableHeuristic, valueSelectionArray[j], out_solver=out_solver)
+            dt = @elapsed for k in 1:restartPerInstances
+                restart_search!(model)
+                search!(model, strategy, variableHeuristic, valueSelectionArray[j], out_solver=out_solver)
 
-                    if isa(valueSelectionArray[j], LearnedHeuristic)
-                        verbose && println(", Visited nodes with learnedHeuristic : ", model.statistics.numberOfNodes)
-                    else
-                        verbose && println(" vs Visited nodes with basic Heuristic n°$(j-1) : ", model.statistics.numberOfNodes)
-                    end
-                    metricsArray[j](model,dt)  #adding results in the metrics data structure
-
+                if isa(valueSelectionArray[j], LearnedHeuristic)
+                    verbose && println(", Visited nodes with learnedHeuristic : ", model.statistics.numberOfNodesBeforeRestart)
+                else
+                    verbose && println(" vs Visited nodes with basic Heuristic n°$(j-1) : ", model.statistics.numberOfNodesBeforeRestart)
                 end
+            end
+            metricsArray[j](model,dt)  #adding results in the metrics data structure
+
         end
 
         if !isnothing(evaluator) && (i % evaluator.evalFreq == 0)

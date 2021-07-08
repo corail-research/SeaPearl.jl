@@ -11,7 +11,7 @@ mutable struct Statistics
     numberOfNodesBeforeRestart              ::Int
     solutions                               ::Vector{Solution}
     nodevisitedpersolution                  ::Vector{Int}
-    objectives                              ::Union{Nothing, Vector{Int}}
+    objectives                              ::Union{Nothing, Vector{Union{Nothing,Int}}}
     lastPruning                             ::Union{Nothing, Int}
 end
 
@@ -35,7 +35,7 @@ or filled by an `AbstractModelGenerator`.
 mutable struct CPModel
     variables               ::Dict{String, AbstractVar}
     branchable              ::Dict{String, Bool}
-    constraints             ::Array{Constraint}
+    constraints             ::Array{Constraint} 
     trailer                 ::Trailer
     objective               ::Union{Nothing, AbstractIntVar}
     objectiveBound          ::Union{Nothing, Int}

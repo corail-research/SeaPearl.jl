@@ -80,7 +80,8 @@ function (metrics::BasicMetrics{TakeObjective, <:BasicHeuristic})(model::CPModel
     end
     push!(metrics.timeneeded,dt)
     if ! isempty(model.statistics.objectives)
-        push!(metrics.scores,copy(model.statistics.objectives ./ model.statistics.objectives[size(model.statistics.objectives,1)]))
+        push!(metrics.scores,copy(model.statistics.objectives ))
+        #push!(metrics.scores,copy(model.statistics.objectives ./ model.statistics.objectives[size(model.statistics.objectives,1)]))
     end
 
 end 
@@ -130,7 +131,8 @@ function (metrics::BasicMetrics{TakeObjective, <:LearnedHeuristic})(model::CPMod
     end
     push!(metrics.timeneeded,dt)
     if ! isempty(model.statistics.objectives)
-    push!(metrics.scores,copy(model.statistics.objectives ./ model.statistics.objectives[size(model.statistics.objectives,1)]))
+    push!(metrics.scores,copy(model.statistics.objectives ))
+    #push!(metrics.scores,copy(model.statistics.objectives ./ model.statistics.objectives[size(model.statistics.objectives,1)]))
     end
     push!(metrics.totalReward,last_episode_total_reward(metrics.heuristic.agent.trajectory))
     push!(metrics.loss,metrics.heuristic.agent.policy.learner.loss)
