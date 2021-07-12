@@ -30,7 +30,7 @@ mutable struct BasicMetrics{O<:AbstractTakeObjective, H<:ValueSelection} <: Abst
     meanNodeVisitedUntilfirstSolFound::Vector{Float32}
     meanNodeVisitedUntilOptimality::Vector{Float32}
     timeneeded::Vector{Float32}
-    scores::Union{Nothing,Vector{Vector{Float32}}}
+    scores::Union{Nothing,Vector{Vector{Union{Nothing,Float32}}}}
     totalReward::Union{Nothing,Vector{Float32}}
     loss::Union{Nothing,Vector{Float32}}
     meanOver::Int64
@@ -80,8 +80,7 @@ function (metrics::BasicMetrics{TakeObjective, <:BasicHeuristic})(model::CPModel
     end
     push!(metrics.timeneeded,dt)
     if ! isempty(model.statistics.objectives)
-        #push!(metrics.scores,copy(model.statistics.objectives ))
-        push!(metrics.scores,copy(model.statistics.objectives ./ model.statistics.objectives[size(model.statistics.objectives,1)]))
+        push!(metrics.scores,copy(model.statistics.objectives))
     end
 
 end 
@@ -131,8 +130,7 @@ function (metrics::BasicMetrics{TakeObjective, <:LearnedHeuristic})(model::CPMod
     end
     push!(metrics.timeneeded,dt)
     if ! isempty(model.statistics.objectives)
-    #push!(metrics.scores,copy(model.statistics.objectives ))
-    push!(metrics.scores,copy(model.statistics.objectives ./ model.statistics.objectives[size(model.statistics.objectives,1)]))
+    push!(metrics.scores,copy(model.statistics.objectives))
     end
     push!(metrics.totalReward,last_episode_total_reward(metrics.heuristic.agent.trajectory))
     push!(metrics.loss,metrics.heuristic.agent.policy.learner.loss)
