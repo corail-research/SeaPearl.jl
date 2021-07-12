@@ -144,13 +144,14 @@ function triggerFoundSolution!(model::CPModel)
     for (k, x) in model.variables
         solution[k] = assignedValue(x)
     end
-    push!(model.statistics.solutions, solution)
-    push!(model.statistics.nodevisitedpersolution,model.statistics.numberOfNodes)
-
-    if !isnothing(model.objective)
-        @assert !isnothing(model.statistics.objectives)   "did you used SeaPearl.addObjective! to declare your objective function ? "
-        push!(model.statistics.objectives, assignedValue(model.objective))
-        tightenObjective!(model)
+    if !(solution in model.statistics.solutions)   #probably not efficient but necessary
+        push!(model.statistics.solutions, solution)
+        push!(model.statistics.nodevisitedpersolution,model.statistics.numberOfNodes)
+        if !isnothing(model.objective)
+            @assert !isnothing(model.statistics.objectives)   "did you used SeaPearl.addObjective! to declare your objective function ? "
+            push!(model.statistics.objectives, assignedValue(model.objective))
+            tightenObjective!(model)
+        end
     end
 end
 """
