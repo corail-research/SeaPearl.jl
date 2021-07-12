@@ -3,7 +3,8 @@ using RollingFunctions
 """
     BasicMetrics{O<:AbstractTakeObjective, H<:ValueSelection} <: AbstractMetrics
 
-`BasicMetrics` is a Type that stores useful information derived from consecutive search, during either a learning process or an evaluation process. It is filled just after a search. The metrics are called in the `launch_experiment()` function and in the `evaluate()` function.
+`BasicMetrics` is a Type that stores useful information derived from consecutive search, during either a learning process or an evaluation process. 
+It is filled just after a search. The metrics are called in the `launch_experiment()` function and in the `evaluate()` function.
 
 It satisfies the two AbstractMetrics requirements: 
 1) the constructor `metrics(model::CPModel, heuristic::ValueSelection)`.
@@ -13,12 +14,12 @@ It satisfies the two AbstractMetrics requirements:
 
     heuristic::H                                        ->  The related heuristic for which the metrics stores the results.
     nodeVisited::Vector{Vector{Int64}}                  ->  contains the result of each search in term of node visited : number of nodes visited to 
-                                                            find every solution of an instance until optimality.
+                                                            find every solution or infeasible case of an instance.
     meanNodeVisitedUntilfirstSolFound::Vector{Float32}  ->  contains the result of each search in term of node visited to find a first solution.
-    meanNodeVisitedUntilOptimality::Vector{Float32}     ->  contains the result of each search in term of node visited to prove optimality.
-    timeneeded::Vector{Float32}                         ->  contains the computing time required to complete each search (ie. prove optimality).
-    scores::Union{Nothing,Vector{Vector{Float32}}}      ->  contains the result of each search in term of relative scores of every solution found 
-                                                            compared to the optimal solution.    (only for problem that contains an objective)
+    meanNodeVisitedUntilEnd::Vector{Float32}            ->  contains the result of each search in term of node visited until the end of the search.
+    timeneeded::Vector{Float32}                         ->  contains the computing time required to complete each search.
+    scores::Union{Nothing,Vector{Vector{Float32}}}      ->  contains the result of each search in term of scores of every solution found
+                                                            (only for problem that contains an objective)
     totalReward::Union{Nothing,Vector{Float32}}         ->  contains the total reward of each search (only if heuristic is a LearnedHeuristic).
     loss::Union{Nothing,Vector{Float32}}                ->  contains the total loss of each search (only if heuristic is a LearnedHeuristic).
     meanOver::Int64                                     ->  width of the windowspan for the moving average.
@@ -28,7 +29,7 @@ mutable struct BasicMetrics{O<:AbstractTakeObjective, H<:ValueSelection} <: Abst
     heuristic::H
     nodeVisited::Vector{Vector{Int64}}
     meanNodeVisitedUntilfirstSolFound::Vector{Float32}
-    meanNodeVisitedUntilOptimality::Vector{Float32}
+    meanNodeVisitedUntilEnd::Vector{Float32}
     timeneeded::Vector{Float32}
     scores::Union{Nothing,Vector{Vector{Union{Nothing,Float32}}}}
     totalReward::Union{Nothing,Vector{Float32}}
@@ -53,7 +54,7 @@ For a basic heuristic on a problem that doesn't consider an objective, the funct
 function (metrics::BasicMetrics{DontTakeObjective, <:BasicHeuristic})(model::CPModel,dt::Float64)
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
-    push!(metrics.meanNodeVisitedUntilOptimality,model.statistics.numberOfNodes)
+    push!(metrics.meanNodeVisitedUntilEnd,model.statistics.numberOfNodes)
     if ! isempty(model.statistics.nodevisitedpersolution)    #infeasible case
         push!(metrics.meanNodeVisitedUntilfirstSolFound,model.statistics.nodevisitedpersolution[1])
     end    
@@ -74,7 +75,7 @@ For a basic heuristic on a problem that considers an objective, the function sto
 function (metrics::BasicMetrics{TakeObjective, <:BasicHeuristic})(model::CPModel,dt::Float64)
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
-    push!(metrics.meanNodeVisitedUntilOptimality,model.statistics.numberOfNodes)
+    push!(metrics.meanNodeVisitedUntilEnd,model.statistics.numberOfNodes)
     if ! isempty(model.statistics.nodevisitedpersolution)    #infeasible case
         push!(metrics.meanNodeVisitedUntilfirstSolFound,model.statistics.nodevisitedpersolution[1])
     end
@@ -99,7 +100,7 @@ For a learnedheuristic on a problem that doesn't consider an objective, the func
 function (metrics::BasicMetrics{DontTakeObjective, <:LearnedHeuristic})(model::CPModel,dt::Float64)
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
-    push!(metrics.meanNodeVisitedUntilOptimality,model.statistics.numberOfNodes)
+    push!(metrics.meanNodeVisitedUntilEnd,model.statistics.numberOfNodes)
     if ! isempty(model.statistics.nodevisitedpersolution)    #infeasible case
         push!(metrics.meanNodeVisitedUntilfirstSolFound,model.statistics.nodevisitedpersolution[1])
     end
@@ -124,7 +125,7 @@ For a learnedheuristic on a problem that considers an objective, the function st
 function (metrics::BasicMetrics{TakeObjective, <:LearnedHeuristic})(model::CPModel,dt::Float64) 
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
-    push!(metrics.meanNodeVisitedUntilOptimality,model.statistics.numberOfNodes)
+    push!(metrics.meanNodeVisitedUntilEnd,model.statistics.numberOfNodes)
     if ! isempty(model.statistics.nodevisitedpersolution)    #infeasible case
         push!(metrics.meanNodeVisitedUntilfirstSolFound,model.statistics.nodevisitedpersolution[1])
     end
@@ -151,8 +152,8 @@ function computemean!(metrics::BasicMetrics{O, H}) where {O, H<:ValueSelection}
     windowspan = min(metrics.meanOver,length(metrics.meanNodeVisitedUntilfirstSolFound))
     nodeVisitedUntilFirstSolFound = copy(metrics.meanNodeVisitedUntilfirstSolFound)
     metrics.meanNodeVisitedUntilfirstSolFound = rollmean(nodeVisitedUntilFirstSolFound, windowspan)
-    nodeVisitedUntilOptimality = copy(metrics.meanNodeVisitedUntilOptimality)
-    metrics.meanNodeVisitedUntilOptimality = rollmean(nodeVisitedUntilOptimality, windowspan)
+    nodeVisitedUntilOptimality = copy(metrics.meanNodeVisitedUntilEnd)
+    metrics.meanNodeVisitedUntilEnd = rollmean(nodeVisitedUntilOptimality, windowspan)
 
     if isa(metrics,BasicMetrics{O,<:LearnedHeuristic})
         metrics.totalReward = rollmean(metrics.totalReward,windowspan)
