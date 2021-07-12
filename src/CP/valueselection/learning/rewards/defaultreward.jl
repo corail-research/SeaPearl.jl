@@ -57,6 +57,6 @@ function set_reward!(::Type{EndingPhase}, lh::LearnedHeuristic{SR, DefaultReward
     SR <: AbstractStateRepresentation, 
     A <: ActionOutput
 }
-    lh.reward.value += 30/(model.statistics.numberOfNodes)
+    lh.reward.value += 1
 
 end

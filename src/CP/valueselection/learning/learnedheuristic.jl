@@ -87,7 +87,7 @@ function (valueSelection::LearnedHeuristic)(PHASE::Type{DecisionPhase}, model::C
 
     env = get_observation!(valueSelection, model, x)
 
-    #println("Decision  ", obs.reward, " ", obs.terminal, " ", obs.legal_actions, " ", obs.legal_actions_mask)
+    #println("Decision  ", env.reward, " ", env.terminal, " ", env.legal_actions, " ", env.legal_actions_mask)
     if valueSelection.firstActionTaken 
         valueSelection.agent(RL.POST_ACT_STAGE, env) # get terminal and reward
     else 
@@ -109,10 +109,13 @@ Set the final reward, do last observation.
 """
 function (valueSelection::LearnedHeuristic)(PHASE::Type{EndingPhase}, model::CPModel, current_status::Union{Nothing, Symbol})
     # the RL EPISODE stops
+    if valueSelection.firstActionTaken 
+        set_reward!(DecisionPhase,valueSelection, model)  #last decision reward for the previous action taken just before the ending Phase
+    end
     set_reward!(PHASE, valueSelection, model, current_status)
     false_x = first(values(branchable_variables(model)))
     env = get_observation!(valueSelection, model, false_x, true)
-    #println("EndingPhase  ", obs.reward, " ", obs.terminal, " ", obs.legal_actions, " ", obs.legal_actions_mask)
+    #println("EndingPhase  ", env.reward, " ", env.terminal, " ", env.legal_actions, " ", env.legal_actions_mask)
 
     valueSelection.agent(RL.POST_ACT_STAGE, env) # get terminal and reward
 
