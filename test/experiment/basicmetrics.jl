@@ -182,7 +182,7 @@ agent = RL.Agent(
         metrics(model,dt)
 
         @test metrics.nodeVisited[1] == [2, 3] #only one soluion found due to Objective prunning 
-        @test metrics.scores[1] == [1.5, 1.0] #relative to the optimal score
+        @test metrics.scores[1] == [3, 2] 
         @test size(metrics.timeneeded,1) == 1
         @test metrics.nbEpisodes == 1 
     end

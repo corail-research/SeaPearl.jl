@@ -93,9 +93,9 @@
 
         @test variableselection(cpmodel) == x3
 
-        @test isnothing(model.statistics.objectives[1])
-        @test isnothing(model.statistics.objectives[2])
-        @test isnothing(model.statistics.objectives[3])
+        @test isnothing(cpmodel.statistics.objectives[1])
+        @test isnothing(cpmodel.statistics.objectives[2])
+        @test isnothing(cpmodel.statistics.objectives[3])
 
 
     end

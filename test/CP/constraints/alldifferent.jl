@@ -229,7 +229,7 @@
         status = SeaPearl.solve!(model; variableHeuristic=variableSelection)
 
         @test status == :Optimal
-        @test length(model.statistics.solutions) == 10
+        @test model.statistics.numberOfSolutions == 10
     end
     @testset "7 queens full" begin
         n=7
@@ -262,7 +262,7 @@
         status = SeaPearl.solve!(model; variableHeuristic=variableSelection)
 
         @test status == :Optimal
-        @test length(model.statistics.solutions) == 40
+        @test model.statistics.numberOfSolutions == 40
     end
 
     @testset "variablesArray()" begin 

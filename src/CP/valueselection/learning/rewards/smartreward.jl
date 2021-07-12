@@ -19,18 +19,17 @@ function set_reward!(::Type{StepPhase}, lh::LearnedHeuristic{SR, SmartReward, A}
     A <: ActionOutput
 }
     if symbol == :Infeasible  
-        println("INFEASIBLE")
+        #println("INFEASIBLE")
         #lh.reward.value -= last_episode_total_reward(lh.agent.trajectory)
-        lh.reward.value -=2000
+        lh.reward.value -= 0
 
     elseif symbol == :FoundSolution
-        println("SOLUTION FOUND, score : ",assignedValue(model.objective), " delta : ",15-assignedValue(model.objective))
+        #println("SOLUTION FOUND, score : ",assignedValue(model.objective), " delta : ",15-assignedValue(model.objective)," accumulated reward :  ", model.statistics.AccumulatedRewardBeforeReset)
         lh.reward.value += isnothing(model.objective) ?  0 : 100 * (-assignedValue(model.objective))
         #lh.reward.value += model.statistics.lastPruning
 
     elseif symbol == :Feasible 
         lh.reward.value -= 0
-
     elseif symbol == :BackTracking
         lh.reward.value -= 0
     end

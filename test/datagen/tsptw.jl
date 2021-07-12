@@ -120,13 +120,13 @@ end
         # println("dist", dist)
         # println("timeWindows", timeWindows)
 
-        @test length(model.statistics.solutions) >= 1
+        @test model.statistics.numberOfSolutions >= 1
 
         # println("nodes: ", model.statistics.numberOfNodes)
 
         solution_found = Int[]
         for i in 1:(n_city-1)
-            push!(solution_found, model.statistics.solutions[end]["a_"*string(i)])
+            push!(solution_found, unique!(model.statistics.solutions)[end]["a_"*string(i)])
         end
 
         # From: http://www.hakank.org/minizinc/tsptw.mzn
