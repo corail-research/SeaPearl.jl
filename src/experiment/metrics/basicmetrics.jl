@@ -43,13 +43,10 @@ end
 BasicMetrics(model::CPModel, heuristic::ValueSelection; meanOver=1) = BasicMetrics{(!isnothing(model.objective)) ? TakeObjective : DontTakeObjective ,typeof(heuristic)}(heuristic,meanOver)
 
 """
-    function (metrics::BasicMetrics{DontTakeObjective, BasicHeuristic})(model::CPModel,dt::Float64)
+    function (metrics<:BasicMetrics)(model::CPModel,dt::Float64)
 
 The function is called after a search on a Constraint Programming Model.
-For a basic heuristic on a problem that doesn't consider an objective, the function stores: 
-- the number of nodes visited to find each solution of an instance. 
-- the number of nodes visited to complete the search (ie. prove optimality).
-- the computing time required to complete each search (ie. prove optimality).
+It updates all the metrics during the search.
 """
 function (metrics::BasicMetrics{DontTakeObjective, <:BasicHeuristic})(model::CPModel,dt::Float64)
     metrics.nbEpisodes+=1
@@ -62,16 +59,6 @@ function (metrics::BasicMetrics{DontTakeObjective, <:BasicHeuristic})(model::CPM
     return
 end 
 
-"""
-    function (metrics::BasicMetrics{TakeObjective, BasicHeuristic})(model::CPModel,dt::Float64)
-
-The function is called after a search on a Constraint Programming Model.
-For a basic heuristic on a problem that considers an objective, the function stores: 
-- the number of nodes visited to find each solution of an instance. 
-- the number of nodes visited to complete the search (ie. prove optimality).
-- the computing time required to complete each search (ie. prove optimality).
-- the relative scores of every solution found compared to the optimal solution.
-"""
 function (metrics::BasicMetrics{TakeObjective, <:BasicHeuristic})(model::CPModel,dt::Float64)
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
@@ -86,17 +73,6 @@ function (metrics::BasicMetrics{TakeObjective, <:BasicHeuristic})(model::CPModel
 
 end 
 
-"""
-    function (metrics::BasicMetrics{DontTakeObjective, LearnedHeuristic})(model::CPModel,dt::Float64)
-
-The function is called after a search on a Constraint Programming Model.
-For a learnedheuristic on a problem that doesn't consider an objective, the function stores: 
-- the number of nodes visited to find each solution of an instance. 
-- the number of nodes visited to complete the search (ie. prove optimality).
-- the computing time required to complete each search (ie. prove optimality).
-- the total reward of each search.
-- the total loss of each search.
-"""
 function (metrics::BasicMetrics{DontTakeObjective, <:LearnedHeuristic})(model::CPModel,dt::Float64)
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
@@ -110,18 +86,7 @@ function (metrics::BasicMetrics{DontTakeObjective, <:LearnedHeuristic})(model::C
     return
 end 
 
-"""
-    function (metrics::BasicMetrics{TakeObjective, LearnedHeuristic})(model::CPModel,dt::Float64) 
 
-The function is called after a search on a Constraint Programming Model.
-For a learnedheuristic on a problem that considers an objective, the function stores: 
-- the number of nodes visited to find each solution of an instance. 
-- the number of nodes visited to complete the search (ie. prove optimality).
-- the computing time required to complete each search (ie. prove optimality).
-- the relative scores of every solution found compared to the optimal solution.
-- the total reward of each search.
-- the total loss of each search.
-"""
 function (metrics::BasicMetrics{TakeObjective, <:LearnedHeuristic})(model::CPModel,dt::Float64) 
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
