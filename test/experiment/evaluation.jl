@@ -23,7 +23,7 @@
         my_heuristic(x::SeaPearl.IntVar; cpmodel=nothing) = minimum(x.domain)
         valueheuristic = SeaPearl.BasicHeuristic(my_heuristic)
         valueSelectionArray = [valueheuristic]
-        evaluator = SeaPearl.SameInstancesEvaluator(valueSelectionArray,generator; seed=nothing, evalFreq = 50, nbInstances = 2)
+        evaluator = SeaPearl.SameInstancesEvaluator(valueSelectionArray,generator; seed=1, evalFreq = 50, nbInstances = 2)
 
         variableheuristic = SeaPearl.MinDomainVariableSelection{false}()
 
