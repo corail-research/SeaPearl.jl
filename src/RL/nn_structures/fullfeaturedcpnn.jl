@@ -10,6 +10,8 @@ This structure is here to provide a flexible way to create a nn model which resp
 Making modification on the graph, then extract one node feature and modify it.
 """
 Base.@kwdef struct FullFeaturedCPNN <: NNStructure
+    nodeInputChain::Flux.Chain = Flux.Chain()
+    edgeInputChain::Flux.Chain = Flux.Chain()
     graphChain::Flux.Chain = Flux.Chain()
     nodeChain::Flux.Chain = Flux.Chain()
     globalChain::Flux.Chain = Flux.Chain()
@@ -28,8 +30,19 @@ function (nn::FullFeaturedCPNN)(states::BatchedDefaultTrajectoryState)
     allValuesIdx = states.allValuesIdx
     actionSpaceSize = size(allValuesIdx, 1)
 
+    # node pre-processing
+    targetSize = (:, size(states.fg.nf)[2:end]...)
+    nodeFeatures = sizeof(states.fg.nf) == 0 ? states.fg.nf : reshape(nn.nodeInputChain(flatten_batch(states.fg.nf)), targetSize)
+
+    # edge pre-processing
+    targetSize = (:, size(states.fg.ef)[2:end]...)
+    edgeFeatures = sizeof(states.fg.ef) == 0 ? states.fg.ef : reshape(nn.edgeInputChain(flatten_batch(states.fg.ef)), targetSize)
+
+    fg = BatchedFeaturedGraph{Float32}(states.fg.graph, nodeFeatures, edgeFeatures, states.fg.gf)
+    
+
     # chain working on the graph(s) with the GNNs
-    featuredGraph = nn.graphChain(states.fg)
+    featuredGraph = nn.graphChain(fg)
     nodeFeatures = featuredGraph.nf
     globalFeatures = featuredGraph.gf
 
