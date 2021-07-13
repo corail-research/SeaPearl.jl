@@ -6,7 +6,7 @@
         model = SeaPearl.CPModel(trailer)
         model.limit.numberOfNodes = 1
         toCall = Stack{Function}()
-        @test SeaPearl.expandIlds!(toCall,0,0,nothing, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(),nothing) == :NodeLimitStop
+        @test SeaPearl.expandIlds!(toCall,0, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(),nothing) == :NodeLimitStop
         @test isempty(toCall)
 
         # :SolutionLimitStop
@@ -15,7 +15,7 @@
         model.limit.numberOfSolutions = 0
         
         toCall = Stack{Function}()
-        @test SeaPearl.expandIlds!(toCall,0,0,nothing, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(),nothing) == :SolutionLimitStop
+        @test SeaPearl.expandIlds!(toCall,0, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(),nothing) == :SolutionLimitStop
         @test isempty(toCall)
 
         # :Infeasible
@@ -29,7 +29,7 @@
         SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
-        @test SeaPearl.expandIlds!(toCall,0,0,nothing, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(),nothing) == :Infeasible
+        @test SeaPearl.expandIlds!(toCall,0, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(),nothing) == :Infeasible
         @test isempty(toCall)
 
         # :Feasible
@@ -43,7 +43,7 @@
         SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
-        @test SeaPearl.expandIlds!(toCall,0,0,nothing, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(),nothing) == :FoundSolution
+        @test SeaPearl.expandIlds!(toCall,0, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(),nothing) == :FoundSolution
         @test isempty(toCall)
 
 
@@ -58,8 +58,8 @@
         SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
-        @test SeaPearl.expandIlds!(toCall,0,2,nothing, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(),nothing) == :Feasible
-        @test length(toCall) == 6   #only explore both sub-trees but only the left one will be taken into account ( discrepancy = 0 )
+        @test SeaPearl.expandIlds!(toCall,0, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(),nothing) == :Feasible
+        @test length(toCall) == 3
 
         @test pop!(toCall)(model) == :SavingState
         @test length(model.trailer.prior) == 1 # saveState!()
@@ -83,7 +83,7 @@
         SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
-        @test SeaPearl.initroot!(toCall, SeaPearl.ILDSearch(), model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :FoundSolution
+        @test SeaPearl.initroot!(toCall, SeaPearl.ILDSearch(0), model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :FoundSolution
         @test isempty(toCall)
 
     end
@@ -97,7 +97,7 @@
         x = SeaPearl.IntVar(1, 1, "x", trailer)
         SeaPearl.addVariable!(model, x)
 
-        @test SeaPearl.search!(model, SeaPearl.ILDSearch(), SeaPearl.MinDomainVariableSelection()) == :NodeLimitStop
+        @test SeaPearl.search!(model, SeaPearl.ILDSearch(0), SeaPearl.MinDomainVariableSelection()) == :NodeLimitStop
 
         # :SolutionLimitStop
         trailer = SeaPearl.Trailer()
@@ -108,7 +108,7 @@
         y = SeaPearl.IntVar(2, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        @test SeaPearl.search!(model, SeaPearl.ILDSearch(), SeaPearl.MinDomainVariableSelection()) == :SolutionLimitStop
+        @test SeaPearl.search!(model, SeaPearl.ILDSearch(0), SeaPearl.MinDomainVariableSelection()) == :SolutionLimitStop
 
         # :Infeasible
         trailer = SeaPearl.Trailer()
@@ -120,7 +120,7 @@
         SeaPearl.addVariable!(model, y)
         SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
 
-        @test SeaPearl.search!(model, SeaPearl.ILDSearch(), SeaPearl.MinDomainVariableSelection()) == :Infeasible
+        @test SeaPearl.search!(model, SeaPearl.ILDSearch(0), SeaPearl.MinDomainVariableSelection()) == :Infeasible
 
         # :Optimal
         trailer = SeaPearl.Trailer()
@@ -132,7 +132,7 @@
         SeaPearl.addVariable!(model, y)
         SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
 
-        @test SeaPearl.search!(model, SeaPearl.ILDSearch(), SeaPearl.MinDomainVariableSelection()) == :Optimal
+        @test SeaPearl.search!(model, SeaPearl.ILDSearch(0), SeaPearl.MinDomainVariableSelection()) == :NonOptimal
         @test length(model.statistics.solutions) == 1
 
 
@@ -146,10 +146,10 @@
         SeaPearl.addVariable!(model, y)
         SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
 
-        @test SeaPearl.search!(model, SeaPearl.ILDSearch(), SeaPearl.MinDomainVariableSelection()) == :Optimal
+        @test SeaPearl.search!(model, SeaPearl.ILDSearch(1), SeaPearl.MinDomainVariableSelection()) == :NonOptimal
         @test length(model.statistics.solutions) == 2
-        @test model.statistics.solutions[1] == Dict("x" => 3,"y" => 3)
         @test model.statistics.solutions[2] == Dict("x" => 2,"y" => 2)
+        @test model.statistics.solutions[1] == Dict("x" => 3,"y" => 3)
 
     end
 
@@ -164,9 +164,9 @@
         SeaPearl.addVariable!(model, y)
         SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
 
-        @test SeaPearl.search!(model, SeaPearl.ILDSearch(), SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Optimal
-        @test model.statistics.solutions[1] == Dict("x" => 3,"y" => 3)
+        @test SeaPearl.search!(model, SeaPearl.ILDSearch(1), SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :NonOptimal
         @test model.statistics.solutions[2] == Dict("x" => 2,"y" => 2)
+        @test model.statistics.solutions[1] == Dict("x" => 3,"y" => 3)
 
         SeaPearl.empty!(model)
 
@@ -177,7 +177,7 @@
         SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, model.trailer))
 
         my_heuristic(x::SeaPearl.IntVar; cpmodel=nothing) = minimum(x.domain)
-        @test SeaPearl.search!(model, SeaPearl.ILDSearch(), SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(my_heuristic)) == :Optimal
+        @test SeaPearl.search!(model, SeaPearl.ILDSearch(1), SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(my_heuristic)) == :NonOptimal
         @test model.statistics.solutions[2] == Dict("x" => 3,"y" => 3)
 
         trailer = SeaPearl.Trailer()
@@ -192,17 +192,18 @@
 
         SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x1, x2, trailer))
         SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x2, x3, trailer))
+        @test SeaPearl.search!(model, SeaPearl.ILDSearch(3), SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :NonOptimal
 
-        @test SeaPearl.search!(model, SeaPearl.ILDSearch(), SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Optimal
+
         #in this specific finding order with the given heuristic and iLDS method.
         @test model.statistics.solutions[1] == Dict("x1" => 2,"x2" => 3,"x3" => 4)
         @test model.statistics.solutions[2] == Dict("x1" => 2,"x2" => 3,"x3" => 2)
         @test model.statistics.solutions[3] == Dict("x1" => 2,"x2" => 1,"x3" => 4)
-        @test model.statistics.solutions[4] == Dict("x1" => 2,"x2" => 1,"x3" => 3)
-        @test model.statistics.solutions[5] == Dict("x1" => 1,"x2" => 3,"x3" => 4)
-        @test model.statistics.solutions[6] == Dict("x1" => 2,"x2" => 1,"x3" => 2)
-        @test model.statistics.solutions[7] == Dict("x1" => 1,"x2" => 3,"x3" => 2)
-        @test model.statistics.solutions[8] == Dict("x1" => 1,"x2" => 2,"x3" => 4)
+        @test model.statistics.solutions[4] == Dict("x1" => 1,"x2" => 3,"x3" => 4)
+        @test model.statistics.solutions[5] == Dict("x1" => 2,"x2" => 1,"x3" => 3)
+        @test model.statistics.solutions[6] == Dict("x1" => 1,"x2" => 3,"x3" => 2)
+        @test model.statistics.solutions[7] == Dict("x1" => 1,"x2" => 2,"x3" => 4)
+        @test model.statistics.solutions[8] == Dict("x1" => 2,"x2" => 1,"x3" => 2)
         @test model.statistics.solutions[9] == Dict("x1" => 1,"x2" => 2,"x3" => 3)
 
     end
@@ -217,7 +218,7 @@
         SeaPearl.addVariable!(model, y)
         SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
 
-        @test SeaPearl.search!(model, SeaPearl.ILDSearch(), SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(); out_solver=true) == :FoundSolution
+        @test SeaPearl.search!(model, SeaPearl.ILDSearch(1), SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(); out_solver=true) == :FoundSolution
         @test length(model.statistics.solutions) == 1
         @test model.statistics.solutions[1] == Dict("x" => 3,"y" => 3)
 
@@ -230,7 +231,7 @@
         SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, model.trailer))
 
         my_heuristic(x::SeaPearl.IntVar; cpmodel=nothing) = minimum(x.domain)
-        @test SeaPearl.search!(model, SeaPearl.ILDSearch(), SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(my_heuristic); out_solver=true) == :FoundSolution
+        @test SeaPearl.search!(model, SeaPearl.ILDSearch(1), SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(my_heuristic); out_solver=true) == :FoundSolution
         @test length(model.statistics.solutions) == 1
         @test model.statistics.solutions[1] == Dict("x" => 2,"y" => 2)
 
@@ -330,7 +331,7 @@
         variableSelection = SeaPearl.MinDomainVariableSelection()
 
         # launch the search 
-        SeaPearl.search!(model, SeaPearl.ILDSearch(), variableSelection, valueSelection)
+        SeaPearl.search!(model, SeaPearl.ILDSearch(6), variableSelection, valueSelection)
 
         possible_solutions = [
             Dict("x1" => 1, "x2" => 2, "x3" => 3, "x4" => 1),
@@ -446,7 +447,7 @@
 
 
         # launch the search 
-        SeaPearl.search!(model, SeaPearl.ILDSearch(), variableSelection, valueSelection; out_solver=true)
+        SeaPearl.search!(model, SeaPearl.ILDSearch(6), variableSelection, valueSelection; out_solver=true)
 
         possible_solutions = [
             Dict("x1" => 1, "x2" => 2, "x3" => 3, "x4" => 1),

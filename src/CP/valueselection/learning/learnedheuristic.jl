@@ -33,8 +33,8 @@ mutable struct LearnedHeuristic{SR<:AbstractStateRepresentation, R<:AbstractRewa
     current_state::Union{Nothing, SR}
     reward::Union{Nothing, R}
     search_metrics::Union{Nothing, SearchMetrics}
-
-    LearnedHeuristic{SR, R, A}(agent::RL.Agent) where {SR, R, A}= new{SR, R, A}(agent, nothing, nothing, nothing, nothing, nothing, nothing)
+    firstActionTaken::Bool
+    LearnedHeuristic{SR, R, A}(agent::RL.Agent) where {SR, R, A}= new{SR, R, A}(agent, nothing, nothing, nothing, nothing, nothing, nothing, false)
 end
 
 """
@@ -46,6 +46,7 @@ Finally, makes the agent call the process of the RL pre_episode_stage (basically
 """
 function (valueSelection::LearnedHeuristic)(::Type{InitializingPhase}, model::CPModel)
     # create the environment
+    valueSelection.firstActionTaken = false
     update_with_cpmodel!(valueSelection, model)
     # FIXME get rid of this => prone to bugs
     false_x = first(values(branchable_variables(model)))
@@ -86,15 +87,18 @@ function (valueSelection::LearnedHeuristic)(PHASE::Type{DecisionPhase}, model::C
 
     env = get_observation!(valueSelection, model, x)
 
-    #println("Decision  ", obs.reward, " ", obs.terminal, " ", obs.legal_actions, " ", obs.legal_actions_mask)
-    if model.statistics.numberOfNodes > 1
+    #println("Decision  ", env.reward, " ", env.terminal, " ", env.legal_actions, " ", env.legal_actions_mask)
+    if valueSelection.firstActionTaken 
         valueSelection.agent(RL.POST_ACT_STAGE, env) # get terminal and reward
+    else 
+        valueSelection.firstActionTaken = true
     end
 
     action = valueSelection.agent(env) # Choose action
     # TODO: swap to async computation once in deployment
     #@async valueSelection.agent(RL.PRE_ACT_STAGE, env, action) # Store state and action
     valueSelection.agent(RL.PRE_ACT_STAGE, env, action)
+
     return action_to_value(valueSelection, action, state(env), model)
 end
 
@@ -105,10 +109,13 @@ Set the final reward, do last observation.
 """
 function (valueSelection::LearnedHeuristic)(PHASE::Type{EndingPhase}, model::CPModel, current_status::Union{Nothing, Symbol})
     # the RL EPISODE stops
+    if valueSelection.firstActionTaken 
+        set_reward!(DecisionPhase,valueSelection, model)  #last decision reward for the previous action taken just before the ending Phase
+    end
     set_reward!(PHASE, valueSelection, model, current_status)
     false_x = first(values(branchable_variables(model)))
     env = get_observation!(valueSelection, model, false_x, true)
-    #println("EndingPhase  ", obs.reward, " ", obs.terminal, " ", obs.legal_actions, " ", obs.legal_actions_mask)
+    #println("EndingPhase  ", env.reward, " ", env.terminal, " ", env.legal_actions, " ", env.legal_actions_mask)
 
     valueSelection.agent(RL.POST_ACT_STAGE, env) # get terminal and reward
 

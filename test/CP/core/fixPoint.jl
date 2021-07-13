@@ -27,6 +27,8 @@
 
         @test prunedDomains == rightPruning
         @test feasability
+        @test sum(map(x-> length(x[2]),collect(rightPruning))) == 10
+        @test sum(map(x-> length(x[2]),collect(prunedDomains))) == 10
 
         @test length(x.domain) == 2
         @test length(y.domain) == 2

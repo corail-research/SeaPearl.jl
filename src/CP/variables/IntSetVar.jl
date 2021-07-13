@@ -44,6 +44,15 @@ struct SetModification
 end
 
 """
+    Base.length(set::SetModification)
+
+a generic function length is needed for all modifications. 
+"""
+function Base.length(set::SetModification)
+    return length(set.excluded) + length(set.required)
+end
+
+"""
     mergeSetModifications!(modif1, modif2)
 
 Add the modifications in `modif2` at the end of `modif1`

@@ -92,6 +92,11 @@
         SeaPearl.triggerInfeasible!(SeaPearl.NotEqual(x3, x4, trailer), cpmodel)
 
         @test variableselection(cpmodel) == x3
-    end 
 
+        @test isnothing(cpmodel.statistics.objectives[1])
+        @test isnothing(cpmodel.statistics.objectives[2])
+        @test isnothing(cpmodel.statistics.objectives[3])
+
+
+    end
 end

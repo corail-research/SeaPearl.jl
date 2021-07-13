@@ -6,7 +6,7 @@ Compute the sum of every reward of the last episode of the trajectory
 function last_episode_total_reward(t::AbstractTrajectory)
     last_index = length(t[:terminal])
 
-    @assert t[:terminal][last_index]
+    #if t[:terminal][last_index]   #TODO understand why they wrote this
 
     totalReward = t[:reward][last_index]
     

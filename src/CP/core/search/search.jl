@@ -42,23 +42,19 @@ function search!(model::CPModel, strategy::S, variableHeuristic::AbstractVariabl
         currentStatus = currentProcedure(model)
     end
     # set final reward and last observation
-    removeSolutionDoublons(model)
+    model.statistics.numberOfSolutions=sum(map(x->!isnothing(x),model.statistics.solutions))
     valueSelection(EndingPhase, model, currentStatus)
 
     if currentStatus == :NodeLimitStop || currentStatus == :SolutionLimitStop || (out_solver & (currentStatus in [:Infeasible, :FoundSolution]))
         return currentStatus
     end
     
-
-    if length(model.statistics.solutions) > 0
+    if isa(strategy, DFSearch) && !all(map(x->isnothing(x),model.statistics.solutions)) == 1       #Only the DFS search can give the optimality certificate
         return :Optimal
+    elseif !all(map(x->isnothing(x),model.statistics.solutions)) == 1 
+        return :NonOptimal
     end
-
+    
     return :Infeasible
 end
 
-function removeSolutionDoublons(model::CPModel)
-    unique!(model.statistics.solutions) #remove all doublons
-    model.statistics.numberOfSolutions=length(model.statistics.solutions)
-    
-end
