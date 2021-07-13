@@ -34,8 +34,7 @@ function launch_experiment!(
         out_solver::Bool,
         verbose::Bool;
         metrics::Union{Nothing, AbstractMetrics}=nothing,
-        evaluator::Union{Nothing, AbstractEvaluator}=SameInstancesEvaluator(valueSelectionArray,generator),
-        restartPerInstances = 1,
+        evaluator::Union{Nothing, AbstractEvaluator}=SameInstancesEvaluator(valueSelectionArray,generator)
     ) where{T <: ValueSelection, S <: SearchStrategy}
 
     nbHeuristics = length(valueSelectionArray)
@@ -64,18 +63,16 @@ function launch_experiment!(
 
         for j in 1:nbHeuristics
             reset_model!(model)
-            dt = @elapsed for k in 1:restartPerInstances
-                restart_search!(model)
-                search!(model, strategy, variableHeuristic, valueSelectionArray[j], out_solver=out_solver)
-
-                if isa(valueSelectionArray[j], LearnedHeuristic)
-                    verbose && println(", Visited nodes with learnedHeuristic : ", model.statistics.numberOfNodesBeforeRestart)
-                else
-                    verbose && println(" vs Visited nodes with basic Heuristic n°$(j-1) : ", model.statistics.numberOfNodesBeforeRestart)
-                end
-            end
+            
+            dt = @elapsed search!(model, strategy, variableHeuristic, valueSelectionArray[j], out_solver=out_solver)
+            
             metricsArray[j](model,dt)  #adding results in the metrics data structure
 
+            if isa(valueSelectionArray[j], LearnedHeuristic)
+                verbose && print(", Visited nodes with learnedHeuristic : ", model.statistics.numberOfNodes)
+            else
+                verbose && println(" vs Visited nodes with basic Heuristic n°$(j-1) : ", model.statistics.numberOfNodes)
+            end
         end
 
         if !isnothing(evaluator) && (i % evaluator.evalFreq == 0)

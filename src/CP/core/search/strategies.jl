@@ -7,15 +7,7 @@ abstract type SearchStrategy end
 
 struct DFSearch <: SearchStrategy end
 
-"""
-    struct ILDSearch <: SearchStrategy
-implements the basic version of the Iterative Limited Discrepancy Search, ddue to the fact that the depth of the search tree is unknow
-before the search we cannot use the improved version of the Iterate Limited Discrepancy Search by Richard E. Korf. d is the max-discrepancy. 
-"""
-struct ILDSearch <: SearchStrategy
-    d::Int64
-end
-
+struct ILDSearch <: SearchStrategy end
 abstract type ExpandCriteria end 
 
 abstract type RBSearch{C} <: SearchStrategy where C <: ExpandCriteria end

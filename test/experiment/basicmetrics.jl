@@ -78,11 +78,12 @@ agent = RL.Agent(
 
         
         @test isempty(metrics.nodeVisited)== true
-        @test isempty(metrics.meanNodeVisitedUntilEnd) == true
+        @test isempty(metrics.meanNodeVisitedUntilOptimality) == true
         @test isempty(metrics.timeneeded) == true
         @test isnothing(metrics.scores) == true
         @test isnothing(metrics.totalReward) == true
         @test isnothing(metrics.loss) == true
+        @test metrics.meanOver == 20
         @test metrics.nbEpisodes == 0
 
         metrics  = SeaPearl.BasicMetrics(cpmodel, basicheuristic;meanOver=100)
@@ -182,7 +183,7 @@ agent = RL.Agent(
         metrics(model,dt)
 
         @test metrics.nodeVisited[1] == [2, 3] #only one soluion found due to Objective prunning 
-        @test metrics.scores[1] == [3, 2] 
+        @test metrics.scores[1] == [1.5, 1.0] #relative to the optimal score
         @test size(metrics.timeneeded,1) == 1
         @test metrics.nbEpisodes == 1 
     end
@@ -227,14 +228,14 @@ agent = RL.Agent(
         push!(metrics.nodeVisited, [0,10])
         push!(metrics.nodeVisited, [0,10])
 
-        push!(metrics.meanNodeVisitedUntilEnd, 0)
-        push!(metrics.meanNodeVisitedUntilEnd, 0)
-        push!(metrics.meanNodeVisitedUntilEnd, 0)
-        push!(metrics.meanNodeVisitedUntilEnd, 0)
-        push!(metrics.meanNodeVisitedUntilEnd, 10)
-        push!(metrics.meanNodeVisitedUntilEnd, 10)
-        push!(metrics.meanNodeVisitedUntilEnd, 10)
-        push!(metrics.meanNodeVisitedUntilEnd, 10)
+        push!(metrics.meanNodeVisitedUntilOptimality, 0)
+        push!(metrics.meanNodeVisitedUntilOptimality, 0)
+        push!(metrics.meanNodeVisitedUntilOptimality, 0)
+        push!(metrics.meanNodeVisitedUntilOptimality, 0)
+        push!(metrics.meanNodeVisitedUntilOptimality, 10)
+        push!(metrics.meanNodeVisitedUntilOptimality, 10)
+        push!(metrics.meanNodeVisitedUntilOptimality, 10)
+        push!(metrics.meanNodeVisitedUntilOptimality, 10)
         
         push!(metrics.meanNodeVisitedUntilfirstSolFound, 10)
         push!(metrics.meanNodeVisitedUntilfirstSolFound, 10)
@@ -248,7 +249,7 @@ agent = RL.Agent(
         metrics.nbEpisodes = 8
         SeaPearl.computemean!(metrics)
         @test metrics.meanNodeVisitedUntilfirstSolFound == [10.0, 7.5, 5.0, 2.5, 0.0]
-        @test metrics.meanNodeVisitedUntilEnd == [0.0, 2.5, 5.0, 7.5, 10.0]
+        @test metrics.meanNodeVisitedUntilOptimality == [0.0, 2.5, 5.0, 7.5, 10.0]
 
     end
 end

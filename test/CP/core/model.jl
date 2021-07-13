@@ -256,14 +256,6 @@
         @test model.statistics.numberOfSolutionsBeforeRestart == 0
     end
 
-    @testset "addKnownObjective!" begin
-        trailer = SeaPearl.Trailer()
-        model = SeaPearl.CPModel(trailer)
-
-        SeaPearl.addKnownObjective!(model, 1)
-        @test model.knownObjective == 1
-
-    end
     @testset "triggerInfeasible!" begin
         
         trailer = SeaPearl.Trailer()

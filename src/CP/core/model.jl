@@ -10,11 +10,9 @@ mutable struct Statistics
     numberOfSolutionsBeforeRestart          ::Int
     numberOfInfeasibleSolutionsBeforeRestart::Int
     numberOfNodesBeforeRestart              ::Int
-    AccumulatedRewardBeforeReset            ::Float32
-    solutions                               ::Vector{Union{Nothing,Solution}}
+    solutions                               ::Vector{Solution}
     nodevisitedpersolution                  ::Vector{Int}
-    objectives                              ::Union{Nothing, Vector{Union{Nothing,Int}}}
-    lastPruning                             ::Union{Nothing, Int}
+    objectives                              ::Union{Nothing, Vector{Int}}
 end
 
 mutable struct Limit
@@ -37,15 +35,14 @@ or filled by an `AbstractModelGenerator`.
 mutable struct CPModel
     variables               ::Dict{String, AbstractVar}
     branchable              ::Dict{String, Bool}
-    constraints             ::Array{Constraint} 
+    constraints             ::Array{Constraint}
     trailer                 ::Trailer
     objective               ::Union{Nothing, AbstractIntVar}
     objectiveBound          ::Union{Nothing, Int}
     statistics              ::Statistics
     limit                   ::Limit
-    knownObjective           ::Union{Nothing,Int64}
     adhocInfo               ::Any
-    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Constraint[], trailer, nothing, nothing, Statistics(Dict{String, Int}(), 0,0, 0, 0, 0, 0, 0, Solution[],Int[], nothing, nothing), Limit(nothing, nothing), nothing)
+    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Constraint[], trailer, nothing, nothing, Statistics(Dict{String, Int}(), 0, 0, 0, 0, 0, 0, Solution[],Int[],nothing), Limit(nothing, nothing))
 end
 
 CPModel() = CPModel(Trailer())
@@ -67,18 +64,9 @@ function addVariable!(model::CPModel, x::AbstractVar; branchable=true)
     model.variables[x.id] = x
 end
 
-"""
-    addObjective!(model::CPModel, objective::AbstractVar)
-
-Add an Objective variable to the model. This variable is the variable that needs to be minimized suring the solving. 
-"""
 function addObjective!(model::CPModel, objective::AbstractVar)
     model.objective = objective
     model.statistics.objectives = Int[]  #initialisation of the Array that will contain the score of every solution
-end
-
-function addKnownObjective!(model::CPModel, knownObective::Int64)
-    model.knownObjective = knownObective
 end
 
 function addConstraint!(model::CPModel,constraint::Constraint)
@@ -144,14 +132,13 @@ function triggerFoundSolution!(model::CPModel)
     for (k, x) in model.variables
         solution[k] = assignedValue(x)
     end
-    if !(solution in model.statistics.solutions)   #probably not efficient but necessary
-        push!(model.statistics.solutions, solution)
-        push!(model.statistics.nodevisitedpersolution,model.statistics.numberOfNodes)
-        if !isnothing(model.objective)
-            @assert !isnothing(model.statistics.objectives)   "did you used SeaPearl.addObjective! to declare your objective function ? "
-            push!(model.statistics.objectives, assignedValue(model.objective))
-            tightenObjective!(model)
-        end
+    push!(model.statistics.solutions, solution)
+    push!(model.statistics.nodevisitedpersolution,model.statistics.numberOfNodes)
+
+    if !isnothing(model.objective)
+        @assert !isnothing(model.statistics.objectives)   "did you used SeaPearl.addObjective! to declare your objective function ? "
+        push!(model.statistics.objectives, assignedValue(model.objective))
+        tightenObjective!(model)
     end
 end
 """
@@ -166,13 +153,6 @@ function triggerInfeasible!(constraint::Constraint, model::CPModel)
         if haskey(model.branchable, id(var))
             model.statistics.infeasibleStatusPerVariable[id(var)]+=1
         end
-    end
-    push!(model.statistics.solutions, nothing)
-    push!(model.statistics.nodevisitedpersolution,model.statistics.numberOfNodes)
-
-    if !isnothing(model.objective)
-        @assert !isnothing(model.statistics.objectives)   "did you used SeaPearl.addObjective! to declare your objective function ? "
-        push!(model.statistics.objectives, nothing)
     end
 end
 
@@ -212,18 +192,14 @@ function Base.isempty(model::CPModel)::Bool
         && isempty(model.statistics.nodevisitedpersolution)
         && isempty(model.statistics.infeasibleStatusPerVariable)
         && isnothing(model.statistics.objectives)
-        && isnothing(model.statistics.lastPruning)
         && model.statistics.numberOfNodes == 0
         && model.statistics.numberOfSolutions == 0
         && model.statistics.numberOfInfeasibleSolutions == 0
         && model.statistics.numberOfInfeasibleSolutionsBeforeRestart == 0
         && model.statistics.numberOfSolutionsBeforeRestart == 0
         && model.statistics.numberOfNodesBeforeRestart == 0
-        && model.statistics.AccumulatedRewardBeforeReset == 0
         && isnothing(model.limit.numberOfNodes)
         && isnothing(model.limit.numberOfSolutions)
-        && isnothing(model.knownObjective)
-
     )
 end
 
@@ -243,18 +219,14 @@ function Base.empty!(model::CPModel)
     empty!(model.statistics.nodevisitedpersolution)
     empty!(model.statistics.infeasibleStatusPerVariable)
     model.statistics.objectives = nothing
-    model.statistics.lastPruning = nothing
     model.statistics.numberOfNodes = 0
     model.statistics.numberOfSolutions = 0
     model.statistics.numberOfInfeasibleSolutions = 0
     model.statistics.numberOfInfeasibleSolutionsBeforeRestart = 0
     model.statistics.numberOfSolutionsBeforeRestart = 0
     model.statistics.numberOfNodesBeforeRestart = 0
-    model.statistics.AccumulatedRewardBeforeReset = 0
     model.limit.numberOfNodes = nothing
     model.limit.numberOfSolutions = nothing
-    model.knownObjective = nothing
-
     model
 end
 
@@ -277,15 +249,12 @@ function reset_model!(model::CPModel)
         @assert !isnothing(model.statistics.objectives)   "did you used SeaPearl.addObjective! to declare your objective function ?"
         empty!(model.statistics.objectives)
     end
-    model.statistics.lastPruning = nothing
     model.statistics.numberOfNodes = 0
     model.statistics.numberOfSolutions = 0
     model.statistics.numberOfInfeasibleSolutions = 0
     model.statistics.numberOfInfeasibleSolutionsBeforeRestart = 0
     model.statistics.numberOfSolutionsBeforeRestart = 0
     model.statistics.numberOfNodesBeforeRestart = 0
-    model.statistics.AccumulatedRewardBeforeReset = 0
-
 end
 
 """
@@ -296,7 +265,6 @@ the restart criteria.
 """
 function restart_search!(model::CPModel)
     restoreInitialState!(model.trailer)
-    model.statistics.lastPruning = nothing
     model.statistics.numberOfInfeasibleSolutionsBeforeRestart = 0
     model.statistics.numberOfSolutionsBeforeRestart = 0
     model.statistics.numberOfNodesBeforeRestart = 0

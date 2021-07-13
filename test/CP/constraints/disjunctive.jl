@@ -238,10 +238,10 @@
         SeaPearl.addConstraint!(model,SeaPearl.Disjunctive(tasks, processing_time, trailer))
 
         variableSelection = SeaPearl.MinDomainVariableSelection{false}()
-        status = SeaPearl.solve!(model; variableHeuristic=variableSelection)
+        status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection)
 
         @test status == :Infeasible
-        @test length(model.statistics.solutions) == 1 # one infeasible solution
+        @test length(model.statistics.solutions) == 0
     end
 
     @testset "propagate! full solving with 3 tasks and Infeasible status" begin
@@ -266,8 +266,7 @@
         status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection)
 
         @test status == :Infeasible
-        @test model.statistics.numberOfSolutions == 0
-
+        @test length(model.statistics.solutions) == 0
     end
 
     @testset "propagate! chain" begin
@@ -350,7 +349,7 @@
         status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection)
 
         @test status == :Optimal
-        @test model.statistics.numberOfSolutions == 1
+        @test length(model.statistics.solutions) == 1
         @test 1 in task1.domain
         @test 3 in task2.domain
         @test 6 in task3.domain
@@ -382,7 +381,7 @@
         status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection)
 
         @test status == :Optimal
-        @test model.statistics.numberOfSolutions == 2
+        @test length(model.statistics.solutions) == 2
         @test 1 in task1.domain
         @test 3 in task2.domain
         @test 6 in task3.domain
@@ -431,6 +430,6 @@
         status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection,)
 
         @test status == :Optimal
-        @test (model.statistics.solutions[end-1]["obj"]) == 5
+        @test (model.statistics.solutions[end]["obj"]) == 5
     end
 end
