@@ -15,6 +15,7 @@ mutable struct Statistics
     nodevisitedpersolution                  ::Vector{Int}
     objectives                              ::Union{Nothing, Vector{Union{Nothing,Int}}}
     lastPruning                             ::Union{Nothing, Int}
+    lastVar                                 ::Union{Nothing, AbstractIntVar} #last var on which we branched
 end
 
 mutable struct Limit
@@ -27,25 +28,25 @@ end
     CPModel()
 
 The structure storing all the informations needed to solve a specific problem and it also stores the solutions.
-The CPModel is the center of the solver and evolve during the solving. 
-The `AbstractStateRepresentation` used by the RL Agent is created from the CPModel. 
+The CPModel is the center of the solver and evolve during the solving.
+The `AbstractStateRepresentation` used by the RL Agent is created from the CPModel.
 
-The CPModel is always created empty and is filled eather by hand by the user (or automatically thanks to written files) 
-or filled by an `AbstractModelGenerator`. 
+The CPModel is always created empty and is filled eather by hand by the user (or automatically thanks to written files)
+or filled by an `AbstractModelGenerator`.
 
 """
 mutable struct CPModel
     variables               ::Dict{String, AbstractVar}
     branchable              ::Dict{String, Bool}
-    constraints             ::Array{Constraint} 
+    constraints             ::Array{Constraint}
     trailer                 ::Trailer
     objective               ::Union{Nothing, AbstractIntVar}
     objectiveBound          ::Union{Nothing, Int}
     statistics              ::Statistics
     limit                   ::Limit
-    knownObjective           ::Union{Nothing,Int64}
+    knownObjective          ::Union{Nothing,Int64}
     adhocInfo               ::Any
-    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Constraint[], trailer, nothing, nothing, Statistics(Dict{String, Int}(), 0,0, 0, 0, 0, 0, 0, Solution[],Int[], nothing, nothing), Limit(nothing, nothing), nothing)
+    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Constraint[], trailer, nothing, nothing, Statistics(Dict{String, Int}(), 0,0, 0, 0, 0, 0, 0, Solution[],Int[], nothing, nothing, nothing), Limit(nothing, nothing), nothing)
 end
 
 CPModel() = CPModel(Trailer())
@@ -61,7 +62,7 @@ function addVariable!(model::CPModel, x::AbstractVar; branchable=true)
     @assert !haskey(model.variables, x.id) "The id of the variable must be unique"
 
     @assert !branchable || typeof(x) <: Union{AbstractIntVar, AbstractBoolVar} "You can only branch on Boolean and Integer variables"
-    
+
     model.statistics.infeasibleStatusPerVariable[id(x)]=0
     model.branchable[x.id] = branchable
     model.variables[x.id] = x
@@ -70,7 +71,7 @@ end
 """
     addObjective!(model::CPModel, objective::AbstractVar)
 
-Add an Objective variable to the model. This variable is the variable that needs to be minimized suring the solving. 
+Add an Objective variable to the model. This variable is the variable that needs to be minimized suring the solving.
 """
 function addObjective!(model::CPModel, objective::AbstractVar)
     model.objective = objective
@@ -88,7 +89,7 @@ function addConstraint!(model::CPModel,constraint::Constraint)
             @assert haskey(model.statistics.infeasibleStatusPerVariable, id(var)) "You forget to add the variable $(id(var)) to the model"
             model.statistics.infeasibleStatusPerVariable[id(var)]+=1
         end
-    end   
+    end
 end
 
 
@@ -158,8 +159,8 @@ end
     triggerInfeasible!(constraint::Constraint, model::CPModel)
 
 this function increments by one the statistic infeasibleStatusPerVariable for each variable involved in the constraint. infeasibleStatusPerVariable
-keeps in track for each variable the number of times the variable was involved in a constraint that led to an infeasible state during a fixpoint. This statistic 
-is used by the failure-based variable selection heuristic. 
+keeps in track for each variable the number of times the variable was involved in a constraint that led to an infeasible state during a fixpoint. This statistic
+is used by the failure-based variable selection heuristic.
 """
 function triggerInfeasible!(constraint::Constraint, model::CPModel)
     for var in variablesArray(constraint)
@@ -202,10 +203,10 @@ Return a boolean describing if the model is empty or not.
 """
 function Base.isempty(model::CPModel)::Bool
     (
-        isempty(model.variables) 
-        && isempty(model.constraints) 
-        && isempty(model.trailer.prior) 
-        && isempty(model.trailer.current) 
+        isempty(model.variables)
+        && isempty(model.constraints)
+        && isempty(model.trailer.prior)
+        && isempty(model.trailer.current)
         && isnothing(model.objective)
         && isnothing(model.objectiveBound)
         && isempty(model.statistics.solutions)
@@ -213,6 +214,7 @@ function Base.isempty(model::CPModel)::Bool
         && isempty(model.statistics.infeasibleStatusPerVariable)
         && isnothing(model.statistics.objectives)
         && isnothing(model.statistics.lastPruning)
+        && isnothing(model.statistics.lastVar)
         && model.statistics.numberOfNodes == 0
         && model.statistics.numberOfSolutions == 0
         && model.statistics.numberOfInfeasibleSolutions == 0
@@ -233,10 +235,10 @@ end
 Empty the CPModel.
 """
 function Base.empty!(model::CPModel)
-    empty!(model.variables) 
-    empty!(model.constraints) 
-    empty!(model.trailer.prior) 
-    empty!(model.trailer.current) 
+    empty!(model.variables)
+    empty!(model.constraints)
+    empty!(model.trailer.prior)
+    empty!(model.trailer.current)
     model.objective = nothing
     model.objectiveBound = nothing
     empty!(model.statistics.solutions)
@@ -244,6 +246,7 @@ function Base.empty!(model::CPModel)
     empty!(model.statistics.infeasibleStatusPerVariable)
     model.statistics.objectives = nothing
     model.statistics.lastPruning = nothing
+    model.statistics.lastVar = nothing
     model.statistics.numberOfNodes = 0
     model.statistics.numberOfSolutions = 0
     model.statistics.numberOfInfeasibleSolutions = 0
@@ -261,9 +264,9 @@ end
 """
     reset_model!(model::CPModel)
 
-Reset a given CPModel instance. Make it possible to reuse the same instance instead of having to 
-delete the old one and create another one. This is used in `launch_experiment!` in order to be able 
-to use the same CPModel instance to compare different given heuristics. 
+Reset a given CPModel instance. Make it possible to reuse the same instance instead of having to
+delete the old one and create another one. This is used in `launch_experiment!` in order to be able
+to use the same CPModel instance to compare different given heuristics.
 """
 function reset_model!(model::CPModel)
     restoreInitialState!(model.trailer)
@@ -271,13 +274,14 @@ function reset_model!(model::CPModel)
     empty!(model.statistics.solutions)
     empty!(model.statistics.nodevisitedpersolution)
     for (key, value) in model.statistics.infeasibleStatusPerVariable
-        model.statistics.infeasibleStatusPerVariable[key]=length(getOnDomainChange(model.variables[key]))  #the degree is reset to the initial value : the number of constraints the variable is involved in. 
-    end   
+        model.statistics.infeasibleStatusPerVariable[key]=length(getOnDomainChange(model.variables[key]))  #the degree is reset to the initial value : the number of constraints the variable is involved in.
+    end
     if !isnothing(model.objective)
         @assert !isnothing(model.statistics.objectives)   "did you used SeaPearl.addObjective! to declare your objective function ?"
         empty!(model.statistics.objectives)
     end
     model.statistics.lastPruning = nothing
+    model.statistics.lastVar = nothing
     model.statistics.numberOfNodes = 0
     model.statistics.numberOfSolutions = 0
     model.statistics.numberOfInfeasibleSolutions = 0
@@ -291,12 +295,13 @@ end
 """
 restart_search!(model::CPModel)
 
-Usefull when dealing with restart based search : ILDS or RBS. Reset to zero usefull statistics on the search that can be used to define 
-the restart criteria. 
+Usefull when dealing with restart based search : ILDS or RBS. Reset to zero usefull statistics on the search that can be used to define
+the restart criteria.
 """
 function restart_search!(model::CPModel)
     restoreInitialState!(model.trailer)
     model.statistics.lastPruning = nothing
+    model.statistics.lastVar = nothing
     model.statistics.numberOfInfeasibleSolutionsBeforeRestart = 0
     model.statistics.numberOfSolutionsBeforeRestart = 0
     model.statistics.numberOfNodesBeforeRestart = 0
@@ -331,4 +336,3 @@ function nb_boundvariables(model::CPModel)
     end
     return nb
 end
-
