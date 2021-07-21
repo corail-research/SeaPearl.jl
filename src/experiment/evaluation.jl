@@ -33,7 +33,7 @@ function evaluate(eval::SameInstancesEvaluator, variableHeuristic::AbstractVaria
             dt = @elapsed search!(model, strategy, variableHeuristic, eval.metrics[1,j].heuristic)
             eval.metrics[i,j](model,dt)
 
-            verbose && println(typeof(eval.metrics[1,j].heuristic), " evaluated with: ", model.statistics.numberOfNodes, " nodes, taken ", dt, "s")
+            verbose && println(typeof(eval.metrics[1,j].heuristic), " evaluated with: ", model.statistics.numberOfNodes, " nodes, taken ", dt, "s, number of solutions found : ", model.statistics.numberOfSolutions)
         end 
         testmode!(eval.metrics[1,j].heuristic, false)
     end
