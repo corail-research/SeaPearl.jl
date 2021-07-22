@@ -44,20 +44,18 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
         end
 
         timeWindows = zeros(Int64, gen.n_city, 2)
-        timeWindows[1, :] = [0 10]
+        timeWindows[1, :] = [0 gen.max_tw]
 
         random_solution = [1, shuffle(Vector(2:gen.n_city))...]
-
+        cur_dist = 0
         for i in 2:gen.n_city
             prev_city = random_solution[i-1]
             cur_city = random_solution[i]
 
-            cur_dist = dist[prev_city, cur_city]
+            cur_dist = cur_dist + dist[prev_city, cur_city]
 
-            tw_lb_min = timeWindows[prev_city, 1] + cur_dist
-
-            rand_tw_lb = rand(DiscreteUniform(tw_lb_min, tw_lb_min + gen.max_tw_gap))
-            rand_tw_ub = rand(DiscreteUniform(rand_tw_lb, rand_tw_lb + gen.max_tw))
+            rand_tw_lb = max(0,rand(DiscreteUniform(cur_dist - gen.max_tw, cur_dist)))
+            rand_tw_ub = rand(DiscreteUniform(cur_dist, cur_dist + gen.max_tw))
 
             timeWindows[cur_city, :] = [rand_tw_lb rand_tw_ub]
         end
