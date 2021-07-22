@@ -50,58 +50,22 @@ end
 Change the current reward at the DecisionPhase. This is called right before making the next decision, so you know you have the very last state before the new decision
 and every computation like fixPoints and backtracking has been done.
 """
-
-"""
 function set_reward!(::Type{DecisionPhase}, lh::LearnedHeuristic{SR, TsptwReward, A}, model::CPModel) where {
     SR <: AbstractStateRepresentation,
     A <: ActionOutput
 }
-    current_turn = lh.search_metrics.total_decisions-1
-    println(current_turn)
-    for i in 1:length(keys(model.variables))
-        if haskey(model.variables, "a_"*string(current_turn)) && isbound(model.variables["a_"*string(current_turn)]) #ne dépend pas de i
-            println("ouf")
-            a_i = assignedValue(model.variables["a_"*string(current_turn)])
-            if lh.search_metrics.total_decisions == 0 ##==?
-                v_i = 1
-            else
-                v_i = assignedValue(model.variables["v_"*string(current_turn - 1)])
-            end
-            last_dist = lh.current_state.dist[v_i, a_i] * lh.reward.max_dist
-            lh.reward.value += lh.reward.normalizer * (lh.reward.positiver - last_dist)
-            break
-        else
-            #println("not found")
-        end
-    end
-    # lh.reward.value += lh.reward.normalizer * (lh.reward.positiver)
-end
-"""
-
-function set_reward!(::Type{DecisionPhase}, lh::LearnedHeuristic{SR, TsptwReward, A}, model::CPModel) where {
-    SR <: AbstractStateRepresentation,
-    A <: ActionOutput
-}
-    #println("on rentre dans la fonction set reward decision phase")
     n = size(lh.current_state.dist, 1)
     if !isnothing(model.statistics.lastVar)
-        #println("wow")
         x = model.statistics.lastVar
         s = x.id
         current = parse(Int,split(x.id,'_')[2])
-        #println("on regarde le dernier choix de variable de branchement")
-        #println("elle est bien bound : "*string(isbound(model.variables[s])))
         if isbound(model.variables["a_"*string(current)])
-            #println("on compte le reward pour a"*string(current))
             a_i = assignedValue(model.variables["a_"*string(current)])
             v_i = assignedValue(model.variables["v_"*string(current)])
             last_dist = lh.current_state.dist[v_i, a_i] * lh.reward.max_dist
-            #println(last_dist)
             lh.reward.value += lh.reward.normalizer* (lh.reward.positiver - last_dist)
-            #println(lh.reward.normalizer* (lh.reward.positiver - last_dist))
         end
     else lh.reward.value+=0
-        #println("encore aucune variable choisie on ne rajoute pas de reward")
     end
 end
 
@@ -121,9 +85,4 @@ function set_reward!(::Type{EndingPhase}, lh::LearnedHeuristic{SR, TsptwReward, 
         lh.reward.value -= 10/(lh.search_metrics.total_steps+1)
     end
 
-    #print("reward EnfingPhase avec symbol ")
-    #println(symbol)
-    #println(lh.reward.value)
-    #println()
-    # lh.reward.value += 1.
 end
