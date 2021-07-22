@@ -66,9 +66,9 @@ function launch_experiment!(
         for j in 1:nbHeuristics
             reset_model!(model)
             if isa(valueSelectionArray[j], LearnedHeuristic)
-                verbose && print(", Visited nodes with learnedHeuristic : " )
+                verbose && print("Visited nodes with learnedHeuristic : " )
             else
-                verbose && print(" vs Visited nodes with basic Heuristic n°$(j-1) : ")
+                verbose && print("Visited nodes with basic Heuristic n°$(j-1) : ")
             end
             dt = @elapsed for k in 1:restartPerInstances
                 restart_search!(model)
