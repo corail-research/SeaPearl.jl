@@ -67,15 +67,11 @@ lh = SeaPearl.LearnedHeuristic{SeaPearl.TsptwStateRepresentation{SeaPearl.TsptwF
 
         _, _ = SeaPearl.fixPoint!(model)
 
-        println(model.variables["d_1"])
 
-        # take decision 
+        # take decision
         var = model.variables["a_1"]
         SeaPearl.assign!(var, 2)
         _, _ = SeaPearl.fixPoint!(model, SeaPearl.getOnDomainChange(var))
-
-        println(model.variables["d_1"])
-        println(model.variables["a_1"])
 
         x = first(values(SeaPearl.branchable_variables(model)))
         SeaPearl.set_metrics!(SeaPearl.DecisionPhase, lh.search_metrics, model, x)

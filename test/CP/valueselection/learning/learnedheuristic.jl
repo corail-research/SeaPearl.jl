@@ -1,6 +1,6 @@
 @testset "learnedheuristic.jl" begin
 
-    @testset "LearnedHeuristic" begin 
+    @testset "LearnedHeuristic" begin
 
         learnedheuristic = SeaPearl.LearnedHeuristic(agent)
 
@@ -21,7 +21,7 @@
     end
 
 
-    @testset "LearnedHeuristic in action" begin 
+    @testset "LearnedHeuristic in action" begin
 
     approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
     target_approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
@@ -37,7 +37,7 @@
             Flux.Dense(32, 16, Flux.leakyrelu),
         ),
         outputChain = Flux.Dense(16, 4),
-    ) 
+    )
     target_approximator_model = SeaPearl.CPNN(
         graphChain = Flux.Chain(
             GeometricFlux.GraphConv(3 => 64, Flux.leakyrelu),
@@ -49,8 +49,8 @@
             Flux.Dense(32, 16, Flux.leakyrelu),
         ),
         outputChain = Flux.Dense(16, 4),
-    ) 
-                
+    )
+
     agent = RL.Agent(
         policy = RL.QBasedPolicy(
             learner = RL.DQNLearner(
@@ -70,7 +70,7 @@
                 min_replay_history = 1,
                 update_freq = 1,
                 target_update_freq = 100,
-            ), 
+            ),
             explorer = RL.EpsilonGreedyExplorer(
                 ϵ_stable = 0.01,
                 kind = :exp,
@@ -78,7 +78,7 @@
                 warmup_steps = 0,
                 decay_steps = 500,
                 step = 1,
-                is_break_tie = false, 
+                is_break_tie = false,
                 #is_training = true,
                 rng = MersenneTwister(33)
             )
@@ -91,7 +91,7 @@
         )
     )
 
-    
+
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
 
@@ -112,7 +112,7 @@
         SeaPearl.update_with_cpmodel!(lh, model)
         false_x = first(values(model.variables))
         env = SeaPearl.get_observation!(lh, model, false_x)
-    
+
         Flux.reset!(lh.agent)
         lh.agent(RL.PRE_EPISODE_STAGE, env)
         _, _ = SeaPearl.fixPoint!(model)
@@ -156,7 +156,7 @@
     @testset "advanced test on learnedheuristic.jl" begin
 
 
-        
+
     approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
     target_approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
     gnnlayers = 1
@@ -171,7 +171,7 @@
             Flux.Dense(32, 16, Flux.leakyrelu),
         ),
         outputChain = Flux.Dense(16, 4),
-    ) 
+    )
     target_approximator_model = SeaPearl.CPNN(
         graphChain = Flux.Chain(
             GeometricFlux.GraphConv(3 => 64, Flux.leakyrelu),
@@ -183,8 +183,8 @@
             Flux.Dense(32, 16, Flux.leakyrelu),
         ),
         outputChain = Flux.Dense(16, 4),
-    ) 
-                
+    )
+
     agent = RL.Agent(
         policy = RL.QBasedPolicy(
             learner = RL.DQNLearner(
@@ -204,7 +204,7 @@
                 min_replay_history = 1,
                 update_freq = 1,
                 target_update_freq = 100,
-            ), 
+            ),
             explorer = RL.EpsilonGreedyExplorer(
                 ϵ_stable = 0.01,
                 kind = :exp,
@@ -212,7 +212,7 @@
                 warmup_steps = 0,
                 decay_steps = 500,
                 step = 1,
-                is_break_tie = false, 
+                is_break_tie = false,
                 #is_training = true,
                 rng = MersenneTwister(33)
             )
@@ -227,7 +227,7 @@
 
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
-    
+
         x1 = SeaPearl.IntVar(1, 2, "x1", trailer)
         x2 = SeaPearl.IntVar(1, 2, "x2", trailer)
         x3 = SeaPearl.IntVar(2, 3, "x3", trailer)
@@ -236,7 +236,7 @@
         SeaPearl.addVariable!(model, x2)
         SeaPearl.addVariable!(model, x3)
         SeaPearl.addVariable!(model, x4)
-    
+
         SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x1, x2, trailer))
         SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x2, x3, trailer))
         SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x3, x4, trailer))
@@ -247,9 +247,10 @@
         lh = SeaPearl.LearnedHeuristic(agent)
         SeaPearl.update_with_cpmodel!(lh, model)
 
-        
+
         lh.firstActionTaken = true
         lh(SeaPearl.DecisionPhase, model, x)
+        @test !isnothing(model.statistics.lastVar)
         @test lh.agent.trajectory[:reward][end] == -0.025f0
 
         lh(SeaPearl.EndingPhase, model, :Optimal)

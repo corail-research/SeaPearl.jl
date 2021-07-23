@@ -121,7 +121,7 @@ end
 """
 
 
-function fill_with_generator!(cpmodel::CPModel, gen::Eternity2Generator; seed=123)
+function fill_with_generator!(cpmodel::CPModel, gen::Eternity2Generator; seed=nothing)
     cpmodel.limit.numberOfSolutions = 1
     if !isnothing(seed)
         Random.seed!(seed)
@@ -224,6 +224,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::Eternity2Generator; seed=12
 
 
     SeaPearl.addConstraint!(cpmodel, SeaPearl.AllDifferent(id, cpmodel.trailer))
+    cpmodel.adhocInfo = pieces
     return nothing
 
 end
