@@ -52,6 +52,5 @@ function set_reward!(::Type{EndingPhase}, lh::LearnedHeuristic{SR, CPReward, A},
             else
                 lh.reward.value+=f(model.objective, alpha)
             end
-    else lh.reward.value-= length(branchable_variables(model))/(nb_boundvariables(model)+1) - 1 end
-    end
+    else lh.reward.value-= length(branchable_variables(model))/nb_boundvariables(model) - 1 end
 end

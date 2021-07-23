@@ -39,6 +39,6 @@
         @test lh.reward.value == 6
         SeaPearl.assign!(x,2)
         SeaPearl.set_reward!(SeaPearl.EndingPhase, lh, model, :Infeasible)
-        @test lh.reward.value == 4
+        @test lh.reward.value == 5
     end
 end
