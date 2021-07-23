@@ -3,20 +3,20 @@ function f(x::AbstractIntVar,alpha::Float64)
 end
 
 """
-    struct DefaultReward2 <: AbstractReward end
+    struct CPReward <: AbstractReward end
 This is the default reward, that will be used if no custom reward is specified when constructing the `LearnedHeuristic`.
 """
-mutable struct DefaultReward2 <: AbstractReward
+mutable struct CPReward <: AbstractReward
     value::Float32
 end
 
-DefaultReward2(model::CPModel) = DefaultReward2(0)
+CPReward(model::CPModel) = CPReward(0)
 
 """
     set_reward!(::StepPhase, lh::LearnedHeuristic{DefaultReward, A}, model::CPModel, symbol::Union{Nothing, Symbol})
 Change the "current_reward" attribute of the LearnedHeuristic at the StepPhase.
 """
-function set_reward!(::Type{StepPhase}, lh::LearnedHeuristic{SR, DefaultReward2, A}, model::CPModel, symbol::Union{Nothing, Symbol}) where {
+function set_reward!(::Type{StepPhase}, lh::LearnedHeuristic{SR, CPReward, A}, model::CPModel, symbol::Union{Nothing, Symbol}) where {
     SR <: AbstractStateRepresentation,
     A <: ActionOutput
 }
@@ -28,7 +28,7 @@ end
 Change the current reward at the DecisionPhase. This is called right before making the next decision, so you know you have the very last state before the new decision
 and every computation like fixPoints and backtracking has been done.
 """
-function set_reward!(::Type{DecisionPhase}, lh::LearnedHeuristic{SR, DefaultReward2, A}, model::CPModel) where {
+function set_reward!(::Type{DecisionPhase}, lh::LearnedHeuristic{SR, CPReward, A}, model::CPModel) where {
     SR <: AbstractStateRepresentation,
     A <: ActionOutput
 }
@@ -41,7 +41,7 @@ end
 Increment the current reward at the EndingPhase. Called when the search is finished by an optimality proof or by a limit in term of nodes or
 in terms of number of solution. This is useful to add some general results to the reward like the number of ndoes visited during the episode for instance.
 """
-function set_reward!(::Type{EndingPhase}, lh::LearnedHeuristic{SR, DefaultReward2, A}, model::CPModel, symbol::Union{Nothing, Symbol}) where {
+function set_reward!(::Type{EndingPhase}, lh::LearnedHeuristic{SR, CPReward, A}, model::CPModel, symbol::Union{Nothing, Symbol}) where {
     SR <: AbstractStateRepresentation,
     A <: ActionOutput
 }

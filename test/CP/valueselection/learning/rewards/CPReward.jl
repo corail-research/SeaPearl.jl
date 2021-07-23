@@ -1,8 +1,8 @@
-@testset "Default reward 2" begin
+@testset "CPReward" begin
     @testset "set_reward!(DecisionPhase)" begin
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
-        lh = SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}, SeaPearl.DefaultReward2, SeaPearl.FixedOutput}(agent)
+        lh = SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}, SeaPearl.CPReward, SeaPearl.FixedOutput}(agent)
         SeaPearl.update_with_cpmodel!(lh, model)
 
         lh.reward.value = 0
@@ -13,7 +13,7 @@
     @testset "set_reward!(StepPhase)" begin
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
-        lh = SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}, SeaPearl.DefaultReward2, SeaPearl.FixedOutput}(agent)
+        lh = SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}, SeaPearl.CPReward, SeaPearl.FixedOutput}(agent)
         SeaPearl.update_with_cpmodel!(lh, model)
 
         lh.reward.value = 0
@@ -30,7 +30,7 @@
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
         SeaPearl.addVariable!(model, z; branchable=false)
-        lh = SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}, SeaPearl.DefaultReward2, SeaPearl.FixedOutput}(agent)
+        lh = SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}, SeaPearl.CPReward, SeaPearl.FixedOutput}(agent)
         SeaPearl.update_with_cpmodel!(lh, model)
 
         lh.reward.value = 5
