@@ -1,5 +1,5 @@
 function f(x::AbstractIntVar,alpha::Float64)
-    return 1/assignedValue(x)^alpha
+    return 1/(assignedValue(x)+1)^alpha
 end
 
 """
@@ -54,9 +54,9 @@ function set_reward!(::Type{EndingPhase}, lh::LearnedHeuristic{SR, CPReward, A},
             end
     else
         if isnothing(model.objective)
-                lh.reward.value-=length(branchable_variables(model))/nb_boundvariables(model)
+                lh.reward.value-=length(branchable_variables(model))/(nb_boundvariables(model)+1)
         else
-            lh.reward.value+=(nb_boundvariables(model)/length(branchable_variables(model))-1)*assignedValue(model.objective)^alpha
+            lh.reward.value+=(nb_boundvariables(model)/length(branchable_variables(model))-1)
         end
     end
 end
