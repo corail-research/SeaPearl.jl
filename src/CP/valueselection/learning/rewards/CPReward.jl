@@ -46,11 +46,13 @@ function set_reward!(::Type{EndingPhase}, lh::LearnedHeuristic{SR, CPReward, A},
     A <: ActionOutput
 }
     alpha = 0.5
-    if symbol == :Feasible || symbol == :FoundSolution
-            if isnothing(model.objective)
-                lh.reward.value+=1
-            else
-                lh.reward.value+=f(model.objective, alpha)
-            end
-    else lh.reward.value-= length(branchable_variables(model))/nb_boundvariables(model) - 1 end
+    if symbol == :FoundSolution
+        if isnothing(model.objective)
+            lh.reward.value += 1
+        else
+            lh.reward.value += f(model.objective, alpha)
+        end
+    else 
+        lh.reward.value -= length(branchable_variables(model))/nb_boundvariables(model) - 1 
+    end
 end
