@@ -36,7 +36,7 @@ function launch_experiment!(
         verbose::Bool;
         metrics::Union{Nothing, AbstractMetrics}=nothing,
         evaluator::Union{Nothing, AbstractEvaluator}=SameInstancesEvaluator(valueSelectionArray,generator),
-        restartPerInstances = 1,
+        restartPerInstances::Int64,
     ) where{T <: ValueSelection, S1,S2 <: SearchStrategy}
 
     nbHeuristics = length(valueSelectionArray)
