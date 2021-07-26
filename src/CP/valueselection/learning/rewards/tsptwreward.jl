@@ -84,5 +84,4 @@ function set_reward!(::Type{EndingPhase}, lh::LearnedHeuristic{SR, TsptwReward, 
     elseif symbol == :Infeasible
         lh.reward.value -= 10/(lh.search_metrics.total_steps+1)
     end
-
 end
