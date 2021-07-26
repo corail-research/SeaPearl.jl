@@ -3,9 +3,9 @@ mutable struct FeaturedGraph{T <: AbstractMatrix, N <: AbstractMatrix, E <: Abst
     nf::N
     ef::E
     gf::G
-    directed::bool
+    directed::Bool
     
-    function FeaturedGraph(graph::T, nf::N, ef::E, gf::G, directed::bool) where {T <: AbstractMatrix, N <: AbstractMatrix, E <: AbstractArray, G <: AbstractVector}
+    function FeaturedGraph(graph::T, nf::N, ef::E, gf::G, directed::Bool) where {T <: AbstractMatrix, N <: AbstractMatrix, E <: AbstractArray, G <: AbstractVector}
         check_dimensions(graph, nf, ef, gf)
         return new{T,N,E,G}(graph, nf, ef, gf, directed)
     end
@@ -23,7 +23,7 @@ function FeaturedGraph(graph::AbstractMatrix; directed::Symbol=:auto, n=size(gra
 end
 
 function FeaturedGraph(graph::AbstractGraph; kwargs...)
-    return FeaturedGraph(adjacency_matrix(graph); kwargs...)
+    return FeaturedGraph(Matrix(adjacency_matrix(graph)); kwargs...)
 end
 
 
@@ -82,7 +82,9 @@ has_global_feature(fg::FeaturedGraph) = !isempty(fg.gf)
 # ========== LightGraphs compatibility ==========
 
 LightGraphs.nv(fg::FeaturedGraph) = nv(graph(fg))
+LightGraphs.nv(g::AbstractMatrix) = size(g,1)
 LightGraphs.ne(fg::FeaturedGraph) = ne(graph(fg))
+LightGraphs.ne(g::AbstractMatrix) = ne(Graph(g))
 LightGraphs.degree(fg::FeaturedGraph) = degree(graph(fg))
 
-@functor FeaturedGraph
+Flux.@functor FeaturedGraph

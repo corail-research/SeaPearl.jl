@@ -30,4 +30,28 @@ end
 
 BatchedFeaturedGraph(graph, nf, ef, gf) = BatchedFeaturedGraph{Float32}(graph, nf, ef, gf)
 
+function BatchedFeaturedGraph{T}(fgs::Vector{FG}) where {T <: Real, FG <: FeaturedGraph}
+    ngraphs = length(fgs)
+    maxNodes = maximum(nv, fgs)
+    nfLength = size(fgs[1].nf, 1)
+    efLength = size(fgs[1].ef, 1)
+    gfLength = size(fgs[1].gf, 1)
+
+    graph = zeros(T, maxNodes, maxNodes, ngraphs)
+    nf = zeros(T, nfLength, maxNodes, ngraphs)
+    ef = zeros(T, efLength, maxNodes, maxNodes, ngraphs)
+    gf = zeros(T, gfLength, ngraphs)
+
+    for (i, fg) in enumerate(fgs)
+        graph[1:nv(fg),1:nv(fg),i] = fg.graph
+        nf[:, 1:nv(fg), i] = fg.nf
+        ef[:, 1:nv(fg), 1:nv(fg), i] = fg.ef
+        gf[:, i] = fg.gf
+    end
+
+    return BatchedFeaturedGraph{T}(graph, nf, ef, gf)
+end
+
+BatchedFeaturedGraph(fgs::Vector{FG}) where {FG <: FeaturedGraph} = BatchedFeaturedGraph{Float32}(fgs)
+
 Flux.@functor BatchedFeaturedGraph
