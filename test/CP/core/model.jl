@@ -1,4 +1,25 @@
 @testset "model.jl" begin
+    @testset "lastVar" begin
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+
+        x = SeaPearl.IntVar(2, 6, "x", trailer)
+        y = SeaPearl.IntVar(2, 6, "y", trailer)
+    
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y)
+
+        valueselection = SeaPearl.BasicHeuristic()
+        @test isnothing(model.statistics.lastVar)
+        v = valueselection(SeaPearl.DecisionPhase, model, x)
+        @test model.statistics.lastVar.id=="x"
+        SeaPearl.assign!(x, v)
+        v = valueselection(SeaPearl.DecisionPhase, model, y)
+        @test model.statistics.lastVar.id=="y"
+        SeaPearl.assign!(y, v)
+
+    end
+
     @testset "addVariable!()" begin
         trailer = SeaPearl.Trailer()
         x = SeaPearl.IntVar(2, 6, "x", trailer)
@@ -109,7 +130,7 @@
         @test model.objectiveBound == 2
         @test model.statistics.numberOfSolutions == 1
         @test model.statistics.objectives[1] == 3
-        @test model.statistics.numberOfInfeasibleSolutions == 0 
+        @test model.statistics.numberOfInfeasibleSolutions == 0
         @test model.statistics.numberOfSolutionsBeforeRestart == 1
         @test model.statistics.numberOfInfeasibleSolutionsBeforeRestart == 0
         @test model.statistics.numberOfNodesBeforeRestart == 0
@@ -248,7 +269,7 @@
         SeaPearl.assign!(x, 3)
         SeaPearl.fixPoint!(model)
         SeaPearl.triggerFoundSolution!(model)
-        
+
         @test SeaPearl.length(x.domain) == 1
         @test model.objectiveBound == 2
         SeaPearl.reset_model!(model)
@@ -256,10 +277,10 @@
         @test isnothing(model.objectiveBound)
     end
     @testset "restart_search" begin
-        
+
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
-        
+
         x = SeaPearl.IntVar(1, 2, "x", trailer)
         y = SeaPearl.IntVar(1, 2, "y", trailer)
         z = SeaPearl.IntVar(1, 2, "z", trailer)
@@ -271,7 +292,7 @@
         SeaPearl.addConstraint!(model, SeaPearl.NotEqual(y, z, trailer))
         SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x, z, trailer))
 
-        SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) 
+        SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic())
         @test model.statistics.numberOfInfeasibleSolutionsBeforeRestart == 2
         @test model.statistics.numberOfNodesBeforeRestart == 3
         @test model.statistics.numberOfSolutionsBeforeRestart == 0
@@ -292,10 +313,10 @@
 
     end
     @testset "triggerInfeasible!" begin
-        
+
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
-        
+
         x = SeaPearl.IntVar(1, 2, "x", trailer)
         y = SeaPearl.IntVar(1, 2, "y", trailer)
         z = SeaPearl.IntVar(1, 2, "z", trailer)
@@ -316,6 +337,6 @@
         SeaPearl.triggerInfeasible!(constraint, model)
         @test model.statistics.infeasibleStatusPerVariable["x"] == 2
         @test model.statistics.infeasibleStatusPerVariable["y"] == 3
-        
+
     end
 end

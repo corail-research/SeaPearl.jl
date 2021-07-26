@@ -30,7 +30,10 @@ to choose the value assigned.
 """
 (valueSelection::BasicHeuristic)(::Type{InitializingPhase}, model::Union{Nothing, CPModel}=nothing) = (valueSelectionsearch_metrics = SearchMetrics(model))
 (valueSelection::BasicHeuristic)(::Type{StepPhase}, model::Union{Nothing, CPModel}=nothing, current_status::Union{Nothing, Symbol}=nothing) = nothing
-(valueSelection::BasicHeuristic)(::Type{DecisionPhase}, model::Union{Nothing, CPModel}=nothing, x::Union{Nothing, AbstractIntVar}=nothing) = valueSelection.selectValue(x; cpmodel=model)
+function (valueSelection::BasicHeuristic)(::Type{DecisionPhase}, model::Union{Nothing, CPModel}=nothing, x::Union{Nothing, AbstractIntVar}=nothing) 
+    model.statistics.lastVar = x
+    return valueSelection.selectValue(x; cpmodel=model)
+end
 (valueSelection::BasicHeuristic)(::Type{EndingPhase}, model::Union{Nothing, CPModel}=nothing, current_status::Union{Nothing, Symbol}=nothing) = nothing
 
 wears_mask(valueSelection::BasicHeuristic) = true
