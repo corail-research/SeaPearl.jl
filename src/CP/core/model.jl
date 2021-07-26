@@ -21,6 +21,7 @@ end
 mutable struct Limit
     numberOfNodes       ::Union{Int, Nothing}
     numberOfSolutions   ::Union{Int, Nothing}  #the limit can be triggered by set of non-unique solutions
+    searchingTime       ::Union{Int, Nothing}
 end
 
 """
@@ -46,7 +47,7 @@ mutable struct CPModel
     limit                   ::Limit
     knownObjective          ::Union{Nothing,Int64}
     adhocInfo               ::Any
-    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Constraint[], trailer, nothing, nothing, Statistics(Dict{String, Int}(), 0,0, 0, 0, 0, 0, 0, Solution[],Int[], nothing, nothing, nothing), Limit(nothing, nothing), nothing)
+    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Constraint[], trailer, nothing, nothing, Statistics(Dict{String, Int}(), 0,0, 0, 0, 0, 0, 0, Solution[],Int[], nothing, nothing, nothing), Limit(nothing, nothing, nothing), nothing)
 end
 
 CPModel() = CPModel(Trailer())
@@ -192,10 +193,10 @@ end
 
 Check if `model`' statistics are still under the limits.
 """
-belowLimits(model::CPModel) = belowNodeLimit(model) && belowSolutionLimit(model)
+belowLimits(model::CPModel) = belowNodeLimit(model) && belowSolutionLimit(model) && belowTimeLimit(model)
 belowNodeLimit(model::CPModel) = isnothing(model.limit.numberOfNodes) || model.statistics.numberOfNodes < model.limit.numberOfNodes
 belowSolutionLimit(model::CPModel) = isnothing(model.limit.numberOfSolutions) || model.statistics.numberOfSolutions < model.limit.numberOfSolutions
-
+belowTimeLimit(model::CPModel) = isnothing(model.limit.searchingTime) || peektimer() < model.limit.searchingTime
 """
     Base.isempty(model::CPModel)::Bool
 
@@ -224,8 +225,8 @@ function Base.isempty(model::CPModel)::Bool
         && model.statistics.AccumulatedRewardBeforeReset == 0
         && isnothing(model.limit.numberOfNodes)
         && isnothing(model.limit.numberOfSolutions)
+        && isnothing(model.limit.searchingTime)
         && isnothing(model.knownObjective)
-
     )
 end
 
@@ -256,6 +257,7 @@ function Base.empty!(model::CPModel)
     model.statistics.AccumulatedRewardBeforeReset = 0
     model.limit.numberOfNodes = nothing
     model.limit.numberOfSolutions = nothing
+    model.limit.searchingTime = nothing
     model.knownObjective = nothing
 
     model
