@@ -43,7 +43,7 @@ from the `FeaturedGraph` wrapper.
 function Flux.functor(::Type{DefaultTrajectoryState}, s)
     adj = Flux.unsqueeze(s.fg.graph, 3)
     nf = Flux.unsqueeze(s.fg.nf, 3)
-    ef = Flux.unsqueeze(s.fg.ef, 3)
+    ef = Flux.unsqueeze(s.fg.ef, 4)
     gf = Flux.unsqueeze(s.fg.gf, 2)
     allValuesIdx = nothing
     if !isnothing(s.allValuesIdx)
@@ -67,13 +67,12 @@ the appropriated size to store all the graphs in 3D tensors.
 """
 function Flux.functor(::Type{Vector{DefaultTrajectoryState}}, v)
     maxNode = Base.maximum(s -> size(s.fg.nf, 2), v)
-    maxEdge = Base.maximum(s -> size(s.fg.ef, 2), v)
     maxGlobal = Base.maximum(s -> length(s.fg.gf), v)
     batchSize = length(v)
 
     adj = zeros(eltype(v[1].fg.nf), maxNode, maxNode, batchSize)
     nf = zeros(eltype(v[1].fg.nf), size(v[1].fg.nf, 1), maxNode, batchSize)
-    ef = zeros(eltype(v[1].fg.ef), size(v[1].fg.ef, 1), 2*maxEdge, batchSize)
+    ef = zeros(eltype(v[1].fg.ef), size(v[1].fg.ef, 1), maxNode, maxNode, batchSize)
     gf = zeros(eltype(v[1].fg.gf), maxGlobal, batchSize)
     variableIdx = ones(Int, batchSize)
 
@@ -88,7 +87,7 @@ function Flux.functor(::Type{Vector{DefaultTrajectoryState}}, v)
         foreach(enumerate(v)) do (idx, state)
             adj[1:size(state.fg.graph,1),1:size(state.fg.graph,2),idx] = state.fg.graph
             nf[1:size(state.fg.nf, 1),1:size(state.fg.nf, 2),idx] = state.fg.nf
-            ef[1:size(state.fg.ef, 1),1:size(state.fg.ef, 2),idx] = state.fg.ef
+            ef[1:size(state.fg.ef, 1),1:size(state.fg.ef, 2),1:size(state.fg.ef, 3),idx] = state.fg.ef
             gf[1:size(state.fg.gf, 1),idx] = state.fg.gf
             variableIdx[idx] = state.variableIdx
             if !isnothing(allValuesIdx)

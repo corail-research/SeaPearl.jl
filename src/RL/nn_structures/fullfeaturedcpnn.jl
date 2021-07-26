@@ -27,53 +27,54 @@ function (nn::FullFeaturedCPNN)(states::BatchedDefaultTrajectoryState)
     batchSize = length(variableIdx)
     allValuesIdx = states.allValuesIdx
     actionSpaceSize = size(allValuesIdx, 1)
+    mask = zeros(Float32, 1, actionSpaceSize, batchSize) # this mask will replace `reapeat` using broadcasted `+`
 
     # chain working on the graph(s) with the GNNs
     featuredGraph = nn.graphChain(states.fg)
-    nodeFeatures = featuredGraph.nf
-    globalFeatures = featuredGraph.gf
+    nodeFeatures = featuredGraph.nf # FxNxB
+    globalFeatures = featuredGraph.gf # GxB
 
     # Extract the features corresponding to the varibales
     variableIndices = nothing
     Zygote.ignore() do
         variableIndices = Flux.unsqueeze(CartesianIndex.(variableIdx, 1:batchSize), 1)
     end
-    variableFeatures = nodeFeatures[:, variableIndices]
-    variableFeatures = reshape(nn.nodeChain(RL.flatten_batch(variableFeatures)), :, 1, batchSize)
+    variableFeatures = nodeFeatures[:, variableIndices] # Fx1xB
+    variableFeatures = reshape(nn.nodeChain(RL.flatten_batch(variableFeatures)), :, 1, batchSize) # F'x1xB
 
     # Extract the features corresponding to the values
     valueIndices = nothing
     Zygote.ignore() do 
         valueIndices = CartesianIndex.(allValuesIdx, repeat(transpose(1:batchSize); outer=(actionSpaceSize, 1)))
     end
-    valueFeatures = nodeFeatures[:, valueIndices]
-    valueFeatures = reshape(nn.nodeChain(RL.flatten_batch(valueFeatures)), :, actionSpaceSize, batchSize)
+    valueFeatures = nodeFeatures[:, valueIndices] # FxAxB
+    valueFeatures = reshape(nn.nodeChain(RL.flatten_batch(valueFeatures)), :, actionSpaceSize, batchSize) # F'xAxB
 
     finalFeatures = nothing
     if sizeof(globalFeatures) != 0
 
         # Extract the global features
-        globalFeatures = reshape(nn.globalChain(globalFeatures), :, 1, batchSize)
+        globalFeatures = reshape(nn.globalChain(globalFeatures), :, 1, batchSize) # G'x1xB
 
         # Prepare the input of the outputChain
         finalFeatures = vcat(
-            repeat(variableFeatures; outer=(1, actionSpaceSize, 1)),
-            repeat(globalFeatures; outer=(1, actionSpaceSize, 1)),
+            variableFeatures .+ mask, # F'xAxB
+            globalFeatures .+ mask, # G'xAxB
             valueFeatures,
-        )
-        finalFeatures = RL.flatten_batch(finalFeatures)
+        ) # (F'+G'+F')xAxB
+        finalFeatures = RL.flatten_batch(finalFeatures) # (F'+G'+F')x(A+B)
     else
         # Prepare the input of the outputChain
         finalFeatures = vcat(
-            repeat(variableFeatures; outer=(1, actionSpaceSize, 1)),
+            variableFeatures .+ mask, # F'xAxB
             valueFeatures,
-        )
-        finalFeatures = RL.flatten_batch(finalFeatures)
+        ) # (F'+F')xAxB
+        finalFeatures = RL.flatten_batch(finalFeatures) # (F'+F')x(A+B)
     end
 
     # output layer
-    predictions = nn.outputChain(finalFeatures)
-    output = reshape(predictions, actionSpaceSize, batchSize)
+    predictions = nn.outputChain(finalFeatures) # Ox(A+B)
+    output = reshape(predictions, actionSpaceSize, batchSize) # OxAxB
 
     return output
 end

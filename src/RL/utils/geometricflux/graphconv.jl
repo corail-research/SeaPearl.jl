@@ -1,16 +1,16 @@
 
 struct GraphConv{A <: AbstractMatrix, B}
     weight1::A
-    weight2::B
+    weight2::A
     bias::B
     σ
 end
 
-function GraphConv(ch::Pair{Int, Int}, σ=identity; init=glorot_uniform, bias::Bool=true)
+function GraphConv(ch::Pair{Int, Int}, σ=identity; init=Flux.glorot_uniform, bias::Bool=true, T::DataType=Float32)
     in, out = ch
     W1 = init(out, in)
     W2 = init(out, in)
-    b = Flux.create_bias(W1, bias, out)
+    b = bias ? T.(init(ch[2])) : zeros(T, ch[2])
     return GraphConv(W1, W2, b, σ)
 end
 
