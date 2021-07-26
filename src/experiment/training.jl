@@ -22,7 +22,7 @@ function train!(;
         generator::AbstractModelGenerator,
         nbEpisodes::Int64=10,
         strategy::S1=DFSearch(),
-        eval_strategy::S2=DFSearch(),
+        eval_strategy::S2=strategy,
         variableHeuristic::AbstractVariableSelection=MinDomainVariableSelection(),
         out_solver::Bool=false,
         verbose::Bool=true,
