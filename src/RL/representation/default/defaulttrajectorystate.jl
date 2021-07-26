@@ -6,7 +6,7 @@ using FillArrays
 The most basic state representation, with a featured graph, the index of the variable to branch on and optionnaly a list of possible values.
 """
 struct DefaultTrajectoryState <: GraphTrajectoryState
-    fg::GeometricFlux.FeaturedGraph
+    fg::FeaturedGraph
     variableIdx::Int
     allValuesIdx::Union{AbstractVector{Int}, Nothing}
 
@@ -19,7 +19,7 @@ DefaultTrajectoryState(sr::AbstractStateRepresentation) = throw(ErrorException("
 """
     BatchedFeaturedGraph
 
-A batched representation of the GeometricFlux.FeaturedGraph, to have a closer implementation to GeometricFlux.
+A batched representation of the FeaturedGraph, to enable parallel computation.
 """
 struct BatchedFeaturedGraph{T}
     graph::AbstractArray{T, 3}
