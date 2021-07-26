@@ -22,7 +22,6 @@ function (nn::NNStructure)(x::AbstractVector{<:NonTabularTrajectoryState})
 end
 
 include("weighted_graph_gat.jl")
-include("geometricflux.jl")
 include("cpnn.jl")
 include("fullfeaturedcpnn.jl")
 include("variableoutputcpnn.jl")
