@@ -1,3 +1,4 @@
+using TickTock
 @testset "model.jl" begin
     @testset "addVariable!()" begin
         trailer = SeaPearl.Trailer()
@@ -140,11 +141,14 @@
 
         model.statistics.numberOfNodes = 1500
         model.statistics.numberOfSolutions = 15
-
+        tick()
         @test SeaPearl.belowLimits(model)
 
         model.limit.numberOfNodes = 1501
         model.limit.numberOfSolutions = 16
+        model.limit.searchingTime = 1
+        tick()
+        sleep(0.1)
         @test SeaPearl.belowLimits(model)
 
         model.statistics.numberOfNodes = 1501
@@ -152,6 +156,10 @@
 
         model.statistics.numberOfNodes = 1500
         model.statistics.numberOfSolutions = 16
+        @test !SeaPearl.belowLimits(model)
+
+        tick()
+        sleep(1)
         @test !SeaPearl.belowLimits(model)
     end
 
@@ -183,6 +191,26 @@
 
         model.statistics.numberOfSolutions = 16
         @test !SeaPearl.belowSolutionLimit(model)
+    end
+
+    @testset "belowTimeLimits()" begin
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+
+        tick()
+        sleep(0.1)
+        @test SeaPearl.belowTimeLimit(model)
+
+        model.limit.searchingTime = 1
+        tick()
+        sleep(0.1)
+
+        @test SeaPearl.belowTimeLimit(model)
+
+        model.limit.searchingTime = 0
+        tick()
+        sleep(0.1)
+        @test !SeaPearl.belowTimeLimit(model)
     end
 
     @testset "Base.isempty()" begin
