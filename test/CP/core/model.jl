@@ -1,4 +1,3 @@
-using TickTock
 @testset "model.jl" begin
     @testset "addVariable!()" begin
         trailer = SeaPearl.Trailer()
