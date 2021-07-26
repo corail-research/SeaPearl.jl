@@ -17,6 +17,16 @@
         toCall = Stack{Function}()
         @test SeaPearl.expandDfs!(toCall, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :SolutionLimitStop
         @test isempty(toCall)
+   
+        #:TimeLimitStop
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+        model.limit.searchingTime = 0
+        
+        toCall = Stack{Function}()
+        tick()
+        @test SeaPearl.expandDfs!(toCall, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :TimeLimitStop
+        @test isempty(toCall)
 
         # :Infeasible
         trailer = SeaPearl.Trailer()
