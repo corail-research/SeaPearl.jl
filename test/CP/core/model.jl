@@ -140,13 +140,13 @@
 
         model.statistics.numberOfNodes = 1500
         model.statistics.numberOfSolutions = 15
-        tick()
+        SeaPearl.tic()
         @test SeaPearl.belowLimits(model)
 
         model.limit.numberOfNodes = 1501
         model.limit.numberOfSolutions = 16
         model.limit.searchingTime = 1
-        tick()
+        SeaPearl.tic()
         sleep(0.1)
         @test SeaPearl.belowLimits(model)
 
@@ -157,7 +157,7 @@
         model.statistics.numberOfSolutions = 16
         @test !SeaPearl.belowLimits(model)
 
-        tick()
+        SeaPearl.tic()
         sleep(1)
         @test !SeaPearl.belowLimits(model)
     end
@@ -196,18 +196,18 @@
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
 
-        tick()
+        SeaPearl.tic()
         sleep(0.1)
         @test SeaPearl.belowTimeLimit(model)
 
         model.limit.searchingTime = 1
-        tick()
+        SeaPearl.tic()
         sleep(0.1)
 
         @test SeaPearl.belowTimeLimit(model)
 
         model.limit.searchingTime = 0
-        tick()
+        SeaPearl.tic()
         sleep(0.1)
         @test !SeaPearl.belowTimeLimit(model)
     end

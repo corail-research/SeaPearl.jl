@@ -24,7 +24,7 @@
         model.limit.searchingTime = 0
         
         toCall = Stack{Function}()
-        tick()
+        SeaPearl.tic()
         @test SeaPearl.expandDfs!(toCall, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :TimeLimitStop
         @test isempty(toCall)
 
