@@ -31,6 +31,9 @@ function expandIlds!(toCall::Stack{Function}, discrepancy::Int64, model::CPModel
     model.statistics.numberOfNodes += 1
     model.statistics.numberOfNodesBeforeRestart += 1
 
+    if !belowTimeLimit(model)
+        return :TimeLimitStop
+    end
     if !belowNodeLimit(model)
         return :NodeLimitStop
     end
