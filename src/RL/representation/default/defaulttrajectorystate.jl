@@ -17,27 +17,6 @@ end
 DefaultTrajectoryState(sr::AbstractStateRepresentation) = throw(ErrorException("missing function DefaultTrajectoryState(::$(typeof(sr)))."))
 
 """
-    BatchedFeaturedGraph
-
-A batched representation of the FeaturedGraph, to enable parallel computation.
-"""
-struct BatchedFeaturedGraph{T}
-    graph::AbstractArray{T, 3}
-    nf::AbstractArray{T, 3}
-    ef::AbstractArray{T, 3}
-    gf::AbstractMatrix{T}
-
-    BatchedFeaturedGraph{T}(graph, nf, ef, gf) where T = new{T}(graph, nf, ef, gf)
-    BatchedFeaturedGraph{T}(
-        graph; 
-        nf=Fill(0, (0, size(graph, 1), size(graph, 3))), 
-        ef=Fill(0, (0, ne(graph[:,:,1]), size(graph, 3))), 
-        gf=Fill(0, (0, size(graph, 3)))
-    ) where T = new{T}(graph, nf, ef, gf)
-end
-BatchedFeaturedGraph(graph, nf, ef, gf) = BatchedFeaturedGraph{Float32}(graph, nf, ef, gf)
-
-"""
     BatchedDefaultTrajectoryState
 
 The batched version of the `DefaultTrajectoryState`.
@@ -124,5 +103,4 @@ function Flux.functor(::Type{Vector{DefaultTrajectoryState}}, v)
         allValuesIdx = allValuesIdx
     )
 end
-Flux.@functor BatchedFeaturedGraph
 Flux.functor(::Type{BatchedDefaultTrajectoryState{T}}, ts) where T = (ts.fg,), ls -> BatchedDefaultTrajectoryState{T}(ls[1], ts.variableIdx, ts.allValuesIdx) 
