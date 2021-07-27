@@ -40,16 +40,15 @@ end
 Flux.@functor EdgeFtLayer
 
 function (g::EdgeFtLayer)(fg::FeaturedGraph)
-    nNodes = nv(fg)
     mask = Flux.unsqueeze(fg.graph, 1) # used to broadcast arrays to the right shape
 
     srcNodes = Flux.unsqueeze(fg.nf, 3) # FxNx1
     dstNodes = Flux.unsqueeze(fg.nf, 2) # Fx1xN
     inpFeatures = vcat(srcNodes .* mask, fg.ef .* mask, dstNodes .* mask) # (F+E+F)xNxN
 
-    attention = Flux.softmax(g.σ.(g.W_a ⊠ inpFeatures), dims=2)
-    nodeFeatures = (sum(attention .* (g.W_T ⊠ inpFeatures), dims=2) .+ g.b_T)[:,1,:]
-    edgeFeatures = (g.W_e ⊠ (srcNodes .+ dstNodes) + g.W_ee ⊠ fg.ef) .* mask
+    attention = Flux.softmax(g.σ.(g.W_a ⊠ inpFeatures), dims=2) # F'xNxN
+    nodeFeatures = (sum(attention .* (g.W_T ⊠ inpFeatures), dims=2) .+ g.b_T)[:,1,:] # F'xN
+    edgeFeatures = (g.W_e ⊠ (srcNodes .+ dstNodes) + g.W_ee ⊠ fg.ef) .* mask # E'xNxN
 
     return FeaturedGraph(
         fg.graph,
@@ -60,3 +59,28 @@ function (g::EdgeFtLayer)(fg::FeaturedGraph)
     )
 end
 
+function (g::EdgeFtLayer)(fgs::BatchedFeaturedGraph)
+    nNodes = nv(fgs)
+    mask = Flux.unsqueeze(fgs.graph, 1)
+
+    srcNodes = Flux.unsqueeze(fgs.nf, 3) # FxNx1xB
+    dstNodes = Flux.unsqueeze(fgs.nf, 2) # Fx1xNxB
+    inpFeatures = vcat(srcNodes .* mask, fgs.ef .* mask, dstNodes .* mask) # (F+E+F)xNxNxB
+
+    nodeTargetSize = (:, size(inpFeatures)[3:end]...)
+    edgeTargetSize = (:, size(inpFeatures)[2:end]...)
+    inpFeaturesFlatten = flatten_batch(inpFeatures) # (F+E+F)xNx(N*B)
+    nodeSumFlatten = flatten_batch(srcNodes .+ dstNodes) # FxNx(N*B)
+    edgeFeaturesFlatten = flatten_batch(fgs.ef) # ExNx(N*B)
+
+    attention = Flux.softmax(g.σ.(g.W_a ⊠ inpFeaturesFlatten), dims=2) # F'xNx(N*B)
+    nodeFeatures = reshape(sum(attention .* (g.W_T ⊠ inpFeaturesFlatten), dims=2), nodeTargetSize) .+ g.b_T # F'xNxB
+    edgeFeatures = reshape(g.W_e ⊠ nodeSumFlatten + g.W_ee ⊠ edgeFeaturesFlatten, edgeTargetSize) #E'xNxNxB
+
+    return BatchedFeaturedGraph(
+        fgs.graph,
+        nodeFeatures,
+        edgeFeatures,
+        fgs.gf
+    )
+end

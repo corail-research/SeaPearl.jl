@@ -54,4 +54,61 @@ end
 
 BatchedFeaturedGraph(fgs::Vector{FG}) where {FG <: FeaturedGraph} = BatchedFeaturedGraph{Float32}(fgs)
 
+# ========== Accessing ==========
+# code from GraphSignals.jl
+
+"""
+    graph(::BatchedFeaturedGraph)
+Get referenced graph.
+"""
+graph(fgs::BatchedFeaturedGraph) = fgs.graph
+
+"""
+    node_feature(::BatchedFeaturedGraph)
+Get node feature attached to graph.
+"""
+node_feature(fgs::BatchedFeaturedGraph) = fgs.nf
+
+"""
+    edge_feature(::BatchedFeaturedGraph)
+Get edge feature attached to graph.
+"""
+edge_feature(fgs::BatchedFeaturedGraph) = fgs.ef
+
+"""
+    global_feature(::BatchedFeaturedGraph)
+Get global feature attached to graph.
+"""
+global_feature(fgs::BatchedFeaturedGraph) = fgs.gf
+
+"""
+    has_graph(::BatchedFeaturedGraph)
+Check if graph is available or not.
+"""
+has_graph(fgs::BatchedFeaturedGraph) = fgs.graph != Fill(0., (0,0,0))
+
+"""
+    has_node_feature(::BatchedFeaturedGraph)
+Check if node feature is available or not.
+"""
+has_node_feature(fgs::BatchedFeaturedGraph) = !isempty(fgs.nf)
+
+"""
+    has_edge_feature(::BatchedFeaturedGraph)
+Check if edge feature is available or not.
+"""
+has_edge_feature(fgs::BatchedFeaturedGraph) = !isempty(fgs.ef)
+
+"""
+    has_global_feature(::BatchedFeaturedGraph)
+Check if global feature is available or not.
+"""
+has_global_feature(fgs::BatchedFeaturedGraph) = !isempty(fgs.gf)
+
+
+# ========== LightGraphs compatibility ==========
+
+LightGraphs.nv(fgs::BatchedFeaturedGraph) = nv(graph(fgs))
+LightGraphs.nv(g::AbstractArray{T, 3}) where T<:Real = size(g,1)
+
 Flux.@functor BatchedFeaturedGraph
