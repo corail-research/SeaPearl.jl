@@ -1,4 +1,4 @@
-![SeaPearl Logo](logo.png)
+<img src="logo.png" alt="drawing" width="200"/>
 
 SeaPearl is a Constraint Programming solver that can use Reinforcement Learning agents as value-selection heuristics, using graphs as inputs for the agent's approximator. It is to be seen as a tool for researchers that gives the possibility to go above and beyond what has already been done with it.
 
