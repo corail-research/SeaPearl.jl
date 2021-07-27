@@ -66,16 +66,8 @@ rather than a `Vector{DefaultTrajectoryState}`. This behavior makes it possible 
 the appropriated size to store all the graphs in 3D tensors.
 """
 function Flux.functor(::Type{Vector{DefaultTrajectoryState}}, v)
-    maxNode = Base.maximum(s -> size(s.fg.nf, 2), v)
-    maxGlobal = Base.maximum(s -> length(s.fg.gf), v)
     batchSize = length(v)
-
-    adj = zeros(eltype(v[1].fg.nf), maxNode, maxNode, batchSize)
-    nf = zeros(eltype(v[1].fg.nf), size(v[1].fg.nf, 1), maxNode, batchSize)
-    ef = zeros(eltype(v[1].fg.ef), size(v[1].fg.ef, 1), maxNode, maxNode, batchSize)
-    gf = zeros(eltype(v[1].fg.gf), maxGlobal, batchSize)
     variableIdx = ones(Int, batchSize)
-
     allValuesIdx = nothing
     if !isnothing(v[1].allValuesIdx)
         maxActions = Base.maximum(s -> length(s.allValuesIdx), v)
@@ -84,20 +76,18 @@ function Flux.functor(::Type{Vector{DefaultTrajectoryState}}, v)
     
     Zygote.ignore() do
         # TODO: this could probably be optimized
-        foreach(enumerate(v)) do (idx, state)
-            adj[1:size(state.fg.graph,1),1:size(state.fg.graph,2),idx] = state.fg.graph
-            nf[1:size(state.fg.nf, 1),1:size(state.fg.nf, 2),idx] = state.fg.nf
-            ef[1:size(state.fg.ef, 1),1:size(state.fg.ef, 2),1:size(state.fg.ef, 3),idx] = state.fg.ef
-            gf[1:size(state.fg.gf, 1),idx] = state.fg.gf
+        for (idx, state) in enumerate(v)
             variableIdx[idx] = state.variableIdx
             if !isnothing(allValuesIdx)
                 allValuesIdx[1:length(state.allValuesIdx), idx] = state.allValuesIdx
             end
         end
     end
+
+    fg = BatchedFeaturedGraph([state.fg for state in v])
     
-    return (adj, nf, ef, gf), ls -> BatchedDefaultTrajectoryState{Float32}(
-        fg = BatchedFeaturedGraph{Float32}(ls[1]; nf=ls[2], ef=ls[3], gf=ls[4]),
+    return (fg,), ls -> BatchedDefaultTrajectoryState{Float32}(
+        fg = ls[1],
         variableIdx = variableIdx,
         allValuesIdx = allValuesIdx
     )
