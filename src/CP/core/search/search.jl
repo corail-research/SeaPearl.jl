@@ -19,7 +19,7 @@ at each branching and using `valueSelection` to choose how the branching will be
 
 """
 function search!(model::CPModel, strategy::S, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection=BasicHeuristic(); out_solver::Bool=false) where S <: SearchStrategy
-
+    tic()
     # create env and get first observation
     valueSelection(InitializingPhase, model)
 
@@ -29,7 +29,7 @@ function search!(model::CPModel, strategy::S, variableHeuristic::AbstractVariabl
     
     while !isempty(toCall)
         # Stop right away if reached a limit
-        if currentStatus == :NodeLimitStop || currentStatus == :SolutionLimitStop || (out_solver && (currentStatus in [:Infeasible, :FoundSolution]))
+        if currentStatus == :NodeLimitStop || currentStatus == :SolutionLimitStop || currentStatus == :TimeLimitStop || (out_solver && (currentStatus in [:Infeasible, :FoundSolution]))
             break
         end
 
@@ -45,7 +45,7 @@ function search!(model::CPModel, strategy::S, variableHeuristic::AbstractVariabl
     model.statistics.numberOfSolutions=sum(map(x->!isnothing(x),model.statistics.solutions))
     valueSelection(EndingPhase, model, currentStatus)
 
-    if currentStatus == :NodeLimitStop || currentStatus == :SolutionLimitStop || (out_solver & (currentStatus in [:Infeasible, :FoundSolution]))
+    if currentStatus == :NodeLimitStop || currentStatus == :SolutionLimitStop || currentStatus == :TimeLimitStop || (out_solver & (currentStatus in [:Infeasible, :FoundSolution]))
         return currentStatus
     end
     

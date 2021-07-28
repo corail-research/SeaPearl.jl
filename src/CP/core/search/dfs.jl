@@ -23,6 +23,9 @@ function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
     model.statistics.numberOfNodes += 1
     model.statistics.numberOfNodesBeforeRestart += 1
     
+    if !belowTimeLimit(model)
+        return :TimeLimitStop
+    end
     if !belowNodeLimit(model)
         return :NodeLimitStop
     end

@@ -29,14 +29,15 @@ function launch_experiment!(
         valueSelectionArray::Array{T, 1}, 
         generator::AbstractModelGenerator,
         nbEpisodes::Int64,
-        strategy::S,
+        strategy::S1,
+        eval_strategy::S2,
         variableHeuristic::AbstractVariableSelection,
         out_solver::Bool,
         verbose::Bool;
         metrics::Union{Nothing, AbstractMetrics}=nothing,
         evaluator::Union{Nothing, AbstractEvaluator}=SameInstancesEvaluator(valueSelectionArray,generator),
-        restartPerInstances = 1,
-    ) where{T <: ValueSelection, S <: SearchStrategy}
+        restartPerInstances::Int64,
+    ) where{T <: ValueSelection, S1,S2 <: SearchStrategy}
 
     nbHeuristics = length(valueSelectionArray)
 
@@ -56,7 +57,7 @@ function launch_experiment!(
     iter = ProgressBar(1:nbEpisodes)
     for i in iter
     #for i in 1:nbEpisodes
-        verbose && print(" --- EPISODE: ", i)
+        verbose && println(" --- EPISODE: ", i)
 
         empty!(model)
 
@@ -64,22 +65,23 @@ function launch_experiment!(
 
         for j in 1:nbHeuristics
             reset_model!(model)
+            if isa(valueSelectionArray[j], LearnedHeuristic)
+                verbose && print("Visited nodes with learnedHeuristic : " )
+            else
+                verbose && print("Visited nodes with basic Heuristic n°$(j-1) : ")
+            end
             dt = @elapsed for k in 1:restartPerInstances
                 restart_search!(model)
                 search!(model, strategy, variableHeuristic, valueSelectionArray[j], out_solver=out_solver)
 
-                if isa(valueSelectionArray[j], LearnedHeuristic)
-                    verbose && println(", Visited nodes with learnedHeuristic : ", model.statistics.numberOfNodesBeforeRestart)
-                else
-                    verbose && println(" vs Visited nodes with basic Heuristic n°$(j-1) : ", model.statistics.numberOfNodesBeforeRestart)
-                end
+                verbose && print(model.statistics.numberOfNodesBeforeRestart, ", ")    
             end
             metricsArray[j](model,dt)  #adding results in the metrics data structure
-
+            println()
         end
 
         if !isnothing(evaluator) && (i % evaluator.evalFreq == 0)
-            evaluate(evaluator, variableHeuristic, strategy; verbose = verbose)
+            evaluate(evaluator, variableHeuristic, eval_strategy; verbose = verbose)
         end
         verbose && println()
     end

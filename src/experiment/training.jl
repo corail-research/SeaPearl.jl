@@ -21,14 +21,15 @@ function train!(;
         valueSelectionArray::Union{T, Array{T, 1}}, 
         generator::AbstractModelGenerator,
         nbEpisodes::Int64=10,
-        strategy::S=DFSearch(),
+        strategy::S1=DFSearch(),
+        eval_strategy::S2=strategy,
         variableHeuristic::AbstractVariableSelection=MinDomainVariableSelection(),
         out_solver::Bool=false,
         verbose::Bool=true,
         evaluator::Union{Nothing, AbstractEvaluator},
         metrics::Union{Nothing,AbstractMetrics}=nothing, 
         restartPerInstances = 1,
-    ) where{ T <: ValueSelection, S <: SearchStrategy}
+    ) where{ T <: ValueSelection, S1, S2 <: SearchStrategy}
 
     if isa(valueSelectionArray, T)
         valueSelectionArray = [valueSelectionArray]
@@ -50,6 +51,7 @@ function train!(;
         generator,
         nbEpisodes,
         strategy,
+        eval_strategy,
         variableHeuristic,
         out_solver,
         verbose;
@@ -67,6 +69,7 @@ function train!(;
                 print("Has been trained on : ", typeof(generator))
                 print(" with strategy : ", strategy)
                 print(" during ", nbEpisodes, " episodes ")
+                restartPerInstances > 1 && print("with ", restartPerInstances, " restart per episode ")
                 out_solver && println("out of the solver.")
                 !out_solver && println("in the solver.")
                 println("Training mode now desactivated !")

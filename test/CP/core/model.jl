@@ -1,18 +1,22 @@
 @testset "model.jl" begin
     @testset "lastVar" begin
         trailer = SeaPearl.Trailer()
-        x = SeaPearl.IntVar(2, 6, "x", trailer)
-        y = SeaPearl.IntVar(2, 6, "y", trailer)
-
         model = SeaPearl.CPModel(trailer)
 
+        x = SeaPearl.IntVar(2, 6, "x", trailer)
+        y = SeaPearl.IntVar(2, 6, "y", trailer)
+    
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
+
+        valueselection = SeaPearl.BasicHeuristic()
         @test isnothing(model.statistics.lastVar)
-        model.statistics.lastVar = x
+        v = valueselection(SeaPearl.DecisionPhase, model, x)
         @test model.statistics.lastVar.id=="x"
-        model.statistics.lastVar = y
+        SeaPearl.assign!(x, v)
+        v = valueselection(SeaPearl.DecisionPhase, model, y)
         @test model.statistics.lastVar.id=="y"
+        SeaPearl.assign!(y, v)
 
     end
 
@@ -157,11 +161,14 @@
 
         model.statistics.numberOfNodes = 1500
         model.statistics.numberOfSolutions = 15
-
+        SeaPearl.tic()
         @test SeaPearl.belowLimits(model)
 
         model.limit.numberOfNodes = 1501
         model.limit.numberOfSolutions = 16
+        model.limit.searchingTime = 1
+        SeaPearl.tic()
+        sleep(0.1)
         @test SeaPearl.belowLimits(model)
 
         model.statistics.numberOfNodes = 1501
@@ -169,6 +176,10 @@
 
         model.statistics.numberOfNodes = 1500
         model.statistics.numberOfSolutions = 16
+        @test !SeaPearl.belowLimits(model)
+
+        SeaPearl.tic()
+        sleep(1)
         @test !SeaPearl.belowLimits(model)
     end
 
@@ -200,6 +211,26 @@
 
         model.statistics.numberOfSolutions = 16
         @test !SeaPearl.belowSolutionLimit(model)
+    end
+
+    @testset "belowTimeLimits()" begin
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+
+        SeaPearl.tic()
+        sleep(0.1)
+        @test SeaPearl.belowTimeLimit(model)
+
+        model.limit.searchingTime = 1
+        SeaPearl.tic()
+        sleep(0.1)
+
+        @test SeaPearl.belowTimeLimit(model)
+
+        model.limit.searchingTime = 0
+        SeaPearl.tic()
+        sleep(0.1)
+        @test !SeaPearl.belowTimeLimit(model)
     end
 
     @testset "Base.isempty()" begin

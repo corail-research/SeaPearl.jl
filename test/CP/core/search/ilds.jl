@@ -18,6 +18,16 @@
         @test SeaPearl.expandIlds!(toCall,0, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(),nothing) == :SolutionLimitStop
         @test isempty(toCall)
 
+        #:TimeLimitStop
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+        model.limit.searchingTime = 0
+        
+        toCall = Stack{Function}()
+        SeaPearl.tic()
+        @test SeaPearl.expandIlds!(toCall,0, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(),nothing) == :TimeLimitStop
+        @test isempty(toCall)
+
         # :Infeasible
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)

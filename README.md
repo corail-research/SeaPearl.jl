@@ -1,4 +1,4 @@
-# SeaPearl.jl
+<img src="logo.png" alt="drawing" width="200"/>
 
 SeaPearl is a Constraint Programming solver that can use Reinforcement Learning agents as value-selection heuristics, using graphs as inputs for the agent's approximator. It is to be seen as a tool for researchers that gives the possibility to go above and beyond what has already been done with it.
 
@@ -16,7 +16,7 @@ The RL agents are defined using [ReinforcementLearning.jl](https://github.com/Ju
 
 Working examples can be found in [SeaPearlZoo](https://github.com/corail-research/SeaPearlZoo).
 
-SeaPearl can be use either as a classic CP solver that uses predefined variable and value selection heuristics or as Reinforcement Learning driven CP solver that is capable of learning trought solving automatically generated instances of a given problem ( knapsack, tsptw, graphcoloring, nurse rostering ...). 
+SeaPearl can be use either as a classic CP solver that uses predefined variable and value selection heuristics or as Reinforcement Learning driven CP solver that is capable of learning trought solving automatically generated instances of a given problem ( knapsack, tsptw, graphcoloring, EternityII ...). 
 
 ### SeaPearl as a classic CP solver : 
 To use SeaPearl as a classic CP solver, one needs to  : 
@@ -52,26 +52,22 @@ CustomVariableSelectionHeuristic{TakeObjective} <: SeaPearl.AbstractVariableSele
 ```julia
 LearnedHeuristic{SR<:AbstractStateRepresentation, R<:AbstractReward, A<:ActionOutput} <: ValueSelection
 ```
-3. *optionnaly*, declare some classic value selection heuristic for benchmarking purposes
-```julia
-basicHeuristic = SeaPearl.BasicHeuristic((x; cpmodel) -> your_function(...))
-```
-4. define an agent : 
+3. define an agent : 
 ```julia
 agent = RL.Agent(
 policy=(...),
 trajectory=(...),
 )
 ```
-5.  *optionnaly*, declare a custom reward : 
+4.  *optionnaly*, declare a custom reward : 
 ```julia
 CustomReward <: SeaPearl.AbstractReward 
 ```
-6.  *optionnaly*, declare a custom StateRepresentation ( instead of the Default tripartite-graph representation ) : 
+5.  *optionnaly*, declare a custom StateRepresentation ( instead of the Default tripartite-graph representation ) : 
 ```julia
 CustomStateRepresentation <: SeaPearl.AbstractStateRepresentation
 ```
-7.  *optionnaly*, declare a custom featurization for the StateRepresentation : 
+6.  *optionnaly*, declare a custom featurization for the StateRepresentation : 
 ```julia
 CustomFeaturization <: SeaPearl.AbstractFeaturization
 ```
@@ -82,20 +78,25 @@ CustomProblemGenerator <: AbstractModelGenerator
 9.  set a number of training epochs, declare an evaluator, a Strategy, a metric for benchmarking
 ```julia
 nb_epochs = 3000
-CustomStrategy <: SearchStrategy #or use predefined one : SeaPearl.DFSearch
+CustomStrategy <: SearchStrategy #DFS, RBS, ILDS 
+
 CustomEvaluator <: AbstractEvaluator #or use predefined one : SeaPearl.SameInstancesEvaluator(...)
 function CustomMetricsFun
 ```
 9. launch the training :  
 ```julia
-bestsolutions, nodeVisited,timeneeded, eval_nodevisited, eval_timeneeded = SeaPearl.train!(
-valueSelectionArray=[learnedHeuristic, basicHeuristic], 
-generator=CustomProblemGenerator,
+metricsArray, eval_metricsArray = SeaPearl.train!(
+valueSelectionArray=valueSelectionArray,
+generator=tsptw_generator,
 nbEpisodes=nbEpisodes,
-strategy=CustomStrategy,
-variableHeuristic=CustomVariableSelectionHeuristic,
-metricsFun=CustomMetricsFun,
-evaluator=CustomEvaluator
+strategy=strategy,
+eval_strategy=eval_strategy,
+variableHeuristic=variableSelection,
+out_solver = true,
+verbose = true,
+evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,tsptw_generator; evalFreq = evalFreq, nbInstances = nbInstances, evalTimeOut = evalTimeOut),
+restartPerInstances = restartPerInstances
+)
 ```
 )
 

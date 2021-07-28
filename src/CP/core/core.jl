@@ -1,3 +1,4 @@
+include("utils/stopwatch.jl")
 include("model.jl")
 include("cpmodification.jl")
 include("fixPoint.jl")
