@@ -27,7 +27,7 @@ function (nn::FullFeaturedCPNN)(states::BatchedDefaultTrajectoryState)
     batchSize = length(variableIdx)
     allValuesIdx = states.allValuesIdx
     actionSpaceSize = size(allValuesIdx, 1)
-    mask = zeros(Float32, 1, actionSpaceSize, batchSize) # this mask will replace `reapeat` using broadcasted `+`
+    mask = device(states) == Val(:gpu) ? CUDA.zeros(Float32, 1, actionSpaceSize, batchSize) : zeros(Float32, 1, actionSpaceSize, batchSize) # this mask will replace `reapeat` using broadcasted `+`
 
     # chain working on the graph(s) with the GNNs
     featuredGraph = nn.graphChain(states.fg)

@@ -40,9 +40,28 @@ function TsptwTrajectoryState(sr::TsptwStateRepresentation{F, TsptwTrajectorySta
 
     n = size(sr.dist, 1)
     adj = ones(Int, n, n) - I
-    edgeFeatures = build_edge_feature(adj, sr.dist)
+    edgeFeatures = Flux.unsqueeze(sr.dist, 1)
     fg = FeaturedGraph(adj; nf=sr.nodeFeatures, ef=edgeFeatures)
     return TsptwTrajectoryState(fg, sr.variableIdx, sr.possibleValuesIdx)
+end
+
+function DefaultTrajectoryState(sr::TsptwStateRepresentation{F, DefaultTrajectoryState}) where F
+    # TODO change this once the InitializingPhase is fixed
+    if isnothing(sr.variableIdx)
+        sr.variableIdx = 1
+    end
+    if isnothing(sr.possibleValuesIdx)
+        throw(ErrorException("Unable to build a TsptwTrajectoryState, when the possible values vector is nothing."))
+    end
+
+    n = size(sr.dist, 1)
+    adj = ones(Int, n, n) - I
+    edgeFeatures = Flux.unsqueeze(sr.dist, 1)
+    fg = FeaturedGraph(adj; nf=sr.nodeFeatures, ef=edgeFeatures)
+
+    actionSpace = collect(1:n)
+
+    return DefaultTrajectoryState(fg, sr.variableIdx, actionSpace)
 end
 
 function get_tsptw_info(model::CPModel)

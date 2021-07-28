@@ -139,7 +139,7 @@ end
 
 Mapping index of Q-value vector to value in the action space when using a FixedOutput.
 """
-function action_to_value(vs::LearnedHeuristic{SR, R, FixedOutput}, action::Int64, state::AbstractTrajectoryState, model::CPModel) where {SR <: DefaultStateRepresentation, R}
+function action_to_value(vs::LearnedHeuristic{SR, R, FixedOutput}, action::Int64, state::AbstractTrajectoryState, model::CPModel) where {SR <: AbstractStateRepresentation, R}
     return vs.action_space[action]
 end
 

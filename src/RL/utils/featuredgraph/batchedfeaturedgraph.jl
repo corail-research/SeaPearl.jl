@@ -32,7 +32,7 @@ BatchedFeaturedGraph(graph, nf, ef, gf) = BatchedFeaturedGraph{Float32}(graph, n
 
 function BatchedFeaturedGraph{T}(fgs::Vector{FG}) where {T <: Real, FG <: FeaturedGraph}
     ngraphs = length(fgs)
-    maxNodes = maximum(nv, fgs)
+    maxNodes = Base.maximum(nv, fgs)
     nfLength = size(fgs[1].nf, 1)
     efLength = size(fgs[1].ef, 1)
     gfLength = size(fgs[1].gf, 1)
