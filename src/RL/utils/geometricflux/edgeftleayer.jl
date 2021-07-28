@@ -41,7 +41,7 @@ Flux.@functor EdgeFtLayer
 
 function (g::EdgeFtLayer)(fg::FeaturedGraph)
     mask = Flux.unsqueeze(fg.graph, 1) # used to broadcast arrays to the right shape
-    infMask = - Inf32 .* (mask .< 0.5)
+    infMask = - Inf32 .* (mask .< 0.5) # used to zero missing edges in the softmax
 
     srcNodes = Flux.unsqueeze(fg.nf, 2) # Fx1xN
     dstNodes = Flux.unsqueeze(fg.nf, 3) # FxNx1
@@ -61,8 +61,8 @@ function (g::EdgeFtLayer)(fg::FeaturedGraph)
 end
 
 function (g::EdgeFtLayer)(fgs::BatchedFeaturedGraph)
-    mask = Flux.unsqueeze(fgs.graph, 1)
-    infMask = - Inf32 .* (mask .< 0.5)
+    mask = Flux.unsqueeze(fgs.graph, 1) # used to broadcast arrays to the right shape
+    infMask = - Inf32 .* (mask .< 0.5) # used to zero missing edges in the softmax
 
     srcNodes = Flux.unsqueeze(fgs.nf, 2) # Fx1xNxB
     dstNodes = Flux.unsqueeze(fgs.nf, 3) # FxNx1xB
@@ -71,7 +71,7 @@ function (g::EdgeFtLayer)(fgs::BatchedFeaturedGraph)
     nodeTargetSize = (:, size(inpFeatures)[3:end]...)
     edgeTargetSize = (:, size(inpFeatures)[2:end]...)
     inpFeaturesFlatten = flatten_batch(inpFeatures) # (F+E+F)xNx(N*B)
-    infMaskFlatten = flatten_batch(infMask)
+    infMaskFlatten = flatten_batch(infMask) # 1xNx(N*B)
     nodeSumFlatten = flatten_batch(srcNodes .+ dstNodes) # FxNx(N*B)
     edgeFeaturesFlatten = flatten_batch(fgs.ef) # ExNx(N*B)
 
