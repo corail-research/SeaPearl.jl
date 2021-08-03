@@ -1,5 +1,6 @@
 prelu(x, α) = x > 0 ? x : α*x
 
+# TODO: replace this whole file by GPU friendly code
 
 """
     EdgeFtLayer(v_in=>v_out, e_in=>e_out)

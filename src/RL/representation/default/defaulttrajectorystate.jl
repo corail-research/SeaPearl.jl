@@ -6,7 +6,7 @@ using FillArrays
 The most basic state representation, with a featured graph, the index of the variable to branch on and optionnaly a list of possible values.
 """
 struct DefaultTrajectoryState <: GraphTrajectoryState
-    fg::GeometricFlux.FeaturedGraph
+    fg::FeaturedGraph
     variableIdx::Int
     allValuesIdx::Union{AbstractVector{Int}, Nothing}
 
@@ -15,27 +15,6 @@ struct DefaultTrajectoryState <: GraphTrajectoryState
 end
 
 DefaultTrajectoryState(sr::AbstractStateRepresentation) = throw(ErrorException("missing function DefaultTrajectoryState(::$(typeof(sr)))."))
-
-"""
-    BatchedFeaturedGraph
-
-A batched representation of the GeometricFlux.FeaturedGraph, to have a closer implementation to GeometricFlux.
-"""
-struct BatchedFeaturedGraph{T}
-    graph::AbstractArray{T, 3}
-    nf::AbstractArray{T, 3}
-    ef::AbstractArray{T, 3}
-    gf::AbstractMatrix{T}
-
-    BatchedFeaturedGraph{T}(graph, nf, ef, gf) where T = new{T}(graph, nf, ef, gf)
-    BatchedFeaturedGraph{T}(
-        graph; 
-        nf=Fill(0, (0, size(graph, 1), size(graph, 3))), 
-        ef=Fill(0, (0, ne(graph[:,:,1]), size(graph, 3))), 
-        gf=Fill(0, (0, size(graph, 3)))
-    ) where T = new{T}(graph, nf, ef, gf)
-end
-BatchedFeaturedGraph(graph, nf, ef, gf) = BatchedFeaturedGraph{Float32}(graph, nf, ef, gf)
 
 """
     BatchedDefaultTrajectoryState
@@ -64,7 +43,7 @@ from the `FeaturedGraph` wrapper.
 function Flux.functor(::Type{DefaultTrajectoryState}, s)
     adj = Flux.unsqueeze(s.fg.graph, 3)
     nf = Flux.unsqueeze(s.fg.nf, 3)
-    ef = Flux.unsqueeze(s.fg.ef, 3)
+    ef = Flux.unsqueeze(s.fg.ef, 4)
     gf = Flux.unsqueeze(s.fg.gf, 2)
     allValuesIdx = nothing
     if !isnothing(s.allValuesIdx)
@@ -87,17 +66,8 @@ rather than a `Vector{DefaultTrajectoryState}`. This behavior makes it possible 
 the appropriated size to store all the graphs in 3D tensors.
 """
 function Flux.functor(::Type{Vector{DefaultTrajectoryState}}, v)
-    maxNode = Base.maximum(s -> size(s.fg.nf, 2), v)
-    maxEdge = Base.maximum(s -> size(s.fg.ef, 2), v)
-    maxGlobal = Base.maximum(s -> length(s.fg.gf), v)
     batchSize = length(v)
-
-    adj = zeros(eltype(v[1].fg.nf), maxNode, maxNode, batchSize)
-    nf = zeros(eltype(v[1].fg.nf), size(v[1].fg.nf, 1), maxNode, batchSize)
-    ef = zeros(eltype(v[1].fg.ef), size(v[1].fg.ef, 1), 2*maxEdge, batchSize)
-    gf = zeros(eltype(v[1].fg.gf), maxGlobal, batchSize)
     variableIdx = ones(Int, batchSize)
-
     allValuesIdx = nothing
     if !isnothing(v[1].allValuesIdx)
         maxActions = Base.maximum(s -> length(s.allValuesIdx), v)
@@ -106,23 +76,20 @@ function Flux.functor(::Type{Vector{DefaultTrajectoryState}}, v)
     
     Zygote.ignore() do
         # TODO: this could probably be optimized
-        foreach(enumerate(v)) do (idx, state)
-            adj[1:size(state.fg.graph,1),1:size(state.fg.graph,2),idx] = state.fg.graph
-            nf[1:size(state.fg.nf, 1),1:size(state.fg.nf, 2),idx] = state.fg.nf
-            ef[1:size(state.fg.ef, 1),1:size(state.fg.ef, 2),idx] = state.fg.ef
-            gf[1:size(state.fg.gf, 1),idx] = state.fg.gf
+        for (idx, state) in enumerate(v)
             variableIdx[idx] = state.variableIdx
             if !isnothing(allValuesIdx)
                 allValuesIdx[1:length(state.allValuesIdx), idx] = state.allValuesIdx
             end
         end
     end
+
+    fg = BatchedFeaturedGraph([state.fg for state in v])
     
-    return (adj, nf, ef, gf), ls -> BatchedDefaultTrajectoryState{Float32}(
-        fg = BatchedFeaturedGraph{Float32}(ls[1]; nf=ls[2], ef=ls[3], gf=ls[4]),
+    return (fg,), ls -> BatchedDefaultTrajectoryState{Float32}(
+        fg = ls[1],
         variableIdx = variableIdx,
         allValuesIdx = allValuesIdx
     )
 end
-Flux.@functor BatchedFeaturedGraph
 Flux.functor(::Type{BatchedDefaultTrajectoryState{T}}, ts) where T = (ts.fg,), ls -> BatchedDefaultTrajectoryState{T}(ls[1], ts.variableIdx, ts.allValuesIdx) 

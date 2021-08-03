@@ -1,5 +1,5 @@
 struct TsptwTrajectoryState <: GraphTrajectoryState
-    fg::GeometricFlux.FeaturedGraph
+    fg::FeaturedGraph
     variableIdx::Int
     possibleValuesIdx::AbstractVector{Int}
 end

@@ -1,5 +1,3 @@
-using GraphSignals
-
 """
     AbstractTrajectoryState
 
