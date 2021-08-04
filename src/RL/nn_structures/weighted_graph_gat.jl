@@ -62,7 +62,7 @@ function GeometricFlux.propagate(g::EdgeFtLayer, fg::FeaturedGraph, aggr::Symbol
     # For the edge features, we only take what is necessary
     ef = E[out_channel_v+1:end, :]
 
-    GeometricFlux.FeaturedGraph(graph(fg), nf=nf, ef=ef)
+    SeaPearl.FeaturedGraph(graph(fg), nf=nf, ef=ef)
 end
 
 function GeometricFlux.message(l::EdgeFtLayer, x_i::AbstractVector, x_j::AbstractVector, e_ij::AbstractVector)

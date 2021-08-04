@@ -1,11 +1,11 @@
 #agent declaration
-approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
-target_approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
+approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
+target_approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
 gnnlayers = 10
 numInFeatures = 3
 approximator_model = SeaPearl.CPNN(
     graphChain = Flux.Chain(
-        GeometricFlux.GraphConv(numInFeatures => 64, Flux.leakyrelu),
+        SeaPearl.GraphConv(numInFeatures => 64, Flux.leakyrelu),
         [approximator_GNN for i = 1:gnnlayers]...
     ),
     nodeChain = Flux.Chain(
@@ -17,7 +17,7 @@ approximator_model = SeaPearl.CPNN(
 ) 
 target_approximator_model = SeaPearl.CPNN(
     graphChain = Flux.Chain(
-        GeometricFlux.GraphConv(numInFeatures => 64, Flux.leakyrelu),
+        SeaPearl.GraphConv(numInFeatures => 64, Flux.leakyrelu),
         [target_approximator_GNN for i = 1:gnnlayers]...
     ),
     nodeChain = Flux.Chain(

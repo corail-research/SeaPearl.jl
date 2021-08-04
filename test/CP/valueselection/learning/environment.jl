@@ -2,7 +2,7 @@
     
     @testset "CPEnv{TS}" begin
         graph = Matrix(adjacency_matrix(random_regular_graph(6, 3)))
-        ts = SeaPearl.DefaultTrajectoryState(GeometricFlux.FeaturedGraph(graph; nf=rand(3, 6)), 1)
+        ts = SeaPearl.DefaultTrajectoryState(SeaPearl.FeaturedGraph(graph; nf=rand(3, 6)), 1)
         env = SeaPearl.CPEnv{SeaPearl.DefaultTrajectoryState}(
             .0, 
             false, 
