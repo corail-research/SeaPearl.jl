@@ -16,7 +16,7 @@ mutable struct FeaturedGraph{T <: AbstractMatrix, N <: AbstractMatrix, E <: Abst
     end
 end
 
-function FeaturedGraph(graph::AbstractMatrix; directed::Symbol=:auto, n=size(graph, 1), nf=Fill(zero(Float32), (0,n)), ef=Fill(zero(Float32), (0,n,n)), gf=Fill(zero(Float32), 0))
+function FeaturedGraph(graph::AbstractMatrix; directed::Symbol=:auto, n=size(graph, 1), nf=zeros(0,n), ef=zeros(0,n,n), gf=zeros(0))
     @assert directed ∈ [:auto, :directed, :undirected] "Unknown value for keyword directed."
     dir = directed == :auto ? transpose(graph) != graph : directed == :directed
     return FeaturedGraph(graph, nf, ef, gf, dir)
@@ -58,7 +58,7 @@ global_feature(fg::FeaturedGraph) = fg.gf
     has_graph(::FeaturedGraph)
 Check if graph is available or not.
 """
-has_graph(fg::FeaturedGraph) = fg.graph != Fill(0., (0,0))
+has_graph(fg::FeaturedGraph) = fg.graph != zeros(0,0)
 
 """
     has_node_feature(::FeaturedGraph)

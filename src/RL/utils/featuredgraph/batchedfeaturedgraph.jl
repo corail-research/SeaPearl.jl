@@ -19,9 +19,9 @@ struct BatchedFeaturedGraph{T <: Real} <: AbstractFeaturedGraph
 
     function BatchedFeaturedGraph{T}(
         graph; 
-        nf=Fill(0, (0, size(graph, 1), size(graph, 3))), 
-        ef=Fill(0, (0, size(graph, 1), size(graph, 1), size(graph, 3))), 
-        gf=Fill(0, (0, size(graph, 3)))
+        nf=zeros(0, size(graph, 1), size(graph, 3)), 
+        ef=zeros(0, size(graph, 1), size(graph, 1), size(graph, 3)), 
+        gf=zeros(0, size(graph, 3))
     ) where T <: Real
         check_dimensions(graph, nf, ef, gf)
         return new{T}(graph, nf, ef, gf)
@@ -85,7 +85,7 @@ global_feature(fgs::BatchedFeaturedGraph) = fgs.gf
     has_graph(::BatchedFeaturedGraph)
 Check if graph is available or not.
 """
-has_graph(fgs::BatchedFeaturedGraph) = fgs.graph != Fill(0., (0,0,0))
+has_graph(fgs::BatchedFeaturedGraph) = fgs.graph != zeros(0,0,0)
 
 """
     has_node_feature(::BatchedFeaturedGraph)
