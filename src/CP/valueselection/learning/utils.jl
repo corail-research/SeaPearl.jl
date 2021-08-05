@@ -7,7 +7,10 @@ you stop updating the weights or the approximator once the training is done. It 
 of the `train!` function to make sure it's training and changed automatically at the end of it but a user can 
 manually change the mode again if he wants.
 """
-Flux.testmode!(lh::LearnedHeuristic, mode = true) = Flux.testmode!(lh.agent, mode) 
+function Flux.testmode!(lh::LearnedHeuristic, mode = true)
+    Flux.testmode!(lh.agent, mode)
+    lh.trainmode = !mode
+end
 
 """
     update_with_cpmodel!(lh::LearnedHeuristic{SR, R, A}, model::CPModel)
@@ -139,7 +142,7 @@ end
 
 Mapping index of Q-value vector to value in the action space when using a FixedOutput.
 """
-function action_to_value(vs::LearnedHeuristic{SR, R, FixedOutput}, action::Int64, state::AbstractTrajectoryState, model::CPModel) where {SR <: DefaultStateRepresentation, R}
+function action_to_value(vs::LearnedHeuristic{SR, R, FixedOutput}, action::Int64, state::AbstractTrajectoryState, model::CPModel) where {SR <: AbstractStateRepresentation, R}
     return vs.action_space[action]
 end
 
