@@ -34,7 +34,7 @@ mutable struct LearnedHeuristic{SR<:AbstractStateRepresentation, R<:AbstractRewa
     reward::Union{Nothing, R}
     search_metrics::Union{Nothing, SearchMetrics}
     firstActionTaken::Bool
-    trainmode::Bool
+    trainMode::Bool
     LearnedHeuristic{SR, R, A}(agent::RL.Agent) where {SR, R, A}= new{SR, R, A}(agent, nothing, nothing, nothing, nothing, nothing, nothing, false, true)
 end
 
@@ -56,7 +56,7 @@ function (valueSelection::LearnedHeuristic)(::Type{InitializingPhase}, model::CP
     # Reset the agent, useful for things like recurrent networks
     Flux.reset!(valueSelection.agent)
 
-    if valueSelection.trainmode
+    if valueSelection.trainMode
         valueSelection.agent(RL.PRE_EPISODE_STAGE, env)
     end
 end
@@ -92,7 +92,7 @@ function (valueSelection::LearnedHeuristic)(PHASE::Type{DecisionPhase}, model::C
 
     #println("Decision  ", env.reward, " ", env.terminal, " ", env.legal_actions, " ", env.legal_actions_mask)
     if valueSelection.firstActionTaken
-        if valueSelection.trainmode
+        if valueSelection.trainMode
             valueSelection.agent(RL.POST_ACT_STAGE, env) # get terminal and reward
         end
     else
@@ -100,7 +100,7 @@ function (valueSelection::LearnedHeuristic)(PHASE::Type{DecisionPhase}, model::C
     end
 
     action = valueSelection.agent(env) # Choose action
-    if valueSelection.trainmode
+    if valueSelection.trainMode
         # TODO: swap to async computation once in deployment
         #@async valueSelection.agent(RL.PRE_ACT_STAGE, env, action) # Store state and action
         valueSelection.agent(RL.PRE_ACT_STAGE, env, action)
@@ -124,7 +124,7 @@ function (valueSelection::LearnedHeuristic)(PHASE::Type{EndingPhase}, model::CPM
     env = get_observation!(valueSelection, model, false_x, true)
     #println("EndingPhase  ", env.reward, " ", env.terminal, " ", env.legal_actions, " ", env.legal_actions_mask)
 
-    if valueSelection.trainmode
+    if valueSelection.trainMode
         valueSelection.agent(RL.POST_ACT_STAGE, env) # get terminal and reward
         valueSelection.agent(RL.POST_EPISODE_STAGE, env)  # let the agent see the last observation
     end
