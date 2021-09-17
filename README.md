@@ -16,7 +16,7 @@ The RL agents are defined using [ReinforcementLearning.jl](https://github.com/Ju
 
 Working examples can be found in [SeaPearlZoo](https://github.com/corail-research/SeaPearlZoo).
 
-SeaPearl can be use either as a classic CP solver that uses predefined variable and value selection heuristics or as Reinforcement Learning driven CP solver that is capable of learning trought solving automatically generated instances of a given problem ( knapsack, tsptw, graphcoloring, EternityII ...). 
+SeaPearl can be used either as a classic CP solver that uses predefined variable and value selection heuristics or as Reinforcement Learning driven CP solver that is capable of learning through solving automatically generated instances of a given problem (knapsack, tsptw, graphcoloring, EternityII ...). 
 
 ### SeaPearl as a classic CP solver : 
 To use SeaPearl as a classic CP solver, one needs to  : 
@@ -59,15 +59,15 @@ policy=(...),
 trajectory=(...),
 )
 ```
-4.  *optionnaly*, declare a custom reward : 
+4.  *optionally*, declare a custom reward : 
 ```julia
 CustomReward <: SeaPearl.AbstractReward 
 ```
-5.  *optionnaly*, declare a custom StateRepresentation ( instead of the Default tripartite-graph representation ) : 
+5.  *optionally*, declare a custom StateRepresentation ( instead of the Default tripartite-graph representation ) : 
 ```julia
 CustomStateRepresentation <: SeaPearl.AbstractStateRepresentation
 ```
-6.  *optionnaly*, declare a custom featurization for the StateRepresentation : 
+6.  *optionally*, declare a custom featurization for the StateRepresentation : 
 ```julia
 CustomFeaturization <: SeaPearl.AbstractFeaturization
 ```
