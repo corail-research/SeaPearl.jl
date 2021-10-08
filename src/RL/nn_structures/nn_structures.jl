@@ -21,7 +21,6 @@ function (nn::NNStructure)(x::AbstractVector{<:NonTabularTrajectoryState})
     return hcat(qval...)
 end
 
-#include("weighted_graph_gat.jl")
 include("cpnn.jl")
 include("fullfeaturedcpnn.jl")
 include("variableoutputcpnn.jl")

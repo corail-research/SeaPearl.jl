@@ -92,7 +92,6 @@ function update_representation!(sr::TsptwStateRepresentation, model::CPModel, x:
 end
 
 function build_edge_feature(adj::AbstractMatrix, weighted_adj::AbstractMatrix)
-    # TODO: fix this function
     adj_list = adjacency_list(adj)
     n = length(adj_list)
     return hcat([build_edge_feature_aux(i, adj_list[i], weighted_adj) for i in 1:n]...)
