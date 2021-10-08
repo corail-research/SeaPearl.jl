@@ -7,7 +7,10 @@ you stop updating the weights or the approximator once the training is done. It 
 of the `train!` function to make sure it's training and changed automatically at the end of it but a user can 
 manually change the mode again if he wants.
 """
-Flux.testmode!(lh::LearnedHeuristic, mode = true) = Flux.testmode!(lh.agent, mode) 
+function Flux.testmode!(lh::LearnedHeuristic, mode = true)
+    Flux.testmode!(lh.agent, mode)
+    lh.trainMode = !mode
+end
 
 """
     update_with_cpmodel!(lh::LearnedHeuristic{SR, R, A}, model::CPModel)

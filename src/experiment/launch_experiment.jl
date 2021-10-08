@@ -77,7 +77,7 @@ function launch_experiment!(
                 verbose && print(model.statistics.numberOfNodesBeforeRestart, ", ")    
             end
             metricsArray[j](model,dt)  #adding results in the metrics data structure
-            println()
+            verbose && println()
         end
 
         if !isnothing(evaluator) && (i % evaluator.evalFreq == 0)
