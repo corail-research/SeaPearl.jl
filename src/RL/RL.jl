@@ -1,11 +1,7 @@
-using GeometricFlux
 using Flux
 using Zygote
 using CUDA
 
-Flux.@functor GeometricFlux.FeaturedGraph
-
-include("cuda/cuda.jl")
+include("utils/utils.jl")
 include("representation/representation.jl")
 include("nn_structures/nn_structures.jl")
-include("utils.jl")

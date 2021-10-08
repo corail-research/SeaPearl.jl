@@ -3,12 +3,12 @@
     @testset "DefaultTrajectoryState" begin
         graph = Matrix(adjacency_matrix(random_regular_graph(6,3)))
         ts1 = SeaPearl.DefaultTrajectoryState(
-            GeometricFlux.FeaturedGraph(graph; nf=rand(3,6)),
+            SeaPearl.FeaturedGraph(graph; nf=rand(3,6)),
             2,
             collect(3:6)
         )
         ts2 = SeaPearl.DefaultTrajectoryState(
-            GeometricFlux.FeaturedGraph(graph; nf=rand(3,6)),
+            SeaPearl.FeaturedGraph(graph; nf=rand(3,6)),
             2
         )
 
@@ -30,7 +30,7 @@
     @testset "BatchedFeaturedGraph" begin
         graph = cat(Matrix.(adjacency_matrix.([random_regular_graph(6,3) for i =1:3]))...; dims=3)
         nf = rand(4, 6, 3)
-        ef = rand(2, 9, 3)
+        ef = rand(2, 6, 6, 3)
         gf = rand(2, 3)
 
         batched1 = SeaPearl.BatchedFeaturedGraph(graph, nf, ef, gf)
@@ -41,7 +41,7 @@
 
         @test size(batched2.graph) == (6,6,3)
         @test size(batched2.nf) == (0,6,3)
-        @test size(batched2.ef) == (0,9,3)
+        @test size(batched2.ef) == (0, 6, 6, 3)
         @test size(batched2.gf) == (0,3)
     end
 
