@@ -44,7 +44,8 @@ function search!(model::CPModel, strategy::S, variableHeuristic::AbstractVariabl
     # set final reward and last observation
     model.statistics.numberOfSolutions=sum(map(x->!isnothing(x),model.statistics.solutions))
     valueSelection(EndingPhase, model, currentStatus)
-
+    
+    toc()
     if currentStatus == :NodeLimitStop || currentStatus == :SolutionLimitStop || currentStatus == :TimeLimitStop || (out_solver & (currentStatus in [:Infeasible, :FoundSolution]))
         return currentStatus
     end

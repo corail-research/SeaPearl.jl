@@ -22,3 +22,13 @@ function peektimer()
     t0 = timers[1]::UInt64
     return (t1 - t0)/1e9
 end
+
+function toc()
+    timers = get(task_local_storage(), :TIMERS, ())
+    if timers === ()
+        error("Use `tick()` to start a timer.")
+    end
+    t = peektimer()
+    task_local_storage(:TIMERS, timers[2])
+    return t
+end

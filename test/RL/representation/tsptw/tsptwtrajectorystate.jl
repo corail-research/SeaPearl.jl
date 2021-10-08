@@ -3,7 +3,7 @@
     @testset "TsptwTrajectoryState" begin
         graph = Matrix(adjacency_matrix(random_regular_graph(6,3)))
         ts1 = SeaPearl.TsptwTrajectoryState(
-            GeometricFlux.FeaturedGraph(graph; nf=rand(3,6)),
+            SeaPearl.FeaturedGraph(graph; nf=rand(3,6)),
             2,
             collect(3:6)
         )

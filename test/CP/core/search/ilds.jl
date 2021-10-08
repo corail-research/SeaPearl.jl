@@ -250,12 +250,12 @@
     @testset "search!() with a LearnedHeuristic I" begin
 
  
-        approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
-        target_approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
+        approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
+        target_approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
         gnnlayers = 1
         approximator_model = SeaPearl.CPNN(
             graphChain = Flux.Chain(
-                GeometricFlux.GraphConv(3 => 64, Flux.leakyrelu),
+                SeaPearl.GraphConv(3 => 64, Flux.leakyrelu),
                 [approximator_GNN for i = 1:gnnlayers]...
             ),
             nodeChain = Flux.Chain(
@@ -267,7 +267,7 @@
         ) 
         target_approximator_model = SeaPearl.CPNN(
             graphChain = Flux.Chain(
-                GeometricFlux.GraphConv(3 => 64, Flux.leakyrelu),
+                SeaPearl.GraphConv(3 => 64, Flux.leakyrelu),
                 [target_approximator_GNN for i = 1:gnnlayers]...
             ),
             nodeChain = Flux.Chain(
@@ -320,14 +320,13 @@
     
         # define the value selection
         valueSelection = SeaPearl.LearnedHeuristic(agent)
-
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
 
-        x1 = SeaPearl.IntVar(1, 2, "x1", trailer)
-        x2 = SeaPearl.IntVar(1, 2, "x2", trailer)
-        x3 = SeaPearl.IntVar(2, 3, "x3", trailer)
-        x4 = SeaPearl.IntVar(1, 4, "x4", trailer)
+        x1 = SeaPearl.IntVar(2, 3, "x1", trailer)
+        x2 = SeaPearl.IntVar(2, 3, "x2", trailer)
+        x3 = SeaPearl.IntVar(3, 4, "x3", trailer)
+        x4 = SeaPearl.IntVar(2, 5, "x4", trailer)
         SeaPearl.addVariable!(model, x1)
         SeaPearl.addVariable!(model, x2)
         SeaPearl.addVariable!(model, x3)
@@ -344,15 +343,15 @@
         SeaPearl.search!(model, SeaPearl.ILDSearch(6), variableSelection, valueSelection)
 
         possible_solutions = [
-            Dict("x1" => 1, "x2" => 2, "x3" => 3, "x4" => 1),
-            Dict("x1" => 1, "x2" => 2, "x3" => 3, "x4" => 2),
-            Dict("x1" => 1, "x2" => 2, "x3" => 3, "x4" => 4),
-            Dict("x1" => 2, "x2" => 1, "x3" => 3, "x4" => 1),
-            Dict("x1" => 2, "x2" => 1, "x3" => 3, "x4" => 2),
-            Dict("x1" => 2, "x2" => 1, "x3" => 3, "x4" => 4),
-            Dict("x1" => 2, "x2" => 1, "x3" => 2, "x4" => 1),
-            Dict("x1" => 2, "x2" => 1, "x3" => 2, "x4" => 3),
-            Dict("x1" => 2, "x2" => 1, "x3" => 2, "x4" => 4)
+            Dict("x1" => 2, "x2" => 3, "x3" => 4, "x4" => 2),
+            Dict("x1" => 2, "x2" => 3, "x3" => 4, "x4" => 3),
+            Dict("x1" => 2, "x2" => 3, "x3" => 4, "x4" => 5),
+            Dict("x1" => 3, "x2" => 2, "x3" => 4, "x4" => 2),
+            Dict("x1" => 3, "x2" => 2, "x3" => 4, "x4" => 3),
+            Dict("x1" => 3, "x2" => 2, "x3" => 4, "x4" => 5),
+            Dict("x1" => 3, "x2" => 2, "x3" => 3, "x4" => 2),
+            Dict("x1" => 3, "x2" => 2, "x3" => 3, "x4" => 4),
+            Dict("x1" => 3, "x2" => 2, "x3" => 3, "x4" => 5)
         ]
 
         for solution in model.statistics.solutions
@@ -364,12 +363,12 @@
     @testset "search!() with a LearnedHeuristic out of the solver" begin
 
 
-        approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
-        target_approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
+        approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
+        target_approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
         gnnlayers = 1
         approximator_model = SeaPearl.CPNN(
             graphChain = Flux.Chain(
-                GeometricFlux.GraphConv(3 => 64, Flux.leakyrelu),
+                SeaPearl.GraphConv(3 => 64, Flux.leakyrelu),
                 [approximator_GNN for i = 1:gnnlayers]...
             ),
             nodeChain = Flux.Chain(
@@ -381,7 +380,7 @@
         ) 
         target_approximator_model = SeaPearl.CPNN(
             graphChain = Flux.Chain(
-                GeometricFlux.GraphConv(3 => 64, Flux.leakyrelu),
+                SeaPearl.GraphConv(3 => 64, Flux.leakyrelu),
                 [target_approximator_GNN for i = 1:gnnlayers]...
             ),
             nodeChain = Flux.Chain(

@@ -132,9 +132,9 @@ adj = [0 1 0 1;
         dts = SeaPearl.DefaultTrajectoryState(dsr)  #creates the DefaultTrajectoryState object
 
         batchedDtsSingle = dts |> cpu   
-        @test batchedDtsSingle.fg.graph[:,:,1]== adjacency_matrix(dts.fg)
+        @test batchedDtsSingle.fg.graph[:,:,1]== dts.fg.graph
         @test batchedDtsSingle.fg.nf[:,:,1] == dts.fg.nf
-        @test batchedDtsSingle.fg.ef[:,:,1] == dts.fg.ef
+        @test batchedDtsSingle.fg.ef[:,:,:,1] == dts.fg.ef
         @test batchedDtsSingle.fg.gf[:,1] == dts.fg.gf
         @test batchedDtsSingle.variableIdx[1] == dts.variableIdx
 
@@ -147,7 +147,7 @@ adj = [0 1 0 1;
         batchedDts = [dts,dts2] |> cpu   
         @test size(batchedDts.fg.graph,3) == 2
         @test size(batchedDts.fg.nf,3) == 2
-        @test size(batchedDts.fg.ef,3) == 2
+        @test size(batchedDts.fg.ef,4) == 2
         @test size(batchedDts.fg.gf,2) == 2
         @test size(batchedDts.variableIdx,1) == 2
     end

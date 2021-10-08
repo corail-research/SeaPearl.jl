@@ -6,13 +6,13 @@
 
     numInFeatures = 3
     # Model definition
-    approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
-    target_approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
+    approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
+    target_approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
     gnnlayers = 10
 
     approximator_model = SeaPearl.CPNN(
         graphChain = Flux.Chain(
-            GeometricFlux.GraphConv(numInFeatures => 64, Flux.leakyrelu),
+            SeaPearl.GraphConv(numInFeatures => 64, Flux.leakyrelu),
             [approximator_GNN for i = 1:gnnlayers]...
         ),
         nodeChain = Flux.Chain(
@@ -24,7 +24,7 @@
     ) 
     target_approximator_model = SeaPearl.CPNN(
         graphChain = Flux.Chain(
-            GeometricFlux.GraphConv(numInFeatures => 64, Flux.leakyrelu),
+            SeaPearl.GraphConv(numInFeatures => 64, Flux.leakyrelu),
             [target_approximator_GNN for i = 1:gnnlayers]...
         ),
         nodeChain = Flux.Chain(
@@ -104,13 +104,13 @@ end
     numInFeatures = 3
 
     # Model definition
-    approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
-    target_approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
+    approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
+    target_approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
     gnnlayers = 10
 
     approximator_model = SeaPearl.CPNN(
         graphChain = Flux.Chain(
-            GeometricFlux.GraphConv(numInFeatures => 64, Flux.leakyrelu),
+            SeaPearl.GraphConv(numInFeatures => 64, Flux.leakyrelu),
             [approximator_GNN for i = 1:gnnlayers]...
         ),
         nodeChain = Flux.Chain(
@@ -122,7 +122,7 @@ end
     ) 
     target_approximator_model = SeaPearl.CPNN(
         graphChain = Flux.Chain(
-            GeometricFlux.GraphConv(numInFeatures => 64, Flux.leakyrelu),
+            SeaPearl.GraphConv(numInFeatures => 64, Flux.leakyrelu),
             [target_approximator_GNN for i = 1:gnnlayers]...
         ),
         nodeChain = Flux.Chain(

@@ -41,8 +41,8 @@ function TsptwTrajectoryState(sr::TsptwStateRepresentation{F, TsptwTrajectorySta
 
     n = size(sr.dist, 1)
     adj = ones(Int, n, n) - I
-    edgeFeatures = build_edge_feature(adj, sr.dist)
-    fg = GeometricFlux.FeaturedGraph(adj; nf=sr.nodeFeatures, ef=edgeFeatures)
+    edgeFeatures = Flux.unsqueeze(sr.dist, 1)
+    fg = FeaturedGraph(adj; nf=sr.nodeFeatures, ef=edgeFeatures)
     return TsptwTrajectoryState(fg, sr.variableIdx, sr.possibleValuesIdx)
 end
 
@@ -57,8 +57,8 @@ function DefaultTrajectoryState(sr::TsptwStateRepresentation{F, DefaultTrajector
 
     n = size(sr.dist, 1)
     adj = ones(Int, n, n) - I
-    edgeFeatures = build_edge_feature(adj, sr.dist)
-    fg = GeometricFlux.FeaturedGraph(adj; nf=sr.nodeFeatures, ef=edgeFeatures)
+    edgeFeatures = Flux.unsqueeze(sr.dist, 1)
+    fg = FeaturedGraph(adj; nf=sr.nodeFeatures, ef=edgeFeatures)
 
     actionSpace = collect(1:n)
 
@@ -93,7 +93,7 @@ function update_representation!(sr::TsptwStateRepresentation, model::CPModel, x:
 end
 
 function build_edge_feature(adj::AbstractMatrix, weighted_adj::AbstractMatrix)
-    adj_list = GeometricFlux.adjacency_list(adj)
+    adj_list = adjacency_list(adj)
     n = length(adj_list)
     return hcat([build_edge_feature_aux(i, adj_list[i], weighted_adj) for i in 1:n]...)
 end
