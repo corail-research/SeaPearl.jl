@@ -15,6 +15,19 @@ function merge!(prunedDomains::CPModification, newPrunedDomains::CPModification)
     end
 end
 
+function updateChildren!(prunedDomains::CPModification, x::Union{IntVar, BoolVar}, pruned::Union{Array{Int}, Array{Bool}, BitArray})
+    for y in x.children
+        childrenPruned = childrenValue.([y], pruned)
+        if haskey(prunedDomains, y.id)
+            prunedDomains[y.id] = vcat(prunedDomains[y.id], Array(childrenPruned))
+        else
+            prunedDomains[y.id] = Array(childrenPruned)
+        end
+    end
+    return
+end
+
+
 """
     addToPrunedDomains!(prunedDomains::CPModification, x::IntVar, pruned::Array{Int})
 
@@ -29,11 +42,14 @@ function addToPrunedDomains!(prunedDomains::CPModification, x::Union{IntVar, Boo
     if isempty(pruned)
         return
     end
+
     if haskey(prunedDomains, x.id)
         prunedDomains[x.id] = vcat(prunedDomains[x.id], Array(pruned))
     else
         prunedDomains[x.id] = Array(pruned)
     end
+
+    updateChildren!(prunedDomains, x, pruned)
 end
 
 """
@@ -51,14 +67,7 @@ function addToPrunedDomains!(prunedDomains::CPModification, x::Union{IntVarView,
         return
     end
 
-    # Update the ViewVariable entry
-    if haskey(prunedDomains, x.id)
-        prunedDomains[x.id] = vcat(prunedDomains[x.id], Array(pruned))
-    else
-        prunedDomains[x.id] = Array(pruned)
-    end
-
-    # Update the ParentVariable entry
+    # Update the ParentVariable only (it will then update all the children variables)
     parentPruned = parentValue.([x], pruned)
     addToPrunedDomains!(prunedDomains, x.x, parentPruned)
 end

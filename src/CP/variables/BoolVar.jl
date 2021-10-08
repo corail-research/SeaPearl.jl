@@ -8,6 +8,7 @@ struct BoolVar <: AbstractBoolVar
     onDomainChange      ::Array{Constraint}
     domain              ::SeaPearl.BoolDomain
     id                  ::String
+    children            ::Set{AbstractBoolVar}
 end
 
 """
@@ -19,7 +20,7 @@ and that will be backtracked by `trailer`.
 function BoolVar(id::String, trailer::Trailer)
     dom = BoolDomain(trailer)
 
-    return BoolVar(Constraint[], dom, id)
+    return BoolVar(Constraint[], dom, id, Set{AbstractBoolVar}())
 end
 
 function Base.show(io::IO, var::BoolVar)
