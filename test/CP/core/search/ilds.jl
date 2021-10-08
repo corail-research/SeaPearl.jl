@@ -320,14 +320,13 @@
     
         # define the value selection
         valueSelection = SeaPearl.LearnedHeuristic(agent)
-
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
 
-        x1 = SeaPearl.IntVar(1, 2, "x1", trailer)
-        x2 = SeaPearl.IntVar(1, 2, "x2", trailer)
-        x3 = SeaPearl.IntVar(2, 3, "x3", trailer)
-        x4 = SeaPearl.IntVar(1, 4, "x4", trailer)
+        x1 = SeaPearl.IntVar(2, 3, "x1", trailer)
+        x2 = SeaPearl.IntVar(2, 3, "x2", trailer)
+        x3 = SeaPearl.IntVar(3, 4, "x3", trailer)
+        x4 = SeaPearl.IntVar(2, 5, "x4", trailer)
         SeaPearl.addVariable!(model, x1)
         SeaPearl.addVariable!(model, x2)
         SeaPearl.addVariable!(model, x3)
@@ -344,15 +343,15 @@
         SeaPearl.search!(model, SeaPearl.ILDSearch(6), variableSelection, valueSelection)
 
         possible_solutions = [
-            Dict("x1" => 1, "x2" => 2, "x3" => 3, "x4" => 1),
-            Dict("x1" => 1, "x2" => 2, "x3" => 3, "x4" => 2),
-            Dict("x1" => 1, "x2" => 2, "x3" => 3, "x4" => 4),
-            Dict("x1" => 2, "x2" => 1, "x3" => 3, "x4" => 1),
-            Dict("x1" => 2, "x2" => 1, "x3" => 3, "x4" => 2),
-            Dict("x1" => 2, "x2" => 1, "x3" => 3, "x4" => 4),
-            Dict("x1" => 2, "x2" => 1, "x3" => 2, "x4" => 1),
-            Dict("x1" => 2, "x2" => 1, "x3" => 2, "x4" => 3),
-            Dict("x1" => 2, "x2" => 1, "x3" => 2, "x4" => 4)
+            Dict("x1" => 2, "x2" => 3, "x3" => 4, "x4" => 2),
+            Dict("x1" => 2, "x2" => 3, "x3" => 4, "x4" => 3),
+            Dict("x1" => 2, "x2" => 3, "x3" => 4, "x4" => 5),
+            Dict("x1" => 3, "x2" => 2, "x3" => 4, "x4" => 2),
+            Dict("x1" => 3, "x2" => 2, "x3" => 4, "x4" => 3),
+            Dict("x1" => 3, "x2" => 2, "x3" => 4, "x4" => 5),
+            Dict("x1" => 3, "x2" => 2, "x3" => 3, "x4" => 2),
+            Dict("x1" => 3, "x2" => 2, "x3" => 3, "x4" => 4),
+            Dict("x1" => 3, "x2" => 2, "x3" => 3, "x4" => 5)
         ]
 
         for solution in model.statistics.solutions
