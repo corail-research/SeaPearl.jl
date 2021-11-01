@@ -10,7 +10,7 @@ mutable struct CPReward2 <: AbstractReward
     value::Float32
 end
 
-CPReward2(model::CPModel) = CPReward(0)
+CPReward2(model::CPModel) = CPReward2(0)
 
 """
     set_reward!(::StepPhase, lh::LearnedHeuristic{DefaultReward, A}, model::CPModel, symbol::Union{Nothing, Symbol})
