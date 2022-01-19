@@ -81,6 +81,6 @@ end
 
 Returns the length of the feature vector, for the `DefaultFeaturization`.
 """
-feature_length(::Type{<:FeaturizedStateRepresentation{DefaultFeaturization, TS}}) where TS <: DefaultTrajectoryState = 3
+feature_length(::Type{<:FeaturizedStateRepresentation{DefaultFeaturization, TS}}) where TS = 3
 
 DefaultStateRepresentation(m::CPModel) = DefaultStateRepresentation{DefaultFeaturization, DefaultTrajectoryState}(m::CPModel)
