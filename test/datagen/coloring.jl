@@ -31,7 +31,7 @@
         SeaPearl.fill_with_generator!(model, generator; seed=12)
 
         @test length(keys(model.variables)) == nb_nodes + 1
-        @test length(model.constraints) == 55
+        @test length(model.constraints) == 50
             
         
     end
