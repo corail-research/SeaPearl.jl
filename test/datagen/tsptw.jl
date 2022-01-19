@@ -28,7 +28,7 @@ end
         foundDist, foundTW, foundPos, foundgrid_size = model.adhocInfo
 
         # This condition is there because of the way random are generated can change from one version to another
-        if VERSION >= v"1.6.0"
+        if VERSION == v"1.6.0"
             @test foundDist == [0 4 2 3 3 3 3 3 2 4; 
                                 4 0 2 1 3 3 1 3 4 2; 
                                 2 2 0 0 3 3 1 3 3 3; 
@@ -40,6 +40,19 @@ end
                                 2 4 3 3 1 2 3 1 0 4; 
                                 4 2 3 3 3 2 2 3 4 0]
             @test foundTW == [0 10; 23 23; 25 26; 17 18; 12 13; 20 21; 15 15; 28 29; 10 11; 5 6]
+        end
+        if VERSION >= v"1.7.0"
+            @test foundDist == [0 2 5 3 3 3 3 4 1 5; 
+                                2 0 4 2 1 1 4 3 1 3;
+                                5 4 0 2 4 4 4 2 4 4;
+                                3 2 2 0 2 1 3 1 3 2;
+                                3 1 4 2 0 1 5 2 2 2;
+                                3 1 4 1 1 0 4 2 2 2;
+                                3 4 4 3 5 4 0 4 3 6;
+                                4 3 2 1 2 2 4 0 3 2;
+                                1 1 4 3 2 2 3 3 0 4;
+                                5 3 4 2 2 2 6 2 4 0]
+            @test foundTW == [0 10; 31 31; 10 10; 21 22; 6 6; 22 22; 26 27; 4 4; 15 15; 19 20]
         end
         @test foundgrid_size == grid_size
 

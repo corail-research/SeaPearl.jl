@@ -36,6 +36,9 @@ distinguish between array based representations, and more exotic ones (e.g. grap
 abstract type NonTabularTrajectoryState <: AbstractTrajectoryState end
 abstract type GraphTrajectoryState <: NonTabularTrajectoryState end
 
+function Base.ndims(sr::GraphTrajectoryState) 
+    return NaN
+end 
 """
     AbstractStateRepresentation{TS}
 
