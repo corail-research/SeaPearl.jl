@@ -28,10 +28,10 @@
         generator = SeaPearl.HomogenousGraphColoringGenerator(nb_nodes, probability)
 
         
-        SeaPearl.fill_with_generator!(model, generator; seed=12)
+        SeaPearl.fill_with_generator!(model, generator; seed=15)
 
         @test length(keys(model.variables)) == nb_nodes + 1
-        @test length(model.constraints) == 50
+        @test length(model.constraints) == 54
             
         
     end
