@@ -34,8 +34,7 @@
 
         if VERSION == v"1.6.0"
             @test length(model.constraints) == 55
-        end 
-        else if VERSION >= v"1.7.0"
+        elseif VERSION >= v"1.7.0"
             @test length(model.constraints) == 50
         end
             
