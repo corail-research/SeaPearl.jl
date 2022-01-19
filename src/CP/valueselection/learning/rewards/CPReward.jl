@@ -1,6 +1,4 @@
-function f(x::AbstractIntVar,alpha::Float64)
-    return 1/(assignedValue(x)+1)^alpha
-end
+
 
 """
     struct CPReward <: AbstractReward end
