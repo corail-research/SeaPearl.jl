@@ -93,3 +93,7 @@ function Flux.functor(::Type{Vector{DefaultTrajectoryState}}, v)
     )
 end
 Flux.functor(::Type{BatchedDefaultTrajectoryState{T}}, ts) where T = (ts.fg,), ls -> BatchedDefaultTrajectoryState{T}(ls[1], ts.variableIdx, ts.allValuesIdx) 
+
+function Base.ndims(sr::DefaultTrajectoryState) 
+    return NaN
+end 
