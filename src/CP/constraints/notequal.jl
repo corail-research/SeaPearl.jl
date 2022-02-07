@@ -33,6 +33,8 @@ function propagate!(constraint::NotEqualConstant, toPropagate::Set{Constraint}, 
     return true
 end
 
+variablesArray(constraint::NotEqualConstant) = [constraint.x]
+
 function Base.show(io::IO, ::MIME"text/plain", con::NotEqualConstant)
     println(io, typeof(con), ": ", con.x.id, " != ", con.v, ", active = ", con.active)
     println(io, "   ", con.x)
