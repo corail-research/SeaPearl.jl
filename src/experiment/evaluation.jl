@@ -20,7 +20,7 @@ function SameInstancesEvaluator(valueSelectionArray::Array{H, 1}, generator::Abs
             metrics[i,j]=BasicMetrics(instances[i],value;meanOver=1)   #no slidding mean on evaluation because the instance remains the same
         end 
     end    
-    SameInstancesEvaluator(instances, metrics, evalFreq, nbInstances, size(valueSelectionArray,1))
+    SameInstancesEvaluator(instances, metrics, max(1,evalFreq), nbInstances, size(valueSelectionArray,1))
 end
 
 function evaluate(eval::SameInstancesEvaluator, variableHeuristic::AbstractVariableSelection, strategy::S; verbose::Bool=true) where{S<:SearchStrategy}
