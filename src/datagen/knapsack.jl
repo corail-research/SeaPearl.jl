@@ -16,6 +16,8 @@ It is possible to give `Inf` as the `gen.correlation` to have a strict equality 
 `gen.correlation` must be strictly positive.
 This method is from the following paper:
 https://www.researchgate.net/publication/2548374_Core_Problems_in_Knapsack_Algorithms
+
+A seed must be specified by the user to generate a specific instance. As long as Random.seed!(seed) is called at the beginning of the function, every random-based operations with be deterministic. Caution : this is not the seed that must be specified in order to generate a same set of evaluation instances across experiment, in that case, the user must call Random.seed! only once, at the beginning of the experiment. 
 """
 function fill_with_generator!(cpmodel::CPModel, gen::KnapsackGenerator; seed=nothing)
     if !isnothing(seed)

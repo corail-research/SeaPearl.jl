@@ -27,6 +27,8 @@ creating temporary files for efficiency purpose !
 
 Basicaly finds positions with a uniform distributions, then sets the time windows by creating a feasible tour and adding
 some randomness by using uniform distributions with gap and the length of the time windows.
+
+A seed must be specified by the user to generate a specific instance. As long as Random.seed!(seed) is called at the beginning of the function, every random-based operations with be deterministic. Caution : this is not the seed that must be specified in order to generate a same set of evaluation instances across experiment, in that case, the user must call Random.seed! only once, at the beginning of the experiment. 
 """
 function fill_with_generator!(cpmodel::SeaPearl.CPModel, gen::TsptwGeneratorFromRealData; seed=nothing, dist = nothing, timeWindows=nothing)
     if !isnothing(seed)

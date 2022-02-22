@@ -7,14 +7,6 @@ mutable struct LatinGenerator <: AbstractModelGenerator
     end
 end
 
-"""
-    fill_with_generator!(cpmodel::CPModel, gen::GraphColoringGenerator)
-Fill a CPModel with the variables and constraints generated. We fill it directly instead of
-creating temporary files for efficiency purpose.
-
-This generator create graps for the NQueens problem.
-
-"""
 
 function proper_move(A::Matrix{Int},x::Int,y::Int,z::Int,v::Int)
     z2 = A[x,y]
@@ -30,7 +22,13 @@ function proper_move(A::Matrix{Int},x::Int,y::Int,z::Int,v::Int)
     end
 end
 
+"""
+    fill_with_generator!(cpmodel::CPModel, gen::GraphColoringGenerator)
+Fill a CPModel with the variables and constraints generated. We fill it directly instead of
+creating temporary files for efficiency purpose.
 
+A seed must be specified by the user to generate a specific instance. As long as Random.seed!(seed) is called at the beginning of the function, every random-based operations with be deterministic. Caution : this is not the seed that must be specified in order to generate a same set of evaluation instances across experiment, in that case, the user must call Random.seed! only once, at the beginning of the experiment. 
+"""
 function fill_with_generator!(cpmodel::CPModel, gen::LatinGenerator; seed=nothing)
     N = gen.N
     p = gen.p
