@@ -103,6 +103,19 @@ function (metrics::BasicMetrics{TakeObjective, <:LearnedHeuristic})(model::CPMod
     return
 end 
 
+function repeatlast!(metrics::BasicMetrics{<:AbstractTakeObjective, <:BasicHeuristic})
+    metrics.nbEpisodes+=1
+    push!(metrics.nodeVisited,last(metrics.nodeVisited))
+    push!(metrics.meanNodeVisitedUntilEnd,last(metrics.meanNodeVisitedUntilEnd))
+    if ! isnothing(metrics.meanNodeVisitedUntilfirstSolFound)   #infeasible case
+        push!(metrics.meanNodeVisitedUntilfirstSolFound,last(metrics.meanNodeVisitedUntilfirstSolFound))
+    end
+    push!(metrics.timeneeded,last(metrics.timeneeded))
+    if ! isnothing(metrics.scores)   #infeasible case
+        push!(metrics.scores,last(metrics.scores))
+    end
+    return last(metrics.timeneeded),last(metrics.meanNodeVisitedUntilEnd), sum(map(!isnothing,last(metrics.scores)))
+end
 """
     function computemean!(metrics::BasicMetrics{O, H}) where{O, H<:ValueSelection}
 
