@@ -2,6 +2,7 @@
 include("dfs.jl")
 include("ilds.jl")
 include("rbs.jl")
+include("lns.jl")
 
 
 """
@@ -18,7 +19,8 @@ Perform a search following a specific strategy in the `model` using `variableHeu
 at each branching and using `valueSelection` to choose how the branching will be done. 
 
 """
-function search!(model::CPModel, strategy::S, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection=BasicHeuristic(); out_solver::Bool=false) where S <: SearchStrategy
+function search!(model::CPModel, strategy::S, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection=BasicHeuristic(); out_solver::Bool=false) where S <: 
+    println("in search!")
     tic()
     # create env and get first observation
     valueSelection(InitializingPhase, model)
@@ -55,7 +57,7 @@ function search!(model::CPModel, strategy::S, variableHeuristic::AbstractVariabl
     elseif !all(map(x->isnothing(x),model.statistics.solutions)) == 1 
         return :NonOptimal
     end
-    
+    println("END search!")
     return :Infeasible
 end
 
