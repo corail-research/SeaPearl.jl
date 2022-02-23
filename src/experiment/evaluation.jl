@@ -28,13 +28,15 @@ end
 
 Constructor for SameInstancesEvaluator. In order to generate nbInstances times the same evaluation instance, a seed has to be specified. Otherwise, the instance will be generated randomly. 
 """
-function SameInstancesEvaluator(valueSelectionArray::Array{H, 1}, generator::AbstractModelGenerator; seed=nothing, evalFreq::Int64 = 50, nbInstances::Int64 = 10, evalTimeOut::Union{Nothing,Int64} = nothing) where H<: ValueSelection
+function SameInstancesEvaluator(valueSelectionArray::Array{H, 1}, generator::AbstractModelGenerator ; rng::AbstractRNG = nothing, evalFreq::Int64 = 50, nbInstances::Int64 = 10, evalTimeOut::Union{Nothing,Int64} = nothing) where H<: ValueSelection
     instances = Array{CPModel}(undef, nbInstances)
     metrics = Matrix{AbstractMetrics}(undef,nbInstances, size(valueSelectionArray,1)) 
     
+    rng = isnothing(rng) ? MersenneTwister() : rng
+
     for i in 1:nbInstances
         instances[i] = CPModel()
-        fill_with_generator!(instances[i], generator; seed=seed)
+        fill_with_generator!(instances[i], generator; rng = rng)
         instances[i].limit.searchingTime = evalTimeOut
         for (j, value) in enumerate(valueSelectionArray)
             metrics[i,j]=BasicMetrics(instances[i],value;meanOver=1)
@@ -60,7 +62,7 @@ function evaluate(eval::SameInstancesEvaluator, variableHeuristic::AbstractVaria
     
                 dt = @elapsed search!(model, strategy, variableHeuristic, heuristic)
                 eval.metrics[i,j](model,dt)
-
+                verbose && println(typeof(heuristic), " evaluated with: ", model.statistics.numberOfNodes, " nodes, taken ", dt, "s, number of solutions found : ", model.statistics.numberOfSolutions)
             end 
             testmode!(heuristic, false)
             @assert length(heuristic.agent.trajectory) == initsize "You have leaks in your evaluation pipeline!"
