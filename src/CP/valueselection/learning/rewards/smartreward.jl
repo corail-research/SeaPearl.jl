@@ -9,7 +9,7 @@ mutable struct SmartReward <: AbstractReward
     value::Float32
 end
 
-ρ = 1
+ρ = 0.001
 
 SmartReward(model::CPModel) = SmartReward(0)
 
@@ -33,7 +33,6 @@ function set_reward!(::Type{StepPhase}, lh::LearnedHeuristic{SR, SmartReward, A}
                 first = assignedValue(model.variables["a_1"])
         
                 dist_to_first_node = lh.current_state.dist[last, first] * max_dist
-                print("final_dist : ", dist_to_first_node, " // ")
                 lh.reward.value += -ρ*dist_to_first_node 
             end
     elseif symbol == :Feasible 
