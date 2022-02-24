@@ -8,7 +8,8 @@ abstract type SearchStrategy end
 struct DFSearch <: SearchStrategy end
  
 """
-TODO
+struct LNSearch <: SearchStrategy
+implements the basic version of the Large Neighboorhood Search
 """
 struct LNSearch <: SearchStrategy end
 
