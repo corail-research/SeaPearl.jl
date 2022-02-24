@@ -6,7 +6,8 @@
         my_heuristic(x::SeaPearl.IntVar; cpmodel=nothing) = minimum(x.domain)
         valueheuristic = SeaPearl.BasicHeuristic(my_heuristic)
         valueSelectionArray = [valueheuristic]
-        evaluator = SeaPearl.SameInstancesEvaluator(valueSelectionArray,generator; seed=nothing, evalFreq = 50, nbInstances = 2)
+
+        evaluator = SeaPearl.SameInstancesEvaluator(valueSelectionArray,generator; rng = nothing, evalFreq = 50, nbInstances = 2)
 
 
         @test evaluator.nbInstances == 2
@@ -15,7 +16,7 @@
         @test length(values(evaluator.instances[1].variables)) == 11
         @test length(values(evaluator.instances[2].variables)) == 11
 
-        evaluator = SeaPearl.SameInstancesEvaluator(valueSelectionArray,generator; seed=nothing, evalFreq = 0, nbInstances = 2)
+        evaluator = SeaPearl.SameInstancesEvaluator(valueSelectionArray,generator; rng = nothing, evalFreq = 0, nbInstances = 2)
 
         @test evaluator.evalFreq == 1   #ensure that if evalFreq is less than 1, the model will be evaluated at each learning episode
     end
@@ -27,7 +28,9 @@
         my_heuristic(x::SeaPearl.IntVar; cpmodel=nothing) = minimum(x.domain)
         valueheuristic = SeaPearl.BasicHeuristic(my_heuristic)
         valueSelectionArray = [valueheuristic]
-        evaluator = SeaPearl.SameInstancesEvaluator(valueSelectionArray,generator; seed=1, evalFreq = 50, nbInstances = 2)
+        rng = MersenneTwister()
+        Random.seed!(rng, 1)
+        evaluator = SeaPearl.SameInstancesEvaluator(valueSelectionArray,generator; rng = rng, evalFreq = 50, nbInstances = 2)
 
         variableheuristic = SeaPearl.MinDomainVariableSelection{false}()
 

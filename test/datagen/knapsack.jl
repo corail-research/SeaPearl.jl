@@ -16,6 +16,24 @@
             @test length(model.constraints) == 3
             empty!(model)
         end
+
+        
+        model1 = SeaPearl.CPModel(trailer)
+        model2 = SeaPearl.CPModel(trailer)
+        model3 = SeaPearl.CPModel(trailer)
+
+        rng = MersenneTwister(11)
+        SeaPearl.fill_with_generator!(model1, generator; rng = rng)
+
+        rng = MersenneTwister(11)
+        SeaPearl.fill_with_generator!(model2, generator; rng = rng)
+        
+        rng = MersenneTwister(14)
+        SeaPearl.fill_with_generator!(model3, generator; rng = rng)
+
+        @test model1.constraints[2].v == model2.constraints[2].v  
+        @test model1.constraints[2].v != model3.constraints[2].v
+
     end
 
 end
