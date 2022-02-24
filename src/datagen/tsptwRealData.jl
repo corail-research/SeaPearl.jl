@@ -30,10 +30,10 @@ some randomness by using uniform distributions with gap and the length of the ti
 
 A seed must be specified by the user to generate a specific instance. As long as Random.seed!(seed) is called at the beginning of the function, every random-based operations with be deterministic. Caution : this is not the seed that must be specified in order to generate a same set of evaluation instances across experiment, in that case, the user must call Random.seed! only once, at the beginning of the experiment. 
 """
-function fill_with_generator!(cpmodel::SeaPearl.CPModel, gen::TsptwGeneratorFromRealData; seed=nothing, dist = nothing, timeWindows=nothing)
-    if !isnothing(seed)
-        Random.seed!(seed)
-    end
+function fill_with_generator!(cpmodel::SeaPearl.CPModel, gen::TsptwGeneratorFromRealData; rng::Union{Nothing,AbstractRNG} = nothing, dist = nothing, timeWindows=nothing)
+
+    rng = isnothing(rng) ? MersenneTwister() : rng
+
     lines = ""
     open(gen.file, "r") do openedFile
         input = read(openedFile, String)
@@ -56,8 +56,8 @@ function fill_with_generator!(cpmodel::SeaPearl.CPModel, gen::TsptwGeneratorFrom
         timeWindow[i,2] = parse(Int64, ti[2])
     end
     
-    perm  = shuffle(1:max_city)
-    randomCity = randperm!(perm)[1:gen.n_city]
+    perm  = shuffle(rng, 1:max_city)
+    randomCity = randperm!(rng, perm)[1:gen.n_city]
     dist = zeros(Int64, gen.n_city, gen.n_city)
     timeWindows = zeros(Int64, gen.n_city, 2)
     maxTW = floor(Int, gen.pourcent_max_tw * gen.n_city / 100)
@@ -77,7 +77,7 @@ function fill_with_generator!(cpmodel::SeaPearl.CPModel, gen::TsptwGeneratorFrom
         timeWindows[i, 2] = maxValue
     end
 
-    random_solution = [1, shuffle(Vector(2:gen.n_city))]
+    random_solution = [1, shuffle(rng, Vector(2:gen.n_city))]
 
     #TODO need to find a way to retrieve coordinates of points from 
     #x_pos = zeros(gen.n_city)

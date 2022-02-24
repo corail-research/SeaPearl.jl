@@ -20,11 +20,8 @@ A seed must be specified by the user to generate a specific instance. As long as
 This generator create graps for the NQueens problem.
 
 """
-function fill_with_generator!(cpmodel::CPModel, gen::NQueensGenerator; seed=nothing)
+function fill_with_generator!(cpmodel::CPModel, gen::NQueensGenerator; rng::Union{Nothing,AbstractRNG} = nothing)
     cpmodel.limit.numberOfSolutions = 1
-    if !isnothing(seed)
-        Random.seed!(seed)
-    end
 
     #density = gen.density
     board_size = gen.board_size

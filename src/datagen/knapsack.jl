@@ -19,10 +19,10 @@ https://www.researchgate.net/publication/2548374_Core_Problems_in_Knapsack_Algor
 
 A seed must be specified by the user to generate a specific instance. As long as Random.seed!(seed) is called at the beginning of the function, every random-based operations with be deterministic. Caution : this is not the seed that must be specified in order to generate a same set of evaluation instances across experiment, in that case, the user must call Random.seed! only once, at the beginning of the experiment. 
 """
-function fill_with_generator!(cpmodel::CPModel, gen::KnapsackGenerator; seed=nothing)
-    if !isnothing(seed)
-        Random.seed!(seed)
-    end
+function fill_with_generator!(cpmodel::CPModel, gen::KnapsackGenerator; rng::Union{Nothing,AbstractRNG} = nothing)
+
+    rng = isnothing(rng) ? MersenneTwister() : rng
+
     
     correlation = gen.correlation
     max_weight = gen.max_weight
@@ -33,14 +33,14 @@ function fill_with_generator!(cpmodel::CPModel, gen::KnapsackGenerator; seed=not
     
     # create values, weights and capacity
     weights_distr = DiscreteUniform(1, max_weight)
-    weights = rand(weights_distr, nb_items)
+    weights = rand(rng, weights_distr, nb_items)
 
     deviation = floor(max_weight/(10*correlation))
     value_distr = truncated.(DiscreteUniform.(weights .- deviation, weights .+ deviation), 1, Inf)
-    values = rand.(value_distr)
+    values = rand.(rng, value_distr)
 
     c = floor(nb_items * max_weight/2 / 4)
-    capacity = rand(DiscreteUniform(c, c*4))
+    capacity = rand(rng, DiscreteUniform(c, c*4))
     
     
     ### Variables

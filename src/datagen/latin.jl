@@ -29,7 +29,11 @@ creating temporary files for efficiency purpose.
 
 A seed must be specified by the user to generate a specific instance. As long as Random.seed!(seed) is called at the beginning of the function, every random-based operations with be deterministic. Caution : this is not the seed that must be specified in order to generate a same set of evaluation instances across experiment, in that case, the user must call Random.seed! only once, at the beginning of the experiment. 
 """
-function fill_with_generator!(cpmodel::CPModel, gen::LatinGenerator; seed=nothing)
+function fill_with_generator!(cpmodel::CPModel, gen::LatinGenerator; rng::Union{Nothing,AbstractRNG} = nothing)
+
+    rng = isnothing(rng) ? MersenneTwister() : rng
+
+    
     N = gen.N
     p = gen.p
     cpmodel.limit.numberOfSolutions = 1
@@ -38,16 +42,14 @@ function fill_with_generator!(cpmodel::CPModel, gen::LatinGenerator; seed=nothin
         for i in 1:N gen.A[i,:]= [(i+j-2)%N + 1 for j in 1:N] end
     end
     A = gen.A
-    if !isnothing(seed)
-        Random.seed!(seed)
-    end
+
     for i in 1:N^3
-        x,y,z = rand(1:N,3)
+        x,y,z = rand(rng, 1:N,3)
         proper_move(A,x,y,z,z)
     end
     B = copy(A)
     n = floor(Int,p*N^2)
-    indicies = shuffle(1:N^2)[1:n]
+    indicies = shuffle(rng, 1:N^2)[1:n]
     for x in indicies
         i = div(x-1,N) + 1
         j = (x-1)%N + 1
