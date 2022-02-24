@@ -28,7 +28,7 @@ end
 
 Constructor for SameInstancesEvaluator. In order to generate nbInstances times the same evaluation instance, a seed has to be specified. Otherwise, the instance will be generated randomly. 
 """
-function SameInstancesEvaluator(valueSelectionArray::Array{H, 1}, generator::AbstractModelGenerator ; rng::AbstractRNG = nothing, evalFreq::Int64 = 50, nbInstances::Int64 = 10, evalTimeOut::Union{Nothing,Int64} = nothing) where H<: ValueSelection
+function SameInstancesEvaluator(valueSelectionArray::Array{H, 1}, generator::AbstractModelGenerator ; rng::Union{Nothing,AbstractRNG} = nothing, evalFreq::Int64 = 50, nbInstances::Int64 = 10, evalTimeOut::Union{Nothing,Int64} = nothing) where H<: ValueSelection
     instances = Array{CPModel}(undef, nbInstances)
     metrics = Matrix{AbstractMetrics}(undef,nbInstances, size(valueSelectionArray,1)) 
     
