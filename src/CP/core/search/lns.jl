@@ -27,21 +27,42 @@ function expandLns!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
     ### Set constants ###
     objective = model.objective.id
     println("First solution: ", currentSolution[objective])
-    #TODO destructionRate as parameter?
-    destructionRate = 0.8
+
+    # increase by 1 after `limitIterNoImprovement` iterations with no improvement
+    numberOfValuesToRemove = 1
+    nbIterNoImprovement = 0
+
+    #fix param
+    limitValuesToRemove = convert(Int, round(length(collect(filter(e -> model.branchable[e], keys(model.branchable))))/2))
+
+    #TODO fix param
+    limitIterNoImprovement = 100
+
     nbIter = 0
+
+    #TODO fix param
     limitIter = 500 
 
     ### Destroy and repair loop ###
-    #TODO another stop criteria?
+    #TODO another stop criteria? Or no stopping criteria (eventually those defined in the model)?
     #TODO detect optimal solution
     while nbIter < limitIter
         nbIter += 1
-        tempSolution = repair(destroy(model, currentSolution, destructionRate))
+        nbIterNoImprovement += 1
+
+        if limitIterNoImprovement < nbIterNoImprovement && numberOfValuesToRemove < limitValuesToRemove
+            numberOfValuesToRemove += 1
+            nbIterNoImprovement = 0
+        end
+        tempSolution = repair(destroy(model, currentSolution, numberOfValuesToRemove))
+
         if !isnothing(tempSolution)
             if accept(tempSolution, currentSolution, objective)
                 println("update current solution: ", tempSolution[objective])
                 currentSolution = tempSolution
+                nbIterNoImprovement = 0
+            else
+                nbIterNoImprovement +=1
             end
             if compare(tempSolution, bestSolution, objective)
                 println("update best solution", tempSolution[objective])
@@ -86,9 +107,9 @@ function repair(model)
 end
 
 """
-Reset to initial state some (depends on destructionRate) branchable variables
+Reset to initial state `numberOfValuesToRemove` branchable variables
 """
-function destroy(model, solution, destructionRate)
+function destroy(model, solution, numberOfValuesToRemove)
 
     # Reset model
     SeaPearl.reset_model!(model)
@@ -96,8 +117,7 @@ function destroy(model, solution, destructionRate)
     # Get variable fixed by current solution
     vars = collect(values(model.variables))
     branchableVariablesId = collect(filter(e -> model.branchable[e], keys(model.branchable)))
-    numberVarToSet = convert(Int,round(length(branchableVariablesId)*(1-destructionRate)))
-    varsToSet = sample(branchableVariablesId, numberVarToSet; replace=false)
+    varsToSet = sample(branchableVariablesId, numberOfValuesToRemove; replace=false)
 
     # Fix some variables as in current solution
     for var in varsToSet
