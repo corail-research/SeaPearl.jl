@@ -13,6 +13,9 @@ Then a destroy and repair loop tries to upgrade the current solution until some 
 """
 function expandLns!(toCall::Stack{Function}, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, newConstraints=nothing; prunedDomains::Union{CPModification,Nothing}=nothing)
     
+    objective = model.objective.id
+    optimalScore = model.variables[objective].domain.min.value
+
     ### Get first solution using DFS ###
     model.limit.numberOfSolutions = 1
     status = search!(model, DFSearch(), variableHeuristic, valueSelection)
@@ -23,13 +26,12 @@ function expandLns!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
     currentSolution = model.statistics.solutions[findfirst(e -> !isnothing(e), model.statistics.solutions)]
     bestSolution = currentSolution
     bestModel = model
-    
-    ### Set constants ###
-    objective = model.objective.id
     println("First solution: ", currentSolution[objective])
-
+    
+    ### Set parameters ###
+    
     # increase by 1 after `limitIterNoImprovement` iterations with no improvement
-    numberOfValuesToRemove = 1
+    numberOfValuesToRemove = 15
     nbIterNoImprovement = 0
 
     #fix param
@@ -45,7 +47,6 @@ function expandLns!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
 
     ### Destroy and repair loop ###
     #TODO another stop criteria? Or no stopping criteria (eventually those defined in the model)?
-    #TODO detect optimal solution
     while nbIter < limitIter
         nbIter += 1
         nbIterNoImprovement += 1
@@ -68,6 +69,11 @@ function expandLns!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
                 println("update best solution", tempSolution[objective])
                 bestSolution = tempSolution
                 bestModel = model
+
+                # Stop search if optimal solution found
+                if bestSolution[objective] == optimalScore
+                    break
+                end
             end
         end
     end
