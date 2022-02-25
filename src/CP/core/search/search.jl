@@ -8,7 +8,7 @@ include("lns.jl")
 """
     initroot!(toCall::Stack{Function}, ::F, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection) where F <: SearchStrategy
 Initialisation function that fill the toCall Stack according to a certain strategy. 
-    """
+"""
 function initroot!(toCall::Stack{Function}, ::F, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection) where F <: SearchStrategy
     throw(ErrorException("Search Strategy $(F) (initroot! function  ) not implemented."))
 end 
@@ -19,8 +19,7 @@ Perform a search following a specific strategy in the `model` using `variableHeu
 at each branching and using `valueSelection` to choose how the branching will be done. 
 
 """
-function search!(model::CPModel, strategy::S, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection=BasicHeuristic(); out_solver::Bool=false) where S <: 
-    println("in search!")
+function search!(model::CPModel, strategy::S, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection=BasicHeuristic(); out_solver::Bool=false) where S <: SearchStrategy
     tic()
     # create env and get first observation
     valueSelection(InitializingPhase, model)
@@ -57,7 +56,6 @@ function search!(model::CPModel, strategy::S, variableHeuristic::AbstractVariabl
     elseif !all(map(x->isnothing(x),model.statistics.solutions)) == 1 
         return :NonOptimal
     end
-    println("END search!")
     return :Infeasible
 end
 
