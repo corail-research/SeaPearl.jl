@@ -9,9 +9,14 @@ struct DFSearch <: SearchStrategy end
  
 """
 struct LNSearch <: SearchStrategy
-implements the basic version of the Large Neighboorhood Search
+implements the basic version of the Large Neighboorhood Search.
+The number of values to remove in each destroy and repair loop is initialised to 1 and increase by 1 after `limitIterNoImprovement` iterations 
+with no improvement until `limitValuesToRemove` is reached. `limitValuesToRemove` will be set to half of the branching variables by default.
 """
-struct LNSearch <: SearchStrategy end
+Base.@kwdef struct LNSearch <: SearchStrategy 
+    limitValuesToRemove::Union{Nothing, Int} = nothing
+    limitIterNoImprovement::Int64 = 100
+end
 
 """
     struct ILDSearch <: SearchStrategy

@@ -3,15 +3,15 @@ using StatsBase: sample
 """
 Used as a generic function to instantiate the research based on a specific Strategy <: SearchStrategy. 
 """
-function initroot!(toCall::Stack{Function}, ::LNSearch, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
-    return expandLns!(toCall, model, variableHeuristic, valueSelection)
+function initroot!(toCall::Stack{Function}, search::LNSearch, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
+    return expandLns!(toCall, search, model, variableHeuristic, valueSelection)
 end
 
 """
 This function make a Large Neighboorhood Search. As initial solution we use the first feasible solution found by a DFS. 
 Then a destroy and repair loop tries to upgrade the current solution until some stop critiria.
 """
-function expandLns!(toCall::Stack{Function}, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, newConstraints=nothing; prunedDomains::Union{CPModification,Nothing}=nothing)
+function expandLns!(toCall::Stack{Function}, search::LNSearch, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, newConstraints=nothing; prunedDomains::Union{CPModification,Nothing}=nothing)
     tic()
     timeLimit = model.limit.searchingTime 
     model.limit.searchingTime = nothing
@@ -37,21 +37,23 @@ function expandLns!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
     numberOfValuesToRemove = 1
     nbIterNoImprovement = 0
 
-    # Upper bound of the number of values to be removed set as half of the branching variables (TODO? another setting)
-    limitValuesToRemove = convert(Int, round(length(collect(filter(e -> model.branchable[e], keys(model.branchable))))/2))
-
-    # Number of iterations without improvements before incrementing `limitValuesToRemove` by one (TODO? another setting)
-    limitIterNoImprovement = 100
+    # Upper bound of the number of values to be removed (set ny user or as half of the branching variables by default)
+    if isnothing(search.limitValuesToRemove)
+        limitValuesToRemove = convert(Int, round(length(collect(filter(e -> model.branchable[e], keys(model.branchable))))/2))
+    else
+        limitValuesToRemove = search.limitValuesToRemove
+    end
 
     ### Destroy and repair loop ###
-    # Search ends only if the user has set searchingTime limit and this limit is reached (TODO? another stop criteria?)
     while isnothing(timeLimit) || peektimer() < timeLimit
+        # use timeLeft as timeLimit in the repairing search to ensure that timeLimit is respected
+        timeLeft = isnothing(timeLimit) ? nothing : timeLimit - peektimer()
         nbIterNoImprovement += 1
-        if limitIterNoImprovement < nbIterNoImprovement && numberOfValuesToRemove < limitValuesToRemove
+        if search.limitIterNoImprovement < nbIterNoImprovement && numberOfValuesToRemove < limitValuesToRemove
             numberOfValuesToRemove += 1
             nbIterNoImprovement = 0
         end
-        tempSolution = repair(destroy(model, currentSolution, numberOfValuesToRemove, objective, optimalScore))
+        tempSolution = repair(destroy(model, timeLeft, currentSolution, numberOfValuesToRemove, objective, optimalScore))
 
         if !isnothing(tempSolution)
             if accept(tempSolution, currentSolution, objective)
@@ -96,7 +98,7 @@ end
 Use a DFS to find the optimal solution to the repair problem
 """
 function repair(model)
-    # TODO? try an heuristic repair
+    # TODO chose another method as argument
     search!(model, DFSearch(), MinDomainVariableSelection(), BasicHeuristic())
     solutions = filter(e -> !isnothing(e), model.statistics.solutions)
     if isempty(solutions)
@@ -110,11 +112,12 @@ end
 """
 Reset to initial state `numberOfValuesToRemove` branchable variables
 """
-function destroy(model, solution, numberOfValuesToRemove, objective, optimalScore)
+function destroy(model, timeLeft, solution, numberOfValuesToRemove, objective, optimalScore)
 
     # Reset model
-    initialScore = solution[objective]
+    initialScore = model.objectiveBound #solution[objective]
     SeaPearl.reset_model!(model)
+    model.limit.searchingTime = convert(Int, round(timeLeft))
 
     # Get variable fixed by current solution
     vars = collect(values(model.variables))
@@ -129,9 +132,10 @@ function destroy(model, solution, numberOfValuesToRemove, objective, optimalScor
     end
 
     # Pruning the objective domain to force the search for a better solution (TODO? is this a good idea)
+    # TODO new constraint
     objectiveVariable = vars[findfirst(e -> e.id == objective, vars)]
-    objectiveUpperBound = max(initialScore - 1, optimalScore)
-    SeaPearl.removeAbove!(objectiveVariable.domain, objectiveUpperBound)
+    # objectiveUpperBound = max(initialScore - 1, optimalScore)
+    SeaPearl.removeAbove!(objectiveVariable.domain, initialScore)
 
     return model
 end
