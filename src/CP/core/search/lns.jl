@@ -12,7 +12,10 @@ This function make a Large Neighboorhood Search. As initial solution we use the 
 Then a destroy and repair loop tries to upgrade the current solution until some stop critiria.
 """
 function expandLns!(toCall::Stack{Function}, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, newConstraints=nothing; prunedDomains::Union{CPModification,Nothing}=nothing)
-    
+    tic()
+    timeLimit = model.limit.searchingTime 
+    model.limit.searchingTime = nothing
+
     objective = model.objective.id
     optimalScore = model.variables[objective].domain.min.value
 
@@ -31,31 +34,24 @@ function expandLns!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
     ### Set parameters ###
     
     # increase by 1 after `limitIterNoImprovement` iterations with no improvement
-    numberOfValuesToRemove = 15
+    numberOfValuesToRemove = 1
     nbIterNoImprovement = 0
 
-    #fix param
+    # Upper bound of the number of values to be removed set as half of the branching variables (TODO? another setting)
     limitValuesToRemove = convert(Int, round(length(collect(filter(e -> model.branchable[e], keys(model.branchable))))/2))
 
-    #TODO fix param
+    # Number of iterations without improvements before incrementing `limitValuesToRemove` by one (TODO? another setting)
     limitIterNoImprovement = 100
 
-    nbIter = 0
-
-    #TODO fix param
-    limitIter = 500 
-
     ### Destroy and repair loop ###
-    #TODO another stop criteria? Or no stopping criteria (eventually those defined in the model)?
-    while nbIter < limitIter
-        nbIter += 1
+    # Search ends only if the user has set searchingTime limit and this limit is reached (TODO? another stop criteria?)
+    while isnothing(timeLimit) || peektimer() < timeLimit
         nbIterNoImprovement += 1
-
         if limitIterNoImprovement < nbIterNoImprovement && numberOfValuesToRemove < limitValuesToRemove
             numberOfValuesToRemove += 1
             nbIterNoImprovement = 0
         end
-        tempSolution = repair(destroy(model, currentSolution, numberOfValuesToRemove))
+        tempSolution = repair(destroy(model, currentSolution, numberOfValuesToRemove, objective, optimalScore))
 
         if !isnothing(tempSolution)
             if accept(tempSolution, currentSolution, objective)
@@ -100,8 +96,7 @@ end
 Use a DFS to find the optimal solution to the repair problem
 """
 function repair(model)
-    # TODO try an heuristic repair?
-    # TODO avoid get same solution as current solution (reducing the objective variable by 1)
+    # TODO? try an heuristic repair
     search!(model, DFSearch(), MinDomainVariableSelection(), BasicHeuristic())
     solutions = filter(e -> !isnothing(e), model.statistics.solutions)
     if isempty(solutions)
@@ -115,9 +110,10 @@ end
 """
 Reset to initial state `numberOfValuesToRemove` branchable variables
 """
-function destroy(model, solution, numberOfValuesToRemove)
+function destroy(model, solution, numberOfValuesToRemove, objective, optimalScore)
 
     # Reset model
+    initialScore = solution[objective]
     SeaPearl.reset_model!(model)
 
     # Get variable fixed by current solution
@@ -131,6 +127,11 @@ function destroy(model, solution, numberOfValuesToRemove)
         value = solution[var]
         SeaPearl.assign!(variable, value)
     end
+
+    # Pruning the objective domain to force the search for a better solution (TODO? is this a good idea)
+    objectiveVariable = vars[findfirst(e -> e.id == objective, vars)]
+    objectiveUpperBound = max(initialScore - 1, optimalScore)
+    SeaPearl.removeAbove!(objectiveVariable.domain, objectiveUpperBound)
 
     return model
 end
