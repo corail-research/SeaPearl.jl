@@ -12,14 +12,14 @@ This function make a Large Neighboorhood Search. As initial solution we use the 
 Then a destroy and repair loop tries to upgrade the current solution until some stop critiria.
 """
 function expandLns!(toCall::Stack{Function}, search::LNSearch, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, newConstraints=nothing; prunedDomains::Union{CPModification,Nothing}=nothing)
+    # TODO remove prints
     tic()
-    timeLimit = model.limit.searchingTime 
-    model.limit.searchingTime = nothing
-
+    globalTimeLimit = model.limit.searchingTime 
     objective = model.objective.id
     optimalScore = model.variables[objective].domain.min.value
 
     ### Get first solution using DFS ###
+
     model.limit.numberOfSolutions = 1
     status = search!(model, DFSearch(), variableHeuristic, valueSelection)
     if status == :Infeasible
@@ -33,27 +33,45 @@ function expandLns!(toCall::Stack{Function}, search::LNSearch, model::CPModel, v
     
     ### Set parameters ###
     
-    # increase by 1 after `limitIterNoImprovement` iterations with no improvement
+    # `numberOfValuesToRemove` is initialised to 1 and increase by 1 after `limitIterNoImprovement` iterations 
+    # with no improvement until `limitValuesToRemove` is reached.
     numberOfValuesToRemove = 1
     nbIterNoImprovement = 0
 
-    # Upper bound of the number of values to be removed (set ny user or as half of the branching variables by default)
+    # Upper bound of the number of values to be removed (set by user or as half of the branching variables by default)
     if isnothing(search.limitValuesToRemove)
         limitValuesToRemove = convert(Int, round(length(collect(filter(e -> model.branchable[e], keys(model.branchable))))/2))
     else
         limitValuesToRemove = search.limitValuesToRemove
     end
 
+    # Search strategie for repairing (set by user or DFS by default)
+    repairSearch = search.repairSearch
+
+    # Limits for repairing search (set by user or nothing by default)
+    model.limit.searchingTime = nothing
+    if !isnothing(search.repairLimits)
+        for (key, value) in search.repairLimits
+            setfield!(model.limit, Symbol(key), value)
+        end
+    end
+
     ### Destroy and repair loop ###
-    while isnothing(timeLimit) || peektimer() < timeLimit
-        # use timeLeft as timeLimit in the repairing search to ensure that timeLimit is respected
-        timeLeft = isnothing(timeLimit) ? nothing : timeLimit - peektimer()
+
+    while (isnothing(globalTimeLimit) || peektimer() < globalTimeLimit) && bestSolution[objective] > optimalScore
+        
+        # Update searchingTime to ensure that time limits are respected
+        if !isnothing(globalTimeLimit)
+            model.limit.searchingTime = convert(Int64, round(min(globalTimeLimit - peektimer(), model.limit.searchingTime)))
+        end
+
+        tempSolution = repair(destroy(model, currentSolution, numberOfValuesToRemove, objective), repairSearch, objective)
+
         nbIterNoImprovement += 1
         if search.limitIterNoImprovement < nbIterNoImprovement && numberOfValuesToRemove < limitValuesToRemove
             numberOfValuesToRemove += 1
             nbIterNoImprovement = 0
         end
-        tempSolution = repair(destroy(model, timeLeft, currentSolution, numberOfValuesToRemove, objective, optimalScore))
 
         if !isnothing(tempSolution)
             if accept(tempSolution, currentSolution, objective)
@@ -61,19 +79,21 @@ function expandLns!(toCall::Stack{Function}, search::LNSearch, model::CPModel, v
                 currentSolution = tempSolution
                 nbIterNoImprovement = 0
             else
-                nbIterNoImprovement +=1
+                println("accept - else -> error")
             end
             if compare(tempSolution, bestSolution, objective)
                 println("update best solution", tempSolution[objective])
                 bestSolution = tempSolution
                 bestModel = model
-
-                # Stop search if optimal solution found
-                if bestSolution[objective] == optimalScore
-                    break
-                end
+            else
+                println("compare - else -> error")
             end
         end
+    end
+
+    # Make sure that model has `bestSolution`
+    if bestSolution ∉ model.statistics.solutions
+        push!(model.statistics.solutions, bestSolution)
     end
     return :Feasible
 end
@@ -82,7 +102,6 @@ end
 Decide if we update the current solution with the neighboor solution get by destroy and repair (tempSolution)
 """
 function accept(tempSolution, currentSolution, objective)
-    # try a sort of simulated annealing?
     return tempSolution[objective] < currentSolution[objective]
 end
 
@@ -90,34 +109,35 @@ end
 Comparare the objective variable from tempSolution and bestSolution
 """
 function compare(tempSolution, bestSolution, objective)
-    # try a sort of simulated annealing?
     return tempSolution[objective] < bestSolution[objective]
 end
 
 """
-Use a DFS to find the optimal solution to the repair problem
+Use the `repairSearch` to try to repair the destoyed solution 
 """
-function repair(model)
-    # TODO chose another method as argument
-    search!(model, DFSearch(), MinDomainVariableSelection(), BasicHeuristic())
+function repair(model, repairSearch, objective)
+    println("searchTime: ", model.limit.searchingTime)
+    search!(model, repairSearch, MinDomainVariableSelection(), BasicHeuristic())
     solutions = filter(e -> !isnothing(e), model.statistics.solutions)
+
     if isempty(solutions)
         toReturn = nothing
     else
-        toReturn = pop!(solutions)
+        scores = map(solution -> solution[objective], solutions)
+        bestSolution = solutions[findfirst(score -> score == Base.minimum(scores), scores)]
+        toReturn = bestSolution
     end
     return toReturn
 end
 
 """
-Reset to initial state `numberOfValuesToRemove` branchable variables
+Reset to initial state `numberOfValuesToRemove` branchable variables and prune the objective domain to force the search for a better solution
 """
-function destroy(model, timeLeft, solution, numberOfValuesToRemove, objective, optimalScore)
+function destroy(model, solution, numberOfValuesToRemove, objective)
 
     # Reset model
-    initialScore = model.objectiveBound #solution[objective]
+    objectiveBound = solution[objective] - 1
     SeaPearl.reset_model!(model)
-    model.limit.searchingTime = convert(Int, round(timeLeft))
 
     # Get variable fixed by current solution
     vars = collect(values(model.variables))
@@ -131,11 +151,9 @@ function destroy(model, timeLeft, solution, numberOfValuesToRemove, objective, o
         SeaPearl.assign!(variable, value)
     end
 
-    # Pruning the objective domain to force the search for a better solution (TODO? is this a good idea)
-    # TODO new constraint
+    # Pruning the objective domain to force the search for a better solution
     objectiveVariable = vars[findfirst(e -> e.id == objective, vars)]
-    # objectiveUpperBound = max(initialScore - 1, optimalScore)
-    SeaPearl.removeAbove!(objectiveVariable.domain, initialScore)
+    SeaPearl.removeAbove!(objectiveVariable.domain, objectiveBound)
 
     return model
 end
