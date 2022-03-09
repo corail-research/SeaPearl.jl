@@ -1,10 +1,3 @@
-# TODO delete usings!
-using SeaPearl
-using Test
-using DataStructures
-
-# TODO test LNS arguments
-
 @testset "lns.jl" begin
     @testset "expandLns!()" begin
 
@@ -225,11 +218,5 @@ using DataStructures
         @test SeaPearl.search!(model, search, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :NonOptimal
 
     end
-
-    # TODO? out_solver
-    # TODO? LearnHeuristic
-    # TODO?
-
-
 end
     

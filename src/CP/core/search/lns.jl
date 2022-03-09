@@ -12,7 +12,6 @@ This function make a Large Neighboorhood Search. As initial solution we use the 
 Then a destroy and repair loop tries to upgrade the current solution until some stop critiria.
 """
 function expandLns!(search::LNSearch, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
-    # TODO remove prints
 
     # Make sure that the model is consistent with a LNS
     @assert !isnothing(model.objective)
@@ -35,7 +34,6 @@ function expandLns!(search::LNSearch, model::CPModel, variableHeuristic::Abstrac
     model.limit.numberOfSolutions = nothing
     currentSolution = model.statistics.solutions[findfirst(e -> !isnothing(e), model.statistics.solutions)]
     bestSolution = currentSolution
-    println("First solution: ", currentSolution[objective])
     
     ### Set parameters ###
     
@@ -62,14 +60,18 @@ function expandLns!(search::LNSearch, model::CPModel, variableHeuristic::Abstrac
             setfield!(model.limit, Symbol(key), value)
         end
     end
+    localTimeLimit = model.limit.searchingTime
 
     ### Destroy and repair loop ###
 
     while (isnothing(globalTimeLimit) || peektimer() < globalTimeLimit) && bestSolution[objective] > optimalScore
-        
         # Update searchingTime to ensure that time limits are respected
-        if !isnothing(globalTimeLimit)
-            model.limit.searchingTime = convert(Int64, round(min(globalTimeLimit - peektimer(), model.limit.searchingTime)))
+        if !isnothing(globalTimeLimit) 
+            if !isnothing(localTimeLimit) 
+                model.limit.searchingTime = min(convert(Int64, round(globalTimeLimit - peektimer())), localTimeLimit)
+            else
+                model.limit.searchingTime = convert(Int64, round(globalTimeLimit - peektimer()))
+            end
         end
 
         tempSolution = repair(destroy(model, currentSolution, numberOfValuesToRemove, objective), repairSearch, objective, variableHeuristic, valueSelection)
@@ -82,17 +84,11 @@ function expandLns!(search::LNSearch, model::CPModel, variableHeuristic::Abstrac
 
         if !isnothing(tempSolution)
             if accept(tempSolution, currentSolution, objective)
-                println("update current solution: ", tempSolution[objective])
                 currentSolution = tempSolution
                 nbIterNoImprovement = 0
-            else
-                println("accept - else -> error")
             end
             if compare(tempSolution, bestSolution, objective)
-                println("update best solution", tempSolution[objective])
                 bestSolution = tempSolution
-            else
-                println("compare - else -> error")
             end
         end
     end
@@ -123,7 +119,6 @@ end
 Use the `repairSearch` to try to repair the destoyed solution 
 """
 function repair(model, repairSearch, objective, variableHeuristic, valueSelection)
-    # println("searchTime: ", model.limit.searchingTime)
     search!(model, repairSearch, variableHeuristic, valueSelection)
     solutions = filter(e -> !isnothing(e), model.statistics.solutions)
 
@@ -141,7 +136,7 @@ end
 Reset to initial state `numberOfValuesToRemove` branchable variables and prune the objective domain to force the search for a better solution
 """
 function destroy(model, solution, numberOfValuesToRemove, objective)
-
+    
     # Reset model
     objectiveBound = solution[objective] - 1
     SeaPearl.reset_model!(model)
@@ -149,7 +144,7 @@ function destroy(model, solution, numberOfValuesToRemove, objective)
     # Get variable fixed by current solution
     vars = collect(values(model.variables))
     branchableVariablesId = collect(filter(e -> model.branchable[e], keys(model.branchable)))
-    varsToSet = sample(branchableVariablesId, numberOfValuesToRemove; replace=false)
+    varsToSet = sample(branchableVariablesId, count(values(model.branchable)) - numberOfValuesToRemove; replace=false)
 
     # Fix some variables as in current solution
     for var in varsToSet
