@@ -4,15 +4,22 @@ using StatsBase: sample
 Used as a generic function to instantiate the research based on a specific Strategy <: SearchStrategy. 
 """
 function initroot!(toCall::Stack{Function}, search::LNSearch, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
-    return expandLns!(toCall, search, model, variableHeuristic, valueSelection)
+    return expandLns!(search, model, variableHeuristic, valueSelection)
 end
 
 """
 This function make a Large Neighboorhood Search. As initial solution we use the first feasible solution found by a DFS. 
 Then a destroy and repair loop tries to upgrade the current solution until some stop critiria.
 """
-function expandLns!(toCall::Stack{Function}, search::LNSearch, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, newConstraints=nothing; prunedDomains::Union{CPModification,Nothing}=nothing)
+function expandLns!(search::LNSearch, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
     # TODO remove prints
+
+    # Make sure that the model is consistent with a LNS
+    @assert !isnothing(model.objective)
+    @assert isnothing(model.limit.numberOfNodes)
+    @assert isnothing(model.limit.numberOfSolutions)
+    @assert search.limitIterNoImprovement ≥ 1
+
     tic()
     globalTimeLimit = model.limit.searchingTime 
     objective = model.objective.id
@@ -22,13 +29,12 @@ function expandLns!(toCall::Stack{Function}, search::LNSearch, model::CPModel, v
 
     model.limit.numberOfSolutions = 1
     status = search!(model, DFSearch(), variableHeuristic, valueSelection)
-    if status == :Infeasible
-        return :Infeasible
+    if status ∈ [:TimeLimitStop, :Infeasible, :Optimal]
+        return status
     end
     model.limit.numberOfSolutions = nothing
     currentSolution = model.statistics.solutions[findfirst(e -> !isnothing(e), model.statistics.solutions)]
     bestSolution = currentSolution
-    bestModel = model
     println("First solution: ", currentSolution[objective])
     
     ### Set parameters ###
@@ -40,8 +46,9 @@ function expandLns!(toCall::Stack{Function}, search::LNSearch, model::CPModel, v
 
     # Upper bound of the number of values to be removed (set by user or as half of the branching variables by default)
     if isnothing(search.limitValuesToRemove)
-        limitValuesToRemove = convert(Int, round(length(collect(filter(e -> model.branchable[e], keys(model.branchable))))/2))
+        limitValuesToRemove = convert(Int, round(count(values(model.branchable))/2))
     else
+        @assert search.limitValuesToRemove ≤ count(values(model.branchable))
         limitValuesToRemove = search.limitValuesToRemove
     end
 
@@ -65,10 +72,10 @@ function expandLns!(toCall::Stack{Function}, search::LNSearch, model::CPModel, v
             model.limit.searchingTime = convert(Int64, round(min(globalTimeLimit - peektimer(), model.limit.searchingTime)))
         end
 
-        tempSolution = repair(destroy(model, currentSolution, numberOfValuesToRemove, objective), repairSearch, objective)
+        tempSolution = repair(destroy(model, currentSolution, numberOfValuesToRemove, objective), repairSearch, objective, variableHeuristic, valueSelection)
 
         nbIterNoImprovement += 1
-        if search.limitIterNoImprovement < nbIterNoImprovement && numberOfValuesToRemove < limitValuesToRemove
+        if search.limitIterNoImprovement ≤ nbIterNoImprovement && numberOfValuesToRemove < limitValuesToRemove
             numberOfValuesToRemove += 1
             nbIterNoImprovement = 0
         end
@@ -84,7 +91,6 @@ function expandLns!(toCall::Stack{Function}, search::LNSearch, model::CPModel, v
             if compare(tempSolution, bestSolution, objective)
                 println("update best solution", tempSolution[objective])
                 bestSolution = tempSolution
-                bestModel = model
             else
                 println("compare - else -> error")
             end
@@ -95,7 +101,8 @@ function expandLns!(toCall::Stack{Function}, search::LNSearch, model::CPModel, v
     if bestSolution ∉ model.statistics.solutions
         push!(model.statistics.solutions, bestSolution)
     end
-    return :Feasible
+
+    return bestSolution[objective] > optimalScore ? :NonOptimal : :Optimal
 end
 
 """
@@ -115,9 +122,9 @@ end
 """
 Use the `repairSearch` to try to repair the destoyed solution 
 """
-function repair(model, repairSearch, objective)
-    println("searchTime: ", model.limit.searchingTime)
-    search!(model, repairSearch, MinDomainVariableSelection(), BasicHeuristic())
+function repair(model, repairSearch, objective, variableHeuristic, valueSelection)
+    # println("searchTime: ", model.limit.searchingTime)
+    search!(model, repairSearch, variableHeuristic, valueSelection)
     solutions = filter(e -> !isnothing(e), model.statistics.solutions)
 
     if isempty(solutions)
