@@ -16,13 +16,21 @@ end
 
 DefaultTrajectoryState(sr::AbstractStateRepresentation) = throw(ErrorException("missing function DefaultTrajectoryState(::$(typeof(sr)))."))
 
+Base.length(::DefaultTrajectoryState) = 1
+
+function Base.iterate(s::DefaultTrajectoryState, state::Union{Int,Nothing}=1)
+    if isnothing(state)
+        return nothing
+    else
+        return (s,nothing)
+    end
+end
 """
     BatchedDefaultTrajectoryState
 
 The batched version of the `DefaultTrajectoryState`.
 
-It contains all the information that would be stored in a `FeaturedGraph` but reorganised to enable simultaneous 
-computation on a few graphs.
+It contains all the information that would be stored in a `FeaturedGraph` but reorganised to enable simultaneous computation on a few graphs.
 """
 Base.@kwdef struct BatchedDefaultTrajectoryState{T} <: NonTabularTrajectoryState
     fg::BatchedFeaturedGraph{T}
@@ -93,3 +101,5 @@ function Flux.functor(::Type{Vector{DefaultTrajectoryState}}, v)
     )
 end
 Flux.functor(::Type{BatchedDefaultTrajectoryState{T}}, ts) where T = (ts.fg,), ls -> BatchedDefaultTrajectoryState{T}(ls[1], ts.variableIdx, ts.allValuesIdx) 
+
+
