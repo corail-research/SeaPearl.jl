@@ -67,17 +67,15 @@ function launch_experiment!(
             reset_model!(model)
             if isa(valueSelectionArray[j], LearnedHeuristic)
                 verbose && print("Visited nodes with learnedHeuristic : " )
-                dt = @elapsed for k in 1:restartPerInstances
-                    restart_search!(model)
-                    search!(model, strategy, variableHeuristic, valueSelectionArray[j], out_solver=out_solver)
-    
-                    verbose && print(model.statistics.numberOfNodesBeforeRestart, ": ",model.statistics.numberOfSolutions, "(",model.statistics.AccumulatedRewardBeforeRestart,") / ")
-                end 
-                metricsArray[j](model,dt)  #adding results in the metrics data structure
-                verbose && println()
-            else
-                verbose && print("Visited nodes with basic Heuristic n°$(j-1) : ")
-            end
+            dt = @elapsed for k in 1:restartPerInstances
+                restart_search!(model)
+                search!(model, strategy, variableHeuristic, valueSelectionArray[j], out_solver=out_solver)
+
+                verbose && print(model.statistics.numberOfNodesBeforeRestart, ": ",model.statistics.numberOfSolutions, "(",model.statistics.AccumulatedRewardBeforeRestart,") / ")
+            end 
+            metricsArray[j](model,dt)  #adding results in the metrics data structure
+            verbose && println()
+
 
         end
 
