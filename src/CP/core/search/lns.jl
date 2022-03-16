@@ -22,7 +22,7 @@ function expandLns!(search::LNSearch, model::CPModel, variableHeuristic::Abstrac
     tic()
     globalTimeLimit = model.limit.searchingTime 
     objective = model.objective.id
-    optimalScore = model.variables[objective].domain.min.value
+    upperBoundOptimalScore = model.variables[objective].domain.min.value
 
     ### Get first solution using DFS ###
 
@@ -64,7 +64,7 @@ function expandLns!(search::LNSearch, model::CPModel, variableHeuristic::Abstrac
 
     ### Destroy and repair loop ###
 
-    while (isnothing(globalTimeLimit) || peektimer() < globalTimeLimit) && bestSolution[objective] > optimalScore
+    while (isnothing(globalTimeLimit) || peektimer() < globalTimeLimit) && bestSolution[objective] > upperBoundOptimalScore
         # Update searchingTime to ensure that time limits are respected
         if !isnothing(globalTimeLimit) 
             if !isnothing(localTimeLimit) 
@@ -98,7 +98,7 @@ function expandLns!(search::LNSearch, model::CPModel, variableHeuristic::Abstrac
         push!(model.statistics.solutions, bestSolution)
     end
 
-    return bestSolution[objective] > optimalScore ? :NonOptimal : :Optimal
+    return bestSolution[objective] > upperBoundOptimalScore ? :NonOptimal : :Optimal
 end
 
 """
