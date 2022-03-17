@@ -24,6 +24,22 @@ learns thanks to rewards that are given regularly during the search. He wil try 
 From the RL point of view, this LearnedHeuristic also plays part of the role normally played by the environment. Indeed, the
 LearnedHeuristic stores the action space, the current state and reward. The other role that a classic RL environment has is describing
 the consequences of an action: in SeaPearl, this is done by the CP part - branching, running fixPoint!, backtracking, etc...
+
+Reminder from https://docs.juliahub.com/ReinforcementLearning/6l2TO/0.4.0/rl_base/ : 
+
+                        +-----------------------------------------------------------+                      
+                        |Episode                                                    |                      
+                        |                                                           |                      
+  PRE_EXPERIMENT_STAGE  |            PRE_ACT_STAGE    POST_ACT_STAGE                | POST_EXPERIMENT_STAGE
+            |           |                  |                |                       |          |           
+            v           |        +-----+   v   +-------+    v   +-----+             |          v           
+            --------------------->+ env +------>+ agent +------->+ env +---> ... --------------------->            
+                        |  ^     +-----+  obs  +-------+ action +-----+          ^  |                      
+                        |  |                                                     |  |                      
+                        |  +--PRE_EPISODE_STAGE            POST_EPISODE_STAGE----+  |                      
+                        |                                                           |                      
+                        |                                                           |                      
+                        +-----------------------------------------------------------+       
 """
 mutable struct LearnedHeuristic{SR<:AbstractStateRepresentation, R<:AbstractReward, A<:ActionOutput} <: ValueSelection
     agent::RL.Agent
@@ -62,11 +78,17 @@ function (valueSelection::LearnedHeuristic)(::Type{InitializingPhase}, model::CP
 end
 
 """
-    (valueSelection::LearnedHeuristic)(::StepPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
+         (valueSelection::LearnedHeuristic)(PHASE::Type{StepPhase}, model::CPModel, current_status::Union{Nothing, Symbol})
 
 The step phase is the phase between every procedure call. It is the best place to get stats about the search tree, that's why
 we put a set_metrics! function here. As those metrics could be used to design a reward, we also put a set_reward! function.
 ATM, the metrics are updated after the reward assignment as the current_status given totally decribes the changes that are to be made.
+
+PHASE can be of the following type : 
+- :BackTracking
+- :Feasible
+- :Infeasible
+- :FoundSolution
 Another possibility would be to have old and new metrics in memory.
 """
 function (valueSelection::LearnedHeuristic)(PHASE::Type{StepPhase}, model::CPModel, current_status::Union{Nothing, Symbol})
@@ -77,7 +99,7 @@ function (valueSelection::LearnedHeuristic)(PHASE::Type{StepPhase}, model::CPMod
 end
 
 """
-    (valueSelection::LearnedHeuristic)(::DecisionPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
+        (valueSelection::LearnedHeuristic)(PHASE::Type{DecisionPhase}, model::CPModel, x::Union{Nothing, AbstractIntVar})
 
 Observe, store useful informations in the buffer with agent(POST_ACT_STAGE, ...) and take a decision with the call to agent(PRE_ACT_STAGE).
 The metrics that aren't updated in the StepPhase, which are more related to variables domains, are updated here. Once updated, they can
@@ -110,9 +132,9 @@ function (valueSelection::LearnedHeuristic)(PHASE::Type{DecisionPhase}, model::C
 end
 
 """
-    (valueSelection::LearnedHeuristic)(::EndingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
+        (valueSelection::LearnedHeuristic)(PHASE::Type{EndingPhase}, model::CPModel, current_status::Union{Nothing, Symbol})
 
-Set the final reward, do last observation.
+Set the final reward, do last observation : add last reward of the episode and end the episode. 
 """
 function (valueSelection::LearnedHeuristic)(PHASE::Type{EndingPhase}, model::CPModel, current_status::Union{Nothing, Symbol})
     # the RL EPISODE stops
