@@ -16,6 +16,15 @@ end
 
 DefaultTrajectoryState(sr::AbstractStateRepresentation) = throw(ErrorException("missing function DefaultTrajectoryState(::$(typeof(sr)))."))
 
+Base.length(::DefaultTrajectoryState) = 1
+
+function Base.iterate(s::DefaultTrajectoryState, state::Union{Int,Nothing}=1)
+    if isnothing(state)
+        return nothing
+    else
+        return (s,nothing)
+    end
+end
 """
     BatchedDefaultTrajectoryState
 
@@ -92,3 +101,5 @@ function Flux.functor(::Type{Vector{DefaultTrajectoryState}}, v)
     )
 end
 Flux.functor(::Type{BatchedDefaultTrajectoryState{T}}, ts) where T = (ts.fg,), ls -> BatchedDefaultTrajectoryState{T}(ls[1], ts.variableIdx, ts.allValuesIdx) 
+
+
