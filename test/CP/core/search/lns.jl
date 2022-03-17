@@ -253,98 +253,94 @@
         status = SeaPearl.expandLns!(search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) 
         @test model.limit.numberOfSolutions == 150
 
-        # Ensure that `seed` works properly
-        trailer = SeaPearl.Trailer()
-        model = SeaPearl.CPModel(trailer)
-        model.limit.searchingTime = 2
-
-        x = SeaPearl.IntVar(1, 2, "x", trailer)
-        y = SeaPearl.IntVar(1, 2, "y", trailer)
-        SeaPearl.addVariable!(model, x)
-        SeaPearl.addVariable!(model, y)
-        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
-        SeaPearl.addObjective!(model, x)
-
-        search = SeaPearl.LNSearch(limitIterNoImprovement=5, limitValuesToRemove = 2, seed=10)
-        status = SeaPearl.expandLns!(search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic())
-        
-        trailer = SeaPearl.Trailer()
-        model = SeaPearl.CPModel(trailer)
-        model.limit.searchingTime = 2
-
-        x = SeaPearl.IntVar(1, 2, "x", trailer)
-        y = SeaPearl.IntVar(1, 2, "y", trailer)
-        SeaPearl.addVariable!(model, x)
-        SeaPearl.addVariable!(model, y)
-        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
-        SeaPearl.addObjective!(model, x)
-
-        search = SeaPearl.LNSearch(limitIterNoImprovement=5, limitValuesToRemove = 2, seed=10)
-        status = SeaPearl.expandLns!(search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic())
-
-        trailer = SeaPearl.Trailer()
-        model = SeaPearl.CPModel(trailer)
-        model.limit.searchingTime = 2
-
-        x = SeaPearl.IntVar(1, 2, "x", trailer)
-        y = SeaPearl.IntVar(1, 2, "y", trailer)
-        SeaPearl.addVariable!(model, x)
-        SeaPearl.addVariable!(model, y)
-        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
-        SeaPearl.addObjective!(model, x)
-
-        search = SeaPearl.LNSearch(limitIterNoImprovement=5, limitValuesToRemove = 2, seed=683)
-        status = SeaPearl.expandLns!(search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic())
-
-        trailer = SeaPearl.Trailer()
-        model = SeaPearl.CPModel(trailer)
-        model.limit.searchingTime = 2
-
-        x = SeaPearl.IntVar(1, 2, "x", trailer)
-        y = SeaPearl.IntVar(1, 2, "y", trailer)
-        SeaPearl.addVariable!(model, x)
-        SeaPearl.addVariable!(model, y)
-        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
-        SeaPearl.addObjective!(model, x)
-
-        search = SeaPearl.LNSearch(limitIterNoImprovement=5, limitValuesToRemove = 2, seed=683)
-        status = SeaPearl.expandLns!(search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic())
-
-        trailer = SeaPearl.Trailer()
-        model = SeaPearl.CPModel(trailer)
-        model.limit.searchingTime = 2
-
-        x = SeaPearl.IntVar(1, 2, "x", trailer)
-        y = SeaPearl.IntVar(1, 2, "y", trailer)
-        SeaPearl.addVariable!(model, x)
-        SeaPearl.addVariable!(model, y)
-        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
-        SeaPearl.addObjective!(model, x)
-
-        search = SeaPearl.LNSearch(limitIterNoImprovement=5, limitValuesToRemove = 2)
-        status = SeaPearl.expandLns!(search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic())
-
-        trailer = SeaPearl.Trailer()
-        model = SeaPearl.CPModel(trailer)
-        model.limit.searchingTime = 2
-
-        x = SeaPearl.IntVar(1, 2, "x", trailer)
-        y = SeaPearl.IntVar(1, 2, "y", trailer)
-        SeaPearl.addVariable!(model, x)
-        SeaPearl.addVariable!(model, y)
-        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
-        SeaPearl.addObjective!(model, x)
-
-        search = SeaPearl.LNSearch(limitIterNoImprovement=5, limitValuesToRemove = 2)
-        status = SeaPearl.expandLns!(search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic())
-
-        
-
-
     end
 
-    @testset "repair()" begin
-        #TODO test repairSearch
+    @testset "destroy()" begin
+
+        ### Remove some branchable variables ###
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+        x = SeaPearl.IntVar(1, 3, "x", trailer)
+        y = SeaPearl.IntVar(1, 3, "y", trailer)
+        z = SeaPearl.IntVar(1, 3, "z", trailer)
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y)
+        SeaPearl.addVariable!(model, z; branchable=false)
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(y, z, trailer))
+        SeaPearl.addObjective!(model, z)
+
+        model.limit.numberOfSolutions = 1
+        status = SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection())
+        solution = model.statistics.solutions[1]
+        numberOfValuesToRemove = 1
+        objective = "z"
+
+        SeaPearl.destroy!(model, solution, numberOfValuesToRemove, objective)
+
+        # Check that 1 variable has been reassign and the other is unbounded
+        @test SeaPearl.isbound(model.variables["x"]) != SeaPearl.isbound(model.variables["y"]) 
+        # Check that the model has been reset
+        @test isempty(model.statistics.solutions)
+        # Check that the objective variable has been pruned
+        @test 3 ∉ model.variables["z"].domain
+
+        ### Remove all branchable variables ###
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+        x = SeaPearl.IntVar(1, 3, "x", trailer)
+        y = SeaPearl.IntVar(1, 3, "y", trailer)
+        z = SeaPearl.IntVar(1, 3, "z", trailer)
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y)
+        SeaPearl.addVariable!(model, z; branchable=false)
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(y, z, trailer))
+        SeaPearl.addObjective!(model, z)
+
+        model.limit.numberOfSolutions = 1
+        status = SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection())
+        solution = model.statistics.solutions[1]
+        numberOfValuesToRemove = 2
+        objective = "z"
+
+        SeaPearl.destroy!(model, solution, numberOfValuesToRemove, objective)
+
+        # Check that all variables are unbounded
+        @test !SeaPearl.isbound(model.variables["x"]) && !SeaPearl.isbound(model.variables["y"]) 
+        # Check that the model has been reset
+        @test isempty(model.statistics.solutions)
+        # Check that the objective variable has been pruned
+        @test 3 ∉ model.variables["z"].domain
+
+        ### Remove 0 branchable variables ###
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+        x = SeaPearl.IntVar(1, 3, "x", trailer)
+        y = SeaPearl.IntVar(1, 3, "y", trailer)
+        z = SeaPearl.IntVar(1, 3, "z", trailer)
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y)
+        SeaPearl.addVariable!(model, z; branchable=false)
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(y, z, trailer))
+        SeaPearl.addObjective!(model, z)
+
+        model.limit.numberOfSolutions = 1
+        status = SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection())
+        solution = model.statistics.solutions[1]
+        numberOfValuesToRemove = 0
+        objective = "z"
+
+        SeaPearl.destroy!(model, solution, numberOfValuesToRemove, objective)
+
+        # Check that all variables are bounded
+        @test SeaPearl.isbound(model.variables["x"]) && SeaPearl.isbound(model.variables["y"]) 
+        # Check that the model has been reset
+        @test isempty(model.statistics.solutions)
+        # Check that the objective variable has been pruned
+        @test 3 ∉ model.variables["z"].domain
+
     end
 
     
