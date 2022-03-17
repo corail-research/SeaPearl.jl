@@ -17,6 +17,7 @@ With `repairLimits' one can fix limits (numberOfNodes, numberOfSolutions, search
 Example: SeaPearl.solve!(model, SeaPearl.LNSearch(limitValuesToRemove=5, repairSearch=SeaPearl.ILDS(1), repairLimits=Dict("searchingTime" => 10)); ...)
 """
 Base.@kwdef struct LNSearch <: SearchStrategy 
+    seed::Union{Nothing, Int} = nothing
     limitValuesToRemove::Union{Nothing, Int} = nothing
     limitIterNoImprovement::Int64 = 100
     repairSearch::SearchStrategy = DFSearch()

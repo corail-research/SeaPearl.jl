@@ -1,4 +1,5 @@
 using StatsBase: sample
+using Random 
 
 """
 Used as a generic function to instantiate the research based on a specific Strategy <: SearchStrategy. 
@@ -23,6 +24,10 @@ function expandLns!(search::LNSearch, model::CPModel, variableHeuristic::Abstrac
     globalTimeLimit = model.limit.searchingTime 
     objective = model.objective.id
     optimalScoreLowerBound = model.variables[objective].domain.min.value
+
+    if !isnothing(search.seed)
+        Random.seed!(search.seed)
+    end
 
     ### Get first solution using DFS ###
 

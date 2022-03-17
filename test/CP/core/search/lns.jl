@@ -188,7 +188,7 @@
         status = SeaPearl.expandLns!(search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) 
         @test model.limit.searchingTime < 10
 
-        # Ensure that `limitValuesToRemove` is respected
+        # Ensure that `limitValuesToRemove` works properly
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
         model.limit.searchingTime = 3
@@ -204,7 +204,7 @@
         status = SeaPearl.expandLns!(search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) 
         @test status === :NonOptimal
 
-        # Ensure that `limitIterNoImprovement` is respected
+        # Ensure that `limitIterNoImprovement` works properly
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
         model.limit.searchingTime = 10
@@ -221,7 +221,7 @@
         @test status === :Optimal
         @test model.limit.searchingTime < 10
 
-        # Ensure that `repairLimits.numberOfNodes` is respected
+        # Ensure that `repairLimits.numberOfNodes` works properly
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
         model.limit.searchingTime = 2
@@ -237,7 +237,7 @@
         status = SeaPearl.expandLns!(search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) 
         @test model.limit.numberOfNodes == 150
 
-        # Ensure that `repairLimits.numberOfSolutions` is respected
+        # Ensure that `repairLimits.numberOfSolutions` works properly
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
         model.limit.searchingTime = 2
@@ -252,6 +252,94 @@
         search = SeaPearl.LNSearch(repairLimits=Dict("numberOfSolutions" => 150), limitIterNoImprovement=10, limitValuesToRemove = 2)
         status = SeaPearl.expandLns!(search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) 
         @test model.limit.numberOfSolutions == 150
+
+        # Ensure that `seed` works properly
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+        model.limit.searchingTime = 2
+
+        x = SeaPearl.IntVar(1, 2, "x", trailer)
+        y = SeaPearl.IntVar(1, 2, "y", trailer)
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y)
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addObjective!(model, x)
+
+        search = SeaPearl.LNSearch(limitIterNoImprovement=5, limitValuesToRemove = 2, seed=10)
+        status = SeaPearl.expandLns!(search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic())
+        
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+        model.limit.searchingTime = 2
+
+        x = SeaPearl.IntVar(1, 2, "x", trailer)
+        y = SeaPearl.IntVar(1, 2, "y", trailer)
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y)
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addObjective!(model, x)
+
+        search = SeaPearl.LNSearch(limitIterNoImprovement=5, limitValuesToRemove = 2, seed=10)
+        status = SeaPearl.expandLns!(search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic())
+
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+        model.limit.searchingTime = 2
+
+        x = SeaPearl.IntVar(1, 2, "x", trailer)
+        y = SeaPearl.IntVar(1, 2, "y", trailer)
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y)
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addObjective!(model, x)
+
+        search = SeaPearl.LNSearch(limitIterNoImprovement=5, limitValuesToRemove = 2, seed=683)
+        status = SeaPearl.expandLns!(search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic())
+
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+        model.limit.searchingTime = 2
+
+        x = SeaPearl.IntVar(1, 2, "x", trailer)
+        y = SeaPearl.IntVar(1, 2, "y", trailer)
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y)
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addObjective!(model, x)
+
+        search = SeaPearl.LNSearch(limitIterNoImprovement=5, limitValuesToRemove = 2, seed=683)
+        status = SeaPearl.expandLns!(search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic())
+
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+        model.limit.searchingTime = 2
+
+        x = SeaPearl.IntVar(1, 2, "x", trailer)
+        y = SeaPearl.IntVar(1, 2, "y", trailer)
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y)
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addObjective!(model, x)
+
+        search = SeaPearl.LNSearch(limitIterNoImprovement=5, limitValuesToRemove = 2)
+        status = SeaPearl.expandLns!(search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic())
+
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+        model.limit.searchingTime = 2
+
+        x = SeaPearl.IntVar(1, 2, "x", trailer)
+        y = SeaPearl.IntVar(1, 2, "y", trailer)
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y)
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addObjective!(model, x)
+
+        search = SeaPearl.LNSearch(limitIterNoImprovement=5, limitValuesToRemove = 2)
+        status = SeaPearl.expandLns!(search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic())
+
+        
+
 
     end
 
