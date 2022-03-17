@@ -28,10 +28,11 @@ function expandLns!(search::LNSearch, model::CPModel, variableHeuristic::Abstrac
 
     model.limit.numberOfSolutions = 1
     status = search!(model, DFSearch(), variableHeuristic, valueSelection)
+    model.limit.numberOfSolutions = nothing
+    model.limit.searchingTime = nothing
     if status ∈ [:TimeLimitStop, :Infeasible, :Optimal]
         return status
     end
-    model.limit.numberOfSolutions = nothing
     currentSolution = model.statistics.solutions[findfirst(e -> !isnothing(e), model.statistics.solutions)]
     bestSolution = currentSolution
     
@@ -54,27 +55,26 @@ function expandLns!(search::LNSearch, model::CPModel, variableHeuristic::Abstrac
     repairSearch = search.repairSearch
 
     # Limits for repairing search (set by user or nothing by default)
-    model.limit.searchingTime = nothing
     if !isnothing(search.repairLimits)
         for (key, value) in search.repairLimits
             setfield!(model.limit, Symbol(key), value)
         end
     end
-    localTimeLimit = model.limit.searchingTime
+    localSearchTimeLimit = model.limit.searchingTime
 
     ### Destroy and repair loop ###
 
     while (isnothing(globalTimeLimit) || peektimer() < globalTimeLimit) && bestSolution[objective] > upperBoundOptimalScore
         # Update searchingTime to ensure that time limits are respected
         if !isnothing(globalTimeLimit) 
-            if !isnothing(localTimeLimit) 
-                model.limit.searchingTime = min(convert(Int64, round(globalTimeLimit - peektimer())), localTimeLimit)
+            if !isnothing(localSearchTimeLimit) 
+                model.limit.searchingTime = min(convert(Int64, round(globalTimeLimit - peektimer())), localSearchTimeLimit)
             else
                 model.limit.searchingTime = convert(Int64, round(globalTimeLimit - peektimer()))
             end
         end
 
-        tempSolution = repair(destroy(model, currentSolution, numberOfValuesToRemove, objective), repairSearch, objective, variableHeuristic, valueSelection)
+        tempSolution = repair!(destroy!(model, currentSolution, numberOfValuesToRemove, objective), repairSearch, objective, variableHeuristic, valueSelection)
 
         nbIterNoImprovement += 1
         if search.limitIterNoImprovement ≤ nbIterNoImprovement && numberOfValuesToRemove < limitValuesToRemove
@@ -118,7 +118,7 @@ end
 """
 Use the `repairSearch` to try to repair the destoyed solution 
 """
-function repair(model, repairSearch, objective, variableHeuristic, valueSelection)
+function repair!(model, repairSearch, objective, variableHeuristic, valueSelection)
     search!(model, repairSearch, variableHeuristic, valueSelection)
     solutions = filter(e -> !isnothing(e), model.statistics.solutions)
 
@@ -135,7 +135,7 @@ end
 """
 Reset to initial state `numberOfValuesToRemove` branchable variables and prune the objective domain to force the search for a better solution
 """
-function destroy(model, solution, numberOfValuesToRemove, objective)
+function destroy!(model, solution, numberOfValuesToRemove, objective)
     
     # Reset model
     objectiveBound = solution[objective] - 1

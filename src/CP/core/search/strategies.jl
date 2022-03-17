@@ -12,6 +12,7 @@ struct LNSearch <: SearchStrategy
 implements the basic version of the Large Neighboorhood Search.
 The number of values to remove in each destroy and repair loop is initialised to 1 and increase by 1 after `limitIterNoImprovement` iterations 
 with no improvement until `limitValuesToRemove` is reached. `limitValuesToRemove` will be set to half of the branching variables by default.
+With `repairLimits' one can fix limits (numberOfNodes, numberOfSolutions, searchingTime) that will be applied to the model used in the local search.
 Example: SeaPearl.solve!(model, SeaPearl.LNSearch(limitValuesToRemove=5, repairSearch=SeaPearl.ILDS(1), repairLimits=Dict("searchingTime" => 10)); ...)
 """
 Base.@kwdef struct LNSearch <: SearchStrategy 
