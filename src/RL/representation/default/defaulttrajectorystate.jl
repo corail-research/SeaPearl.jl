@@ -21,8 +21,7 @@ DefaultTrajectoryState(sr::AbstractStateRepresentation) = throw(ErrorException("
 
 The batched version of the `DefaultTrajectoryState`.
 
-It contains all the information that would be stored in a `FeaturedGraph` but reorganised to enable simultaneous 
-computation on a few graphs.
+It contains all the information that would be stored in a `FeaturedGraph` but reorganised to enable simultaneous computation on a few graphs.
 """
 Base.@kwdef struct BatchedDefaultTrajectoryState{T} <: NonTabularTrajectoryState
     fg::BatchedFeaturedGraph{T}
