@@ -343,7 +343,107 @@
 
     end
 
-    
+    @testset "repair()" begin
+
+        ### Get optimal solution ###
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+        x = SeaPearl.IntVar(1, 3, "x", trailer)
+        y = SeaPearl.IntVar(1, 3, "y", trailer)
+        z = SeaPearl.IntVar(1, 3, "z", trailer)
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y)
+        SeaPearl.addVariable!(model, z; branchable=false)
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(y, z, trailer))
+        SeaPearl.addObjective!(model, z)
+
+        variableHeuristic = SeaPearl.MinDomainVariableSelection()
+        valueSelection = SeaPearl.BasicHeuristic()
+        model.limit.numberOfSolutions = 1
+        status = SeaPearl.search!(model, SeaPearl.DFSearch(), variableHeuristic)
+        model.limit.numberOfSolutions = nothing
+        solution = model.statistics.solutions[1]
+        # All branchable variables are removed so that repair!() can find the optimal solution
+        numberOfValuesToRemove = 2
+        objective = "z"
+
+        SeaPearl.destroy!(model, solution, numberOfValuesToRemove, objective)
+
+        repairSearch = SeaPearl.DFSearch()
+
+        solution = SeaPearl.repair!(model, repairSearch, objective, variableHeuristic, valueSelection)
+        
+        @test last(model.statistics.solutions)["z"] == 1
+        @test solution["z"] == 1
+
+        ### Get better solution but non optimal ###
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+        x = SeaPearl.IntVar(1, 3, "x", trailer)
+        y = SeaPearl.IntVar(1, 3, "y", trailer)
+        z = SeaPearl.IntVar(1, 3, "z", trailer)
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y)
+        SeaPearl.addVariable!(model, z; branchable=false)
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(y, z, trailer))
+        SeaPearl.addObjective!(model, z)
+
+        variableHeuristic = SeaPearl.MinDomainVariableSelection()
+        valueSelection = SeaPearl.BasicHeuristic()
+        model.limit.numberOfSolutions = 1
+        status = SeaPearl.search!(model, SeaPearl.DFSearch(), variableHeuristic)
+        model.limit.numberOfSolutions = nothing
+        solution = model.statistics.solutions[1]
+        numberOfValuesToRemove = 2
+        objective = "z"
+
+        SeaPearl.destroy!(model, solution, numberOfValuesToRemove, objective)
+
+        repairSearch = SeaPearl.DFSearch()
+        # Limit the search to one solution so that repair!() can find better solution but non optimal
+        model.limit.numberOfSolutions = 1
+
+        solution = SeaPearl.repair!(model, repairSearch, objective, variableHeuristic, valueSelection)
+        
+        @test last(model.statistics.solutions)["z"] == 2
+        @test solution["z"] == 2
+
+        ### No solution obtained ###
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+        x = SeaPearl.IntVar(1, 3, "x", trailer)
+        y = SeaPearl.IntVar(1, 3, "y", trailer)
+        z = SeaPearl.IntVar(1, 3, "z", trailer)
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y)
+        SeaPearl.addVariable!(model, z; branchable=false)
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(y, z, trailer))
+        SeaPearl.addObjective!(model, z)
+
+        variableHeuristic = SeaPearl.MinDomainVariableSelection()
+        valueSelection = SeaPearl.BasicHeuristic()
+        model.limit.numberOfSolutions = 1
+        status = SeaPearl.search!(model, SeaPearl.DFSearch(), variableHeuristic)
+        model.limit.numberOfSolutions = nothing
+        solution = model.statistics.solutions[1]
+        # Not all branchable variables are removed so that repair!() can find the optimal solution
+        numberOfValuesToRemove = 1
+        objective = "z"
+
+        SeaPearl.destroy!(model, solution, numberOfValuesToRemove, objective)
+
+        repairSearch = SeaPearl.DFSearch()
+
+        solution = SeaPearl.repair!(model, repairSearch, objective, variableHeuristic, valueSelection)
+        
+        @test isempty(filter(e -> !isnothing(e),model.statistics.solutions))
+        @test isnothing(solution)
+
+    end
+
     @testset "initroot(::LNSearch)" begin
         
         #:TimeLimitStop
