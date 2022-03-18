@@ -1,16 +1,34 @@
 using StatsBase: sample
 using Random 
+const Solution = Dict{String, Union{Int, Bool, Set{Int}}}
 
 """
+initroot!(toCall::Stack{Function}, search::LNSearch, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
+
 Used as a generic function to instantiate the research based on a specific Strategy <: SearchStrategy. 
+
+    # Arguments
+- toCall: In this search strategy, `toCall` is not used (an empty stack will be returned)
+- search: Object containing the parameters of the search strategy
+- model: CPModel to be solved
+- variableHeuristic: Variable selection method to be used in the search
+- valueSelection: Value selection method to be used in the search
 """
 function initroot!(toCall::Stack{Function}, search::LNSearch, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
     return expandLns!(search, model, variableHeuristic, valueSelection)
 end
 
 """
-This function make a Large Neighboorhood Search. As initial solution we use the first feasible solution found by a DFS. 
+expandLns!(search::LNSearch, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
+
+This function make a Large Neighbourhood Search. As initial solution we use the first feasible solution found by a DFS. 
 Then a destroy and repair loop tries to upgrade the current solution until some stop critiria.
+
+    # Arguments
+- search: Object containing the parameters of the search strategy
+- model: CPModel to be solved
+- variableHeuristic: Variable selection method to be used in the search
+- valueSelection: Value selection method to be used in the search
 """
 function expandLns!(search::LNSearch, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
 
@@ -22,8 +40,8 @@ function expandLns!(search::LNSearch, model::CPModel, variableHeuristic::Abstrac
 
     tic()
     globalTimeLimit = model.limit.searchingTime 
-    objective = model.objective.id
-    optimalScoreLowerBound = model.variables[objective].domain.min.value
+    objectiveId = model.objective.id
+    optimalScoreLowerBound = model.variables[objectiveId].domain.min.value
 
     if !isnothing(search.seed)
         Random.seed!(search.seed)
@@ -40,6 +58,7 @@ function expandLns!(search::LNSearch, model::CPModel, variableHeuristic::Abstrac
     end
     currentSolution = model.statistics.solutions[findfirst(e -> !isnothing(e), model.statistics.solutions)]
     bestSolution = currentSolution
+    println("first solution: ", bestSolution[objectiveId])
     
     ### Set parameters ###
     
@@ -69,7 +88,7 @@ function expandLns!(search::LNSearch, model::CPModel, variableHeuristic::Abstrac
 
     ### Destroy and repair loop ###
 
-    while (isnothing(globalTimeLimit) || peektimer() < globalTimeLimit) && bestSolution[objective] > optimalScoreLowerBound
+    while (isnothing(globalTimeLimit) || peektimer() < globalTimeLimit) && bestSolution[objectiveId] > optimalScoreLowerBound
         # Update searchingTime to ensure that time limits are respected
         if !isnothing(globalTimeLimit) 
             if !isnothing(localSearchTimeLimit) 
@@ -79,7 +98,7 @@ function expandLns!(search::LNSearch, model::CPModel, variableHeuristic::Abstrac
             end
         end
 
-        tempSolution = repair!(destroy!(model, currentSolution, numberOfValuesToRemove, objective), repairSearch, objective, variableHeuristic, valueSelection)
+        tempSolution = repair!(destroy!(model, currentSolution, numberOfValuesToRemove, objectiveId), repairSearch, objectiveId, variableHeuristic, valueSelection)
 
         nbIterNoImprovement += 1
         if search.limitIterNoImprovement ≤ nbIterNoImprovement && numberOfValuesToRemove < limitValuesToRemove
@@ -88,12 +107,13 @@ function expandLns!(search::LNSearch, model::CPModel, variableHeuristic::Abstrac
         end
 
         if !isnothing(tempSolution)
-            if accept(tempSolution, currentSolution, objective)
+            if accept(tempSolution, currentSolution, objectiveId)
                 currentSolution = tempSolution
                 nbIterNoImprovement = 0
             end
-            if compare(tempSolution, bestSolution, objective)
+            if compare(tempSolution, bestSolution, objectiveId)
                 bestSolution = tempSolution
+                println("better solution: ", bestSolution[objectiveId])
             end
         end
     end
@@ -103,34 +123,59 @@ function expandLns!(search::LNSearch, model::CPModel, variableHeuristic::Abstrac
         push!(model.statistics.solutions, bestSolution)
     end
 
-    return bestSolution[objective] > optimalScoreLowerBound ? :NonOptimal : :Optimal
+    return bestSolution[objectiveId] > optimalScoreLowerBound ? :NonOptimal : :Optimal
 end
 
 """
-Decide if we update the current solution with the neighboor solution get by destroy and repair (tempSolution)
+accept(tempSolution::Solution, currentSolution::Solution, objectiveId::String)
+
+Decide if we update the current solution with the neighbour solution get by destroy and repair (tempSolution).
+In this implementation, accept() and compare() have exactly the same behavior. In other versions of LNS, 
+accept() can be different (e.g. stochastic behavior as simulated annealing).
+
+    # Arguments
+- tempSolution: Solution found by the destroy and repair loop
+- currentSolution: Solution used as input in the destroy and repair loop 
+- objectiveId: Id of the objective variable
 """
-function accept(tempSolution, currentSolution, objective)
-    return tempSolution[objective] < currentSolution[objective]
+function accept(tempSolution::Solution, currentSolution::Solution, objectiveId::String)
+    return tempSolution[objectiveId] < currentSolution[objectiveId]
 end
 
 """
-Comparare the objective variable from tempSolution and bestSolution
+compare(tempSolution::Solution, bestSolution::Solution, objectiveId::String)
+
+Comparare the objective variable value from tempSolution and bestSolution
+
+    # Arguments
+- tempSolution: Solution given as output by the destroy and repair loop
+- bestSolution: Best solution found so far
+- objectiveId: Id of the objective variable
 """
-function compare(tempSolution, bestSolution, objective)
-    return tempSolution[objective] < bestSolution[objective]
+function compare(tempSolution::Solution, bestSolution::Solution, objectiveId::String)
+    return tempSolution[objectiveId] < bestSolution[objectiveId]
 end
 
 """
-Use the `repairSearch` to try to repair the destoyed solution 
+repair!(model::CPModel, repairSearch::SearchStrategy, objectiveId::String, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
+
+Use the `repairSearch` to try to repair the destoyed model 
+
+    # Arguments
+- model: CPModel with assigned and non-assigned variables
+- repairSearch: Search strategy to be applied to `model`
+- objectiveId: Id of the objective variable
+- variableHeuristic: Variable selection method to be used in the search
+- valueSelection: Value selection method to be used in the search
 """
-function repair!(model, repairSearch, objective, variableHeuristic, valueSelection)
+function repair!(model::CPModel, repairSearch::SearchStrategy, objectiveId::String, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
     search!(model, repairSearch, variableHeuristic, valueSelection)
     solutions = filter(e -> !isnothing(e), model.statistics.solutions)
 
     if isempty(solutions)
         toReturn = nothing
     else
-        scores = map(solution -> solution[objective], solutions)
+        scores = map(solution -> solution[objectiveId], solutions)
         bestSolution = solutions[findfirst(score -> score == Base.minimum(scores), scores)]
         toReturn = bestSolution
     end
@@ -138,12 +183,20 @@ function repair!(model, repairSearch, objective, variableHeuristic, valueSelecti
 end
 
 """
+destroy!(model::CPModel, solution::Solution, numberOfValuesToRemove::Int, objectiveId::String)
+
 Reset to initial state `numberOfValuesToRemove` branchable variables and prune the objective domain to force the search for a better solution
+
+    # Arguments
+- model: CPModel that will be reset and partially reconstructed with values from `solution`
+- solution: Dict{variable => value} containing a solution to the model
+- numberOfValuesToRemove: number of branchable variables to set to their initial state 
+- objectiveId: id of the objective variable
 """
-function destroy!(model, solution, numberOfValuesToRemove, objective)
+function destroy!(model::CPModel, solution::Solution, numberOfValuesToRemove::Int, objectiveId::String)
     
     # Reset model
-    objectiveBound = solution[objective] - 1
+    objectiveBound = solution[objectiveId] - 1
     SeaPearl.reset_model!(model)
 
     # Get variable fixed by current solution
@@ -159,7 +212,7 @@ function destroy!(model, solution, numberOfValuesToRemove, objective)
     end
 
     # Pruning the objective domain to force the search for a better solution
-    objectiveVariable = vars[findfirst(e -> e.id == objective, vars)]
+    objectiveVariable = vars[findfirst(e -> e.id == objectiveId, vars)]
     SeaPearl.removeAbove!(objectiveVariable.domain, objectiveBound)
 
     return model
