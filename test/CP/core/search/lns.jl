@@ -3,7 +3,7 @@
 
         ### Testing returned value ###
 
-        #:TimeLimitStop
+        ## :TimeLimitStop
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
         model.limit.searchingTime = 0
@@ -16,7 +16,7 @@
         SeaPearl.tic()
         @test SeaPearl.expandLns!(search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :TimeLimitStop
 
-        # :Infeasible
+        ## :Infeasible
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
         
@@ -24,13 +24,14 @@
         y = SeaPearl.IntVar(3, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
+        # With this constraint, there is no solution to the model
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer)) 
         SeaPearl.addObjective!(model, x)
 
         search = SeaPearl.LNSearch()
         @test SeaPearl.expandLns!(search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Infeasible
 
-        # :Optimal
+        ## :Optimal
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
         
@@ -38,13 +39,14 @@
         y = SeaPearl.IntVar(2, 2, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
+        # With this constraint, there is only one solution to the model
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer)) 
         SeaPearl.addObjective!(model, x)
 
         search = SeaPearl.LNSearch()
         @test SeaPearl.expandLns!(search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Optimal
 
-        # :NonOptimal
+        ## :NonOptimal
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
         
@@ -56,12 +58,13 @@
         SeaPearl.addObjective!(model, x)
         model.limit.searchingTime = 1
 
-        search = SeaPearl.LNSearch(repairLimits=Dict("searchingTime" => 0))
+        # Not allowing the destroy and repair loop to improve the starting solution
+        search = SeaPearl.LNSearch(repairLimits=Dict("searchingTime" => 0)) 
         @test SeaPearl.expandLns!(search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :NonOptimal
 
         ### Test AssertionError ###
 
-        # Ensure that model has objective
+        ## Ensure that model has objective
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
 
@@ -71,7 +74,7 @@
         search = SeaPearl.LNSearch()
         @test_throws AssertionError SeaPearl.expandLns!(search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic())
 
-        # Ensure that model hasn't a limit in numberOfNodes
+        ## Ensure that model hasn't a limit in numberOfNodes
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
         model.limit.numberOfNodes = 1000
@@ -83,7 +86,7 @@
         search = SeaPearl.LNSearch()
         @test_throws AssertionError SeaPearl.expandLns!(search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic())
 
-        # Ensure that model hasn't a limit in numberOfSolutions
+        ## Ensure that model hasn't a limit in numberOfSolutions
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
         model.limit.numberOfSolutions = 100
@@ -95,7 +98,7 @@
         search = SeaPearl.LNSearch()
         @test_throws AssertionError SeaPearl.expandLns!(search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic())
 
-        # Ensure that: search.limitIterNoImprovement ≥ 1
+        ## Ensure that: search.limitIterNoImprovement ≥ 1
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
 
@@ -106,7 +109,7 @@
         search = SeaPearl.LNSearch(limitIterNoImprovement=0)
         @test_throws AssertionError SeaPearl.expandLns!(search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic())
 
-        # Ensure that: search.limitValuesToRemove ≤ count(values(model.branchable))
+        ## Ensure that: search.limitValuesToRemove ≤ count(values(model.branchable))
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
 
@@ -123,7 +126,7 @@
 
         ### Test arguments ###
 
-        # Ensure that time limits passed as argument are correctly managed (localSearchTimeLimit)
+        ## Ensure that time limits passed as argument are correctly managed (localSearchTimeLimit)
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
     
@@ -138,7 +141,7 @@
         status = SeaPearl.expandLns!(search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) 
         @test model.limit.searchingTime == 1
 
-        # Ensure that time limits passed as argument are correctly managed (globalTimeLimit)
+        ## Ensure that time limits passed as argument are correctly managed (globalTimeLimit)
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
         model.limit.searchingTime = 2
@@ -152,9 +155,10 @@
 
         search = SeaPearl.LNSearch()
         status = SeaPearl.expandLns!(search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) 
-        @test model.limit.searchingTime < 2
+        # Because `searchingTime` is updated in each loop to ensure that time limits are respected
+        @test model.limit.searchingTime < 2 
 
-        # Ensure that time limits passed as argument are correctly managed (nothing)
+        ## Ensure that time limits passed as argument are correctly managed (nothing)
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
 
@@ -169,7 +173,7 @@
         status = SeaPearl.expandLns!(search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) 
         @test model.limit.searchingTime === nothing
 
-        # Ensure that time limits passed as argument are correctly managed (localSearchTimeLimit and globalTimeLimit)
+        ## Ensure that time limits passed as argument are correctly managed (localSearchTimeLimit and globalTimeLimit)
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
         model.limit.searchingTime = 10
@@ -186,9 +190,10 @@
         
         search = SeaPearl.LNSearch(limitIterNoImprovement=20000, limitValuesToRemove = 3, repairLimits=Dict("searchingTime" => 10))
         status = SeaPearl.expandLns!(search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) 
-        @test model.limit.searchingTime < 10
+        # 20000*2 iterations takes at least 1s, then we reach limitValuesToRemove=3 and the optimal solution is found
+        @test model.limit.searchingTime < 10 
 
-        # Ensure that `limitValuesToRemove` works properly
+        ## Ensure that `limitValuesToRemove` works properly
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
         model.limit.searchingTime = 3
@@ -200,11 +205,12 @@
         SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
         SeaPearl.addObjective!(model, x)
 
-        search = SeaPearl.LNSearch(limitValuesToRemove = 1)
+        search = SeaPearl.LNSearch(limitValuesToRemove = 1) 
         status = SeaPearl.expandLns!(search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) 
-        @test status === :NonOptimal
+        # Because of limitValuesToRemove=1 and the equal constraint, local search will never improve the starting solution
+        @test status === :NonOptimal 
 
-        # Ensure that `limitIterNoImprovement` works properly
+        ## Ensure that `limitIterNoImprovement` works properly
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
         model.limit.searchingTime = 10
@@ -219,9 +225,10 @@
         search = SeaPearl.LNSearch(limitIterNoImprovement=40000, limitValuesToRemove = 2)
         status = SeaPearl.expandLns!(search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) 
         @test status === :Optimal
-        @test model.limit.searchingTime < 10
+        # 40000 iterations takes at least 1s, then we reach limitValuesToRemove=2 and the optimal solution is found
+        @test model.limit.searchingTime < 10 
 
-        # Ensure that `repairLimits.numberOfNodes` works properly
+        ## Ensure that `repairLimits.numberOfNodes` works properly
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
         model.limit.searchingTime = 2
@@ -237,7 +244,7 @@
         status = SeaPearl.expandLns!(search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) 
         @test model.limit.numberOfNodes == 150
 
-        # Ensure that `repairLimits.numberOfSolutions` works properly
+        ## Ensure that `repairLimits.numberOfSolutions` works properly
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
         model.limit.searchingTime = 2
@@ -278,7 +285,7 @@
 
         SeaPearl.destroy!(model, solution, numberOfValuesToRemove, objective)
 
-        # Check that 1 variable has been reassign and the other is unbounded
+        # Check that 1 variable has been reassign (i.e. is bounded) and the other is unbounded
         @test SeaPearl.isbound(model.variables["x"]) != SeaPearl.isbound(model.variables["y"]) 
         # Check that the model has been reset
         @test isempty(model.statistics.solutions)
@@ -429,7 +436,7 @@
         status = SeaPearl.search!(model, SeaPearl.DFSearch(), variableHeuristic)
         model.limit.numberOfSolutions = nothing
         solution = model.statistics.solutions[1]
-        # Not all branchable variables are removed so that repair!() can find the optimal solution
+        # Not all branchable variables are removed so that repair!() can't find the optimal solution
         numberOfValuesToRemove = 1
         objective = "z"
 
@@ -446,7 +453,7 @@
 
     @testset "initroot(::LNSearch)" begin
         
-        #:TimeLimitStop
+        ## :TimeLimitStop
         toCall = Stack{Function}()
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
@@ -460,7 +467,7 @@
         SeaPearl.tic()
         @test SeaPearl.initroot!(toCall, search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :TimeLimitStop
 
-        # :Infeasible
+        ## :Infeasible
         toCall = Stack{Function}()
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
@@ -469,13 +476,14 @@
         y = SeaPearl.IntVar(3, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
+        # With this constraint, there is no solution to the model
         SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
         SeaPearl.addObjective!(model, x)
 
         search = SeaPearl.LNSearch()
         @test SeaPearl.initroot!(toCall, search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Infeasible
 
-        # :Optimal
+        ## :Optimal
         toCall = Stack{Function}()
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
@@ -484,13 +492,14 @@
         y = SeaPearl.IntVar(2, 2, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
+        # With this constraint, there is only one solution to the model
         SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
         SeaPearl.addObjective!(model, x)
 
         search = SeaPearl.LNSearch()
         @test SeaPearl.initroot!(toCall, search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Optimal
 
-        # :NonOptimal
+        ## :NonOptimal
         toCall = Stack{Function}()
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
@@ -503,6 +512,7 @@
         SeaPearl.addObjective!(model, x)
         model.limit.searchingTime = 1
 
+        # Not allowing the destroy and repair loop to improve the starting solution
         search = SeaPearl.LNSearch(repairLimits=Dict("searchingTime" => 0))
         @test SeaPearl.initroot!(toCall, search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :NonOptimal
 
@@ -510,7 +520,7 @@
 
     @testset "search!(::LNSearch)" begin
         
-        #:TimeLimitStop
+        ## :TimeLimitStop
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
         model.limit.searchingTime = 0
@@ -523,7 +533,7 @@
         SeaPearl.tic()
         @test SeaPearl.search!(model, search, SeaPearl.MinDomainVariableSelection()) == :TimeLimitStop
 
-        # :Infeasible
+        ## :Infeasible
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
         
@@ -531,15 +541,14 @@
         y = SeaPearl.IntVar(3, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
+        # With this constraint, there is no solution to the model
         SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
         SeaPearl.addObjective!(model, x)
 
         search = SeaPearl.LNSearch()
         @test SeaPearl.search!(model, search, SeaPearl.MinDomainVariableSelection()) == :Infeasible
-
-        # TODO add :Optimal option for LNS?
     
-        # :NonOptimal
+        ## :NonOptimal
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
         
@@ -551,6 +560,7 @@
         SeaPearl.addObjective!(model, x)
         model.limit.searchingTime = 1
 
+        # Not allowing the destroy and repair loop to improve the starting solution
         search = SeaPearl.LNSearch(repairLimits=Dict("searchingTime" => 0))
         @test SeaPearl.search!(model, search, SeaPearl.MinDomainVariableSelection()) == :NonOptimal
 
@@ -558,7 +568,7 @@
 
     @testset "search!(::LNSearch) with a BasicHeuristic" begin
         
-        #:TimeLimitStop
+        ## :TimeLimitStop
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
         model.limit.searchingTime = 0
@@ -571,7 +581,7 @@
         SeaPearl.tic()
         @test SeaPearl.search!(model, search, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :TimeLimitStop
 
-        # :Infeasible
+        ## :Infeasible
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
         
@@ -579,15 +589,14 @@
         y = SeaPearl.IntVar(3, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
+        # With this constraint, there is no solution to the model
         SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
         SeaPearl.addObjective!(model, x)
 
         search = SeaPearl.LNSearch()
         @test SeaPearl.search!(model, search, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Infeasible
-
-        # TODO add :Optimal option for LNS?
     
-        # :NonOptimal
+        ## :NonOptimal
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
         
@@ -599,6 +608,7 @@
         SeaPearl.addObjective!(model, x)
         model.limit.searchingTime = 1
 
+        # Not allowing the destroy and repair loop to improve the starting solution
         search = SeaPearl.LNSearch(repairLimits=Dict("searchingTime" => 0))
         @test SeaPearl.search!(model, search, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :NonOptimal
 

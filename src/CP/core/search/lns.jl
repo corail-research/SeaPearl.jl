@@ -58,8 +58,7 @@ function expandLns!(search::LNSearch, model::CPModel, variableHeuristic::Abstrac
     end
     currentSolution = model.statistics.solutions[findfirst(e -> !isnothing(e), model.statistics.solutions)]
     bestSolution = currentSolution
-    println("first solution: ", bestSolution[objectiveId])
-    
+
     ### Set parameters ###
     
     # `numberOfValuesToRemove` is initialised to 1 and increase by 1 after `limitIterNoImprovement` iterations 
@@ -113,7 +112,6 @@ function expandLns!(search::LNSearch, model::CPModel, variableHeuristic::Abstrac
             end
             if compare(tempSolution, bestSolution, objectiveId)
                 bestSolution = tempSolution
-                println("better solution: ", bestSolution[objectiveId])
             end
         end
     end
