@@ -1,7 +1,7 @@
 """
     abstract type AbstractEvaluator end
 
-Used to define any Evaluator. An Evaluator is an object that will be called during training to evaluate the performance of a LearnedHeuristic object on CP instances.
+Used to define any Evaluator. An Evaluator is an object that will be called during training to evaluate the performance of multiple heuristics on CP instances.
 """
 abstract type AbstractEvaluator end
 
@@ -45,6 +45,13 @@ function SameInstancesEvaluator(valueSelectionArray::Array{H, 1}, generator::Abs
     SameInstancesEvaluator(instances, metrics, max(1,evalFreq), nbInstances, size(valueSelectionArray,1))
 end
 
+function Base.empty!(eval::SameInstancesEvaluator)
+    for i in 1:eval.nbInstances
+        for j in 1:eval.nbHeuristics
+            eval.metrics[i,j]=BasicMetrics(eval.instances[i],eval.metrics[i,j].heuristic; meanOver=1)
+        end 
+    end
+end
 """
     function evaluate(eval::SameInstancesEvaluator, variableHeuristic::AbstractVariableSelection, strategy::S; verbose::Bool=true) where{S<:SearchStrategy}
 

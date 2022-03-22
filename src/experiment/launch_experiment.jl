@@ -54,15 +54,19 @@ function launch_experiment!(
         end
     end 
 
+    empty!(model)
+    fill_with_generator!(model, generator)
+    !isnothing(evaluator) && evaluate(evaluator, variableHeuristic, eval_strategy; verbose = verbose)    #false evaluation used to compile the evaluate function that was previously compiled during first "true" evaluation virtually distorting 1st eval computing time
+    empty!(evaluator)
+
     iter = ProgressBar(1:nbEpisodes)
     for i in iter
     #for i in 1:nbEpisodes
         verbose && println(" --- EPISODE: ", i)
 
         empty!(model)
-
         fill_with_generator!(model, generator)
-
+        
         for j in 1:nbHeuristics
             reset_model!(model)
             if isa(valueSelectionArray[j], LearnedHeuristic)
@@ -77,7 +81,7 @@ function launch_experiment!(
             verbose && println()
             end
         end
-        
+
         if !isnothing(evaluator) && (i % evaluator.evalFreq == 1)
             evaluate(evaluator, variableHeuristic, eval_strategy; verbose = verbose)
         end
