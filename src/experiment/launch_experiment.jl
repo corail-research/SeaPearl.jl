@@ -72,13 +72,12 @@ function launch_experiment!(
                 search!(model, strategy, variableHeuristic, valueSelectionArray[j], out_solver=out_solver)
 
                 verbose && print(model.statistics.numberOfNodesBeforeRestart, ": ",model.statistics.numberOfSolutions, "(",model.statistics.AccumulatedRewardBeforeRestart,") / ")
-            end 
+                end 
             metricsArray[j](model,dt)  #adding results in the metrics data structure
             verbose && println()
-
-
+            end
         end
-
+        
         if !isnothing(evaluator) && (i % evaluator.evalFreq == 1)
             evaluate(evaluator, variableHeuristic, eval_strategy; verbose = verbose)
         end
