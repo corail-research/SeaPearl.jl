@@ -1,6 +1,6 @@
 using StatsBase: sample
 using Random 
-const Solution = Dict{String, Union{Int, Bool, Set{Int}}}
+Solution = Dict{String, Union{Int, Bool, Set{Int}}}
 
 """
 initroot!(toCall::Stack{Function}, search::LNSearch, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
@@ -85,6 +85,10 @@ function expandLns!(search::LNSearch, model::CPModel, variableHeuristic::Abstrac
     end
     localSearchTimeLimit = model.limit.searchingTime
 
+    # Get constants from `model`
+    branchableVariablesId = collect(filter(e -> model.branchable[e], keys(model.branchable)))
+    nbBranchableVariables = count(values(model.branchable))
+
     ### Destroy and repair loop ###
 
     while (isnothing(globalTimeLimit) || peektimer() < globalTimeLimit) && bestSolution[objectiveId] > optimalScoreLowerBound
@@ -97,7 +101,10 @@ function expandLns!(search::LNSearch, model::CPModel, variableHeuristic::Abstrac
             end
         end
 
-        tempSolution = repair!(destroy!(model, currentSolution, numberOfValuesToRemove, objectiveId), repairSearch, objectiveId, variableHeuristic, valueSelection)
+        # Get variable fixed by current solution
+        varsToSet = sample(branchableVariablesId, nbBranchableVariables - numberOfValuesToRemove; replace=false)
+
+        tempSolution = repair!(destroy!(model, currentSolution, varsToSet, objectiveId), repairSearch, objectiveId, variableHeuristic, valueSelection)
 
         nbIterNoImprovement += 1
         if search.limitIterNoImprovement ≤ nbIterNoImprovement && numberOfValuesToRemove < limitValuesToRemove
@@ -188,29 +195,23 @@ Reset to initial state `numberOfValuesToRemove` branchable variables and prune t
     # Arguments
 - model: CPModel that will be reset and partially reconstructed with values from `solution`
 - solution: Dict{variable => value} containing a solution to the model
-- numberOfValuesToRemove: number of branchable variables to set to their initial state 
+- varsToSet: vector containing the IDs of the branchable variables to set to their initial state 
 - objectiveId: id of the objective variable
 """
-function destroy!(model::CPModel, solution::Solution, numberOfValuesToRemove::Int, objectiveId::String)
+function destroy!(model::CPModel, solution::Solution, varsToSet::Vector{String}, objectiveId::String)
     
     # Reset model
     objectiveBound = solution[objectiveId] - 1
     SeaPearl.reset_model!(model)
 
-    # Get variable fixed by current solution
-    vars = collect(values(model.variables))
-    branchableVariablesId = collect(filter(e -> model.branchable[e], keys(model.branchable)))
-    varsToSet = sample(branchableVariablesId, count(values(model.branchable)) - numberOfValuesToRemove; replace=false)
-
     # Fix some variables as in current solution
     for var in varsToSet
-        variable = vars[findfirst(e -> e.id == var, vars)]
         value = solution[var]
-        SeaPearl.assign!(variable, value)
+        SeaPearl.assign!(model.variables[var], value)
     end
 
     # Pruning the objective domain to force the search for a better solution
-    objectiveVariable = vars[findfirst(e -> e.id == objectiveId, vars)]
+    objectiveVariable = model.variables[objectiveId]
     SeaPearl.removeAbove!(objectiveVariable.domain, objectiveBound)
 
     return model
