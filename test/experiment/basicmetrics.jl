@@ -251,4 +251,51 @@ agent = RL.Agent(
         @test metrics.meanNodeVisitedUntilEnd == [0.0, 2.5, 5.0, 7.5, 10.0]
 
     end
+
+    @testset "repeatlast!" begin
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+        basicheuristic = SeaPearl.BasicHeuristic()
+        
+        x = SeaPearl.IntVar(2, 3, "x", trailer)
+        y = SeaPearl.IntVar(2, 3, "y", trailer)
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y)
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addObjective!(model,y)
+
+        metrics  = SeaPearl.BasicMetrics(model, basicheuristic)
+        print(typeof(metrics))
+        dt = @elapsed SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection(), basicheuristic) 
+        
+        metrics(model,dt)
+
+        @test isempty(metrics.nodeVisited) == false
+        @test isempty(metrics.scores) == false 
+        @test metrics.nbEpisodes == 1 
+        @test size(metrics.nodeVisited,1) == 1
+        @test size(metrics.meanNodeVisitedUntilEnd,1) == 1
+        @test size(metrics.meanNodeVisitedUntilfirstSolFound,1) == 1
+        @test size(metrics.timeneeded,1) == 1
+        @test size(metrics.scores,1) == 1
+        
+        SeaPearl.repeatlast!(metrics)
+
+        @test isempty(metrics.nodeVisited) == false
+        @test isempty(metrics.scores) == false 
+        @test metrics.nbEpisodes == 2
+
+        @test size(metrics.nodeVisited,1) == 2
+        @test size(metrics.meanNodeVisitedUntilEnd,1) == 2
+        @test size(metrics.meanNodeVisitedUntilfirstSolFound,1) == 2
+        @test size(metrics.timeneeded,1) == 2
+        @test size(metrics.scores,1) == 2
+
+        @test metrics.nodeVisited[1] == metrics.nodeVisited[2]
+        @test metrics.meanNodeVisitedUntilEnd[1] == metrics.meanNodeVisitedUntilEnd[2]
+        @test metrics.meanNodeVisitedUntilfirstSolFound[1] == metrics.meanNodeVisitedUntilfirstSolFound[2]
+        @test metrics.timeneeded[1] == metrics.timeneeded[2]
+        @test metrics.scores[1] == metrics.scores[2]
+        
+    end
 end
