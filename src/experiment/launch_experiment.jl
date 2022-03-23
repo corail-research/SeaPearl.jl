@@ -37,6 +37,7 @@ function launch_experiment!(
         metrics::Union{Nothing, AbstractMetrics}=nothing,
         evaluator::Union{Nothing, AbstractEvaluator}=SameInstancesEvaluator(valueSelectionArray,generator),
         restartPerInstances::Int64,
+        rngTraining::AbstractRNG,
     ) where{T <: ValueSelection, S1,S2 <: SearchStrategy}
 
     nbHeuristics = length(valueSelectionArray)
@@ -56,8 +57,11 @@ function launch_experiment!(
 
     empty!(model)
     fill_with_generator!(model, generator)
-    !isnothing(evaluator) && evaluate(evaluator, variableHeuristic, eval_strategy; verbose = verbose)    #false evaluation used to compile the evaluate function that was previously compiled during first "true" evaluation virtually distorting 1st eval computing time
-    empty!(evaluator)
+    #false evaluation used to compile the evaluate function that was previously compiled during first "true" evaluation virtually distorting 1st eval computing time
+    if !isnothing(evaluator) 
+        evaluate(evaluator, variableHeuristic, eval_strategy; verbose = verbose)
+        empty!(evaluator)
+    end
 
     iter = ProgressBar(1:nbEpisodes)
     for i in iter
@@ -65,7 +69,7 @@ function launch_experiment!(
         verbose && println(" --- EPISODE: ", i)
 
         empty!(model)
-        fill_with_generator!(model, generator)
+        fill_with_generator!(model, generator; rng = rngTraining)
         
         for j in 1:nbHeuristics
             reset_model!(model)
