@@ -40,7 +40,6 @@ adj_single_vertex =   T[0. 0. 0. 1.;
         @test size(SeaPearl.edge_feature(fg_)) == (out_channel_e, N, N)
 
         g = Zygote.gradient(x -> sum(SeaPearl.node_feature(ft_layer(x))), fg)[1]
-        print(typeof(g))
         @test size(g.nf) == size(nf)
 
         ft_layer2 = SeaPearl.EdgeFtLayer(out_channel_v=>10, out_channel_e=>4)
