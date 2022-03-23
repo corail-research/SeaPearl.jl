@@ -43,7 +43,7 @@ end
 BasicMetrics(model::CPModel, heuristic::ValueSelection; meanOver=1) = BasicMetrics{(!isnothing(model.objective)) ? TakeObjective : DontTakeObjective ,typeof(heuristic)}(heuristic,meanOver)
 
 """
-    function (metrics<:BasicMetrics)(model::CPModel,dt::Float64)
+    function (metrics::BasicMetrics)(model::CPModel, dt::Float64)
 
 The function is called after a search on a Constraint Programming Model.
 It updates all the metrics during the search.
@@ -52,8 +52,9 @@ function (metrics::BasicMetrics{DontTakeObjective, <:BasicHeuristic})(model::CPM
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
     push!(metrics.meanNodeVisitedUntilEnd,model.statistics.numberOfNodes)
-    if ! isempty(model.statistics.nodevisitedpersolution)    #infeasible case
-        push!(metrics.meanNodeVisitedUntilfirstSolFound,model.statistics.nodevisitedpersolution[1])
+    if ! isempty(model.statistics.nodevisitedpersolution)
+        index = findall(!isnothing, model.statistics.solutions)[1]  #return the index of the first solution
+        push!(metrics.meanNodeVisitedUntilfirstSolFound,model.statistics.nodevisitedpersolution[index])
     end    
     push!(metrics.timeneeded,dt)
     return
@@ -64,7 +65,8 @@ function (metrics::BasicMetrics{TakeObjective, <:BasicHeuristic})(model::CPModel
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
     push!(metrics.meanNodeVisitedUntilEnd,model.statistics.numberOfNodes)
     if ! isempty(model.statistics.nodevisitedpersolution)    #infeasible case
-        push!(metrics.meanNodeVisitedUntilfirstSolFound,model.statistics.nodevisitedpersolution[1])
+        index = findall(!isnothing, model.statistics.solutions)[1]  #return the index of the first solution
+        push!(metrics.meanNodeVisitedUntilfirstSolFound,model.statistics.nodevisitedpersolution[index])
     end
     push!(metrics.timeneeded,dt)
     if ! isempty(model.statistics.objectives)
@@ -78,7 +80,8 @@ function (metrics::BasicMetrics{DontTakeObjective, <:LearnedHeuristic})(model::C
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
     push!(metrics.meanNodeVisitedUntilEnd,model.statistics.numberOfNodes)
     if ! isempty(model.statistics.nodevisitedpersolution)    #infeasible case
-        push!(metrics.meanNodeVisitedUntilfirstSolFound,model.statistics.nodevisitedpersolution[1])
+        index = findall(!isnothing, model.statistics.solutions)[1]  #return the index of the first solution    
+        push!(metrics.meanNodeVisitedUntilfirstSolFound,model.statistics.nodevisitedpersolution[index])
     end
     push!(metrics.timeneeded,dt)
     push!(metrics.totalReward,last_episode_total_reward(metrics.heuristic.agent.trajectory))
@@ -92,7 +95,8 @@ function (metrics::BasicMetrics{TakeObjective, <:LearnedHeuristic})(model::CPMod
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
     push!(metrics.meanNodeVisitedUntilEnd,model.statistics.numberOfNodes)
     if ! isempty(model.statistics.nodevisitedpersolution)    #infeasible case
-        push!(metrics.meanNodeVisitedUntilfirstSolFound,model.statistics.nodevisitedpersolution[1])
+        index = findall(!isnothing, model.statistics.solutions)[1]  #return the index of the first solution    
+        push!(metrics.meanNodeVisitedUntilfirstSolFound,model.statistics.nodevisitedpersolution[index])
     end
     push!(metrics.timeneeded,dt)
     if ! isempty(model.statistics.objectives)
@@ -107,11 +111,11 @@ function repeatlast!(metrics::BasicMetrics{<:AbstractTakeObjective, <:BasicHeuri
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,last(metrics.nodeVisited))
     push!(metrics.meanNodeVisitedUntilEnd,last(metrics.meanNodeVisitedUntilEnd))
-    if ! isnothing(metrics.meanNodeVisitedUntilfirstSolFound)   #infeasible case
+    if ! isempty(metrics.meanNodeVisitedUntilfirstSolFound)   #infeasible case
         push!(metrics.meanNodeVisitedUntilfirstSolFound,last(metrics.meanNodeVisitedUntilfirstSolFound))
     end
     push!(metrics.timeneeded,last(metrics.timeneeded))
-    if ! isnothing(metrics.scores)   #infeasible case
+    if isnothing(metrics.scores)  && !isempty(metrics.scores)   #infeasible case
         push!(metrics.scores,last(metrics.scores))
     end
     return last(metrics.timeneeded),last(metrics.meanNodeVisitedUntilEnd), sum(map(!isnothing,last(metrics.scores)))
@@ -138,3 +142,4 @@ function computemean!(metrics::BasicMetrics{O, H}) where {O, H<:ValueSelection}
     end
     return
 end
+
