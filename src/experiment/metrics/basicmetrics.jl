@@ -12,14 +12,13 @@ It satisfies the two AbstractMetrics requirements:
 
 # Fields
 
-    heuristic::H                                        ->  The related heuristic for which the metrics stores the results.
-    nodeVisited::Vector{Vector{Int64}}                  ->  contains the result of each search in term of node visited : number of nodes visited to 
-                                                            find every solution or infeasible case of an instance.
-    meanNodeVisitedUntilfirstSolFound::Vector{Float32}  ->  contains the result of each search in term of node visited to find a first solution.
-    meanNodeVisitedUntilEnd::Vector{Float32}            ->  contains the result of each search in term of node visited until the end of the search.
-    timeneeded::Vector{Float32}                         ->  contains the computing time required to complete each search.
-    scores::Union{Nothing,Vector{Vector{Float32}}}      ->  contains the result of each search in term of scores of every solution found
-                                                            (only for problem that contains an objective)
+    heuristic::H                                                        ->  The related heuristic for which the metrics stores the results.
+    nodeVisited::Vector{Vector{Int64}}                                  ->  contains the result of each search in term of node visited : number of nodes visited to 
+                                                                            find every final state found (Solution / Infeasible case) reached during a search.
+    meanNodeVisitedUntilfirstSolFound::Vector{Union{Nothing,Float32}}   ->  contains the result of each search in term of node visited to find a first solution. "nothing" means no solution has been found during the entire search. 
+    meanNodeVisitedUntilEnd::Vector{Float32}                            ->  contains the result of each search in term of node visited until the end of the search.
+    timeneeded::Vector{Float32}                                         ->  contains the computing time required to complete each search.
+    scores::Union{Nothing,Vector{Vector{Union{Nothing,Float32}}}}       ->  In case the problem has an objective, contains the result of each search in term of scores of every final state found.   ("score" for Solution /"nothing" for Infeasible case). For each episode, the model.statistics.objectives::Vector{Union{Nothing,Float32}} can be empty (in case no final state has been reached during the search.)
     totalReward::Union{Nothing,Vector{Float32}}         ->  contains the total reward of each search (only if heuristic is a LearnedHeuristic).
     loss::Union{Nothing,Vector{Float32}}                ->  contains the total loss of each search (only if heuristic is a LearnedHeuristic).
     meanOver::Int64                                     ->  width of the windowspan for the moving average.
@@ -28,7 +27,7 @@ It satisfies the two AbstractMetrics requirements:
 mutable struct BasicMetrics{O<:AbstractTakeObjective, H<:ValueSelection} <: AbstractMetrics
     heuristic::H
     nodeVisited::Vector{Vector{Int64}}
-    meanNodeVisitedUntilfirstSolFound::Vector{Float32}
+    meanNodeVisitedUntilfirstSolFound::Vector{Union{Nothing,Float32}}
     meanNodeVisitedUntilEnd::Vector{Float32}
     timeneeded::Vector{Float32}
     scores::Union{Nothing,Vector{Vector{Union{Nothing,Float32}}}}
@@ -37,7 +36,7 @@ mutable struct BasicMetrics{O<:AbstractTakeObjective, H<:ValueSelection} <: Abst
     meanOver::Int64
     nbEpisodes::Int64
 
-    BasicMetrics{O,H}(heuristic,meanOver) where {O,H}= new{O, H}(heuristic,Vector{Vector{Int64}}(),Float32[],Float32[], Float32[], O==TakeObjective ? Vector{Vector{Float32}}() : nothing, (H == BasicHeuristic) ? nothing : Float32[], (H == BasicHeuristic) ? nothing : Float32[], meanOver,0)
+    BasicMetrics{O,H}(heuristic,meanOver) where {O,H}= new{O, H}(heuristic,Vector{Vector{Int64}}(),Vector{Union{Nothing,Float32}}(), Float32[], Float32[], O==TakeObjective ? Vector{Vector{Float32}}() : nothing, (H == BasicHeuristic) ? nothing : Float32[], (H == BasicHeuristic) ? nothing : Float32[], meanOver,0)
 end
 
 BasicMetrics(model::CPModel, heuristic::ValueSelection; meanOver=1) = BasicMetrics{(!isnothing(model.objective)) ? TakeObjective : DontTakeObjective ,typeof(heuristic)}(heuristic,meanOver)
@@ -52,10 +51,8 @@ function (metrics::BasicMetrics{DontTakeObjective, <:BasicHeuristic})(model::CPM
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
     push!(metrics.meanNodeVisitedUntilEnd,model.statistics.numberOfNodes)
-    if ! isempty(model.statistics.nodevisitedpersolution)
-        index = findall(!isnothing, model.statistics.solutions)[1]  #return the index of the first solution
-        push!(metrics.meanNodeVisitedUntilfirstSolFound,model.statistics.nodevisitedpersolution[index])
-    end    
+    index = findall(!isnothing, model.statistics.solutions)  #return the index of the first solution if it exist
+    push!(metrics.meanNodeVisitedUntilfirstSolFound, !isempty(index) ? model.statistics.nodevisitedpersolution[index[1]] : nothing)
     push!(metrics.timeneeded,dt)
     return
 end 
@@ -64,14 +61,11 @@ function (metrics::BasicMetrics{TakeObjective, <:BasicHeuristic})(model::CPModel
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
     push!(metrics.meanNodeVisitedUntilEnd,model.statistics.numberOfNodes)
-    if ! isempty(model.statistics.nodevisitedpersolution)    #infeasible case
-        index = findall(!isnothing, model.statistics.solutions)[1]  #return the index of the first solution
-        push!(metrics.meanNodeVisitedUntilfirstSolFound,model.statistics.nodevisitedpersolution[index])
-    end
+    index = findall(!isnothing, model.statistics.solutions)  #return the index of the first solution
+    push!(metrics.meanNodeVisitedUntilfirstSolFound, !isempty(index) ? model.statistics.nodevisitedpersolution[index[1]] : nothing)
     push!(metrics.timeneeded,dt)
-    if ! isempty(model.statistics.objectives)
-        push!(metrics.scores,copy(model.statistics.objectives))
-    end
+    push!(metrics.scores,copy(model.statistics.objectives))
+    
 
 end 
 
@@ -79,10 +73,8 @@ function (metrics::BasicMetrics{DontTakeObjective, <:LearnedHeuristic})(model::C
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
     push!(metrics.meanNodeVisitedUntilEnd,model.statistics.numberOfNodes)
-    if ! isempty(model.statistics.nodevisitedpersolution)    #infeasible case
-        index = findall(!isnothing, model.statistics.solutions)[1]  #return the index of the first solution    
-        push!(metrics.meanNodeVisitedUntilfirstSolFound,model.statistics.nodevisitedpersolution[index])
-    end
+    index = findall(!isnothing, model.statistics.solutions)  #return the index of the first solution    
+    push!(metrics.meanNodeVisitedUntilfirstSolFound, !isempty(index) ? model.statistics.nodevisitedpersolution[index[1]] : nothing)
     push!(metrics.timeneeded,dt)
     push!(metrics.totalReward,last_episode_total_reward(metrics.heuristic.agent.trajectory))
     push!(metrics.loss,metrics.heuristic.agent.policy.learner.loss)
@@ -94,14 +86,10 @@ function (metrics::BasicMetrics{TakeObjective, <:LearnedHeuristic})(model::CPMod
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
     push!(metrics.meanNodeVisitedUntilEnd,model.statistics.numberOfNodes)
-    if ! isempty(model.statistics.nodevisitedpersolution)    #infeasible case
-        index = findall(!isnothing, model.statistics.solutions)[1]  #return the index of the first solution    
-        push!(metrics.meanNodeVisitedUntilfirstSolFound,model.statistics.nodevisitedpersolution[index])
-    end
+    index = findall(!isnothing, model.statistics.solutions)  #return the index of the first solution    
+    push!(metrics.meanNodeVisitedUntilfirstSolFound, !isempty(index) ? model.statistics.nodevisitedpersolution[index[1]] : nothing)
     push!(metrics.timeneeded,dt)
-    if ! isempty(model.statistics.objectives)
     push!(metrics.scores,copy(model.statistics.objectives))
-    end
     push!(metrics.totalReward,last_episode_total_reward(metrics.heuristic.agent.trajectory))
     push!(metrics.loss,metrics.heuristic.agent.policy.learner.loss)
     return
@@ -111,11 +99,9 @@ function repeatlast!(metrics::BasicMetrics{<:AbstractTakeObjective, <:BasicHeuri
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,last(metrics.nodeVisited))
     push!(metrics.meanNodeVisitedUntilEnd,last(metrics.meanNodeVisitedUntilEnd))
-    if ! isempty(metrics.meanNodeVisitedUntilfirstSolFound)   #infeasible case
-        push!(metrics.meanNodeVisitedUntilfirstSolFound,last(metrics.meanNodeVisitedUntilfirstSolFound))
-    end
+    push!(metrics.meanNodeVisitedUntilfirstSolFound,last(metrics.meanNodeVisitedUntilfirstSolFound))
     push!(metrics.timeneeded,last(metrics.timeneeded))
-    if isnothing(metrics.scores)  && !isempty(metrics.scores)   #infeasible case
+    if !isnothing(metrics.scores)  #In case neither a solution or an Infeasible case is reached
         push!(metrics.scores,last(metrics.scores))
     end
     return last(metrics.timeneeded),last(metrics.meanNodeVisitedUntilEnd), sum(map(!isnothing,last(metrics.scores)))
