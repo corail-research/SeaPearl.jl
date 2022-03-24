@@ -212,46 +212,6 @@ agent = RL.Agent(
         @test size(metrics.loss,1) == 1
     end
 
-    @testset "test !" begin
-        trailer = SeaPearl.Trailer()
-        model = SeaPearl.CPModel(trailer)
-        basicheuristic = SeaPearl.BasicHeuristic()
-        metrics  = SeaPearl.BasicMetrics(model, basicheuristic; meanOver=4)
-
-        push!(metrics.nodeVisited, [10,0])
-        push!(metrics.nodeVisited, [10,0])
-        push!(metrics.nodeVisited, [10,0])
-        push!(metrics.nodeVisited, [10,0])
-        push!(metrics.nodeVisited, [0,10])
-        push!(metrics.nodeVisited, [0,10])
-        push!(metrics.nodeVisited, [0,10])
-        push!(metrics.nodeVisited, [0,10])
-
-        push!(metrics.meanNodeVisitedUntilEnd, 0)
-        push!(metrics.meanNodeVisitedUntilEnd, 0)
-        push!(metrics.meanNodeVisitedUntilEnd, 0)
-        push!(metrics.meanNodeVisitedUntilEnd, 0)
-        push!(metrics.meanNodeVisitedUntilEnd, 10)
-        push!(metrics.meanNodeVisitedUntilEnd, 10)
-        push!(metrics.meanNodeVisitedUntilEnd, 10)
-        push!(metrics.meanNodeVisitedUntilEnd, 10)
-        
-        push!(metrics.meanNodeVisitedUntilfirstSolFound, 10)
-        push!(metrics.meanNodeVisitedUntilfirstSolFound, 10)
-        push!(metrics.meanNodeVisitedUntilfirstSolFound, 10)
-        push!(metrics.meanNodeVisitedUntilfirstSolFound, 10)
-        push!(metrics.meanNodeVisitedUntilfirstSolFound, 0)
-        push!(metrics.meanNodeVisitedUntilfirstSolFound, 0)
-        push!(metrics.meanNodeVisitedUntilfirstSolFound, 0)
-        push!(metrics.meanNodeVisitedUntilfirstSolFound, 0)
-
-        metrics.nbEpisodes = 8
-        SeaPearl.computemean!(metrics)
-        @test metrics.meanNodeVisitedUntilfirstSolFound == [10.0, 7.5, 5.0, 2.5, 0.0]
-        @test metrics.meanNodeVisitedUntilEnd == [0.0, 2.5, 5.0, 7.5, 10.0]
-
-    end
-
     @testset "advanced tests" begin 
         @testset "Infeasible search" begin 
 
