@@ -252,6 +252,68 @@ agent = RL.Agent(
 
     end
 
+    @testset "advanced tests" begin 
+        @testset "Infeasible search" begin 
+
+            trailer = SeaPearl.Trailer()
+            model = SeaPearl.CPModel(trailer)
+            basicheuristic = SeaPearl.BasicHeuristic()
+            
+            x = SeaPearl.IntVar(2, 3, "x", trailer)
+            y = SeaPearl.IntVar(4, 5, "y", trailer)
+            SeaPearl.addVariable!(model, x)
+            SeaPearl.addVariable!(model, y)
+            SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer)) #No solution
+            SeaPearl.addObjective!(model,y)
+    
+            metrics  = SeaPearl.BasicMetrics(model, basicheuristic)
+            dt = @elapsed SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection(), basicheuristic) 
+            
+            metrics(model,dt)
+            @test metrics.meanNodeVisitedUntilfirstSolFound[1] == nothing
+            @test metrics.scores[1][1] == nothing           #Infeasible case
+        end
+        @testset "stoped search" begin 
+
+            trailer = SeaPearl.Trailer()
+            model = SeaPearl.CPModel(trailer)
+            basicheuristic = SeaPearl.BasicHeuristic()
+            
+            x = SeaPearl.IntVar(2, 3, "x", trailer)
+            y = SeaPearl.IntVar(4, 5, "y", trailer)
+            SeaPearl.addVariable!(model, x)
+            SeaPearl.addVariable!(model, y)
+            SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer)) #No solution
+            SeaPearl.addObjective!(model,y)
+
+            metrics  = SeaPearl.BasicMetrics(model, basicheuristic)
+            model.limit.numberOfNodes = 1
+            dt = @elapsed SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection(), basicheuristic) 
+            
+            metrics(model,dt)
+            @test metrics.meanNodeVisitedUntilfirstSolFound[1] == nothing
+            @test isempty(metrics.scores[1])                 #no terminal state
+        end
+        @testset "store number of node first solution" begin
+            trailer = SeaPearl.Trailer()
+            model = SeaPearl.CPModel(trailer)
+            basicheuristic = SeaPearl.BasicHeuristic()
+            
+            x = SeaPearl.IntVar(2, 5, "x", trailer)
+            y = SeaPearl.IntVar(2, 5, "y", trailer)
+            SeaPearl.addVariable!(model, x)
+            SeaPearl.addVariable!(model, y)
+            SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer)) #No solution
+            SeaPearl.addObjective!(model,y)
+
+            metrics  = SeaPearl.BasicMetrics(model, basicheuristic)
+            dt = @elapsed SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection(), basicheuristic) 
+            
+            metrics(model,dt)
+            @test metrics.meanNodeVisitedUntilfirstSolFound[1] == 2
+        end 
+    end
+
     @testset "repeatlast!" begin
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
