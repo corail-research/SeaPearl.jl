@@ -1,9 +1,3 @@
-using SeaPearl
-using DataStructures
-using StatsBase: sample
-using Random
-using Test
-
 @testset "lns.jl" begin
     @testset "expandLns!()" begin
 
