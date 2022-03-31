@@ -1,3 +1,9 @@
+using SeaPearl
+using DataStructures
+using StatsBase: sample
+using Random
+using Test
+
 @testset "lns.jl" begin
     @testset "expandLns!()" begin
 
@@ -280,10 +286,14 @@
         model.limit.numberOfSolutions = 1
         status = SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection())
         solution = model.statistics.solutions[1]
-        numberOfValuesToRemove = 1
         objective = "z"
 
-        SeaPearl.destroy!(model, solution, numberOfValuesToRemove, objective)
+        numberOfValuesToRemove = 1
+        branchableVariablesId = collect(filter(e -> model.branchable[e], keys(model.branchable)))
+        nbBranchableVariables = count(values(model.branchable))
+        varsToSet = sample(branchableVariablesId, nbBranchableVariables - numberOfValuesToRemove; replace=false)
+
+        SeaPearl.destroy!(model, solution, varsToSet, objective)
 
         # Check that 1 variable has been reassign (i.e. is bounded) and the other is unbounded
         @test SeaPearl.isbound(model.variables["x"]) != SeaPearl.isbound(model.variables["y"]) 
@@ -308,10 +318,14 @@
         model.limit.numberOfSolutions = 1
         status = SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection())
         solution = model.statistics.solutions[1]
-        numberOfValuesToRemove = 2
         objective = "z"
 
-        SeaPearl.destroy!(model, solution, numberOfValuesToRemove, objective)
+        numberOfValuesToRemove = 2
+        branchableVariablesId = collect(filter(e -> model.branchable[e], keys(model.branchable)))
+        nbBranchableVariables = count(values(model.branchable))
+        varsToSet = sample(branchableVariablesId, nbBranchableVariables - numberOfValuesToRemove; replace=false)
+
+        SeaPearl.destroy!(model, solution, varsToSet, objective)
 
         # Check that all variables are unbounded
         @test !SeaPearl.isbound(model.variables["x"]) && !SeaPearl.isbound(model.variables["y"]) 
@@ -336,10 +350,14 @@
         model.limit.numberOfSolutions = 1
         status = SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection())
         solution = model.statistics.solutions[1]
-        numberOfValuesToRemove = 0
         objective = "z"
 
-        SeaPearl.destroy!(model, solution, numberOfValuesToRemove, objective)
+        numberOfValuesToRemove = 0
+        branchableVariablesId = collect(filter(e -> model.branchable[e], keys(model.branchable)))
+        nbBranchableVariables = count(values(model.branchable))
+        varsToSet = sample(branchableVariablesId, nbBranchableVariables - numberOfValuesToRemove; replace=false)
+
+        SeaPearl.destroy!(model, solution, varsToSet, objective)
 
         # Check that all variables are bounded
         @test SeaPearl.isbound(model.variables["x"]) && SeaPearl.isbound(model.variables["y"]) 
@@ -371,11 +389,15 @@
         status = SeaPearl.search!(model, SeaPearl.DFSearch(), variableHeuristic)
         model.limit.numberOfSolutions = nothing
         solution = model.statistics.solutions[1]
-        # All branchable variables are removed so that repair!() can find the optimal solution
-        numberOfValuesToRemove = 2
         objective = "z"
 
-        SeaPearl.destroy!(model, solution, numberOfValuesToRemove, objective)
+        # All branchable variables are removed so that repair!() can find the optimal solution
+        numberOfValuesToRemove = 2
+        branchableVariablesId = collect(filter(e -> model.branchable[e], keys(model.branchable)))
+        nbBranchableVariables = count(values(model.branchable))
+        varsToSet = sample(branchableVariablesId, nbBranchableVariables - numberOfValuesToRemove; replace=false)
+
+        SeaPearl.destroy!(model, solution, varsToSet, objective)
 
         repairSearch = SeaPearl.DFSearch()
 
@@ -403,10 +425,14 @@
         status = SeaPearl.search!(model, SeaPearl.DFSearch(), variableHeuristic)
         model.limit.numberOfSolutions = nothing
         solution = model.statistics.solutions[1]
-        numberOfValuesToRemove = 2
         objective = "z"
 
-        SeaPearl.destroy!(model, solution, numberOfValuesToRemove, objective)
+        numberOfValuesToRemove = 2
+        branchableVariablesId = collect(filter(e -> model.branchable[e], keys(model.branchable)))
+        nbBranchableVariables = count(values(model.branchable))
+        varsToSet = sample(branchableVariablesId, nbBranchableVariables - numberOfValuesToRemove; replace=false)
+
+        SeaPearl.destroy!(model, solution, varsToSet, objective)
 
         repairSearch = SeaPearl.DFSearch()
         # Limit the search to one solution so that repair!() can find better solution but non optimal
@@ -436,11 +462,15 @@
         status = SeaPearl.search!(model, SeaPearl.DFSearch(), variableHeuristic)
         model.limit.numberOfSolutions = nothing
         solution = model.statistics.solutions[1]
-        # Not all branchable variables are removed so that repair!() can't find the optimal solution
-        numberOfValuesToRemove = 1
         objective = "z"
 
-        SeaPearl.destroy!(model, solution, numberOfValuesToRemove, objective)
+        # Not all branchable variables are removed so that repair!() can't find the optimal solution
+        numberOfValuesToRemove = 1
+        branchableVariablesId = collect(filter(e -> model.branchable[e], keys(model.branchable)))
+        nbBranchableVariables = count(values(model.branchable))
+        varsToSet = sample(branchableVariablesId, nbBranchableVariables - numberOfValuesToRemove; replace=false)
+
+        SeaPearl.destroy!(model, solution, varsToSet, objective)
 
         repairSearch = SeaPearl.DFSearch()
 
