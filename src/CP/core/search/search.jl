@@ -2,12 +2,13 @@
 include("dfs.jl")
 include("ilds.jl")
 include("rbs.jl")
+include("lns.jl")
 
 
 """
     initroot!(toCall::Stack{Function}, ::F, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection) where F <: SearchStrategy
 Initialisation function that fill the toCall Stack according to a certain strategy. 
-    """
+"""
 function initroot!(toCall::Stack{Function}, ::F, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection) where F <: SearchStrategy
     throw(ErrorException("Search Strategy $(F) (initroot! function  ) not implemented."))
 end 
@@ -55,7 +56,6 @@ function search!(model::CPModel, strategy::S, variableHeuristic::AbstractVariabl
     elseif !all(map(x->isnothing(x),model.statistics.solutions)) == 1 
         return :NonOptimal
     end
-    
     return :Infeasible
 end
 

@@ -6,6 +6,23 @@ be explored at a certain node ).
 abstract type SearchStrategy end
 
 struct DFSearch <: SearchStrategy end
+ 
+"""
+struct LNSearch <: SearchStrategy
+Implementation of Large Neighboorhood Search 
+This implementation is inspired on this paper: Using Constraint Programming and Local Search Methods to Solve Vehicle Routing Problems (April 1998, Paul Shaw)
+The number of values to remove in each destroy and repair loop is initialised to 1 and increase by 1 after `limitIterNoImprovement` iterations 
+with no improvement until `limitValuesToRemove` is reached. `limitValuesToRemove` will be set to half of the branching variables by default.
+With `repairLimits' one can fix limits (numberOfNodes, numberOfSolutions, searchingTime) that will be applied to the model used in the local search.
+Example: SeaPearl.solve!(model, SeaPearl.LNSearch(limitValuesToRemove=5, repairSearch=SeaPearl.ILDS(1), repairLimits=Dict("searchingTime" => 10)); ...)
+"""
+Base.@kwdef struct LNSearch <: SearchStrategy 
+    seed::Union{Nothing, Int} = nothing
+    limitValuesToRemove::Union{Nothing, Int} = nothing
+    limitIterNoImprovement::Int64 = 100
+    repairSearch::SearchStrategy = DFSearch()
+    repairLimits::Union{Nothing, Dict{String, Int}} = nothing
+end
 
 """
     struct ILDSearch <: SearchStrategy
