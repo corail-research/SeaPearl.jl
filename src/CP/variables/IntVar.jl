@@ -1,3 +1,5 @@
+import Base.-
+
 """
     struct IntVar <: AbstractIntVar
 
@@ -66,3 +68,10 @@ end
 Return the "true" variable behind `x`. For a `IntVar`, it simply returns `x`.
 """
 rootVariable(x::IntVar) = x
+
+"""
+    -(x::IntVar)
+
+Return a `IntDomainViewOpposite` of `x`.
+"""
+-(x::IntVar) = IntDomainViewOpposite(x.domain)
