@@ -66,3 +66,10 @@ end
 Return the "true" variable behind `x`. For a `IntVar`, it simply returns `x`.
 """
 rootVariable(x::IntVar) = x
+
+
+"""
+Overloads the * operator to easily generate a multiple of a variable: y = ax
+"""
+
+Base.:*(a::Int, x::IntVar) = IntDomainViewMul(x.domain,a)

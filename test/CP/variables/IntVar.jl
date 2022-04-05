@@ -39,4 +39,20 @@
 
         @test SeaPearl.assignedValue(x) == 5
     end
+
+    @testset "* overloading" begin
+        trailer = SeaPearl.Trailer()
+        x = SeaPearl.IntVar(5, 6, "x", trailer)
+        y = 3 * x
+
+        @test isa(y, SeaPearl.IntDomainViewMul)
+        @test SeaPearl.minimum(y) == 15
+        @test SeaPearl.maximum(y) == 18
+        @test SeaPearl.length(y) == 2
+
+        SeaPearl.assign!(x, 5)
+        @test SeaPearl.length(y) == 1
+        @test SeaPearl.maximum(y) == 15
+
+    end
 end
