@@ -72,6 +72,7 @@ rootVariable(x::IntVar) = x
 """
     -(x::IntVar)
 
+Simple way to generate the opposite of a variable (y = -x).
 Return a `IntDomainViewOpposite` of `x`.
 """
 -(x::IntVar) = IntDomainViewOpposite(x.domain)
