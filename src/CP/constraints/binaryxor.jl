@@ -1,5 +1,5 @@
 """
-    BinaryXor(x::BoolVar, y::BoolVar)
+    BinaryXor(x::AbstractBoolVar, y::AbstractBoolVar)
 
 Binary Xor constraint, states that `x ⊕ y`.
 """
