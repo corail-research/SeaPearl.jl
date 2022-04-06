@@ -27,7 +27,7 @@ function propagate!(constraint::isBinaryXor, toPropagate::Set{Constraint}, prune
     if isbound(constraint.b)
         if !assignedValue(constraint.b) # b is false
             if isbound(constraint.x)
-                if assignedValue(constraint.x) # x = true => y = true
+                if assignedValue(constraint.x) # (b = false ∧ x = true) => y = true
                     prunedY = remove!(constraint.y.domain, false)
                     if !isempty(prunedY)
                         addToPrunedDomains!(prunedDomains, constraint.y, prunedY)
@@ -35,7 +35,7 @@ function propagate!(constraint::isBinaryXor, toPropagate::Set{Constraint}, prune
                     end
                     setValue!(constraint.active, false)
                     return !isempty(constraint.y.domain)
-                else # x = false => y = false
+                else # (b = false ∧ x = false) => y = false
                     prunedY = remove!(constraint.y.domain, true)
                     if !isempty(prunedY)
                         addToPrunedDomains!(prunedDomains, constraint.y, prunedY)
@@ -45,7 +45,7 @@ function propagate!(constraint::isBinaryXor, toPropagate::Set{Constraint}, prune
                     return !isempty(constraint.y.domain)
                 end
             elseif isbound(constraint.y)
-                if assignedValue(constraint.y) # y = true => x = true
+                if assignedValue(constraint.y) # (b = false ∧ y = true) => x = true
                     prunedX = remove!(constraint.x.domain, false)
                     if !isempty(prunedX)
                         addToPrunedDomains!(prunedDomains, constraint.x, prunedX)
@@ -53,7 +53,7 @@ function propagate!(constraint::isBinaryXor, toPropagate::Set{Constraint}, prune
                     end
                     setValue!(constraint.active, false)
                     return !isempty(constraint.x.domain)
-                else # y = false => x = false
+                else # (b = false ∧ y = false) => x = false
                     prunedX = remove!(constraint.x.domain, true)
                     if !isempty(prunedX)
                         addToPrunedDomains!(prunedDomains, constraint.x, prunedX)
@@ -65,7 +65,7 @@ function propagate!(constraint::isBinaryXor, toPropagate::Set{Constraint}, prune
             end
         else # b is true
             if isbound(constraint.x)
-                if assignedValue(constraint.x) # x = true => y = false
+                if assignedValue(constraint.x) # (b = true ∧ x = true) => y = false
                     prunedY = remove!(constraint.y.domain, true)
                     if !isempty(prunedY)
                         addToPrunedDomains!(prunedDomains, constraint.y, prunedY)
@@ -73,7 +73,7 @@ function propagate!(constraint::isBinaryXor, toPropagate::Set{Constraint}, prune
                     end
                     setValue!(constraint.active, false)
                     return !isempty(constraint.y.domain)
-                else # x = false => y = true
+                else # (b = true ∧ x = false) => y = true
                     prunedY = remove!(constraint.y.domain, false)
                     if !isempty(prunedY)
                         addToPrunedDomains!(prunedDomains, constraint.y, prunedY)
@@ -83,7 +83,7 @@ function propagate!(constraint::isBinaryXor, toPropagate::Set{Constraint}, prune
                     return !isempty(constraint.y.domain)
                 end
             elseif isbound(constraint.y)
-                if assignedValue(constraint.y) # y = true => x = false
+                if assignedValue(constraint.y) # (b = true ∧ y = true) => x = false
                     prunedX = remove!(constraint.x.domain, true)
                     if !isempty(prunedX)
                         addToPrunedDomains!(prunedDomains, constraint.x, prunedX)
@@ -91,7 +91,7 @@ function propagate!(constraint::isBinaryXor, toPropagate::Set{Constraint}, prune
                     end
                     setValue!(constraint.active, false)
                     return !isempty(constraint.x.domain)
-                else # y = false => x = true
+                else # (b = true ∧ y = false) => x = true
                     prunedX = remove!(constraint.x.domain, false)
                     if !isempty(prunedX)
                         addToPrunedDomains!(prunedDomains, constraint.x, prunedX)
@@ -104,12 +104,12 @@ function propagate!(constraint::isBinaryXor, toPropagate::Set{Constraint}, prune
         end
     else # b is not bound
         if isbound(constraint.x) && isbound(constraint.y)
-            if assignedValue(constraint.x) != assignedValue(constraint.y) # x = y
+            if assignedValue(constraint.x) != assignedValue(constraint.y) # (x = y) => (b = false)
                 prunedB = remove!(constraint.b.domain, false)
                 addToPrunedDomains!(prunedDomains, constraint.b, prunedB)
                 triggerDomainChange!(toPropagate, constraint.b)
                 setValue!(constraint.active, false)
-            else # x ≠ y
+            else # (x ≠ y) => (b = true)
                 prunedB = remove!(constraint.b.domain, true)
                 addToPrunedDomains!(prunedDomains, constraint.b, prunedB)
                 triggerDomainChange!(toPropagate, constraint.b)
