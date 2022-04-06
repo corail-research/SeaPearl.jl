@@ -55,7 +55,7 @@ function propagate!(constraint::isBinaryAnd, toPropagate::Set{Constraint}, prune
                 end
                 setValue!(constraint.active, false)
                 return !isempty(constraint.x.domain)
-            elseif (isbound(constraint.x) && !assignedValue(constraint.x)) && (isbound(constraint.y) && !assignedValue(constraint.y))
+            elseif (isbound(constraint.x) && !assignedValue(constraint.x)) || (isbound(constraint.y) && !assignedValue(constraint.y))
                 setValue!(constraint.active, false)
             end
         end
