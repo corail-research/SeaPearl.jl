@@ -1,7 +1,7 @@
 """
     BinaryXor(x::AbstractBoolVar, y::AbstractBoolVar)
 
-Binary Xor constraint, states that `x ⊕ y`.
+Binary Xor constraint, states that `x ⊻ y`.
 """
 struct BinaryXor <: Constraint
     x::AbstractBoolVar
@@ -66,11 +66,11 @@ end
 variablesArray(constraint::BinaryXor) = [constraint.x, constraint.y]
 
 function Base.show(io::IO, ::MIME"text/plain", con::BinaryXor)
-    println(io, string(typeof(con)), ": ", con.x.id, " ⊕ ", con.y.id, ", active = ", con.active)
+    println(io, string(typeof(con)), ": ", con.x.id, " ⊻ ", con.y.id, ", active = ", con.active)
     println(io, "   ", con.x)
     print(io, "   ", con.y)
 end
 
 function Base.show(io::IO, con::BinaryXor)
-    print(io, typeof(con), ": ", con.x.id, " ⊕ ", con.y.id)
+    print(io, typeof(con), ": ", con.x.id, " ⊻ ", con.y.id)
 end
