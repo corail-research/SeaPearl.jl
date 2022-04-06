@@ -24,6 +24,7 @@ include("element1d.jl")
 include("binarymaximum.jl")
 include("setequalconstant.jl")
 include("isbinaryand.jl")
+include("binaryimplication.jl")
 
 """
     addOnDomainChange!(x::AbstractIntVar, constraint::Constraint)
