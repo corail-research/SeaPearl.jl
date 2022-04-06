@@ -24,6 +24,7 @@
     include("binarymaximum.jl")
     include("setequalconstant.jl")
     include("isbinaryand.jl")
+    include("binaryimplication.jl")
     
     @testset "addOnDomainChange!()" begin
         trailer = SeaPearl.Trailer()
