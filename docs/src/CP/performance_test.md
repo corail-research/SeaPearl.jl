@@ -18,7 +18,7 @@ A basic model has been implemented in MiniZinc and SeaPearl using the same logic
 
 The main observations from the experience are:
 
-* The time of execution grows over-polynomially with the size of the instance. This result was expected as the KEP is a combinatorial problem.
+* The time of execution grows over-polynomially with the size of the instance. This result was expected for this combinatorial problem.
 
 * For instances with significant time of execution (more than 1 second), **Gecode is on average 7.5 times faster than SeaPearl**.
 
@@ -27,5 +27,5 @@ The main observations from the experience are:
 Some tips to implement a model in MiniZinc and SeaPearl with similar behavior:
 * In MiniZinc use these arguments for the search: `first_fail`, `indomain_max`, `complete`.
 * In SeaPearl use these arguments for the search: `MinDomainVariableSelection`, `BasicHeuristic`, `DFSearch` (by default).
-* `first_fail` and `MinDomainVariableSelection` do not have the same behavior in the tie (many variables with the same minimum domain). `first_fail` uses the input order for tie-breaker. Therefore, one option is to change `MinDomainVariableSelection` to have the same behavior (e.g. use a counter for the `id` of the variables and add a lexicographical tie-breaker in `MinDomainVariableSelection`).
+* `first_fail` and `MinDomainVariableSelection` do not have the same behavior in the tie (many variables having the domain with the same minimum size). `first_fail` uses the input order for tie-breaker. Therefore, one option is to change `MinDomainVariableSelection` to have the same behavior (e.g. use a counter for the `id` of the variables and add a lexicographical tie-breaker in `MinDomainVariableSelection`).
 * Check the number of explored nodes in both models. One should have similar values for each instance. One can check this information in SeaPearl thanks to `model.statistics.numberOfNodes` and in MiniZinc by checking the output solving statistics checkbox in the configuration editor menu.
