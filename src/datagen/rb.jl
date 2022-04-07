@@ -80,5 +80,5 @@ function fill_with_generator!(cpmodel::CPModel, gen::RBGenerator; seed=nothing)
         SeaPearl.addConstraint!(cpmodel, SeaPearl.TableConstraint(variables, table, cpmodel.trailer))
     end
 
-    return nothing
+    return random_solution
 end
