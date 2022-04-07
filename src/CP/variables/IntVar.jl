@@ -72,4 +72,4 @@ rootVariable(x::IntVar) = x
 Overloads the * operator to easily generate a multiple of a variable: y = ax
 """
 
-Base.:*(a::Int, x::IntVar) = IntDomainViewMul(x.domain,a)
+Base.:*(a::Int, x::IntVar) = IntVarViewMul(x, a, string(a," * ",x.id))
