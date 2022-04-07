@@ -1,5 +1,3 @@
-import Base.-
-
 """
     struct IntVar <: AbstractIntVar
 
@@ -75,4 +73,4 @@ rootVariable(x::IntVar) = x
 Simple way to generate the opposite of a variable (y = -x).
 Return a `IntDomainViewOpposite` of `x`.
 """
--(x::IntVar) = IntDomainViewOpposite(x.domain)
+Base.:-(x::IntVar) = IntVarViewOpposite(x, string("-(", x.id, ")"))
