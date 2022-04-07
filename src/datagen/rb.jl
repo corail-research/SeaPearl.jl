@@ -42,7 +42,8 @@ end
 Fill a CPModel with the variables and constraints generated. We fill it directly instead of 
 creating temporary files for efficiency purpose !
 
-The code below is largely inspired by https://github.com/songwenas12/csp-drl/blob/main/csp_DRL/RBGenerator.py.
+This is the algorithm proposed by "Random constraint satisfaction: Easy generation of 
+hard (satisfiable) instances" (Xu. et al, 2007) to generate forced satisfiable instance of RB.
 """
 function fill_with_generator!(cpmodel::CPModel, gen::RBGenerator; seed=nothing)
     if !isnothing(seed)
@@ -53,36 +54,28 @@ function fill_with_generator!(cpmodel::CPModel, gen::RBGenerator; seed=nothing)
 
     # create variables
     x = SeaPearl.IntVar[]
-    for i in 1:n
-        push!(x, SeaPearl.IntVar(1, n, string(i), cpmodel.trailer))
+    for i in 1:gen.n
+        push!(x, SeaPearl.IntVar(1, gen.d, string(i), cpmodel.trailer))
         addVariable!(cpmodel, last(x))
     end
     
     # add constraints
     for i in 1:gen.m
         scope = StatsBase.sample(1:gen.n, gen.k, replace=false, ordered=false)
-        support = [[random_solution[j]] for j in scope]
+        variables = [x[j] for j in scope]
+        table = [[random_solution[j] for j in scope]]
 
-        all_tuples = collect(Iterators.product([1:d for j in 1:k]...))
-    end
+        tuples = collect(Iterators.product([1:gen.d for j in 1:gen.k]...))
+        remove!(tuples, table[1])
+        allowed_indices = StatsBase.sample(1:length(tuples), gen.nb-1)
 
-
-    for i in 1:n
-        for j in 1:n
-            if i != j && assigned_colors[i] != assigned_colors[j] && rand() <= p
-                SeaPearl.addConstraint!(cpmodel, SeaPearl.NotEqual(x[i], x[j], cpmodel.trailer))
-            end
+        for id in allowed_indices
+            tuple = tuples[id]
+            add!(table, tuple)
         end
+
+        SeaPearl.addConstraint!(cpmodel, SeaPearl.TableConstraint(variables, table))
     end
 
-    ### Objective ###
-    numberOfColors = SeaPearl.IntVar(1, n, "numberOfColors", cpmodel.trailer)
-    SeaPearl.addVariable!(cpmodel, numberOfColors)
-    for var in x
-        SeaPearl.addConstraint!(cpmodel, SeaPearl.LessOrEqual(var, numberOfColors, cpmodel.trailer))
-    end
-    SeaPearl.addObjective!(cpmodel,numberOfColors)
-
-    cpmodel.knownObjective = k 
-    nothing
+    return nothing
 end
