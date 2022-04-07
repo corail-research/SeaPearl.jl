@@ -11,10 +11,10 @@ Generator of RB instances :
 - n ≥ 2 number of variables
 - α > 0 determines the domain size d = n^α of each variable,
 - r > 0 determines the number m = r ⋅ n ⋅ ln(n) of constraints,
-- 0 < p < 1 determines the number t = p ⋅ d^k of disallowed tuples of each relation.
+- 0 < p < 1 determines the number nb = (1 - p) ⋅ d^k of disallowed tuples of each relation.
 - d domain size of each variable
 - m number of constraints
-- t number of disallowed tuples of each relation
+- nb number of allowed tuples of each relation
 """
 struct RBGenerator <: AbstractModelGenerator
     k::Int64 # arity of each constraint
@@ -32,7 +32,7 @@ struct RBGenerator <: AbstractModelGenerator
         @assert α > 0
         @assert r > 0
         @assert 0 < p && p < 1
-        new(n, k, α, r, p, round(n^α), round(r*n*log(n)), round((1 - p) * d^k))
+        new(k, n, α, r, p, round(n^α), round(r*n*log(n)), round((1 - p) * round(n^α)^k))
     end
 end
 
@@ -63,18 +63,21 @@ function fill_with_generator!(cpmodel::CPModel, gen::RBGenerator; seed=nothing)
     for i in 1:gen.m
         scope = StatsBase.sample(1:gen.n, gen.k, replace=false, ordered=false)
         variables = [x[j] for j in scope]
-        table = [[random_solution[j] for j in scope]]
+        table = zeros(Int64, gen.k, gen.nb)
+        table[:, 1] = [random_solution[j] for j in scope]
 
         tuples = collect(Iterators.product([1:gen.d for j in 1:gen.k]...))
-        remove!(tuples, table[1])
-        allowed_indices = StatsBase.sample(1:length(tuples), gen.nb-1)
+        tuples = reshape(tuples, prod(size(tuples)))
+        tuples = [collect(tuple) for tuple in tuples]
 
-        for id in allowed_indices
-            tuple = tuples[id]
-            add!(table, tuple)
+        deleteat!(tuples, findfirst(t -> t == table[:, 1], tuples))
+        allowed_tuples = StatsBase.sample(tuples, gen.nb-1)
+
+        for (i, tuple) in enumerate(allowed_tuples)
+            table[:, i + 1] = tuple
         end
 
-        SeaPearl.addConstraint!(cpmodel, SeaPearl.TableConstraint(variables, table))
+        SeaPearl.addConstraint!(cpmodel, SeaPearl.TableConstraint(variables, table, cpmodel.trailer))
     end
 
     return nothing
