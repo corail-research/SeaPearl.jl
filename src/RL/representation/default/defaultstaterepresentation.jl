@@ -51,6 +51,8 @@ end
 
 struct DefaultFeaturization <: AbstractFeaturization end
 
+struct FeaturizationHelper <: AbstractFeaturization end
+
 """
     featurize(sr::DefaultStateRepresentation{DefaultFeaturization, TS})
 
@@ -75,6 +77,35 @@ function featurize(sr::FeaturizedStateRepresentation{DefaultFeaturization, TS}) 
     end
     features
 end
+
+"""
+Featurization helper: initializes the graph with the features specified as argument.
+"""
+
+function featurize(sr::FeaturizedStateRepresentation{FeaturizationHelper,TS};values_onehot=false::bool,) where TS
+    g = sr.cplayergraph
+    for i in 1:nv(g)
+        cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
+        if isa(cp_vertex, ConstraintVertex)
+            features[1, i] = 1.0f0
+        end
+        if isa(cp_vertex, VariableVertex)
+            features[2, i] = 1.0f0
+        end
+        if isa(cp_vertex, ValueVertex)
+            features[3, i] = 1.0f0
+        end
+    end
+    return features
+end
+"""
+function global_featurize(sr::FeaturizedStateRepresentation{DefaultFeaturization, TS}) where TS
+    g = sr.cplayergraph
+    graph = Graph(g)
+    density = LightGraphs.density(graph)
+    return [density]
+end
+"""
 
 """
     feature_length(gen::AbstractModelGenerator, ::Type{FeaturizedStateRepresentation})
