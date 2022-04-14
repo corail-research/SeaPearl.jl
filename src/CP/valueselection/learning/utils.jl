@@ -19,7 +19,7 @@ This function initializes the fields of a LearnedHeuristic which are useful to d
 and which depend on the CPModel considered. It is called at the beginning of the `search!` function (in the 
 InitializingPhase).
 """
-function update_with_cpmodel!(lh::LearnedHeuristic{SR, R, A}, model::CPModel) where {
+function update_with_cpmodel!(lh::LearnedHeuristic{SR, R, A}, model::CPModel; chosen_features=nothing) where {
     SR <: AbstractStateRepresentation, 
     R <: AbstractReward, 
     A <: ActionOutput
@@ -30,8 +30,7 @@ function update_with_cpmodel!(lh::LearnedHeuristic{SR, R, A}, model::CPModel) wh
 
     lh.action_space = valuesOfVariables
     # state rep construction
-    lh.current_state = SR(model; action_space=lh.action_space)
-
+    lh.current_state = SR(model; action_space=lh.action_space, chosen_features=chosen_features)
     # create and initialize the reward
     lh.reward = R(model)
 

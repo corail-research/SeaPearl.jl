@@ -14,17 +14,20 @@ mutable struct DefaultStateRepresentation{F,TS} <: FeaturizedStateRepresentation
     globalFeatures::Union{Nothing,AbstractVector{Float32}}
     variableIdx::Union{Nothing,Int64}
     allValuesIdx::Union{Nothing,Vector{Int64}}
-    chosenFeatures::Union{Nothing, Dict{String, Bool}}
 end
 
-function DefaultStateRepresentation{F,TS}(model::CPModel; action_space=nothing) where {F,TS}
+function DefaultStateRepresentation{F,TS}(model::CPModel; action_space=nothing, chosen_features=nothing) where {F,TS}
     g = CPLayerGraph(model)
     allValuesIdx = nothing
     if !isnothing(action_space)
         allValuesIdx = indexFromCpVertex.([g], ValueVertex.(action_space))
     end
-    sr = DefaultStateRepresentation{F,TS}(g, nothing, nothing, nothing, allValuesIdx, nothing)
-    sr.nodeFeatures = featurize(sr)
+    sr = DefaultStateRepresentation{F,TS}(g, nothing, nothing, nothing, allValuesIdx)
+    if isnothing(chosen_features)
+        sr.nodeFeatures = featurize(sr)
+    else
+        sr.nodeFeatures = featurize(sr; chosen_features=chosen_features)
+    end
     sr.globalFeatures = global_featurize(sr)
     return sr
 end
@@ -82,7 +85,12 @@ end
 """
 Featurization helper: initializes the graph with the features specified as arguments.
 """
-function featurize(sr::DefaultStateRepresentation{FeaturizationHelper,TS}; values_onehot::Bool=false, constraint_activity::Bool=true, variable_initial_domain_size::Bool=true, nb_involved_contraint_propagation::Bool=true) where {TS}
+function featurize(sr::DefaultStateRepresentation{FeaturizationHelper,TS}; chosen_features::Dict{String,Bool}) where {TS}
+    constraint_activity = chosen_features["constraint_activity"]
+    variable_initial_domain_size = chosen_features["variable_initial_domain_size"]
+    nb_involved_contraint_propagation = chosen_features["nb_involved_contraint_propagation"]
+    values_onehot = chosen_features["values_onehot"]
+    
     g = sr.cplayergraph
     nb_features = 3
     if values_onehot
