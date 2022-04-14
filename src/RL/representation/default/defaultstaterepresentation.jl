@@ -79,23 +79,50 @@ function featurize(sr::FeaturizedStateRepresentation{DefaultFeaturization, TS}) 
 end
 
 """
-Featurization helper: initializes the graph with the features specified as argument.
+Featurization helper: initializes the graph with the features specified as arguments.
 """
 
-function featurize(sr::FeaturizedStateRepresentation{FeaturizationHelper,TS};values_onehot=false::bool,) where TS
+function featurize(sr::FeaturizedStateRepresentation{FeaturizationHelper,TS};values_onehot=false, constraint_activity=true, variable_initial_domain_size=true, nb_involved_contraint_propagation=true) where TS
     g = sr.cplayergraph
+    global nb_features = 3
+    if values_onehot
+        nb_features += g.numberOfValues
+    end
+    nb_features += int(constraint_activity) + int(variable_initial_domain_size) + int(nb_involved_contraint_propagation)
+
+    features = zeros(Float32, nb_features, nv(g))
     for i in 1:nv(g)
         cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
+        counter = 4
         if isa(cp_vertex, ConstraintVertex)
             features[1, i] = 1.0f0
+            if constraint_activity
+                features[counter, i] = cp_vertex.constraint.active
+                counter += 1
+            end
+            if nb_involved_contraint_propagation
+                features[counter, i] = 0
+                counter += 1
+            end
         end
         if isa(cp_vertex, VariableVertex)
             features[2, i] = 1.0f0
+            if variable_initial_domain_size
+                features[counter, i] = length(cp_vertex.variable.domain)
+                counter += 1
+            end
         end
         if isa(cp_vertex, ValueVertex)
             features[3, i] = 1.0f0
+            if values_onehot
+                cp_vertex_idx = find(x->x==cp_vertex.value,sr.allValuesIdx)
+                features[counter+cp_vertex_idx,i] = 1
+            else
+                features[counter, i] = cp_vertex.value
+            end
         end
     end
+    sr.features_chosen = []
     return features
 end
 """
@@ -113,5 +140,7 @@ end
 Returns the length of the feature vector, for the `DefaultFeaturization`.
 """
 feature_length(::Type{<:FeaturizedStateRepresentation{DefaultFeaturization, TS}}) where TS = 3
+
+feature_length(::Type{<:FeaturizedStateRepresentation{FeaturizationHelper, TS}}) where TS = nb_features
 
 DefaultStateRepresentation(m::CPModel) = DefaultStateRepresentation{DefaultFeaturization, DefaultTrajectoryState}(m::CPModel)
