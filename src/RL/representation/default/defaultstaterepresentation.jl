@@ -14,7 +14,7 @@ mutable struct DefaultStateRepresentation{F,TS} <: FeaturizedStateRepresentation
     globalFeatures::Union{Nothing,AbstractVector{Float32}}
     variableIdx::Union{Nothing,Int64}
     allValuesIdx::Union{Nothing,Vector{Int64}}
-    chosenFeatures::Union{Nothing, Dict{String, Bool}}
+    chosenFeatures::Union{Nothing,Dict{String,Tuple{Bool,Int64}}}
 end
 
 function DefaultStateRepresentation{F,TS}(model::CPModel; action_space=nothing) where {F,TS}
@@ -79,55 +79,79 @@ function featurize(sr::FeaturizedStateRepresentation{DefaultFeaturization,TS}) w
     features
 end
 
+
+"""
+
+"""
+function initChosenFeatures(sr::DefaultStateRepresentation{FeaturizationHelper,TS}, values_onehot::Bool, constraint_activity::Bool, variable_initial_domain_size::Bool, nb_involved_contraint_propagation::Bool) where {TS}
+    counter = 3
+    sr.chosenFeatures = Dict{String, Tuple{Bool, Int64}}(
+        "values_onehot" => (values_onehot, -1),
+        "constraint_activity" => (constraint_activity, -1),
+        "variable_initial_domain_size" => (variable_initial_domain_size, -1),
+        "nb_involved_contraint_propagation" => (nb_involved_contraint_propagation, -1)
+    )
+    if constraint_activity
+        counter += 1
+        sr.chosenFeatures["constraint_activity"] = (constraint_activity, counter)
+    end
+    if nb_involved_contraint_propagation
+        counter += 1
+        sr.chosenFeatures["nb_involved_contraint_propagation"] = (nb_involved_contraint_propagation, counter)
+    end
+    if variable_initial_domain_size
+        counter += 1
+        sr.chosenFeatures["variable_initial_domain_size"] = (variable_initial_domain_size, counter)
+    end
+    counter += 1
+    sr.chosenFeatures["values_onehot"] = (values_onehot, counter)
+end
+
 """
 Featurization helper: initializes the graph with the features specified as arguments.
 """
 function featurize(sr::DefaultStateRepresentation{FeaturizationHelper,TS}; values_onehot::Bool=false, constraint_activity::Bool=true, variable_initial_domain_size::Bool=true, nb_involved_contraint_propagation::Bool=true) where {TS}
     g = sr.cplayergraph
+    
     nb_features = 3
     if values_onehot
         nb_features += g.numberOfValues
+    else
+        nb_features += 1
     end
     nb_features += constraint_activity + variable_initial_domain_size + nb_involved_contraint_propagation
+
+    initChosenFeatures(sr, values_onehot, constraint_activity, variable_initial_domain_size, nb_involved_contraint_propagation)
 
     features = zeros(Float32, nb_features, nv(g))
     for i in 1:nv(g)
         cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
-        counter = 4
         if isa(cp_vertex, ConstraintVertex)
             features[1, i] = 1.0f0
             if constraint_activity
-                features[counter, i] = cp_vertex.constraint.active.value
-                counter += 1
+                features[sr.chosenFeatures["constraint_activity"][2], i] = cp_vertex.constraint.active.value
             end
             if nb_involved_contraint_propagation
-                features[counter, i] = 0
-                counter += 1
+                features[sr.chosenFeatures["nb_involved_contraint_propagation"][2], i] = 0
             end
         end
         if isa(cp_vertex, VariableVertex)
             features[2, i] = 1.0f0
             if variable_initial_domain_size
-                features[counter, i] = length(cp_vertex.variable.domain)
-                counter += 1
+                features[sr.chosenFeatures["variable_initial_domain_size"][2], i] = length(cp_vertex.variable.domain)
             end
         end
         if isa(cp_vertex, ValueVertex)
             features[3, i] = 1.0f0
             if values_onehot
-                cp_vertex_idx = find(x -> x == cp_vertex.value, sr.allValuesIdx)
-                features[counter+cp_vertex_idx, i] = 1
+                cp_vertex_idx = find(x -> x == cp_vertex.value, sr.allValuesIdx) # TODO : absolutely optimize (IMPORTANT)
+                features[sr.chosenFeatures["values_onehot"][2]+cp_vertex_idx, i] = 1
             else
-                features[counter, i] = cp_vertex.value
+                features[sr.chosenFeatures["values_onehot"][2], i] = cp_vertex.value
             end
         end
     end
-    sr.chosenFeatures = Dict{String,Bool}(
-        "values_onehot" => values_onehot,
-        "constraint_activity" => constraint_activity,
-        "variable_initial_domain_size" => variable_initial_domain_size,
-        "nb_involved_contraint_propagation" => nb_involved_contraint_propagation
-    )
+
     return features
 end
 """
@@ -148,6 +172,25 @@ feature_length(::Type{<:FeaturizedStateRepresentation{DefaultFeaturization,TS}})
 
 DefaultStateRepresentation(m::CPModel) = DefaultStateRepresentation{DefaultFeaturization,DefaultTrajectoryState}(m::CPModel)
 
-# function update_features!(sr::Type{<:FeaturizedStateRepresentation{FeaturizationHelper,TS}}, ::CPModel) where {TS}
-#     println(sr.features_chosen)
-# end
+function update_features!(sr::DefaultStateRepresentation{FeaturizationHelper,TS}, ::CPModel) where {TS}
+    g = sr.cplayergraph
+    for i in 1:nv(g)
+        cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
+        if isa(cp_vertex, ConstraintVertex)
+            if sr.chosenFeatures["constraint_activity"][1]
+                sr.nodeFeatures[sr.chosenFeatures["constraint_activity"][2], i] = cp_vertex.constraint.active.value
+            end
+            if sr.chosenFeatures["nb_involved_contraint_propagation"][1]
+                sr.nodeFeatures[sr.chosenFeatures["nb_involved_contraint_propagation"][2], i] = 0
+            end
+        end
+        if isa(cp_vertex, ValueVertex)
+            if sr.chosenFeatures["values_onehot"][1]
+                cp_vertex_idx = find(x -> x == cp_vertex.value, sr.allValuesIdx) # TODO : absolutely optimize (IMPORTANT)
+                sr.nodeFeatures[sr.chosenFeatures["values_onehot"][2] + cp_vertex_idx, i] = 1
+            else
+                sr.nodeFeatures[sr.chosenFeatures["values_onehot"][2], i] = cp_vertex.value
+            end
+        end
+    end
+end
