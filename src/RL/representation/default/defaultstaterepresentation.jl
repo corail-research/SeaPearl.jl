@@ -23,7 +23,7 @@ function DefaultStateRepresentation{F,TS}(model::CPModel; action_space=nothing, 
     if !isnothing(action_space)
         allValuesIdx = indexFromCpVertex.([g], ValueVertex.(action_space))
     end
-    sr = DefaultStateRepresentation{F,TS}(g, nothing, nothing, nothing, allValuesIdx)
+    sr = DefaultStateRepresentation{F,TS}(g, nothing, nothing, nothing, allValuesIdx, nothing)
     if isnothing(chosen_features)
         sr.nodeFeatures = featurize(sr)
     else
@@ -87,21 +87,21 @@ end
 """
 
 """
-function initChosenFeatures(sr::DefaultStateRepresentation{FeaturizationHelper,TS}, values_onehot::Bool, constraint_activity::Bool, variable_initial_domain_size::Bool, nb_involved_contraint_propagation::Bool) where {TS}
+function initChosenFeatures(sr::DefaultStateRepresentation{FeaturizationHelper,TS}, values_onehot::Bool, constraint_activity::Bool, variable_initial_domain_size::Bool, nb_involved_constraint_propagation::Bool) where {TS}
     counter = 3
     sr.chosenFeatures = Dict{String, Tuple{Bool, Int64}}(
         "values_onehot" => (values_onehot, -1),
         "constraint_activity" => (constraint_activity, -1),
         "variable_initial_domain_size" => (variable_initial_domain_size, -1),
-        "nb_involved_contraint_propagation" => (nb_involved_contraint_propagation, -1)
+        "nb_involved_constraint_propagation" => (nb_involved_constraint_propagation, -1)
     )
     if constraint_activity
         counter += 1
         sr.chosenFeatures["constraint_activity"] = (constraint_activity, counter)
     end
-    if nb_involved_contraint_propagation
+    if nb_involved_constraint_propagation
         counter += 1
-        sr.chosenFeatures["nb_involved_contraint_propagation"] = (nb_involved_contraint_propagation, counter)
+        sr.chosenFeatures["nb_involved_constraint_propagation"] = (nb_involved_constraint_propagation, counter)
     end
     if variable_initial_domain_size
         counter += 1
@@ -117,7 +117,7 @@ Featurization helper: initializes the graph with the features specified as argum
 function featurize(sr::DefaultStateRepresentation{FeaturizationHelper,TS}; chosen_features::Dict{String,Bool}) where {TS}
     constraint_activity = chosen_features["constraint_activity"]
     variable_initial_domain_size = chosen_features["variable_initial_domain_size"]
-    nb_involved_contraint_propagation = chosen_features["nb_involved_contraint_propagation"]
+    nb_involved_constraint_propagation = chosen_features["nb_involved_constraint_propagation"]
     values_onehot = chosen_features["values_onehot"]
     
     g = sr.cplayergraph
@@ -128,9 +128,9 @@ function featurize(sr::DefaultStateRepresentation{FeaturizationHelper,TS}; chose
     else
         nb_features += 1
     end
-    nb_features += constraint_activity + variable_initial_domain_size + nb_involved_contraint_propagation
+    nb_features += constraint_activity + variable_initial_domain_size + nb_involved_constraint_propagation
 
-    initChosenFeatures(sr, values_onehot, constraint_activity, variable_initial_domain_size, nb_involved_contraint_propagation)
+    initChosenFeatures(sr, values_onehot, constraint_activity, variable_initial_domain_size, nb_involved_constraint_propagation)
 
     features = zeros(Float32, nb_features, nv(g))
     for i in 1:nv(g)
@@ -140,8 +140,8 @@ function featurize(sr::DefaultStateRepresentation{FeaturizationHelper,TS}; chose
             if constraint_activity
                 features[sr.chosenFeatures["constraint_activity"][2], i] = cp_vertex.constraint.active.value
             end
-            if nb_involved_contraint_propagation
-                features[sr.chosenFeatures["nb_involved_contraint_propagation"][2], i] = 0
+            if nb_involved_constraint_propagation
+                features[sr.chosenFeatures["nb_involved_constraint_propagation"][2], i] = 0
             end
         end
         if isa(cp_vertex, VariableVertex)
@@ -189,8 +189,8 @@ function update_features!(sr::DefaultStateRepresentation{FeaturizationHelper,TS}
             if sr.chosenFeatures["constraint_activity"][1]
                 sr.nodeFeatures[sr.chosenFeatures["constraint_activity"][2], i] = cp_vertex.constraint.active.value
             end
-            if sr.chosenFeatures["nb_involved_contraint_propagation"][1]
-                sr.nodeFeatures[sr.chosenFeatures["nb_involved_contraint_propagation"][2], i] = 0
+            if sr.chosenFeatures["nb_involved_constraint_propagation"][1]
+                sr.nodeFeatures[sr.chosenFeatures["nb_involved_constraint_propagation"][2], i] = 0
             end
         end
         if isa(cp_vertex, ValueVertex)
