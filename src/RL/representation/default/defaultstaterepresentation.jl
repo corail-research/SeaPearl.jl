@@ -23,7 +23,7 @@ function DefaultStateRepresentation{F,TS}(model::CPModel; action_space=nothing, 
     if !isnothing(action_space)
         allValuesIdx = indexFromCpVertex.([g], ValueVertex.(action_space))
     end
-    sr = DefaultStateRepresentation{F,TS}(g, nothing, nothing, nothing, allValuesIdx)
+    sr = DefaultStateRepresentation{F,TS}(g, nothing, nothing, nothing, allValuesIdx, nothing)
     if isnothing(chosen_features)
         sr.nodeFeatures = featurize(sr)
     else
