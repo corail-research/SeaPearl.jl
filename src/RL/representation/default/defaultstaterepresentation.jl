@@ -14,16 +14,23 @@ mutable struct DefaultStateRepresentation{F,TS} <: FeaturizedStateRepresentation
     globalFeatures::Union{Nothing,AbstractVector{Float32}}
     variableIdx::Union{Nothing,Int64}
     allValuesIdx::Union{Nothing,Vector{Int64}}
+    valueToId::Union{Nothing, Dict{Int64, Int64}}
     chosenFeatures::Union{Nothing,Dict{String,Tuple{Bool,Int64}}}
 end
 
 function DefaultStateRepresentation{F,TS}(model::CPModel; action_space=nothing, chosen_features=nothing) where {F,TS}
     g = CPLayerGraph(model)
     allValuesIdx = nothing
+    valueToId = nothing
     if !isnothing(action_space)
         allValuesIdx = indexFromCpVertex.([g], ValueVertex.(action_space))
+        valueToId = Dict{Int64, Int64}()
+        for (id, value) in enumerate(allValuesIdx)
+            valueToId[value] = id
+        end
     end
-    sr = DefaultStateRepresentation{F,TS}(g, nothing, nothing, nothing, allValuesIdx, nothing)
+    
+    sr = DefaultStateRepresentation{F,TS}(g, nothing, nothing, nothing, allValuesIdx, valueToId, nothing)
     if isnothing(chosen_features)
         sr.nodeFeatures = featurize(sr)
     else
@@ -153,7 +160,8 @@ function featurize(sr::DefaultStateRepresentation{FeaturizationHelper,TS}; chose
         if isa(cp_vertex, ValueVertex)
             features[3, i] = 1.0f0
             if values_onehot
-                cp_vertex_idx = find(x -> x == cp_vertex.value, sr.allValuesIdx) # TODO : absolutely optimize (IMPORTANT)
+                # cp_vertex_idx = find(x -> x == cp_vertex.value, sr.allValuesIdx) # TODO : absolutely optimize (IMPORTANT)
+                cp_vertex_idx = sr.valueToId[cp_vertex.value]
                 features[sr.chosenFeatures["values_onehot"][2]+cp_vertex_idx, i] = 1
             else
                 features[sr.chosenFeatures["values_onehot"][2], i] = cp_vertex.value
@@ -195,7 +203,8 @@ function update_features!(sr::DefaultStateRepresentation{FeaturizationHelper,TS}
         end
         if isa(cp_vertex, ValueVertex)
             if sr.chosenFeatures["values_onehot"][1]
-                cp_vertex_idx = find(x -> x == cp_vertex.value, sr.allValuesIdx) # TODO : absolutely optimize (IMPORTANT)
+                # cp_vertex_idx = find(x -> x == cp_vertex.value, sr.allValuesIdx) # TODO : absolutely optimize (IMPORTANT)
+                cp_vertex_idx = sr.valueToId[cp_vertex.value]
                 sr.nodeFeatures[sr.chosenFeatures["values_onehot"][2] + cp_vertex_idx, i] = 1
             else
                 sr.nodeFeatures[sr.chosenFeatures["values_onehot"][2], i] = cp_vertex.value
