@@ -21,16 +21,16 @@ end
 function DefaultStateRepresentation{F,TS}(model::CPModel; action_space=nothing, chosen_features=nothing) where {F,TS}
     g = CPLayerGraph(model)
     allValuesIdx = nothing
-    valueToId = nothing
+    valueToPos = nothing
     if !isnothing(action_space)
         allValuesIdx = indexFromCpVertex.([g], ValueVertex.(action_space))
-        valueToId = Dict{Int64, Int64}()
+        valueToPos = Dict{Int64, Int64}()
         for (pos, value) in enumerate(action_space)
-            valueToId[value] = pos
+            valueToPos[value] = pos
         end
     end
     
-    sr = DefaultStateRepresentation{F,TS}(g, nothing, nothing, nothing, allValuesIdx, valueToId, nothing)
+    sr = DefaultStateRepresentation{F,TS}(g, nothing, nothing, nothing, allValuesIdx, valueToPos, nothing)
     if isnothing(chosen_features)
         sr.nodeFeatures = featurize(sr)
     else
