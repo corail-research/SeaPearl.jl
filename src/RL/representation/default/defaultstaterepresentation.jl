@@ -16,6 +16,7 @@ mutable struct DefaultStateRepresentation{F,TS} <: FeaturizedStateRepresentation
     allValuesIdx::Union{Nothing,Vector{Int64}}
     valueToPos::Union{Nothing, Dict{Int64, Int64}}
     chosenFeatures::Union{Nothing,Dict{String,Tuple{Bool,Int64}}}
+    constraintTypeToId::Union{Nothing,Dict{Type,Int}}
 end
 
 function DefaultStateRepresentation{F,TS}(model::CPModel; action_space=nothing, chosen_features=nothing) where {F,TS}
@@ -30,7 +31,7 @@ function DefaultStateRepresentation{F,TS}(model::CPModel; action_space=nothing, 
         end
     end
     
-    sr = DefaultStateRepresentation{F,TS}(g, nothing, nothing, nothing, allValuesIdx, valueToPos, nothing)
+    sr = DefaultStateRepresentation{F,TS}(g, nothing, nothing, nothing, allValuesIdx, valueToId, nothing, nothing)
     if isnothing(chosen_features)
         sr.nodeFeatures = featurize(sr)
     else
@@ -115,6 +116,15 @@ function initChosenFeatures(sr::DefaultStateRepresentation{FeaturizationHelper,T
         sr.chosenFeatures["variable_initial_domain_size"] = (variable_initial_domain_size, counter)
     end
     counter += 1
+    constraintTypeToId = Dict{Type,Int}()
+    constraintsList = keys(sr.cplayergraph.cpmodel.statistics.numberOfTimesInvolvedInPropagation)
+    for constraint in constraintsList
+        if !haskey(constraintTypeToId,typeof(constraint))
+            constraintTypeToId[typeof(constraint)] = counter
+            counter += 1 
+        end
+    end
+    sr.constraintTypeToId = constraintTypeToId
     sr.chosenFeatures["values_onehot"] = (values_onehot, counter)
 end
 
@@ -129,15 +139,12 @@ function featurize(sr::DefaultStateRepresentation{FeaturizationHelper,TS}; chose
     
     g = sr.cplayergraph
     
-    nb_features = 3
-    if values_onehot
-        nb_features += g.numberOfValues
-    else
-        nb_features += 1
-    end
-    nb_features += constraint_activity + variable_initial_domain_size + nb_involved_constraint_propagation
-
     initChosenFeatures(sr, values_onehot, constraint_activity, variable_initial_domain_size, nb_involved_constraint_propagation)
+
+    nb_features = sr.chosenFeatures["values_onehot"][2]
+    if sr.chosenFeatures["values_onehot"][1]
+        nb_features += g.numberOfValues - 1
+    end
 
     features = zeros(Float32, nb_features, nv(g))
     for i in 1:nv(g)
@@ -150,6 +157,7 @@ function featurize(sr::DefaultStateRepresentation{FeaturizationHelper,TS}; chose
             if nb_involved_constraint_propagation
                 features[sr.chosenFeatures["nb_involved_constraint_propagation"][2], i] = 0
             end
+            features[sr.constraintTypeToId[typeof(cp_vertex.constraint)] , i] = 1
         end
         if isa(cp_vertex, VariableVertex)
             features[2, i] = 1.0f0
@@ -198,7 +206,7 @@ function update_features!(sr::DefaultStateRepresentation{FeaturizationHelper,TS}
                 sr.nodeFeatures[sr.chosenFeatures["constraint_activity"][2], i] = cp_vertex.constraint.active.value
             end
             if sr.chosenFeatures["nb_involved_constraint_propagation"][1]
-                sr.nodeFeatures[sr.chosenFeatures["nb_involved_constraint_propagation"][2], i] = 0
+                sr.nodeFeatures[sr.chosenFeatures["nb_involved_constraint_propagation"][2], i] = sr.cplayergraph.cpmodel.statistics.numberOfTimesInvolvedInPropagation[cp_vertex.constraint]
             end
         end
         if isa(cp_vertex, ValueVertex)

@@ -9,7 +9,7 @@ adj = [0 1 0 1;
         g = SeaPearl.CPLayerGraph()
         nodeFeatures = [1.0f0 1.0f0; 2.0f0 2.0f0]
         variableIdx = 1
-        dsr = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}(g, nodeFeatures, nothing, variableIdx, nothing)
+        dsr = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}(g, nodeFeatures, nothing, variableIdx, nothing, nothing, nothing, nothing)
 
         @test dsr.cplayergraph == g
         @test dsr.nodeFeatures == nodeFeatures
@@ -150,5 +150,110 @@ adj = [0 1 0 1;
         @test size(batchedDts.fg.ef,4) == 2
         @test size(batchedDts.fg.gf,2) == 2
         @test size(batchedDts.variableIdx,1) == 2
+    end
+
+    @testset "FeaturizationHelper without ordered values" begin
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+
+        # Testing FeaturizationHelper on a toy example: the square graph coloring problem
+        x = SeaPearl.IntVar[]
+        for i in 1:4
+            push!(x, SeaPearl.IntVar(1, 4, string(i), model.trailer))
+            SeaPearl.addVariable!(model, last(x))
+        end
+        # Edge constraints
+        SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x[1], x[2], model.trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x[2], x[3], model.trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x[3], x[4], model.trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x[4], x[1], model.trailer))
+        # Objective
+        numberOfColors = SeaPearl.IntVar(1, 4, "numberOfColors", model.trailer)
+        SeaPearl.addVariable!(model, numberOfColors)
+        for var in x
+            SeaPearl.addConstraint!(model, SeaPearl.LessOrEqual(var, numberOfColors, model.trailer))
+        end
+        model.objective = numberOfColors
+        
+        # Choosing features and initializing the state representation
+        chosen_features = Dict([("constraint_activity", true), ("values_onehot", true), ("variable_initial_domain_size", true), ("nb_involved_constraint_propagation", true)])
+        sr = SeaPearl.DefaultStateRepresentation{SeaPearl.FeaturizationHelper, SeaPearl.DefaultTrajectoryState}(model; action_space = 1:4, chosen_features=chosen_features)
+        
+        # Testing the initialization of the node features
+        # TODO: improve the tests here
+        @test sr.nodeFeatures[1:3,:] == Float32[1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0 1.0 0.0 0.0 0.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0]
+        @test sr.nodeFeatures[4,:] == Float32[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        @test sr.nodeFeatures[5,:] == Float32[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        @test sr.nodeFeatures[6,:] == Float32[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 4.0, 4.0, 4.0, 4.0, 0.0, 0.0, 0.0, 0.0]
+        @test sum(sr.nodeFeatures[7:8,:],dims=1) == Float32[1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0]
+        @test sr.nodeFeatures[9:12,:] == Float32[0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0]
+
+        
+        # assign color 1 to x[1]
+        prunedDomains = SeaPearl.CPModification();
+        SeaPearl.addToPrunedDomains!(prunedDomains, x[1], SeaPearl.assign!(x[1].domain, 1));
+        feasible, pruned = SeaPearl.fixPoint!(model, nothing, prunedDomains)
+        SeaPearl.update_features!(sr, model)
+
+        # TODO: improve the tests here
+        @test sr.nodeFeatures[1:3,:] == Float32[1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0 1.0 0.0 0.0 0.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0]
+        @test sr.nodeFeatures[4,:] == Float32[0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        @test all(sr.nodeFeatures[5,1:8] .> Float32[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+        @test sr.nodeFeatures[6,:] == Float32[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 4.0, 4.0, 4.0, 4.0, 0.0, 0.0, 0.0, 0.0]
+        @test sum(sr.nodeFeatures[7:8,:],dims=1) == Float32[1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0]
+        @test sr.nodeFeatures[9:12,:] == Float32[0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0]
+        
+    end
+
+    @testset "FeaturizationHelper with value ordering" begin
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+
+        # Testing FeaturizationHelper on a toy example
+        x = SeaPearl.IntVar(1, 4, "x", model.trailer)
+        y = SeaPearl.IntVar(4, 5, "y", model.trailer)
+        z = SeaPearl.IntVar(2, 6, "z", model.trailer)
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y)
+        SeaPearl.addVariable!(model, z)
+        # Edge constraints
+        SeaPearl.addConstraint!(model, SeaPearl.LessOrEqual(z, y, model.trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.LessOrEqual(y, x, model.trailer))
+        # Objective
+        model.objective = 3*z
+
+        # Choosing features and initializing the state representation
+        chosen_features = Dict([("constraint_activity", true), ("values_onehot", false), ("variable_initial_domain_size", true), ("nb_involved_constraint_propagation", true)])
+        sr = SeaPearl.DefaultStateRepresentation{SeaPearl.FeaturizationHelper, SeaPearl.DefaultTrajectoryState}(model; chosen_features=chosen_features)
+
+        # Testing the initialization of the node features
+        # TODO: improve the tests here
+        println(sr.nodeFeatures[1:3,:])
+        println(sr.nodeFeatures[4,:])
+        println(sr.nodeFeatures[5,:])
+        println(sr.nodeFeatures[6,:])
+        println(sr.nodeFeatures[7,:])
+        println(sr.nodeFeatures[8,:])
+        @test sr.nodeFeatures[1:3,:] == Float32[1.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0; 0.0 0.0 1.0 1.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0; 0.0 0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0]
+        @test sr.nodeFeatures[4,:] == Float32[1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        @test sr.nodeFeatures[5,:] == Float32[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        @test sr.nodeFeatures[6,:] == Float32[0.0, 0.0, 4.0, 2.0, 5.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        @test sr.nodeFeatures[7,:] == Float32[1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        @test sum(sr.nodeFeatures[8,:]) == sum(Float32[0.0, 0.0, 0.0, 0.0, 0.0, 5.0, 4.0, 6.0, 2.0, 3.0, 1.0])
+
+        
+        # assign value 4 to x
+        prunedDomains = SeaPearl.CPModification();
+        SeaPearl.addToPrunedDomains!(prunedDomains, x, SeaPearl.assign!(x.domain, 4));
+        feasible, pruned = SeaPearl.fixPoint!(model, nothing, prunedDomains)
+        SeaPearl.update_features!(sr, model)
+
+        # TODO: improve the tests here
+        @test sr.nodeFeatures[1:3,:] == Float32[1.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0; 0.0 0.0 1.0 1.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0; 0.0 0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0]
+        @test sr.nodeFeatures[4,:] == Float32[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        @test all(sr.nodeFeatures[5,1:2] .> Float32[0.0, 0.0])
+        @test sr.nodeFeatures[6,:] == Float32[0.0, 0.0, 4.0, 2.0, 5.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        @test sr.nodeFeatures[7,:] == Float32[1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        @test sum(sr.nodeFeatures[8,:]) == sum(Float32[0.0, 0.0, 0.0, 0.0, 0.0, 5.0, 4.0, 6.0, 2.0, 3.0, 1.0])
     end
 end
