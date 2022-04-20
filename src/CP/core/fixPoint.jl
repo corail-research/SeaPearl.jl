@@ -38,7 +38,9 @@ function fixPoint!(model::CPModel, new_constraints::Union{Array{Constraint}, Not
 
     while !isempty(toPropagate)
         constraint = pop!(toPropagate)
-        model.statistics.numberOfTimesInvolvedInPropagation[constraint] += 1
+        if haskey(model.statistics.numberOfTimesInvolvedInPropagation,constraint)
+            model.statistics.numberOfTimesInvolvedInPropagation[constraint] += 1
+        end
         if !propagate!(constraint, toPropagate, prunedDomains)
             triggerInfeasible!(constraint, model)   
             return false, prunedDomains

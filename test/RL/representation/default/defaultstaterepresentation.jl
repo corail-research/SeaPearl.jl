@@ -228,12 +228,6 @@ adj = [0 1 0 1;
 
         # Testing the initialization of the node features
         # TODO: improve the tests here
-        println(sr.nodeFeatures[1:3,:])
-        println(sr.nodeFeatures[4,:])
-        println(sr.nodeFeatures[5,:])
-        println(sr.nodeFeatures[6,:])
-        println(sr.nodeFeatures[7,:])
-        println(sr.nodeFeatures[8,:])
         @test sr.nodeFeatures[1:3,:] == Float32[1.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0; 0.0 0.0 1.0 1.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0; 0.0 0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0]
         @test sr.nodeFeatures[4,:] == Float32[1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         @test sr.nodeFeatures[5,:] == Float32[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
