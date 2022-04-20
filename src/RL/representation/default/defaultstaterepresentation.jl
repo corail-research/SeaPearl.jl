@@ -31,7 +31,7 @@ function DefaultStateRepresentation{F,TS}(model::CPModel; action_space=nothing, 
         end
     end
     
-    sr = DefaultStateRepresentation{F,TS}(g, nothing, nothing, nothing, allValuesIdx, valueToId, nothing, nothing)
+    sr = DefaultStateRepresentation{F,TS}(g, nothing, nothing, nothing, allValuesIdx, valueToPos, nothing, nothing)
     if isnothing(chosen_features)
         sr.nodeFeatures = featurize(sr)
     else
@@ -95,13 +95,14 @@ end
 """
 
 """
-function initChosenFeatures(sr::DefaultStateRepresentation{FeaturizationHelper,TS}, values_onehot::Bool, constraint_activity::Bool, variable_initial_domain_size::Bool, nb_involved_constraint_propagation::Bool) where {TS}
+function initChosenFeatures(sr::DefaultStateRepresentation{FeaturizationHelper,TS}, values_onehot::Bool, constraint_activity::Bool, variable_initial_domain_size::Bool, nb_involved_constraint_propagation::Bool, nb_not_bounded_variable::Bool) where {TS}
     counter = 3
     sr.chosenFeatures = Dict{String, Tuple{Bool, Int64}}(
         "values_onehot" => (values_onehot, -1),
         "constraint_activity" => (constraint_activity, -1),
         "variable_initial_domain_size" => (variable_initial_domain_size, -1),
-        "nb_involved_constraint_propagation" => (nb_involved_constraint_propagation, -1)
+        "nb_involved_constraint_propagation" => (nb_involved_constraint_propagation, -1),
+        "nb_not_bounded_variable" => (nb_not_bounded_variable, -1)
     )
     if constraint_activity
         counter += 1
@@ -115,6 +116,11 @@ function initChosenFeatures(sr::DefaultStateRepresentation{FeaturizationHelper,T
         counter += 1
         sr.chosenFeatures["variable_initial_domain_size"] = (variable_initial_domain_size, counter)
     end
+    if nb_not_bounded_variable
+        counter += 1
+        sr.chosenFeatures["nb_not_bounded_variable"] = (nb_not_bounded_variable, counter)
+    end
+
     counter += 1
     constraintTypeToId = Dict{Type,Int}()
     constraintsList = keys(sr.cplayergraph.cpmodel.statistics.numberOfTimesInvolvedInPropagation)
@@ -136,10 +142,11 @@ function featurize(sr::DefaultStateRepresentation{FeaturizationHelper,TS}; chose
     variable_initial_domain_size = chosen_features["variable_initial_domain_size"]
     nb_involved_constraint_propagation = chosen_features["nb_involved_constraint_propagation"]
     values_onehot = chosen_features["values_onehot"]
+    nb_not_bounded_variable = chosen_features["nb_not_bounded_variable"]
     
     g = sr.cplayergraph
     
-    initChosenFeatures(sr, values_onehot, constraint_activity, variable_initial_domain_size, nb_involved_constraint_propagation)
+    initChosenFeatures(sr, values_onehot, constraint_activity, variable_initial_domain_size, nb_involved_constraint_propagation, nb_not_bounded_variable)
 
     nb_features = sr.chosenFeatures["values_onehot"][2]
     if sr.chosenFeatures["values_onehot"][1]
@@ -156,6 +163,10 @@ function featurize(sr::DefaultStateRepresentation{FeaturizationHelper,TS}; chose
             end
             if nb_involved_constraint_propagation
                 features[sr.chosenFeatures["nb_involved_constraint_propagation"][2], i] = 0
+            end
+            if nb_not_bounded_variable
+                variables = variablesArray(cp_vertex.constraint)
+                features[sr.chosenFeatures["nb_not_bounded_variable"][2], i] = count(x -> !isbound(x), variables)
             end
             features[sr.constraintTypeToId[typeof(cp_vertex.constraint)] , i] = 1
         end
@@ -207,6 +218,10 @@ function update_features!(sr::DefaultStateRepresentation{FeaturizationHelper,TS}
             end
             if sr.chosenFeatures["nb_involved_constraint_propagation"][1]
                 sr.nodeFeatures[sr.chosenFeatures["nb_involved_constraint_propagation"][2], i] = sr.cplayergraph.cpmodel.statistics.numberOfTimesInvolvedInPropagation[cp_vertex.constraint]
+            end
+            if sr.chosenFeatures["nb_not_bounded_variable"][1]
+                variables = variablesArray(cp_vertex.constraint)
+                sr.nodeFeatures[sr.chosenFeatures["nb_not_bounded_variable"][2], i] = count(x -> !isbound(x), variables)
             end
         end
         if isa(cp_vertex, ValueVertex)

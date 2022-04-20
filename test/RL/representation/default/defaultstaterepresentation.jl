@@ -176,7 +176,13 @@ adj = [0 1 0 1;
         model.objective = numberOfColors
         
         # Choosing features and initializing the state representation
-        chosen_features = Dict([("constraint_activity", true), ("values_onehot", true), ("variable_initial_domain_size", true), ("nb_involved_constraint_propagation", true)])
+        chosen_features = Dict(
+            "constraint_activity" => true, 
+            "values_onehot" => true,
+            "variable_initial_domain_size" => true,
+            "nb_involved_constraint_propagation" => true,
+            "nb_not_bounded_variable" => false
+        )
         sr = SeaPearl.DefaultStateRepresentation{SeaPearl.FeaturizationHelper, SeaPearl.DefaultTrajectoryState}(model; action_space = 1:4, chosen_features=chosen_features)
         
         # Testing the initialization of the node features
@@ -223,7 +229,13 @@ adj = [0 1 0 1;
         model.objective = 3*z
 
         # Choosing features and initializing the state representation
-        chosen_features = Dict([("constraint_activity", true), ("values_onehot", false), ("variable_initial_domain_size", true), ("nb_involved_constraint_propagation", true)])
+        chosen_features = Dict(
+            "constraint_activity" => true, 
+            "values_onehot" => false,
+            "variable_initial_domain_size" => true,
+            "nb_involved_constraint_propagation" => true,
+            "nb_not_bounded_variable" => false
+        )
         sr = SeaPearl.DefaultStateRepresentation{SeaPearl.FeaturizationHelper, SeaPearl.DefaultTrajectoryState}(model; chosen_features=chosen_features)
 
         # Testing the initialization of the node features
