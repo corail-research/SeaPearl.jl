@@ -141,9 +141,9 @@ function featurize(sr::DefaultStateRepresentation{FeaturizationHelper,TS}; chose
     
     initChosenFeatures(sr, values_onehot, constraint_activity, variable_initial_domain_size, nb_involved_constraint_propagation)
 
-    nb_features = sr.chosenFeatures["values_onehot"][2] - 1
+    nb_features = sr.chosenFeatures["values_onehot"][2]
     if sr.chosenFeatures["values_onehot"][1]
-        nb_features += g.numberOfValues
+        nb_features += g.numberOfValues - 1
     end
 
     features = zeros(Float32, nb_features, nv(g))
