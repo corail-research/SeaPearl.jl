@@ -14,7 +14,7 @@ mutable struct DefaultStateRepresentation{F,TS} <: FeaturizedStateRepresentation
     globalFeatures::Union{Nothing,AbstractVector{Float32}}
     variableIdx::Union{Nothing,Int64}
     allValuesIdx::Union{Nothing,Vector{Int64}}
-    valueToPos::Union{Nothing, Dict{Int64, Int64}}
+    valueToPos::Union{Nothing,Dict{Int64,Int64}}
     chosenFeatures::Union{Nothing,Dict{String,Tuple{Bool,Int64}}}
     constraintTypeToId::Union{Nothing,Dict{Type,Int}}
 end
@@ -25,12 +25,12 @@ function DefaultStateRepresentation{F,TS}(model::CPModel; action_space=nothing, 
     valueToPos = nothing
     if !isnothing(action_space)
         allValuesIdx = indexFromCpVertex.([g], ValueVertex.(action_space))
-        valueToPos = Dict{Int64, Int64}()
+        valueToPos = Dict{Int64,Int64}()
         for (pos, value) in enumerate(action_space)
             valueToPos[value] = pos
         end
     end
-    
+
     sr = DefaultStateRepresentation{F,TS}(g, nothing, nothing, nothing, allValuesIdx, valueToPos, nothing, nothing)
     if isnothing(chosen_features)
         sr.nodeFeatures = featurize(sr)
@@ -95,43 +95,53 @@ end
 """
 
 """
-function initChosenFeatures(sr::DefaultStateRepresentation{FeaturizationHelper,TS}, values_onehot::Bool, constraint_activity::Bool, variable_initial_domain_size::Bool, nb_involved_constraint_propagation::Bool, nb_not_bounded_variable::Bool) where {TS}
+function initChosenFeatures(sr::DefaultStateRepresentation{FeaturizationHelper,TS}, chosen_features::Dict{String,Bool}) where {TS}
     counter = 3
-    sr.chosenFeatures = Dict{String, Tuple{Bool, Int64}}(
-        "values_onehot" => (values_onehot, -1),
-        "constraint_activity" => (constraint_activity, -1),
-        "variable_initial_domain_size" => (variable_initial_domain_size, -1),
-        "nb_involved_constraint_propagation" => (nb_involved_constraint_propagation, -1),
-        "nb_not_bounded_variable" => (nb_not_bounded_variable, -1)
+    sr.chosenFeatures = Dict{String,Tuple{Bool,Int64}}(
+        "values_onehot" => (chosen_features["values_onehot"], -1),
+        "constraint_activity" => (chosen_features["constraint_activity"], -1),
+        "variable_initial_domain_size" => (chosen_features["variable_initial_domain_size"], -1),
+        "variable_domain_size" => (chosen_features["variable_domain_size"], -1),
+        "variable_is_bound" => (chosen_features["variable_is_bound"], -1),
+        "nb_involved_constraint_propagation" => (chosen_features["nb_involved_constraint_propagation"], -1),
+        "nb_not_bounded_variable" => (chosen_features["nb_not_bounded_variable"], -1)
     )
-    if constraint_activity
+    if sr.chosenFeatures["constraint_activity"][1]
         counter += 1
-        sr.chosenFeatures["constraint_activity"] = (constraint_activity, counter)
+        sr.chosenFeatures["constraint_activity"] = (sr.chosenFeatures["constraint_activity"][1], counter)
     end
-    if nb_involved_constraint_propagation
+    if sr.chosenFeatures["nb_involved_constraint_propagation"][1]
         counter += 1
-        sr.chosenFeatures["nb_involved_constraint_propagation"] = (nb_involved_constraint_propagation, counter)
+        sr.chosenFeatures["nb_involved_constraint_propagation"] = (sr.chosenFeatures["nb_involved_constraint_propagation"][1], counter)
     end
-    if variable_initial_domain_size
+    if sr.chosenFeatures["variable_initial_domain_size"][1]
         counter += 1
-        sr.chosenFeatures["variable_initial_domain_size"] = (variable_initial_domain_size, counter)
+        sr.chosenFeatures["variable_initial_domain_size"] = (sr.chosenFeatures["variable_initial_domain_size"][1], counter)
     end
-    if nb_not_bounded_variable
+    if sr.chosenFeatures["variable_domain_size"][1]
         counter += 1
-        sr.chosenFeatures["nb_not_bounded_variable"] = (nb_not_bounded_variable, counter)
+        sr.chosenFeatures["variable_domain_size"] = (sr.chosenFeatures["variable_domain_size"][1], counter)
+    end
+    if sr.chosenFeatures["variable_is_bound"][1]
+        counter += 1
+        sr.chosenFeatures["variable_is_bound"] = (sr.chosenFeatures["variable_is_bound"][1], counter)
+    end
+    if sr.chosenFeatures["nb_not_bounded_variable"][1]
+        counter += 1
+        sr.chosenFeatures["nb_not_bounded_variable"] = (sr.chosenFeatures["nb_not_bounded_variable"][1], counter)
     end
 
     counter += 1
     constraintTypeToId = Dict{Type,Int}()
     constraintsList = keys(sr.cplayergraph.cpmodel.statistics.numberOfTimesInvolvedInPropagation)
     for constraint in constraintsList
-        if !haskey(constraintTypeToId,typeof(constraint))
+        if !haskey(constraintTypeToId, typeof(constraint))
             constraintTypeToId[typeof(constraint)] = counter
-            counter += 1 
+            counter += 1
         end
     end
     sr.constraintTypeToId = constraintTypeToId
-    sr.chosenFeatures["values_onehot"] = (values_onehot, counter)
+    sr.chosenFeatures["values_onehot"] = (sr.chosenFeatures["values_onehot"][1], counter)
 end
 
 """
@@ -140,13 +150,15 @@ Featurization helper: initializes the graph with the features specified as argum
 function featurize(sr::DefaultStateRepresentation{FeaturizationHelper,TS}; chosen_features::Dict{String,Bool}) where {TS}
     constraint_activity = chosen_features["constraint_activity"]
     variable_initial_domain_size = chosen_features["variable_initial_domain_size"]
+    variable_domain_size = chosen_features["variable_domain_size"]
+    variable_is_bound = chosen_features["variable_is_bound"]
     nb_involved_constraint_propagation = chosen_features["nb_involved_constraint_propagation"]
     values_onehot = chosen_features["values_onehot"]
     nb_not_bounded_variable = chosen_features["nb_not_bounded_variable"]
-    
+
     g = sr.cplayergraph
-    
-    initChosenFeatures(sr, values_onehot, constraint_activity, variable_initial_domain_size, nb_involved_constraint_propagation, nb_not_bounded_variable)
+
+    initChosenFeatures(sr, chosen_features)
 
     nb_features = sr.chosenFeatures["values_onehot"][2]
     if sr.chosenFeatures["values_onehot"][1]
@@ -168,12 +180,18 @@ function featurize(sr::DefaultStateRepresentation{FeaturizationHelper,TS}; chose
                 variables = variablesArray(cp_vertex.constraint)
                 features[sr.chosenFeatures["nb_not_bounded_variable"][2], i] = count(x -> !isbound(x), variables)
             end
-            features[sr.constraintTypeToId[typeof(cp_vertex.constraint)] , i] = 1
+            features[sr.constraintTypeToId[typeof(cp_vertex.constraint)], i] = 1
         end
         if isa(cp_vertex, VariableVertex)
             features[2, i] = 1.0f0
             if variable_initial_domain_size
                 features[sr.chosenFeatures["variable_initial_domain_size"][2], i] = length(cp_vertex.variable.domain)
+            end
+            if variable_domain_size
+                features[sr.chosenFeatures["variable_domain_size"][2], i] = length(cp_vertex.variable.domain)
+            end
+            if variable_is_bound
+                features[sr.chosenFeatures["variable_is_bound"][2], i] = isbound(cp_vertex.variable)
             end
         end
         if isa(cp_vertex, ValueVertex)
@@ -181,7 +199,7 @@ function featurize(sr::DefaultStateRepresentation{FeaturizationHelper,TS}; chose
             if values_onehot
                 # cp_vertex_idx = find(x -> x == cp_vertex.value, sr.allValuesIdx) # TODO : absolutely optimize (IMPORTANT)
                 cp_vertex_idx = sr.valueToPos[cp_vertex.value]
-                features[sr.chosenFeatures["values_onehot"][2]+cp_vertex_idx - 1, i] = 1
+                features[sr.chosenFeatures["values_onehot"][2]+cp_vertex_idx-1, i] = 1
             else
                 features[sr.chosenFeatures["values_onehot"][2], i] = cp_vertex.value
             end
@@ -224,11 +242,19 @@ function update_features!(sr::DefaultStateRepresentation{FeaturizationHelper,TS}
                 sr.nodeFeatures[sr.chosenFeatures["nb_not_bounded_variable"][2], i] = count(x -> !isbound(x), variables)
             end
         end
+        if isa(cp_vertex, VariableVertex)
+            if sr.chosenFeatures["variable_domain_size"][1]
+                sr.nodeFeatures[sr.chosenFeatures["variable_domain_size"][2], i] = length(cp_vertex.variable.domain)
+            end
+            if sr.chosenFeatures["variable_is_bound"][1]
+                sr.nodeFeatures[sr.chosenFeatures["variable_is_bound"][2], i] = isbound(cp_vertex.variable)
+            end
+        end
         if isa(cp_vertex, ValueVertex)
             if sr.chosenFeatures["values_onehot"][1]
                 # cp_vertex_idx = find(x -> x == cp_vertex.value, sr.allValuesIdx) # TODO : absolutely optimize (IMPORTANT)
                 cp_vertex_idx = sr.valueToPos[cp_vertex.value]
-                sr.nodeFeatures[sr.chosenFeatures["values_onehot"][2] + cp_vertex_idx - 1, i] = 1
+                sr.nodeFeatures[sr.chosenFeatures["values_onehot"][2]+cp_vertex_idx-1, i] = 1
             else
                 sr.nodeFeatures[sr.chosenFeatures["values_onehot"][2], i] = cp_vertex.value
             end

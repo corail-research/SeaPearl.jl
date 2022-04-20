@@ -180,6 +180,8 @@ adj = [0 1 0 1;
             "constraint_activity" => true, 
             "values_onehot" => true,
             "variable_initial_domain_size" => true,
+            "variable_domain_size" => false,
+            "variable_is_bound" => false,
             "nb_involved_constraint_propagation" => true,
             "nb_not_bounded_variable" => false
         )
@@ -233,6 +235,8 @@ adj = [0 1 0 1;
             "constraint_activity" => true, 
             "values_onehot" => false,
             "variable_initial_domain_size" => true,
+            "variable_domain_size" => false,
+            "variable_is_bound" => false,
             "nb_involved_constraint_propagation" => true,
             "nb_not_bounded_variable" => false
         )
