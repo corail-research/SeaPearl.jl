@@ -81,7 +81,7 @@ function expandRbs!(toCall::Stack{Function}, model::CPModel, nodeLimit::Int64, c
     end
 
     # Fix-point algorithm
-    feasible, pruned = fixPoint!(model, newConstraints, prunedDomains)
+    feasible, pruned = fixPoint!(model, newConstraints, prunedDomains; isRbs=true)
     model.statistics.lastPruning=sum(map(x-> length(x[2]),collect(pruned)))
     
     if !feasible

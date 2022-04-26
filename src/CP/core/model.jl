@@ -39,6 +39,7 @@ or filled by an `AbstractModelGenerator`.
 mutable struct CPModel
     variables               ::Dict{String, AbstractVar}
     branchable              ::Dict{String, Bool}
+    branchable_variables    ::Dict{String, AbstractVar}
     constraints             ::Array{Constraint}
     trailer                 ::Trailer
     objective               ::Union{Nothing, AbstractIntVar}
@@ -47,7 +48,7 @@ mutable struct CPModel
     limit                   ::Limit
     knownObjective          ::Union{Nothing,Int64}
     adhocInfo               ::Any
-    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Constraint[], trailer, nothing, nothing, Statistics(Dict{String, Int}(), 0,0, 0, 0, 0, 0, 0, Solution[],Int[], nothing, nothing, nothing), Limit(nothing, nothing, nothing), nothing)
+    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Dict{String, AbstractVar}(), Constraint[], trailer, nothing, nothing, Statistics(Dict{String, Int}(), 0,0, 0, 0, 0, 0, 0, Solution[],Int[], nothing, nothing, nothing), Limit(nothing, nothing, nothing), nothing)
 end
 
 CPModel() = CPModel(Trailer())
@@ -67,6 +68,10 @@ function addVariable!(model::CPModel, x::AbstractVar; branchable=true)
     model.statistics.infeasibleStatusPerVariable[id(x)]=0
     model.branchable[x.id] = branchable
     model.variables[x.id] = x
+    if branchable
+        model.branchable_variables[x.id] = x
+    end
+
 end
 
 """
