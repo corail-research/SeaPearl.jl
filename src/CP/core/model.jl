@@ -168,8 +168,8 @@ this function increments by one the statistic infeasibleStatusPerVariable for ea
 keeps in track for each variable the number of times the variable was involved in a constraint that led to an infeasible state during a fixpoint. This statistic
 is used by the failure-based variable selection heuristic.
 """
-function triggerInfeasible!(constraint::Constraint, model::CPModel; isRbs::Bool=false)
-    if isRbs
+function triggerInfeasible!(constraint::Constraint, model::CPModel; isFailureBased::Bool=false)
+    if isFailureBased
         for var in variablesArray(constraint)
             if haskey(model.branchable, id(var))
                 model.statistics.infeasibleStatusPerVariable[id(var)]+=1
