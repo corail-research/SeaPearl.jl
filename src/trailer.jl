@@ -80,6 +80,7 @@ Store the current state into the trailer, replacing the current stack with an em
 function saveState!(trailer::Trailer)
     push!(trailer.prior, trailer.current)
     trailer.current = Stack{AbstractStateEntry}()
+    nothing
 end
 
 """
@@ -98,6 +99,7 @@ function restoreState!(trailer::Trailer)
     else
         trailer.current = pop!(trailer.prior)
     end
+    nothing
 end
 
 
