@@ -18,6 +18,8 @@
     include("reifiedinset.jl")
     include("binaryor.jl")
     include("isbinaryor.jl")
+    include("binaryxor.jl")
+    include("isbinaryxor.jl")
     include("setdiffsingleton.jl")
     include("element2d.jl")
     include("element1d.jl")
