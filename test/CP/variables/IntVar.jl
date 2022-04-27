@@ -54,6 +54,6 @@
 
         @test SeaPearl.length(y.domain) == 1
         @test SeaPearl.isbound(y)
-        @test SeaPearl.assignedValue(y) == -5
+        @test SeaPearl.assignedValue(y) == -SeaPearl.assignedValue(x)
     end
 end
