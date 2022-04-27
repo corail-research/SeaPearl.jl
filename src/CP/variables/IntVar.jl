@@ -66,3 +66,11 @@ end
 Return the "true" variable behind `x`. For a `IntVar`, it simply returns `x`.
 """
 rootVariable(x::IntVar) = x
+
+"""
+    -(x::IntVar)
+
+Simple way to generate the opposite of a variable (y = -x).
+Return a `IntDomainViewOpposite` of `x`.
+"""
+Base.:-(x::IntVar) = IntVarViewOpposite(x, string("-(", x.id, ")"))
