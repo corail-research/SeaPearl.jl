@@ -1,33 +1,16 @@
 """
-abstract type AbstractReward end
+    SupervisedLearnedHeuristic{SR<:AbstractStateRepresentation, R<:AbstractReward, A<:ActionOutput}
 
-Used to customize the reward function. If you want to use your own reward, you have to create a struct
-(called `CustomReward` for example) and define the following methods:
-- set_reward!(::StepPhase, env::RLEnv{CustomReward}, model::CPModel, current_status::Union{Nothing, Symbol})
-- set_reward!(::DecisionPhase, env::RLEnv{CustomReward}, model::CPModel)
-- set_reward!(::EndingPhase, env::RLEnv{CustomReward}, symbol::Symbol)
-
-Then, when creating the `LearnedHeuristic`, you define it using `LearnedHeuristic{CustomReward}(agent::RL.Agent)`
-and your functions will be called instead of the default ones.
-"""
-
-abstract type AbstractReward end
-
-abstract type LearnedHeuristic{SR<:AbstractStateRepresentation, R<:AbstractReward, A<:ActionOutput} <: ValueSelection end
-
-"""
-    SimpleLearnedHeuristic{SR<:AbstractStateRepresentation, R<:AbstractReward, A<:ActionOutput}
-
-The SimpleLearnedHeuristic is a value selection heuristic which is learned thanks to a training made by solving a certain amount
+The SupervisedLearnedHeuristic is a value selection heuristic which is learned thanks to a training made by solving a certain amount
 of problem instances from files or from an `AbstractModelGenerator`. From the RL point of view, this is an agent which is
 learning how to choose an appropriate action (value to assign) when observing an `AbstractStateRepresentation`. The agent
 learns thanks to rewards that are given regularly during the search. He wil try to maximize the total reward.
 
-From the RL point of view, this SimpleLearnedHeuristic also plays part of the role normally played by the environment. Indeed, the
-SimpleLearnedHeuristic stores the action space, the current state and reward. The other role that a classic RL environment has is describing
+From the RL point of view, this SupervisedLearnedHeuristic also plays part of the role normally played by the environment. Indeed, the
+SupervisedLearnedHeuristic stores the action space, the current state and reward. The other role that a classic RL environment has is describing
 the consequences of an action: in SeaPearl, this is done by the CP part - branching, running fixPoint!, backtracking, etc...
 """
-mutable struct SimpleLearnedHeuristic{SR<:AbstractStateRepresentation, R<:AbstractReward, A<:ActionOutput} <: LearnedHeuristic{SR, R, A}
+mutable struct SupervisedLearnedHeuristic{SR<:AbstractStateRepresentation, R<:AbstractReward, A<:ActionOutput} <: LearnedHeuristic{SR, R, A}
     agent::RL.Agent
     fitted_problem::Union{Nothing, Type{G}} where G
     fitted_strategy::Union{Nothing, Type{S}} where S <: SearchStrategy
@@ -37,17 +20,17 @@ mutable struct SimpleLearnedHeuristic{SR<:AbstractStateRepresentation, R<:Abstra
     search_metrics::Union{Nothing, SearchMetrics}
     firstActionTaken::Bool
     trainMode::Bool
-    SimpleLearnedHeuristic{SR, R, A}(agent::RL.Agent) where {SR, R, A}= new{SR, R, A}(agent, nothing, nothing, nothing, nothing, nothing, nothing, false, true)
+    SupervisedLearnedHeuristic{SR, R, A}(agent::RL.Agent) where {SR, R, A}= new{SR, R, A}(agent, nothing, nothing, nothing, nothing, nothing, nothing, false, true)
 end
 
 """
-    (valueSelection::SimpleLearnedHeuristic)(::InitializingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
+    (valueSelection::SupervisedLearnedHeuristic)(::InitializingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
 
-Update the part of the SimpleLearnedHeuristic which act like an RL environment, by initializing it with informations caracteritic of the new CPModel. Creates an
-initial observation with a false variable. A fixPoint! will be called before the SimpleLearnedHeuristic takes its first decision.
+Update the part of the SupervisedLearnedHeuristic which act like an RL environment, by initializing it with informations caracteritic of the new CPModel. Creates an
+initial observation with a false variable. A fixPoint! will be called before the SupervisedLearnedHeuristic takes its first decision.
 Finally, makes the agent call the process of the RL pre_episode_stage (basically making sure that the buffer is empty).
 """
-function (valueSelection::SimpleLearnedHeuristic)(::Type{InitializingPhase}, model::CPModel)
+function (valueSelection::SupervisedLearnedHeuristic)(::Type{InitializingPhase}, model::CPModel)
     # create the environment
     valueSelection.firstActionTaken = false
     update_with_cpmodel!(valueSelection, model)
@@ -64,14 +47,14 @@ function (valueSelection::SimpleLearnedHeuristic)(::Type{InitializingPhase}, mod
 end
 
 """
-    (valueSelection::SimpleLearnedHeuristic)(::StepPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
+    (valueSelection::SupervisedLearnedHeuristic)(::StepPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
 
 The step phase is the phase between every procedure call. It is the best place to get stats about the search tree, that's why
 we put a set_metrics! function here. As those metrics could be used to design a reward, we also put a set_reward! function.
 ATM, the metrics are updated after the reward assignment as the current_status given totally decribes the changes that are to be made.
 Another possibility would be to have old and new metrics in memory.
 """
-function (valueSelection::SimpleLearnedHeuristic)(PHASE::Type{StepPhase}, model::CPModel, current_status::Union{Nothing, Symbol})
+function (valueSelection::SupervisedLearnedHeuristic)(PHASE::Type{StepPhase}, model::CPModel, current_status::Union{Nothing, Symbol})
     set_reward!(PHASE, valueSelection, model, current_status)
     # incremental metrics, set after reward is updated
     set_metrics!(PHASE, valueSelection.search_metrics, model, current_status)
@@ -79,13 +62,13 @@ function (valueSelection::SimpleLearnedHeuristic)(PHASE::Type{StepPhase}, model:
 end
 
 """
-    (valueSelection::SimpleLearnedHeuristic)(::DecisionPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
+    (valueSelection::SupervisedLearnedHeuristic)(::DecisionPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
 
 Observe, store useful informations in the buffer with agent(POST_ACT_STAGE, ...) and take a decision with the call to agent(PRE_ACT_STAGE).
 The metrics that aren't updated in the StepPhase, which are more related to variables domains, are updated here. Once updated, they can
 be used in the other set_reward! function as the reward of the last action will only be collected in the RL.POST_ACT_STAGE.
 """
-function (valueSelection::SimpleLearnedHeuristic)(PHASE::Type{DecisionPhase}, model::CPModel, x::Union{Nothing, AbstractIntVar})
+function (valueSelection::SupervisedLearnedHeuristic)(PHASE::Type{DecisionPhase}, model::CPModel, x::Union{Nothing, AbstractIntVar})
     # domain change metrics, set before reward is updated
     set_metrics!(PHASE, valueSelection.search_metrics, model, x)
     set_reward!(PHASE, valueSelection, model)
@@ -112,11 +95,11 @@ function (valueSelection::SimpleLearnedHeuristic)(PHASE::Type{DecisionPhase}, mo
 end
 
 """
-    (valueSelection::SimpleLearnedHeuristic)(::EndingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
+    (valueSelection::SupervisedLearnedHeuristic)(::EndingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
 
 Set the final reward, do last observation.
 """
-function (valueSelection::SimpleLearnedHeuristic)(PHASE::Type{EndingPhase}, model::CPModel, current_status::Union{Nothing, Symbol})
+function (valueSelection::SupervisedLearnedHeuristic)(PHASE::Type{EndingPhase}, model::CPModel, current_status::Union{Nothing, Symbol})
     # the RL EPISODE stops
     if valueSelection.firstActionTaken
         set_reward!(DecisionPhase,valueSelection, model)  #last decision reward for the previous action taken just before the ending Phase
