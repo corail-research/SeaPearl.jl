@@ -15,12 +15,13 @@ end
 Fill a CPModel with the variables and constraints generated. We fill it directly instead of
 creating temporary files for efficiency purpose.
 
-A seed must be specified by the user to generate a specific instance. As long as Random.seed!(seed) is called at the beginning of the function, every random-based operations with be deterministic. Caution : this is not the seed that must be specified in order to generate a same set of evaluation instances across experiment, in that case, the user must call Random.seed! only once, at the beginning of the experiment. 
+Rng is a random number generator used to ensure experiment reproductibility accross devices. It is often set at the beginning of an experiment to generate deterministic training samples. 
+
 
 This generator create graps for the NQueens problem.
 
 """
-function fill_with_generator!(cpmodel::CPModel, gen::NQueensGenerator; rng::Union{Nothing,AbstractRNG} = nothing)
+function fill_with_generator!(cpmodel::CPModel, gen::NQueensGenerator; rng::Nothing = nothing)
     cpmodel.limit.numberOfSolutions = 1
 
     #density = gen.density
