@@ -54,7 +54,6 @@
         @test SeaPearl.assignedValue(y) == 15
 
     end
-end
 
     @testset "-()" begin
         trailer = SeaPearl.Trailer()
