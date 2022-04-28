@@ -23,12 +23,14 @@ mutable struct SupervisedLearnedHeuristic{SR<:AbstractStateRepresentation,R<:Abs
     helpVariableHeuristic::AbstractVariableSelection
     helpValueHeuristic::ValueSelection
     helpSolution::Union{Nothing,Solution}
+    eta::Float64 
     function SupervisedLearnedHeuristic{SR,R,A}(
         agent::RL.Agent,
+        eta::Float64,
         helpVariableHeuristic::AbstractVariableSelection=MinDomainVariableSelection(),
         helpValueHeuristic::ValueSelection=BasicHeuristic()
     ) where {SR,R,A}
-        new{SR,R,A}(agent, nothing, nothing, nothing, nothing, nothing, nothing, false, true, helpVariableHeuristic, helpValueHeuristic, nothing)
+        new{SR,R,A}(agent, nothing, nothing, nothing, nothing, nothing, nothing, false, true, helpVariableHeuristic, helpValueHeuristic, nothing, eta)
     end
 end
 
@@ -46,6 +48,24 @@ function (valueSelection::SupervisedLearnedHeuristic)(::Type{InitializingPhase},
     # FIXME get rid of this => prone to bugs
     false_x = first(values(branchable_variables(model)))
     env = get_observation!(valueSelection, model, false_x)
+
+    if rand() > valueSelection.eta
+        #the instance is solved using classic CP on a duplicated model
+        model_duplicate = deepcopy(model) 
+        strategy = DFSearch()
+        #print("Start searching for a solution for SupervisedLearnedHeuristic... ")  
+        search!(model_duplicate, strategy, valueSelection.helpVariableHeuristic, valueSelection.helpValueHeuristic)
+        #println("Search completed.") 
+        if !isnothing(model_duplicate.statistics.solutions)
+            solutions = model_duplicate.statistics.solutions[model_duplicate.statistics.solutions.!=nothing]
+            if length(solutions) >= 1
+                valueSelection.helpSolution = solutions[1]
+            end
+        end
+        reset_model!(model_duplicate)
+    else
+        valueSelection.helpSolution = nothing
+    end
 
     # Reset the agent, useful for things like recurrent networks
     Flux.reset!(valueSelection.agent)
