@@ -23,7 +23,6 @@ mutable struct SupervisedLearnedHeuristic{SR<:AbstractStateRepresentation,R<:Abs
     helpVariableHeuristic::AbstractVariableSelection
     helpValueHeuristic::ValueSelection
     helpSolution::Union{Nothing,Solution}
-    solution::Union{Nothing,Solution}
     function SupervisedLearnedHeuristic{SR,R,A}(
         agent::RL.Agent,
         helpVariableHeuristic::AbstractVariableSelection=MinDomainVariableSelection(),
@@ -94,8 +93,9 @@ function (valueSelection::SupervisedLearnedHeuristic)(PHASE::Type{DecisionPhase}
         valueSelection.firstActionTaken = true
     end
 
-    if valueSelection.trainMode && !isnothing(valueSelection.solution)
-        action = valueSelection.solution[x.id]
+    # action = rand(x.domain.values[1:x.domain.size.value]) # Take random action instead 
+    if valueSelection.trainMode && !isnothing(valueSelection.helpSolution)
+        action = valueSelection.helpSolution[x.id]
     else
         action = valueSelection.agent(env) # Choose action
     end

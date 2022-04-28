@@ -75,12 +75,12 @@ function launch_experiment!(
                     if !isnothing(model.statistics.solutions)
                         solutions = model.statistics.solutions[model.statistics.solutions.!=nothing]
                         if length(solutions) >= 1
-                            valueSelectionArray[j].solution = solutions[1]
+                            valueSelectionArray[j].helpSolution = solutions[1]
                         end
                     end
                     reset_model!(model)
                 else
-                    valueSelectionArray[j].solution = nothing
+                    valueSelectionArray[j].helpSolution = nothing
                 end
             end
 
