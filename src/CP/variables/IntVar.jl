@@ -67,9 +67,16 @@ Return the "true" variable behind `x`. For a `IntVar`, it simply returns `x`.
 """
 rootVariable(x::IntVar) = x
 
-
 """
 Overloads the * operator to easily generate a multiple of a variable: y = ax
 """
 
 Base.:*(a::Int, x::IntVar) = IntVarViewMul(x, a, string(a," * ",x.id))
+
+"""
+    -(x::IntVar)
+
+Simple way to generate the opposite of a variable (y = -x).
+Return a `IntDomainViewOpposite` of `x`.
+"""
+Base.:-(x::IntVar) = IntVarViewOpposite(x, string("-(", x.id, ")"))
