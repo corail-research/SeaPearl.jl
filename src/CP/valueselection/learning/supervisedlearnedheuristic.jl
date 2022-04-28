@@ -104,7 +104,6 @@ function (valueSelection::SupervisedLearnedHeuristic)(PHASE::Type{DecisionPhase}
     model.statistics.lastVar = x
     env = get_observation!(valueSelection, model, x)
 
-    #println("Decision  ", env.reward, " ", env.terminal, " ", env.legal_actions, " ", env.legal_actions_mask)
     if valueSelection.firstActionTaken
         if valueSelection.trainMode
             valueSelection.agent(RL.POST_ACT_STAGE, env) # get terminal and reward
@@ -113,10 +112,10 @@ function (valueSelection::SupervisedLearnedHeuristic)(PHASE::Type{DecisionPhase}
         valueSelection.firstActionTaken = true
     end
 
-    # action = rand(x.domain.values[1:x.domain.size.value]) # Take random action instead 
-    if valueSelection.trainMode && !isnothing(valueSelection.helpSolution)
+    # If a solution is available, we choose the value of the variable in the solution.
+    if valueSelection.trainMode && !isnothing(valueSelection.helpSolution) 
         action = valueSelection.helpSolution[x.id]
-    else
+    else # Else we choose the action provided by the agent
         action = valueSelection.agent(env) # Choose action
     end
     
@@ -142,7 +141,6 @@ function (valueSelection::SupervisedLearnedHeuristic)(PHASE::Type{EndingPhase}, 
     set_reward!(PHASE, valueSelection, model, current_status)
     false_x = first(values(branchable_variables(model)))
     env = get_observation!(valueSelection, model, false_x, true)
-    #println("EndingPhase  ", env.reward, " ", env.terminal, " ", env.legal_actions, " ", env.legal_actions_mask)
 
     if valueSelection.trainMode
         valueSelection.agent(RL.POST_ACT_STAGE, env) # get terminal and reward
