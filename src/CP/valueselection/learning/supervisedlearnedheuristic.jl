@@ -10,17 +10,27 @@ From the RL point of view, this SupervisedLearnedHeuristic also plays part of th
 SupervisedLearnedHeuristic stores the action space, the current state and reward. The other role that a classic RL environment has is describing
 the consequences of an action: in SeaPearl, this is done by the CP part - branching, running fixPoint!, backtracking, etc...
 """
-mutable struct SupervisedLearnedHeuristic{SR<:AbstractStateRepresentation, R<:AbstractReward, A<:ActionOutput} <: LearnedHeuristic{SR, R, A}
+mutable struct SupervisedLearnedHeuristic{SR<:AbstractStateRepresentation,R<:AbstractReward,A<:ActionOutput} <: LearnedHeuristic{SR,R,A}
     agent::RL.Agent
-    fitted_problem::Union{Nothing, Type{G}} where G
-    fitted_strategy::Union{Nothing, Type{S}} where S <: SearchStrategy
-    action_space::Union{Nothing, Array{Int64,1}}
-    current_state::Union{Nothing, SR}
-    reward::Union{Nothing, R}
-    search_metrics::Union{Nothing, SearchMetrics}
+    fitted_problem::Union{Nothing,Type{G}} where {G}
+    fitted_strategy::Union{Nothing,Type{S}} where {S<:SearchStrategy}
+    action_space::Union{Nothing,Array{Int64,1}}
+    current_state::Union{Nothing,SR}
+    reward::Union{Nothing,R}
+    search_metrics::Union{Nothing,SearchMetrics}
     firstActionTaken::Bool
     trainMode::Bool
-    SupervisedLearnedHeuristic{SR, R, A}(agent::RL.Agent) where {SR, R, A}= new{SR, R, A}(agent, nothing, nothing, nothing, nothing, nothing, nothing, false, true)
+    helpVariableHeuristic::AbstractVariableSelection
+    helpValueHeuristic::ValueSelection
+    helpSolution::Union{Nothing,Solution}
+    solution::Union{Nothing,Solution}
+    function SupervisedLearnedHeuristic{SR,R,A}(
+        agent::RL.Agent,
+        helpVariableHeuristic::AbstractVariableSelection=MinDomainVariableSelection(),
+        helpValueHeuristic::ValueSelection=BasicHeuristic()
+    ) where {SR,R,A}
+        new{SR,R,A}(agent, nothing, nothing, nothing, nothing, nothing, nothing, false, true, helpVariableHeuristic, helpValueHeuristic, nothing)
+    end
 end
 
 """
@@ -54,7 +64,7 @@ we put a set_metrics! function here. As those metrics could be used to design a 
 ATM, the metrics are updated after the reward assignment as the current_status given totally decribes the changes that are to be made.
 Another possibility would be to have old and new metrics in memory.
 """
-function (valueSelection::SupervisedLearnedHeuristic)(PHASE::Type{StepPhase}, model::CPModel, current_status::Union{Nothing, Symbol})
+function (valueSelection::SupervisedLearnedHeuristic)(PHASE::Type{StepPhase}, model::CPModel, current_status::Union{Nothing,Symbol})
     set_reward!(PHASE, valueSelection, model, current_status)
     # incremental metrics, set after reward is updated
     set_metrics!(PHASE, valueSelection.search_metrics, model, current_status)
@@ -68,7 +78,7 @@ Observe, store useful informations in the buffer with agent(POST_ACT_STAGE, ...)
 The metrics that aren't updated in the StepPhase, which are more related to variables domains, are updated here. Once updated, they can
 be used in the other set_reward! function as the reward of the last action will only be collected in the RL.POST_ACT_STAGE.
 """
-function (valueSelection::SupervisedLearnedHeuristic)(PHASE::Type{DecisionPhase}, model::CPModel, x::Union{Nothing, AbstractIntVar})
+function (valueSelection::SupervisedLearnedHeuristic)(PHASE::Type{DecisionPhase}, model::CPModel, x::Union{Nothing,AbstractIntVar})
     # domain change metrics, set before reward is updated
     set_metrics!(PHASE, valueSelection.search_metrics, model, x)
     set_reward!(PHASE, valueSelection, model)
@@ -84,7 +94,13 @@ function (valueSelection::SupervisedLearnedHeuristic)(PHASE::Type{DecisionPhase}
         valueSelection.firstActionTaken = true
     end
 
-    action = valueSelection.agent(env) # Choose action
+    # action = rand(x.domain.values[1:x.domain.size.value]) # Take random action instead 
+    if valueSelection.trainMode && !isnothing(valueSelection.solution)
+        action = valueSelection.solution[x.id]
+    else
+        action = valueSelection.agent(env) # Choose action
+    end
+    
     if valueSelection.trainMode
         # TODO: swap to async computation once in deployment
         #@async valueSelection.agent(RL.PRE_ACT_STAGE, env, action) # Store state and action
@@ -99,10 +115,10 @@ end
 
 Set the final reward, do last observation.
 """
-function (valueSelection::SupervisedLearnedHeuristic)(PHASE::Type{EndingPhase}, model::CPModel, current_status::Union{Nothing, Symbol})
+function (valueSelection::SupervisedLearnedHeuristic)(PHASE::Type{EndingPhase}, model::CPModel, current_status::Union{Nothing,Symbol})
     # the RL EPISODE stops
     if valueSelection.firstActionTaken
-        set_reward!(DecisionPhase,valueSelection, model)  #last decision reward for the previous action taken just before the ending Phase
+        set_reward!(DecisionPhase, valueSelection, model)  #last decision reward for the previous action taken just before the ending Phase
     end
     set_reward!(PHASE, valueSelection, model, current_status)
     false_x = first(values(branchable_variables(model)))
