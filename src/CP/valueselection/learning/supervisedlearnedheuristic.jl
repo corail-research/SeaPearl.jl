@@ -94,7 +94,6 @@ function (valueSelection::SupervisedLearnedHeuristic)(PHASE::Type{DecisionPhase}
         valueSelection.firstActionTaken = true
     end
 
-    # action = rand(x.domain.values[1:x.domain.size.value]) # Take random action instead 
     if valueSelection.trainMode && !isnothing(valueSelection.solution)
         action = valueSelection.solution[x.id]
     else

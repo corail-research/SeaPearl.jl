@@ -68,18 +68,22 @@ function launch_experiment!(
 
             # Before the merge with master, this piece of code will have to be internalized in SupervisedSearchHeuristic.
             if isa(valueSelectionArray[j], SupervisedLearnedHeuristic)
-                verbose && print("Start searching for a solution for SupervisedLearnedHeuristic... ")
-                search!(model, strategy, valueSelectionArray[j].helpVariableHeuristic, valueSelectionArray[j].helpValueHeuristic)
-                verbose && println("Search completed.")
-                if !isnothing(model.statistics.solutions)
-                    solutions = model.statistics.solutions[model.statistics.solutions.!=nothing]
-                    if length(solutions) >= 1
-                        valueSelectionArray[j].solution = solutions[1]
+                if rand() > 0.5
+                    verbose && print("Start searching for a solution for SupervisedLearnedHeuristic... ")
+                    search!(model, strategy, valueSelectionArray[j].helpVariableHeuristic, valueSelectionArray[j].helpValueHeuristic)
+                    verbose && println("Search completed.")
+                    if !isnothing(model.statistics.solutions)
+                        solutions = model.statistics.solutions[model.statistics.solutions.!=nothing]
+                        if length(solutions) >= 1
+                            valueSelectionArray[j].solution = solutions[1]
+                        end
                     end
+                    reset_model!(model)
+                else
+                    valueSelectionArray[j].solution = nothing
                 end
-                reset_model!(model)
             end
-            
+
             if isa(valueSelectionArray[j], LearnedHeuristic)
                 verbose && print("Visited nodes with learnedHeuristic : ")
             else
