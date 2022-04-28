@@ -65,6 +65,8 @@ function launch_experiment!(
 
         for j in 1:nbHeuristics
             reset_model!(model)
+
+            # Before the merge with master, this piece of code will have to be internalized in SupervisedSearchHeuristic.
             if isa(valueSelectionArray[j], SupervisedLearnedHeuristic)
                 verbose && print("Start searching for a solution for SupervisedLearnedHeuristic... ")
                 search!(model, strategy, valueSelectionArray[j].helpVariableHeuristic, valueSelectionArray[j].helpValueHeuristic)
