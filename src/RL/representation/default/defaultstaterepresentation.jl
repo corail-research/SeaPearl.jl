@@ -9,7 +9,7 @@ It consists in a tripartite graph representation of the CP Model, with features 
 and an index specifying the variable that should be branched on.
 
 Fields:
-- `cplayergraph`: 
+- `cplayergraph`: representation of the problem as a tripartite graph.
 - `nodeFeatures`: 
 - `globalFeatures`: 
 - `variableIdx`: 
@@ -85,7 +85,18 @@ end
 struct DefaultFeaturization <: AbstractFeaturization end
 
 """
-TODO: specify every option
+Featurization taking advantage of the `chosenFeatures` dictionary. This dictionary specifies, via a boolean, whether to add this or that feature to the featurization.
+
+The dictionary must specify a boolean value for the following features:
+- "values_onehot": a one-hot encoding of the value for value nodes
+- "values_raw": the raw value of the value for value nodes
+- "constraint_activity": whether or not the constraint is active for constraint nodes
+- "constraint_type": a one-hot encoding of the constraint type for constraint nodes
+- "variable_initial_domain_size": the initial size of the domain of the variable for variable nodes
+- "variable_domain_size": the current size of the domain of the variable for variable nodes 
+- "variable_is_bound": whether or not the variable is bound for variable nodes
+- "nb_involved_constraint_propagation": the number of times the constraint has been put in the fixPoint call stack for constraint nodes.
+- "nb_not_bounded_variable": the number of non-bound variable involve in the constraint for constraint nodes
 """
 struct FeaturizationHelper <: AbstractFeaturization end
 
@@ -114,7 +125,6 @@ function featurize(sr::FeaturizedStateRepresentation{DefaultFeaturization,TS}) w
     sr.nbFeatures = 3
     features
 end
-
 
 """
     initChosenFeatures(sr::DefaultStateRepresentation{FeaturizationHelper,TS}, chosen_features::Dict{String,Bool})
@@ -257,15 +267,14 @@ function featurize(sr::DefaultStateRepresentation{FeaturizationHelper,TS}; chose
 
     return features
 end
-"""
-function global_featurize(sr::FeaturizedStateRepresentation{DefaultFeaturization, TS}) where TS
-    g = sr.cplayergraph
-    graph = Graph(g)
-    density = LightGraphs.density(graph)
-    return [density]
-end
-"""
 
+"""
+    update_features!(sr::DefaultStateRepresentation{FeaturizationHelper,TS}, ::CPModel)
+
+Function updating the features of the graph nodes. 
+
+Use the `sr.chosenFeatures` dictionary to find out which features are used and their positions in the vector.
+"""
 function update_features!(sr::DefaultStateRepresentation{FeaturizationHelper,TS}, ::CPModel) where {TS}
     g = sr.cplayergraph
     for i in 1:nv(g)
@@ -290,9 +299,8 @@ function update_features!(sr::DefaultStateRepresentation{FeaturizationHelper,TS}
                 sr.nodeFeatures[sr.chosenFeatures["variable_is_bound"][2], i] = isbound(cp_vertex.variable)
             end
         end
-        if isa(cp_vertex, ValueVertex)
+        if isa(cp_vertex, ValueVertex) # Probably useless, check before removing
             if sr.chosenFeatures["values_onehot"][1]
-                # cp_vertex_idx = find(x -> x == cp_vertex.value, sr.allValuesIdx) # TODO : absolutely optimize (IMPORTANT)
                 cp_vertex_idx = sr.valueToPos[cp_vertex.value]
                 sr.nodeFeatures[sr.chosenFeatures["values_onehot"][2]+cp_vertex_idx-1, i] = 1
             else
