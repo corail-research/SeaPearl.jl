@@ -1,15 +1,12 @@
 """
     SupervisedLearnedHeuristic{SR<:AbstractStateRepresentation, R<:AbstractReward, A<:ActionOutput}
 
-The SupervisedLearnedHeuristic is a value selection heuristic which is learned thanks to a training made by solving a certain amount
-of problem instances from files or from an `AbstractModelGenerator`. From the RL point of view, this is an agent which is
-learning how to choose an appropriate action (value to assign) when observing an `AbstractStateRepresentation`. The agent
-learns thanks to rewards that are given regularly during the search. He wil try to maximize the total reward.
-
-From the RL point of view, this SupervisedLearnedHeuristic also plays part of the role normally played by the environment. Indeed, the
-SupervisedLearnedHeuristic stores the action space, the current state and reward. The other role that a classic RL environment has is describing
-the consequences of an action: in SeaPearl, this is done by the CP part - branching, running fixPoint!, backtracking, etc...
+`SupervisedLearnedHeuristic` is value selection heuristic. The agent learns from both his previous actions and classic CP-generated solutions. 
+For each episode, with probability η (êta), a solution is generated using classic CP and is provided to the agent, which will take the exact same
+actions to retrieve the same solution. This operation aims at providing the agent with solutions to learn from, in order to accelerate the learning,
+since it is sometimes difficult to provide a solution using an untrained RL agent, for some problems like TSPTW.
 """
+
 mutable struct SupervisedLearnedHeuristic{SR<:AbstractStateRepresentation,R<:AbstractReward,A<:ActionOutput} <: LearnedHeuristic{SR,R,A}
     agent::RL.Agent
     fitted_problem::Union{Nothing,Type{G}} where {G}
@@ -23,14 +20,22 @@ mutable struct SupervisedLearnedHeuristic{SR<:AbstractStateRepresentation,R<:Abs
     helpVariableHeuristic::AbstractVariableSelection
     helpValueHeuristic::ValueSelection
     helpSolution::Union{Nothing,Solution}
-    eta::Float64 
+    eta_init::Float64
+    eta_stable::Float64
+    warmup_steps::Int64
+    decay_steps::Int64
+    step::Int64
+    
     function SupervisedLearnedHeuristic{SR,R,A}(
-        agent::RL.Agent,
-        eta::Float64,
+        agent::RL.Agent;
         helpVariableHeuristic::AbstractVariableSelection=MinDomainVariableSelection(),
-        helpValueHeuristic::ValueSelection=BasicHeuristic()
+        helpValueHeuristic::ValueSelection=BasicHeuristic(),
+        eta_init::Float64=0.5,
+        eta_stable::Float64=0.5,
+        warmup_steps::Int64=0,
+        decay_steps::Int64=0
     ) where {SR,R,A}
-        new{SR,R,A}(agent, nothing, nothing, nothing, nothing, nothing, nothing, false, true, helpVariableHeuristic, helpValueHeuristic, nothing, eta)
+        new{SR,R,A}(agent, nothing, nothing, nothing, nothing, nothing, nothing, false, true, helpVariableHeuristic, helpValueHeuristic, nothing, eta_init, eta_stable, warmup_steps, decay_steps, 1)
     end
 end
 
@@ -48,14 +53,14 @@ function (valueSelection::SupervisedLearnedHeuristic)(::Type{InitializingPhase},
     # FIXME get rid of this => prone to bugs
     false_x = first(values(branchable_variables(model)))
     env = get_observation!(valueSelection, model, false_x)
-
-    if rand() > valueSelection.eta
+    eta = get_eta(valueSelection) #get the current eta_init
+    
+    if rand() < eta
         #the instance is solved using classic CP on a duplicated model
         model_duplicate = deepcopy(model) 
         strategy = DFSearch()
-        #print("Start searching for a solution for SupervisedLearnedHeuristic... ")  
         search!(model_duplicate, strategy, valueSelection.helpVariableHeuristic, valueSelection.helpValueHeuristic)
-        #println("Search completed.") 
+        #the solution is added to the valueSelection.helpSolution field.
         if !isnothing(model_duplicate.statistics.solutions)
             solutions = model_duplicate.statistics.solutions[model_duplicate.statistics.solutions.!=nothing]
             if length(solutions) >= 1
@@ -149,5 +154,27 @@ function (valueSelection::SupervisedLearnedHeuristic)(PHASE::Type{EndingPhase}, 
 
     if CUDA.has_cuda()
         CUDA.reclaim()
+    end
+end
+
+"""
+    get_eta(vs::SupervisedLearnedHeuristic)
+
+Get the current value of `eta` (η), which is the probability for the solver to calculate and provide a classic CP-generated solution to the agent.
+"""
+function get_eta(vs::SupervisedLearnedHeuristic)
+    vs.step += 1
+    if vs.decay_steps == 0
+        return vs.eta_init
+    end
+
+    step = vs.step
+    if step <= vs.warmup_steps
+        return vs.eta_init
+    elseif step >= (vs.warmup_steps + vs.decay_steps)
+        return vs.eta_stable
+    else
+        steps_left = vs.warmup_steps + vs.decay_steps - step
+        return vs.eta_stable + steps_left / vs.decay_steps * (vs.eta_init - vs.eta_stable)
     end
 end
