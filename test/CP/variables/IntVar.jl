@@ -54,4 +54,21 @@
         @test SeaPearl.assignedValue(y) == 15
 
     end
+
+    @testset "-()" begin
+        trailer = SeaPearl.Trailer()
+        x = SeaPearl.IntVar(5, 8, "x", trailer)
+        y = -x
+        
+        @test isa(y, SeaPearl.IntVarViewOpposite)
+        @test SeaPearl.minimum(y.domain) == -8
+        @test SeaPearl.maximum(y.domain) == -5
+        @test !SeaPearl.isbound(y)
+
+        SeaPearl.assign!(x, 5)
+
+        @test SeaPearl.length(y.domain) == 1
+        @test SeaPearl.isbound(y)
+        @test SeaPearl.assignedValue(y) == -SeaPearl.assignedValue(x)
+    end
 end

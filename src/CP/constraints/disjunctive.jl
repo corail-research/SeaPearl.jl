@@ -6,7 +6,7 @@ include("datasstructures/disjointSet.jl")
 Task stucture with a earliestStartingTime variable, a processing time constant and an ID
 """
 mutable struct Task
-    earliestStartingTime::SeaPearl.IntVar
+    earliestStartingTime::AbstractIntVar
     processingTime::Int
     id::Int
 end
@@ -57,7 +57,7 @@ struct Disjunctive <: Constraint
     tasks::Array{Task}
     active::StateObject{Bool}
 
-    function Disjunctive(earliestStartingTime::Array{IntVar}, 
+    function Disjunctive(earliestStartingTime::Array{<:AbstractIntVar}, 
                         processingTime::Array{Int}, trailer)::Disjunctive
         tasks = []
         for i in 1:size(earliestStartingTime)[1]
