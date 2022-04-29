@@ -9,7 +9,7 @@ adj = [0 1 0 1;
         g = SeaPearl.CPLayerGraph()
         nodeFeatures = [1.0f0 1.0f0; 2.0f0 2.0f0]
         variableIdx = 1
-        dsr = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}(g, nodeFeatures, nothing, variableIdx, nothing, nothing, nothing, nothing)
+        dsr = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}(g, nodeFeatures, nothing, variableIdx, nothing, nothing, nothing, nothing, 3)
 
         @test dsr.cplayergraph == g
         @test dsr.nodeFeatures == nodeFeatures
@@ -178,7 +178,9 @@ adj = [0 1 0 1;
         # Choosing features and initializing the state representation
         chosen_features = Dict(
             "constraint_activity" => true, 
+            "constraint_type" => true,
             "values_onehot" => true,
+            "values_raw" => false,
             "variable_initial_domain_size" => true,
             "variable_domain_size" => false,
             "variable_is_bound" => false,
@@ -232,8 +234,10 @@ adj = [0 1 0 1;
 
         # Choosing features and initializing the state representation
         chosen_features = Dict(
-            "constraint_activity" => true, 
+            "constraint_activity" => true,
+            "constraint_type" => true,
             "values_onehot" => false,
+            "values_raw" => true,
             "variable_initial_domain_size" => true,
             "variable_domain_size" => false,
             "variable_is_bound" => false,

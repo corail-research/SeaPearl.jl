@@ -7,6 +7,16 @@ This is the default representation used by SeaPearl unless the user define his o
 
 It consists in a tripartite graph representation of the CP Model, with features associated with each node
 and an index specifying the variable that should be branched on.
+
+Fields:
+- `cplayergraph`: 
+- `nodeFeatures`: 
+- `globalFeatures`: 
+- `variableIdx`: 
+- `allValuesIdx`: 
+- `valueToPos`: Dictionary mapping the value of an action to its position in the one-hot encoding of the value. The boolean corresponds to the fact that the feature is used or not, the integer corresponds to the position of the feature in the vector.
+- `chosenFeatures`: Dictionary of featurization options, useful in case `FeaturizationHelper` is used. See `FeaturizationHelper` for details about the options.
+- `constraintTypeToId`: Dictionary mapping the type of a constraint to its position in the one-hot encoding of the constraint type.
 """
 mutable struct DefaultStateRepresentation{F,TS} <: FeaturizedStateRepresentation{F,TS}
     cplayergraph::CPLayerGraph
@@ -17,7 +27,17 @@ mutable struct DefaultStateRepresentation{F,TS} <: FeaturizedStateRepresentation
     valueToPos::Union{Nothing,Dict{Int64,Int64}}
     chosenFeatures::Union{Nothing,Dict{String,Tuple{Bool,Int64}}}
     constraintTypeToId::Union{Nothing,Dict{Type,Int}}
+    nbFeatures::Int64
 end
+
+"""
+    feature_length(gen::AbstractModelGenerator, ::Type{FeaturizedStateRepresentation})
+
+Returns the length of the feature vector.
+"""
+feature_length(sr::Type{<:DefaultStateRepresentation{F,TS}}) where {F, TS} = sr.nbFeatures
+
+DefaultStateRepresentation(m::CPModel) = DefaultStateRepresentation{DefaultFeaturization,DefaultTrajectoryState}(m::CPModel)
 
 function DefaultStateRepresentation{F,TS}(model::CPModel; action_space=nothing, chosen_features=nothing) where {F,TS}
     g = CPLayerGraph(model)
@@ -31,7 +51,7 @@ function DefaultStateRepresentation{F,TS}(model::CPModel; action_space=nothing, 
         end
     end
 
-    sr = DefaultStateRepresentation{F,TS}(g, nothing, nothing, nothing, allValuesIdx, valueToPos, nothing, nothing)
+    sr = DefaultStateRepresentation{F,TS}(g, nothing, nothing, nothing, allValuesIdx, valueToPos, nothing, nothing, 0)
     if isnothing(chosen_features)
         sr.nodeFeatures = featurize(sr)
     else
@@ -64,6 +84,9 @@ end
 
 struct DefaultFeaturization <: AbstractFeaturization end
 
+"""
+TODO: specify every option
+"""
 struct FeaturizationHelper <: AbstractFeaturization end
 
 """
@@ -88,60 +111,86 @@ function featurize(sr::FeaturizedStateRepresentation{DefaultFeaturization,TS}) w
             features[3, i] = 1.0f0
         end
     end
+    sr.nbFeatures = 3
     features
 end
 
 
 """
+    initChosenFeatures(sr::DefaultStateRepresentation{FeaturizationHelper,TS}, chosen_features::Dict{String,Bool})
 
+TODO
 """
 function initChosenFeatures(sr::DefaultStateRepresentation{FeaturizationHelper,TS}, chosen_features::Dict{String,Bool}) where {TS}
-    counter = 3
+    
+    # Initialize chosenFeatures with all positions at -1
     sr.chosenFeatures = Dict{String,Tuple{Bool,Int64}}(
         "values_onehot" => (chosen_features["values_onehot"], -1),
+        "values_raw" => (chosen_features["values_raw"], -1),
         "constraint_activity" => (chosen_features["constraint_activity"], -1),
+        "constraint_type" => (chosen_features["constraint_type"], -1),
         "variable_initial_domain_size" => (chosen_features["variable_initial_domain_size"], -1),
         "variable_domain_size" => (chosen_features["variable_domain_size"], -1),
         "variable_is_bound" => (chosen_features["variable_is_bound"], -1),
         "nb_involved_constraint_propagation" => (chosen_features["nb_involved_constraint_propagation"], -1),
         "nb_not_bounded_variable" => (chosen_features["nb_not_bounded_variable"], -1)
     )
+        
+    counter = 4 # There is at least three features : the one-hot encoding of the node type ∈ {Constraint, Value, Variable}
     if sr.chosenFeatures["constraint_activity"][1]
-        counter += 1
         sr.chosenFeatures["constraint_activity"] = (sr.chosenFeatures["constraint_activity"][1], counter)
+        counter += 1
     end
     if sr.chosenFeatures["nb_involved_constraint_propagation"][1]
-        counter += 1
         sr.chosenFeatures["nb_involved_constraint_propagation"] = (sr.chosenFeatures["nb_involved_constraint_propagation"][1], counter)
+        counter += 1
     end
     if sr.chosenFeatures["variable_initial_domain_size"][1]
-        counter += 1
         sr.chosenFeatures["variable_initial_domain_size"] = (sr.chosenFeatures["variable_initial_domain_size"][1], counter)
+        counter += 1
     end
     if sr.chosenFeatures["variable_domain_size"][1]
-        counter += 1
         sr.chosenFeatures["variable_domain_size"] = (sr.chosenFeatures["variable_domain_size"][1], counter)
+        counter += 1
     end
     if sr.chosenFeatures["variable_is_bound"][1]
-        counter += 1
         sr.chosenFeatures["variable_is_bound"] = (sr.chosenFeatures["variable_is_bound"][1], counter)
+        counter += 1
     end
     if sr.chosenFeatures["nb_not_bounded_variable"][1]
-        counter += 1
         sr.chosenFeatures["nb_not_bounded_variable"] = (sr.chosenFeatures["nb_not_bounded_variable"][1], counter)
+        counter += 1
     end
 
-    counter += 1
-    constraintTypeToId = Dict{Type,Int}()
-    constraintsList = keys(sr.cplayergraph.cpmodel.statistics.numberOfTimesInvolvedInPropagation)
-    for constraint in constraintsList
-        if !haskey(constraintTypeToId, typeof(constraint))
-            constraintTypeToId[typeof(constraint)] = counter
-            counter += 1
-        end
+    if sr.chosenFeatures["nb_not_bounded_variable"][1]
+        sr.chosenFeatures["nb_not_bounded_variable"] = (sr.chosenFeatures["nb_not_bounded_variable"][1], counter)
+        counter += 1
     end
-    sr.constraintTypeToId = constraintTypeToId
-    sr.chosenFeatures["values_onehot"] = (sr.chosenFeatures["values_onehot"][1], counter)
+
+    if sr.chosenFeatures["constraint_type"][1]
+        sr.chosenFeatures["constraint_type"] = (sr.chosenFeatures["constraint_type"][1], counter)
+        constraintTypeToId = Dict{Type,Int}()
+        constraintsList = keys(sr.cplayergraph.cpmodel.statistics.numberOfTimesInvolvedInPropagation)
+        for constraint in constraintsList
+            if !haskey(constraintTypeToId, typeof(constraint))
+                constraintTypeToId[typeof(constraint)] = counter
+                counter += 1
+            end
+        end
+        sr.constraintTypeToId = constraintTypeToId
+    end
+    
+    if sr.chosenFeatures["values_raw"][1]
+        sr.chosenFeatures["values_raw"] = (sr.chosenFeatures["values_raw"][1], counter)
+        counter += 1
+    end
+
+    if sr.chosenFeatures["values_onehot"][1]
+        sr.chosenFeatures["values_onehot"] = (sr.chosenFeatures["values_onehot"][1], counter)
+        counter += sr.cplayergraph.numberOfValues
+    end
+
+    sr.nbFeatures = counter - 1
 end
 
 """
@@ -149,23 +198,22 @@ Featurization helper: initializes the graph with the features specified as argum
 """
 function featurize(sr::DefaultStateRepresentation{FeaturizationHelper,TS}; chosen_features::Dict{String,Bool}) where {TS}
     constraint_activity = chosen_features["constraint_activity"]
+    constraint_type = chosen_features["constraint_type"]
     variable_initial_domain_size = chosen_features["variable_initial_domain_size"]
     variable_domain_size = chosen_features["variable_domain_size"]
     variable_is_bound = chosen_features["variable_is_bound"]
     nb_involved_constraint_propagation = chosen_features["nb_involved_constraint_propagation"]
     values_onehot = chosen_features["values_onehot"]
+    values_raw = chosen_features["values_raw"]
     nb_not_bounded_variable = chosen_features["nb_not_bounded_variable"]
+
+    println(values_raw, chosen_features["values_raw"], )
 
     g = sr.cplayergraph
 
     initChosenFeatures(sr, chosen_features)
 
-    nb_features = sr.chosenFeatures["values_onehot"][2]
-    if sr.chosenFeatures["values_onehot"][1]
-        nb_features += g.numberOfValues - 1
-    end
-
-    features = zeros(Float32, nb_features, nv(g))
+    features = zeros(Float32, sr.nbFeatures, nv(g))
     for i in 1:nv(g)
         cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
         if isa(cp_vertex, ConstraintVertex)
@@ -180,7 +228,9 @@ function featurize(sr::DefaultStateRepresentation{FeaturizationHelper,TS}; chose
                 variables = variablesArray(cp_vertex.constraint)
                 features[sr.chosenFeatures["nb_not_bounded_variable"][2], i] = count(x -> !isbound(x), variables)
             end
-            features[sr.constraintTypeToId[typeof(cp_vertex.constraint)], i] = 1
+            if constraint_type
+                features[sr.constraintTypeToId[typeof(cp_vertex.constraint)], i] = 1
+            end
         end
         if isa(cp_vertex, VariableVertex)
             features[2, i] = 1.0f0
@@ -197,11 +247,10 @@ function featurize(sr::DefaultStateRepresentation{FeaturizationHelper,TS}; chose
         if isa(cp_vertex, ValueVertex)
             features[3, i] = 1.0f0
             if values_onehot
-                # cp_vertex_idx = find(x -> x == cp_vertex.value, sr.allValuesIdx) # TODO : absolutely optimize (IMPORTANT)
                 cp_vertex_idx = sr.valueToPos[cp_vertex.value]
                 features[sr.chosenFeatures["values_onehot"][2]+cp_vertex_idx-1, i] = 1
-            else
-                features[sr.chosenFeatures["values_onehot"][2], i] = cp_vertex.value
+            elseif values_raw
+                features[sr.chosenFeatures["values_raw"][2], i] = cp_vertex.value
             end
         end
     end
@@ -216,15 +265,6 @@ function global_featurize(sr::FeaturizedStateRepresentation{DefaultFeaturization
     return [density]
 end
 """
-
-"""
-    feature_length(gen::AbstractModelGenerator, ::Type{FeaturizedStateRepresentation})
-
-Returns the length of the feature vector, for the `DefaultFeaturization`.
-"""
-feature_length(::Type{<:FeaturizedStateRepresentation{DefaultFeaturization,TS}}) where {TS} = 3
-
-DefaultStateRepresentation(m::CPModel) = DefaultStateRepresentation{DefaultFeaturization,DefaultTrajectoryState}(m::CPModel)
 
 function update_features!(sr::DefaultStateRepresentation{FeaturizationHelper,TS}, ::CPModel) where {TS}
     g = sr.cplayergraph
@@ -256,7 +296,7 @@ function update_features!(sr::DefaultStateRepresentation{FeaturizationHelper,TS}
                 cp_vertex_idx = sr.valueToPos[cp_vertex.value]
                 sr.nodeFeatures[sr.chosenFeatures["values_onehot"][2]+cp_vertex_idx-1, i] = 1
             else
-                sr.nodeFeatures[sr.chosenFeatures["values_onehot"][2], i] = cp_vertex.value
+                sr.nodeFeatures[sr.chosenFeatures["values_raw"][2], i] = cp_vertex.value
             end
         end
     end
