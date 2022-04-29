@@ -81,7 +81,26 @@ function (metrics::BasicMetrics{DontTakeObjective, <:LearnedHeuristic})(model::C
         push!(metrics.meanNodeVisitedUntilfirstSolFound,model.statistics.nodevisitedpersolution[1])
     end
     push!(metrics.timeneeded,dt)
-    push!(metrics.totalReward,last_episode_total_reward(metrics.heuristic.agent.trajectory))
+    
+    total_reward = last_episode_total_reward(metrics.heuristic.agent.trajectory)
+    #=
+    # Uncomment to print metrics during execution
+    print("Episode reward: ")
+    println(total_reward)
+    print("Loss: ")
+    println(metrics.heuristic.agent.policy.learner.loss)
+    
+    if metrics.nbEpisodes%100==0
+        println("Network weights")
+        println(norm(metrics.heuristic.agent.policy.learner.approximator.model.graphChain[1].weight1))
+        println(norm(metrics.heuristic.agent.policy.learner.approximator.model.graphChain[2].weight1))
+        println(norm(metrics.heuristic.agent.policy.learner.approximator.model.nodeChain[1].weight))
+        println(norm(metrics.heuristic.agent.policy.learner.approximator.model.nodeChain[2].weight))
+        println(norm(metrics.heuristic.agent.policy.learner.approximator.model.outputChain[1].weight))
+        println(norm(metrics.heuristic.agent.policy.learner.approximator.model.outputChain[2].weight))
+    end
+    =#
+    push!(metrics.totalReward,total_reward)
     push!(metrics.loss,metrics.heuristic.agent.policy.learner.loss)
     return
 end 
@@ -98,7 +117,16 @@ function (metrics::BasicMetrics{TakeObjective, <:LearnedHeuristic})(model::CPMod
     if ! isempty(model.statistics.objectives)
     push!(metrics.scores,copy(model.statistics.objectives))
     end
-    push!(metrics.totalReward,last_episode_total_reward(metrics.heuristic.agent.trajectory))
+    total_reward = last_episode_total_reward(metrics.heuristic.agent.trajectory)
+    #=
+    # Uncomment to print these metrics during training
+    print("Reward: ")
+    println(total_reward)
+    print("Loss: ")
+    println(metrics.heuristic.agent.policy.learner.loss)
+    println("")
+    =#
+    push!(metrics.totalReward,total_reward)
     push!(metrics.loss,metrics.heuristic.agent.policy.learner.loss)
     return
 end 
