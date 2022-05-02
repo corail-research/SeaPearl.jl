@@ -13,7 +13,7 @@ Fields:
 - `nodeFeatures`: Feature matrix of the nodes. Each column corresponds to a node.
 - `globalFeatures`: Feature vector of the entire graph.
 - `variableIdx`: Index of the variable we are currently considering.
-- `allValuesIdx`: 
+- `allValuesIdx`: Index of value nodes in `cplayergraph`.
 - `valueToPos`: Dictionary mapping the value of an action to its position in the one-hot encoding of the value. 
 The boolean corresponds to the fact that the feature is used or not, the integer corresponds to the position of the feature in the vector.
 - `chosenFeatures`: Dictionary of featurization options. The boolean corresponds to whether the feature is active or not, 
@@ -45,13 +45,24 @@ mutable struct DefaultStateRepresentation{F,TS} <: FeaturizedStateRepresentation
 end
 
 """
-    feature_length(sr::Type{<:DefaultStateRepresentation{F,TS}}) where {F,TS}
+    feature_length(sr::DefaultStateRepresentation{F,TS}) where {F,TS}
 
 Returns the length of the feature vector.
 
 `sr.nbFeatures` is set in `initChosenFeatures`, which is called in `featurize` when the `DefaultStateRepresentation` is created.
 """
-feature_length(sr::Type{<:DefaultStateRepresentation{F,TS}}) where {F,TS} = sr.nbFeatures
+feature_length(sr::DefaultStateRepresentation{F,TS}) where {F,TS} = sr.nbFeatures
+
+"""
+    feature_length(gen::AbstractModelGenerator, ::Type{FeaturizedStateRepresentation})
+
+Returns the length of the feature vector, for the `DefaultFeaturization` with no chosen features.
+
+Must be overwritten for any other featurization. 
+
+The difference with the `feature_length(sr::DefaultStateRepresentation{F,TS})` function is that it takes a type as a parameter and not an instance.
+"""
+feature_length(::Type{<:FeaturizedStateRepresentation{DefaultFeaturization, TS}}) where TS = 3
 
 DefaultStateRepresentation(m::CPModel) = DefaultStateRepresentation{DefaultFeaturization,DefaultTrajectoryState}(m::CPModel)
 
