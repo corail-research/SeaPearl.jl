@@ -10,9 +10,9 @@ and an index specifying the variable that should be branched on.
 
 Fields:
 - `cplayergraph`: representation of the problem as a tripartite graph.
-- `nodeFeatures`: 
-- `globalFeatures`: 
-- `variableIdx`: 
+- `nodeFeatures`: Feature matrix of the nodes. Each column corresponds to a node.
+- `globalFeatures`: Feature vector of the entire graph.
+- `variableIdx`: Index of the variable we are currently considering.
 - `allValuesIdx`: 
 - `valueToPos`: Dictionary mapping the value of an action to its position in the one-hot encoding of the value. 
 The boolean corresponds to the fact that the feature is used or not, the integer corresponds to the position of the feature in the vector.
@@ -67,7 +67,7 @@ function DefaultStateRepresentation{F,TS}(model::CPModel; action_space=nothing, 
     if !isnothing(action_space)
         allValuesIdx = indexFromCpVertex.([g], ValueVertex.(action_space))
         valueToPos = Dict{Int64,Int64}()
-        for (pos, value) in enumerate(action_space) # TODO change action by all possible values of all variables
+        for (pos, value) in enumerate(action_space) # TODO : understand why value are all in action space
             valueToPos[value] = pos
         end
     end
