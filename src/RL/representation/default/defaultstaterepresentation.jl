@@ -44,6 +44,8 @@ mutable struct DefaultStateRepresentation{F,TS} <: FeaturizedStateRepresentation
     nbFeatures::Int64
 end
 
+struct DefaultFeaturization <: AbstractFeaturization end
+
 """
     feature_length(sr::DefaultStateRepresentation{F,TS}) where {F,TS}
 
@@ -109,8 +111,6 @@ function update_representation!(sr::DefaultStateRepresentation, model::CPModel, 
     sr.variableIdx = indexFromCpVertex(sr.cplayergraph, VariableVertex(x))
     return sr
 end
-
-struct DefaultFeaturization <: AbstractFeaturization end
 
 """
     featurize(sr::DefaultStateRepresentation{DefaultFeaturization, TS})
