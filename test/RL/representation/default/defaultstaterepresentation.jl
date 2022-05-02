@@ -152,11 +152,11 @@ adj = [0 1 0 1;
         @test size(batchedDts.variableIdx,1) == 2
     end
 
-    @testset "FeaturizationHelper without ordered values" begin
+    @testset "DefaultFeaturization with chose_features without ordered values" begin
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
 
-        # Testing FeaturizationHelper on a toy example: the square graph coloring problem
+        # Testing chosen_features on a toy example: the square graph coloring problem
         x = SeaPearl.IntVar[]
         for i in 1:4
             push!(x, SeaPearl.IntVar(1, 4, string(i), model.trailer))
@@ -187,7 +187,7 @@ adj = [0 1 0 1;
             "nb_involved_constraint_propagation" => true,
             "nb_not_bounded_variable" => false
         )
-        sr = SeaPearl.DefaultStateRepresentation{SeaPearl.FeaturizationHelper, SeaPearl.DefaultTrajectoryState}(model; action_space = 1:4, chosen_features=chosen_features)
+        sr = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}(model; action_space = 1:4, chosen_features=chosen_features)
         
         # Testing the initialization of the node features
         # TODO: improve the tests here
@@ -215,11 +215,11 @@ adj = [0 1 0 1;
         
     end
 
-    @testset "FeaturizationHelper with value ordering" begin
+    @testset "DefaultFeaturization with chose_features with value ordering" begin
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
 
-        # Testing FeaturizationHelper on a toy example
+        # Testing chosen_features on a toy example
         x = SeaPearl.IntVar(1, 4, "x", model.trailer)
         y = SeaPearl.IntVar(4, 5, "y", model.trailer)
         z = SeaPearl.IntVar(2, 6, "z", model.trailer)
@@ -244,7 +244,7 @@ adj = [0 1 0 1;
             "nb_involved_constraint_propagation" => true,
             "nb_not_bounded_variable" => false
         )
-        sr = SeaPearl.DefaultStateRepresentation{SeaPearl.FeaturizationHelper, SeaPearl.DefaultTrajectoryState}(model; chosen_features=chosen_features)
+        sr = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}(model; chosen_features=chosen_features)
 
         # Testing the initialization of the node features
         # TODO: improve the tests here
