@@ -11,7 +11,7 @@ Generator of RB instances :
 - n ≥ 2 number of variables
 - α > 0 determines the domain size d = n^α of each variable,
 - r > 0 determines the number m = r ⋅ n ⋅ ln(n) of constraints,
-- 0 < p < 1 determines the number nb = (1 - p) ⋅ d^k of disallowed tuples of each relation.
+- 0 < p < 1 determines the number nb = (1 - p) ⋅ d^k of allowed tuples of each relation.
 - d domain size of each variable
 - m number of constraints
 - nb number of allowed tuples of each relation
@@ -21,7 +21,7 @@ struct RBGenerator <: AbstractModelGenerator
     n::Int64 # number of variables
     α::Float64 # determines the domain size d = n^α of each variable,
     r::Float64 # determines the number m = r ⋅ n ⋅ ln(n) of constraints,
-    p::Float64 # determines the number t = p ⋅ d^k of disallowed tuples of each relation.
+    p::Float64 # determines the number nb = (1 - p) ⋅ d^k of allowed tuples of each relation.
     d::Int64 # domain size of each variable
     m::Int64 # number of constraints
     nb::Int64 # number of allowed tuples of each relation : (1 - p) ⋅ d^k
