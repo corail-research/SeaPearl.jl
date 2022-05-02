@@ -86,7 +86,11 @@ function DefaultStateRepresentation{F,TS}(model::CPModel; action_space=nothing, 
     end
 
     sr = DefaultStateRepresentation{F,TS}(g, nothing, nothing, nothing, allValuesIdx, valueToPos, nothing, nothing, 0)
-    sr.nodeFeatures = featurize(sr; chosen_features=chosen_features)
+    if isnothing(chosen_features)
+        sr.nodeFeatures = featurize(sr) # custom featurize function doesn't necessarily support chosen_features
+    else
+        sr.nodeFeatures = featurize(sr; chosen_features=chosen_features)
+    end
     sr.globalFeatures = global_featurize(sr)
     return sr
 end
