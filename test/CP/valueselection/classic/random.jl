@@ -22,7 +22,7 @@
         end
     end
 
-    @testset "BasicHeuristic reproducibility" begin
+    @testset "RandomHeuristic reproducibility" begin
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
 
