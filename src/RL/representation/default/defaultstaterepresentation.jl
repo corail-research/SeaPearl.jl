@@ -14,11 +14,14 @@ Fields:
 - `globalFeatures`: 
 - `variableIdx`: 
 - `allValuesIdx`: 
-- `valueToPos`: Dictionary mapping the value of an action to its position in the one-hot encoding of the value. The boolean corresponds to the fact that the feature is used or not, the integer corresponds to the position of the feature in the vector.
-- `chosenFeatures`: Dictionary of featurization options. The boolean corresponds to whether the feature is active or not, the integer corresponds to the position of the feature in the vector. See below for details about the options.
+- `valueToPos`: Dictionary mapping the value of an action to its position in the one-hot encoding of the value. 
+The boolean corresponds to the fact that the feature is used or not, the integer corresponds to the position of the feature in the vector.
+- `chosenFeatures`: Dictionary of featurization options. The boolean corresponds to whether the feature is active or not, 
+the integer corresponds to the position of the feature in the vector. See below for details about the options.
 - `constraintTypeToId`: Dictionary mapping the type of a constraint to its position in the one-hot encoding of the constraint type.
 
-The `chosenFeatures` dictionary specify a boolean -notifying whether the features are active or not - and a position for the following features:
+The `chosenFeatures` dictionary specify a boolean -notifying whether the features are active or not - 
+and a position for the following features:
 - "constraint_activity": whether or not the constraint is active for constraint nodes
 - "constraint_type": a one-hot encoding of the constraint type for constraint nodes
 - "nb_involved_constraint_propagation": the number of times the constraint has been put in the fixPoint call stack for constraint nodes.
@@ -242,7 +245,7 @@ end
 """
     update_features!(sr::DefaultStateRepresentation{DefaultFeaturization,TS}, ::CPModel)
 
-Function updating the features of the graph nodes. 
+Updates the features of the graph nodes. 
 
 Use the `sr.chosenFeatures` dictionary to find out which features are used and their positions in the vector.
 """
@@ -254,7 +257,7 @@ function update_features!(sr::DefaultStateRepresentation{DefaultFeaturization,TS
             if sr.chosenFeatures["constraint_activity"][1]
                 sr.nodeFeatures[sr.chosenFeatures["constraint_activity"][2], i] = cp_vertex.constraint.active.value
             end
-            
+
             if sr.chosenFeatures["nb_involved_constraint_propagation"][1]
                 sr.nodeFeatures[sr.chosenFeatures["nb_involved_constraint_propagation"][2], i] = sr.cplayergraph.cpmodel.statistics.numberOfTimesInvolvedInPropagation[cp_vertex.constraint]
             end
