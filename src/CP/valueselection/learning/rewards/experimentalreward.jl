@@ -6,10 +6,11 @@ This is the default reward, that will be used if no custom reward is specified w
 mutable struct ExperimentalReward <: AbstractReward 
     value::Float32
     initMin::Int
+    initMax::Int
 end
 
 function ExperimentalReward(model::CPModel)
-    return ExperimentalReward(0, model.objective.domain.min.value)
+    return ExperimentalReward(0, model.objective.domain.min.value, model.objective.domain.max.value)
 end
 
 """
@@ -35,12 +36,18 @@ function set_reward!(::Type{DecisionPhase}, lh::LearnedHeuristic{SR, Experimenta
     A <: ActionOutput
 }
     #lh.reward.value = nb_boundvariables(model)/length(branchable_variables(model)) - model.objective.domain.min.value
-    beta1 = 1.0
-    beta2 = 1.0
-    gamma1 = 0.25
-    gamma2 = 0.75
-    lh.reward.value = gamma1*(nb_boundvariables(model)/length(branchable_variables(model)))^beta1 + gamma2*(lh.reward.initMin/model.objective.domain.min.value)^beta2
-
+    beta = 1.0
+    gamma1 = 0.5
+    gamma2 = 1.0
+    threshold = -10.0
+    first_part = (nb_boundvariables(model)/length(branchable_variables(model)))^beta
+    #second_part = gamma2*(lh.reward.initMin/model.objective.domain.min.value)^beta2
+    if !isnothing(model.objective)
+        second_part = max(-tan((π/(2*(lh.reward.initMax-lh.reward.initMin)))*(model.objective.domain.min.value-lh.reward.initMin)),threshold)
+        lh.reward.value = gamma1*first_part + gamma2*second_part
+    else
+        lh.reward.value = first_part
+    end
 end
 
 
@@ -55,9 +62,8 @@ function set_reward!(::Type{EndingPhase}, lh::LearnedHeuristic{SR, ExperimentalR
     A <: ActionOutput
 }
     nqueens_conflict_counter = false
-    alpha1 = 1.0
-    alpha2 = 0.5
-    kappa = 10
+    alpha = 1.0
+    kappa = 5*model.statistics.numberOfNodesBeforeRestart
     if symbol == :FoundSolution
         if isnothing(model.objective)
             #lh.reward.value = 20*(20-model.statistics.numberOfNodes)
@@ -65,10 +71,13 @@ function set_reward!(::Type{EndingPhase}, lh::LearnedHeuristic{SR, ExperimentalR
             lh.reward.value = kappa*(count(values(model.branchable))/model.statistics.numberOfNodes)^alpha1
         else
             #lh.reward.value = 20*(10-assignedValue(model.objective))
-            lh.reward.value = kappa*(1/assignedValue(model.objective))^alpha2
+            println("Objective: "*string(assignedValue(model.objective)))
+            #lh.reward.value = kappa*(1/assignedValue(model.objective))^alpha2
+            lh.reward.value = (kappa/(lh.reward.initMin-lh.reward.initMax))*(assignedValue(model.objective)-lh.reward.initMax)
         end
     else
         #lh.reward.value = -1
+        println("Infeasible")
         lh.reward.value = -kappa
         if nqueens_conflict_counter
             # Getting the number of conflicts on nqueens
