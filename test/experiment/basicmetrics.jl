@@ -98,13 +98,13 @@ agent = RL.Agent(
         SeaPearl.addVariable!(cpmodel, y)
 
         basicheuristic = SeaPearl.BasicHeuristic()
-        learnedheuristic = SeaPearl.LearnedHeuristic(agent)
+        learnedheuristic = SeaPearl.SimpleLearnedHeuristic(agent)
 
         metrics  = SeaPearl.BasicMetrics(cpmodel, basicheuristic)
         @test typeof(metrics) ==  SeaPearl.BasicMetrics{SeaPearl.DontTakeObjective, SeaPearl.BasicHeuristic}
 
         metrics  = SeaPearl.BasicMetrics(cpmodel, learnedheuristic)
-        @test typeof(metrics) ==  SeaPearl.BasicMetrics{SeaPearl.DontTakeObjective, SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}, SeaPearl.DefaultReward, SeaPearl.FixedOutput}} 
+        @test typeof(metrics) ==  SeaPearl.BasicMetrics{SeaPearl.DontTakeObjective, SeaPearl.SimpleLearnedHeuristic{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}, SeaPearl.DefaultReward, SeaPearl.FixedOutput}} 
         @test isnothing(metrics.totalReward) == false
         @test isnothing(metrics.loss) == false 
 
@@ -115,7 +115,7 @@ agent = RL.Agent(
         @test isnothing(metrics.scores) == false
 
         metrics  = SeaPearl.BasicMetrics(cpmodel, learnedheuristic)
-        @test typeof(metrics) ==  SeaPearl.BasicMetrics{SeaPearl.TakeObjective, SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}, SeaPearl.DefaultReward, SeaPearl.FixedOutput}} 
+        @test typeof(metrics) ==  SeaPearl.BasicMetrics{SeaPearl.TakeObjective, SeaPearl.SimpleLearnedHeuristic{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}, SeaPearl.DefaultReward, SeaPearl.FixedOutput}} 
 
     end
 
@@ -141,11 +141,11 @@ agent = RL.Agent(
         
     end
 
-    @testset "BasicMetrics{DontTakeObjective, LearnedHeuristic}" begin
+    @testset "BasicMetrics{DontTakeObjective, SimpleLearnedHeuristic}" begin
         
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
-        learnedheuristic = SeaPearl.LearnedHeuristic(agent)
+        learnedheuristic = SeaPearl.SimpleLearnedHeuristic(agent)
         x = SeaPearl.IntVar(2, 3, "x", trailer)
         y = SeaPearl.IntVar(2, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
@@ -187,11 +187,11 @@ agent = RL.Agent(
         @test metrics.nbEpisodes == 1 
     end
 
-    @testset "BasicMetrics{TakeObjective, LearnedHeuristic}" begin
+    @testset "BasicMetrics{TakeObjective, SimpleLearnedHeuristic}" begin
 
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
-        learnedheuristic = SeaPearl.LearnedHeuristic(agent)
+        learnedheuristic = SeaPearl.SimpleLearnedHeuristic(agent)
         x = SeaPearl.IntVar(2, 3, "x", trailer)
         y = SeaPearl.IntVar(2, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
