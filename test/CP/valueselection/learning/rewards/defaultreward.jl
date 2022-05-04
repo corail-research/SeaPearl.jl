@@ -4,7 +4,7 @@
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
 
-        lh = SeaPearl.LearnedHeuristic(agent)
+        lh = SeaPearl.SimpleLearnedHeuristic(agent)
         SeaPearl.update_with_cpmodel!(lh, model)
 
         lh.reward.value = 0
@@ -16,7 +16,7 @@
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
 
-        lh = SeaPearl.LearnedHeuristic(agent)
+        lh = SeaPearl.SimpleLearnedHeuristic(agent)
         SeaPearl.update_with_cpmodel!(lh, model)
 
         lh.reward.value = 5

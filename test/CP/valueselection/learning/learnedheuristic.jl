@@ -1,27 +1,27 @@
 @testset "learnedheuristic.jl" begin
 
-    @testset "LearnedHeuristic" begin
+    @testset "SimpleLearnedHeuristic" begin
 
-        learnedheuristic = SeaPearl.LearnedHeuristic(agent)
+        simplelearnedheuristic = SeaPearl.SimpleLearnedHeuristic(agent)
 
-        @test learnedheuristic.agent == agent
-        @test isnothing(learnedheuristic.fitted_problem)
-        @test isnothing(learnedheuristic.fitted_strategy)
-        @test isnothing(learnedheuristic.action_space)
-        @test isnothing(learnedheuristic.current_state)
-        @test isnothing(learnedheuristic.reward)
-        @test isnothing(learnedheuristic.search_metrics)
+        @test simplelearnedheuristic.agent == agent
+        @test isnothing(simplelearnedheuristic.fitted_problem)
+        @test isnothing(simplelearnedheuristic.fitted_strategy)
+        @test isnothing(simplelearnedheuristic.action_space)
+        @test isnothing(simplelearnedheuristic.current_state)
+        @test isnothing(simplelearnedheuristic.reward)
+        @test isnothing(simplelearnedheuristic.search_metrics)
 
-        learnedheuristic.fitted_problem = SeaPearl.LegacyGraphColoringGenerator
-        learnedheuristic.fitted_strategy = SeaPearl.DFSearch
+        simplelearnedheuristic.fitted_problem = SeaPearl.LegacyGraphColoringGenerator
+        simplelearnedheuristic.fitted_strategy = SeaPearl.DFSearch
 
-        @test learnedheuristic.fitted_problem == SeaPearl.LegacyGraphColoringGenerator
-        @test learnedheuristic.fitted_strategy == SeaPearl.DFSearch
+        @test simplelearnedheuristic.fitted_problem == SeaPearl.LegacyGraphColoringGenerator
+        @test simplelearnedheuristic.fitted_strategy == SeaPearl.DFSearch
 
     end
 
 
-    @testset "LearnedHeuristic in action" begin
+    @testset "SimpleLearnedHeuristic in action" begin
 
     approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
     target_approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
@@ -108,7 +108,7 @@
         SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x2, x3, trailer))
         SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x3, x4, trailer))
 
-        lh = SeaPearl.LearnedHeuristic(agent)
+        lh = SeaPearl.SimpleLearnedHeuristic(agent)
         SeaPearl.update_with_cpmodel!(lh, model)
         false_x = first(values(model.variables))
         env = SeaPearl.get_observation!(lh, model, false_x)
@@ -244,7 +244,7 @@
         variableHeuristic = SeaPearl.MinDomainVariableSelection{false}()
         x = variableHeuristic(model)
 
-        lh = SeaPearl.LearnedHeuristic(agent)
+        lh = SeaPearl.SimpleLearnedHeuristic(agent)
         SeaPearl.update_with_cpmodel!(lh, model)
 
 
