@@ -32,7 +32,7 @@ function set_reward!(::Type{StepPhase}, lh::LearnedHeuristic{SR, SmartReward, A}
                 last = assignedValue(model.variables["a_"*string(n-1)])
                 first = assignedValue(model.variables["a_1"])
         
-                dist_to_first_node = lh.current_state.dist[last, first] * max_dist
+                dist_to_first_node = lh.current_state.dist[last, first]
                 lh.reward.value += -ρ*dist_to_first_node 
             end
     elseif symbol == :Feasible 
@@ -66,9 +66,9 @@ function set_reward!(::Type{DecisionPhase}, lh::LearnedHeuristic{SR, SmartReward
         if isbound(model.variables["a_"*string(current)])
             a_i = assignedValue(model.variables["a_"*string(current)])
             v_i = assignedValue(model.variables["v_"*string(current)])
-            last_dist = lh.current_state.dist[v_i, a_i] * max_dist
+            last_dist = lh.current_state.dist[v_i, a_i]
             #print("last_dist : ", last_dist, " // ")
-            lh.reward.value += ρ*( 1+ tour_upper_bound  - last_dist)
+            lh.reward.value += ρ*( 1 + tour_upper_bound  - last_dist)
         end
 
     end
