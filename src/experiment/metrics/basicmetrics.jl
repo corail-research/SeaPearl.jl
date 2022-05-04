@@ -13,8 +13,8 @@ It satisfies the two AbstractMetrics requirements:
 # Fields
 
     heuristic::H                                                        ->  The related heuristic for which the metrics stores the results.
-    nodeVisited::Vector{Vector{Int64}}                                  ->  contains the result of each search in term of node visited : number of nodes visited to 
-                                                                            find every final state found (Solution / Infeasible case) reached during a search.
+    nodeVisited::Vector{Vector{Int64}}                                  ->  contains the result of each search in term of node visited : number of nodes visited to find every final state found (Solution / Infeasible case) reached during a search.
+    solutionFound::Vector{Vector{Bool}}                                 ->  contains the result of each search in term of solution found: true if the dead-end is a solution and false otherwise.
     meanNodeVisitedUntilfirstSolFound::Vector{Union{Nothing,Float32}}   ->  contains the result of each search in term of node visited to find a first solution. "nothing" means no solution has been found during the entire search. 
     meanNodeVisitedUntilEnd::Vector{Float32}                            ->  contains the result of each search in term of node visited until the end of the search.
     timeneeded::Vector{Float32}                                         ->  contains the computing time required to complete each search.
@@ -28,6 +28,7 @@ mutable struct BasicMetrics{O<:AbstractTakeObjective, H<:ValueSelection} <: Abst
     heuristic::H
     nodeVisited::Vector{Vector{Int64}}
     meanNodeVisitedUntilfirstSolFound::Vector{Union{Nothing,Float32}}
+    solutionFound::Vector{Vector{Bool}}
     meanNodeVisitedUntilEnd::Vector{Float32}
     timeneeded::Vector{Float32}
     scores::Union{Nothing,Vector{Vector{Union{Nothing,Float32}}}}
@@ -36,7 +37,7 @@ mutable struct BasicMetrics{O<:AbstractTakeObjective, H<:ValueSelection} <: Abst
     meanOver::Int64
     nbEpisodes::Int64
 
-    BasicMetrics{O,H}(heuristic,meanOver) where {O,H}= new{O, H}(heuristic,Vector{Vector{Int64}}(),Vector{Union{Nothing,Float32}}(), Float32[], Float32[], O==TakeObjective ? Vector{Vector{Float32}}() : nothing, (H == BasicHeuristic) ? nothing : Float32[], (H == BasicHeuristic) ? nothing : Float32[], meanOver,0)
+    BasicMetrics{O,H}(heuristic,meanOver) where {O,H}= new{O, H}(heuristic,Vector{Vector{Int64}}(),Vector{Union{Nothing,Float32}}(), Float32[], Float32[], Float32[], O==TakeObjective ? Vector{Vector{Float32}}() : nothing, (H == BasicHeuristic) ? nothing : Float32[], (H == BasicHeuristic) ? nothing : Float32[], meanOver,0)
 end
 
 BasicMetrics(model::CPModel, heuristic::ValueSelection; meanOver=1) = BasicMetrics{(!isnothing(model.objective)) ? TakeObjective : DontTakeObjective ,typeof(heuristic)}(heuristic,meanOver)
@@ -50,6 +51,7 @@ It updates all the metrics during the search.
 function (metrics::BasicMetrics{DontTakeObjective, <:BasicHeuristic})(model::CPModel,dt::Float64)
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
+    push!(metrics.solutionFound, (x -> !isnothing(x)).(model.statistics.solutions))
     push!(metrics.meanNodeVisitedUntilEnd,model.statistics.numberOfNodes)
     index = findfirst(!isnothing, model.statistics.solutions) #return the list of index of real solution in model.statistics.solutions
     push!(metrics.meanNodeVisitedUntilfirstSolFound, !isnothing(index) ? model.statistics.nodevisitedpersolution[index] : nothing)
@@ -60,6 +62,7 @@ end
 function (metrics::BasicMetrics{TakeObjective, <:BasicHeuristic})(model::CPModel,dt::Float64)
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
+    push!(metrics.solutionFound, (x -> !isnothing(x)).(model.statistics.solutions))
     push!(metrics.meanNodeVisitedUntilEnd,model.statistics.numberOfNodes)
     index = findfirst(!isnothing, model.statistics.solutions) #return the list of index of real solution in model.statistics.solutions
     push!(metrics.meanNodeVisitedUntilfirstSolFound, !isnothing(index) ? model.statistics.nodevisitedpersolution[index] : nothing)
@@ -72,6 +75,7 @@ end
 function (metrics::BasicMetrics{DontTakeObjective, <:LearnedHeuristic})(model::CPModel,dt::Float64)
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
+    push!(metrics.solutionFound, (x -> !isnothing(x)).(model.statistics.solutions))
     push!(metrics.meanNodeVisitedUntilEnd,model.statistics.numberOfNodes)
     index = findfirst(!isnothing, model.statistics.solutions) #return the list of index of real solution in model.statistics.solutions
     push!(metrics.meanNodeVisitedUntilfirstSolFound, !isnothing(index) ? model.statistics.nodevisitedpersolution[index] : nothing)
@@ -85,6 +89,7 @@ end
 function (metrics::BasicMetrics{TakeObjective, <:LearnedHeuristic})(model::CPModel,dt::Float64) 
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
+    push!(metrics.solutionFound, (x -> !isnothing(x)).(model.statistics.solutions))
     push!(metrics.meanNodeVisitedUntilEnd,model.statistics.numberOfNodes)
     index = findfirst(!isnothing, model.statistics.solutions) #return the list of index of real solution in model.statistics.solutions
     push!(metrics.meanNodeVisitedUntilfirstSolFound, !isnothing(index) ? model.statistics.nodevisitedpersolution[index] : nothing)
