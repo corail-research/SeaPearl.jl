@@ -9,7 +9,6 @@ function last_episode_total_reward(t::AbstractTrajectory)
     last_index = length(t[:terminal])
     last_index == 0 && return 0
 
-    #if t[:terminal][last_index]  Do we need to consider cases where the last state is not a terminal state ?
     totalReward = t[:reward][last_index]
     
     i = 1
