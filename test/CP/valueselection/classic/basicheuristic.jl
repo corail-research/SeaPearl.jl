@@ -25,4 +25,5 @@
         @test new_valueselection.selectValue(x) == 2
     end
 
+    include("random.jl")
 end
