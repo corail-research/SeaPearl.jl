@@ -49,7 +49,9 @@ mutable struct SimpleLearnedHeuristic{SR<:AbstractStateRepresentation, R<:Abstra
     search_metrics::Union{Nothing, SearchMetrics}
     firstActionTaken::Bool
     trainMode::Bool
-    SimpleLearnedHeuristic{SR, R, A}(agent::RL.Agent) where {SR, R, A}= new{SR, R, A}(agent, nothing, nothing, nothing, nothing, nothing, nothing, false, true)
+    chosen_features::Union{Nothing,Dict{String,Bool}}
+    SimpleLearnedHeuristic{SR, R, A}(agent::RL.Agent; chosen_features=nothing) where {SR, R, A}= new{SR, R, A}(agent, nothing, nothing, nothing, nothing, nothing, nothing, false, true, chosen_features)
+
 end
 
 """
@@ -62,7 +64,7 @@ Finally, makes the agent call the process of the RL pre_episode_stage (basically
 function (valueSelection::SimpleLearnedHeuristic)(::Type{InitializingPhase}, model::CPModel)
     # create the environment
     valueSelection.firstActionTaken = false
-    update_with_cpmodel!(valueSelection, model)
+    update_with_cpmodel!(valueSelection, model; chosen_features=valueSelection.chosen_features)
     # FIXME get rid of this => prone to bugs
     false_x = first(values(branchable_variables(model)))
     env = get_observation!(valueSelection, model, false_x)
