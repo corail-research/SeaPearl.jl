@@ -1,5 +1,3 @@
-using SeaPearl
-
 @testset "sumtozero.jl" begin
     @testset "SumToZero()" begin
         trailer = SeaPearl.Trailer()
@@ -40,7 +38,10 @@ using SeaPearl
         @test 8 in y.domain
         @test !(7 in y.domain)
         @test !(13 in ax.domain)
-        @test prunedDomains == SeaPearl.CPModification("-y" => [-5, -6, -7, -13, -14, -15])
+        @test prunedDomains == SeaPearl.CPModification(
+            "-y" => [-5, -6, -7, -13, -14, -15],
+            "y"  => [5, 6, 7, 13, 14, 15]
+        )
 
 
         cons2 = SeaPearl.EqualConstant(y, 15, trailer)

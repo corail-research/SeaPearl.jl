@@ -1,26 +1,33 @@
-using Flux
-using GeometricFlux
 #agent declaration
-approximator_model = SeaPearl.FlexGNN(
+approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
+target_approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
+gnnlayers = 10
+numInFeatures = 3
+approximator_model = SeaPearl.CPNN(
     graphChain = Flux.Chain(
-        GeometricFlux.GATConv(3 => 10, heads=2, concat=true),
-        GeometricFlux.GATConv(20 => 20, heads=2, concat=false),
+        SeaPearl.GraphConv(numInFeatures => 64, Flux.leakyrelu),
+        [approximator_GNN for i = 1:gnnlayers]...
     ),
     nodeChain = Flux.Chain(
-        Flux.Dense(20, 20),
+        Flux.Dense(64, 32, Flux.leakyrelu),
+        Flux.Dense(32, 32, Flux.leakyrelu),
+        Flux.Dense(32, 16, Flux.leakyrelu),
     ),
-    outputLayer = Flux.Dense(20, 2)
-)
-target_approximator_model = SeaPearl.FlexGNN(
+    outputChain = Flux.Dense(16, 3),
+) 
+target_approximator_model = SeaPearl.CPNN(
     graphChain = Flux.Chain(
-        GeometricFlux.GATConv(3 => 10, heads=2, concat=true),
-        GeometricFlux.GATConv(20 => 20, heads=2, concat=false),
+        SeaPearl.GraphConv(numInFeatures => 64, Flux.leakyrelu),
+        [target_approximator_GNN for i = 1:gnnlayers]...
     ),
     nodeChain = Flux.Chain(
-        Flux.Dense(20, 20),
+        Flux.Dense(64, 32, Flux.leakyrelu),
+        Flux.Dense(32, 32, Flux.leakyrelu),
+        Flux.Dense(32, 16, Flux.leakyrelu),
     ),
-    outputLayer = Flux.Dense(20,  2)
-)
+    outputChain = Flux.Dense(16, 3),
+) 
+
 
 agent = RL.Agent(
     policy = RL.QBasedPolicy(
@@ -55,8 +62,8 @@ agent = RL.Agent(
         )
     ),
     trajectory = RL.CircularArraySARTTrajectory(
-        capacity = 8000,
-        state = Matrix{Float32} => (5,11),
+        capacity = 10,
+        state = SeaPearl.DefaultTrajectoryState[] => (),
     )   
 )
 
@@ -71,12 +78,11 @@ agent = RL.Agent(
 
         
         @test isempty(metrics.nodeVisited)== true
-        @test isempty(metrics.meanNodeVisitedUntilOptimality) == true
+        @test isempty(metrics.meanNodeVisitedUntilEnd) == true
         @test isempty(metrics.timeneeded) == true
         @test isnothing(metrics.scores) == true
         @test isnothing(metrics.totalReward) == true
         @test isnothing(metrics.loss) == true
-        @test metrics.meanOver == 20
         @test metrics.nbEpisodes == 0
 
         metrics  = SeaPearl.BasicMetrics(cpmodel, basicheuristic;meanOver=100)
@@ -98,7 +104,7 @@ agent = RL.Agent(
         @test typeof(metrics) ==  SeaPearl.BasicMetrics{SeaPearl.DontTakeObjective, SeaPearl.BasicHeuristic}
 
         metrics  = SeaPearl.BasicMetrics(cpmodel, learnedheuristic)
-        @test typeof(metrics) ==  SeaPearl.BasicMetrics{SeaPearl.DontTakeObjective, SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation, SeaPearl.DefaultReward, SeaPearl.FixedOutput}} 
+        @test typeof(metrics) ==  SeaPearl.BasicMetrics{SeaPearl.DontTakeObjective, SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}, SeaPearl.DefaultReward, SeaPearl.FixedOutput}} 
         @test isnothing(metrics.totalReward) == false
         @test isnothing(metrics.loss) == false 
 
@@ -109,7 +115,7 @@ agent = RL.Agent(
         @test isnothing(metrics.scores) == false
 
         metrics  = SeaPearl.BasicMetrics(cpmodel, learnedheuristic)
-        @test typeof(metrics) ==  SeaPearl.BasicMetrics{SeaPearl.TakeObjective, SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation, SeaPearl.DefaultReward, SeaPearl.FixedOutput}} 
+        @test typeof(metrics) ==  SeaPearl.BasicMetrics{SeaPearl.TakeObjective, SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}, SeaPearl.DefaultReward, SeaPearl.FixedOutput}} 
 
     end
 
@@ -123,10 +129,10 @@ agent = RL.Agent(
         y = SeaPearl.IntVar(2, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
 
         metrics  = SeaPearl.BasicMetrics(model, basicheuristic)
-        dt = @elapsed SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection(), basicheuristic) 
+        dt = @elapsed SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection(), basicheuristic) 
         metrics(model,dt)
 
         @test metrics.nodeVisited[1] == [2,3]
@@ -144,10 +150,10 @@ agent = RL.Agent(
         y = SeaPearl.IntVar(2, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
 
         metrics  = SeaPearl.BasicMetrics(model, learnedheuristic)
-        dt = @elapsed SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection(), learnedheuristic) 
+        dt = @elapsed SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection(), learnedheuristic) 
         
         metrics(model,dt)
 
@@ -169,14 +175,14 @@ agent = RL.Agent(
         y = SeaPearl.IntVar(2, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
         SeaPearl.addObjective!(model,y)
         metrics  = SeaPearl.BasicMetrics(model, basicheuristic)
-        dt = @elapsed SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection(), basicheuristic) 
+        dt = @elapsed SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection(), basicheuristic) 
         metrics(model,dt)
 
         @test metrics.nodeVisited[1] == [2, 3] #only one soluion found due to Objective prunning 
-        @test metrics.scores[1] == [1.5, 1.0] #relative to the optimal score
+        @test metrics.scores[1] == [3, 2] 
         @test size(metrics.timeneeded,1) == 1
         @test metrics.nbEpisodes == 1 
     end
@@ -190,11 +196,11 @@ agent = RL.Agent(
         y = SeaPearl.IntVar(2, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
         SeaPearl.addObjective!(model,y)
 
         metrics  = SeaPearl.BasicMetrics(model, learnedheuristic)
-        dt = @elapsed SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection(), learnedheuristic) 
+        dt = @elapsed SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection(), learnedheuristic) 
         
         metrics(model,dt)
 
@@ -221,14 +227,14 @@ agent = RL.Agent(
         push!(metrics.nodeVisited, [0,10])
         push!(metrics.nodeVisited, [0,10])
 
-        push!(metrics.meanNodeVisitedUntilOptimality, 0)
-        push!(metrics.meanNodeVisitedUntilOptimality, 0)
-        push!(metrics.meanNodeVisitedUntilOptimality, 0)
-        push!(metrics.meanNodeVisitedUntilOptimality, 0)
-        push!(metrics.meanNodeVisitedUntilOptimality, 10)
-        push!(metrics.meanNodeVisitedUntilOptimality, 10)
-        push!(metrics.meanNodeVisitedUntilOptimality, 10)
-        push!(metrics.meanNodeVisitedUntilOptimality, 10)
+        push!(metrics.meanNodeVisitedUntilEnd, 0)
+        push!(metrics.meanNodeVisitedUntilEnd, 0)
+        push!(metrics.meanNodeVisitedUntilEnd, 0)
+        push!(metrics.meanNodeVisitedUntilEnd, 0)
+        push!(metrics.meanNodeVisitedUntilEnd, 10)
+        push!(metrics.meanNodeVisitedUntilEnd, 10)
+        push!(metrics.meanNodeVisitedUntilEnd, 10)
+        push!(metrics.meanNodeVisitedUntilEnd, 10)
         
         push!(metrics.meanNodeVisitedUntilfirstSolFound, 10)
         push!(metrics.meanNodeVisitedUntilfirstSolFound, 10)
@@ -242,7 +248,7 @@ agent = RL.Agent(
         metrics.nbEpisodes = 8
         SeaPearl.computemean!(metrics)
         @test metrics.meanNodeVisitedUntilfirstSolFound == [10.0, 7.5, 5.0, 2.5, 0.0]
-        @test metrics.meanNodeVisitedUntilOptimality == [0.0, 2.5, 5.0, 7.5, 10.0]
+        @test metrics.meanNodeVisitedUntilEnd == [0.0, 2.5, 5.0, 7.5, 10.0]
 
     end
 end

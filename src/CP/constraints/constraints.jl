@@ -1,3 +1,6 @@
+include("datasstructures/rsparsebitset.jl")
+
+
 include("absolute.jl")
 include("disjunctive.jl")
 include("datasstructures/timeline.jl")
@@ -16,11 +19,16 @@ include("inset.jl")
 include("reifiedinset.jl")
 include("binaryor.jl")
 include("isbinaryor.jl")
+include("binaryxor.jl")
+include("isbinaryxor.jl")
 include("setdiffsingleton.jl")
 include("element2d.jl")
 include("element1d.jl")
 include("binarymaximum.jl")
 include("setequalconstant.jl")
+include("isbinaryand.jl")
+include("binaryimplication.jl")
+include("binaryequivalence.jl")
 
 """
     addOnDomainChange!(x::AbstractIntVar, constraint::Constraint)
@@ -56,3 +64,5 @@ Add the constraints that have to be propagated when the domain of `x` changes to
 triggerDomainChange!(toPropagate::Set{<:Constraint}, x::Union{AbstractIntVar, AbstractBoolVar, IntSetVar}) = addToPropagate!(toPropagate, getOnDomainChange(x))
 getOnDomainChange(x::Union{IntVar, BoolVar, IntSetVar}) = x.onDomainChange
 getOnDomainChange(x::Union{IntVarView, BoolVarView}) = getOnDomainChange(x.x)
+
+variablesArray(constraint::Constraint) = throw(ErrorException("missing function variablesArray(::$(typeof(constraint)))."))

@@ -1,5 +1,3 @@
-using SeaPearl
-
 @testset "fixPoint.jl" begin
     @testset "fixPoint!()" begin
         trailer = SeaPearl.Trailer()
@@ -21,14 +19,16 @@ using SeaPearl
         SeaPearl.addVariable!(model, t)
         SeaPearl.addVariable!(model, u)
 
-        push!(model.constraints, constraint)
-        push!(model.constraints, constraint3)
+        SeaPearl.addConstraint!(model, constraint)
+        SeaPearl.addConstraint!(model, constraint3)
         feasability, prunedDomains = SeaPearl.fixPoint!(model)
         
         rightPruning = SeaPearl.CPModification("x" => [2, 3, 4],"z" => [11, 12, 13, 14, 15],"y" => [7, 8])
 
         @test prunedDomains == rightPruning
         @test feasability
+        @test sum(map(x-> length(x[2]),collect(rightPruning))) == 10
+        @test sum(map(x-> length(x[2]),collect(prunedDomains))) == 10
 
         @test length(x.domain) == 2
         @test length(y.domain) == 2
@@ -36,7 +36,7 @@ using SeaPearl
         @test length(t.domain) == 5
 
         constraint2 = SeaPearl.Equal(y, z, trailer)
-        push!(model.constraints, constraint2)
+        SeaPearl.addConstraint!(model, constraint2)
 
         SeaPearl.fixPoint!(model, Array{SeaPearl.Constraint}([constraint2]))
 
@@ -47,7 +47,7 @@ using SeaPearl
         @test SeaPearl.isbound(t)
 
         constraint4 = SeaPearl.Equal(u, z, trailer)
-        push!(model.constraints, constraint4)
+        SeaPearl.addConstraint!(model, constraint4)
 
         feasability2, pruned = SeaPearl.fixPoint!(model, Array{SeaPearl.Constraint}([constraint4]))
         @test !feasability2

@@ -1,3 +1,6 @@
+addChildrenVariable!(x::BoolVar, y::BoolVarView) = push!(x.children, y)
+addChildrenVariable!(x::BoolVarView, y::BoolVarView) = addChildrenVariable!(x.x, y)
+
 struct BoolDomainViewNot <: BoolDomainView
     orig            ::AbstractBoolDomain
 end
@@ -14,7 +17,9 @@ struct BoolVarViewNot <: BoolVarView
     """
     function BoolVarViewNot(x::AbstractBoolVar, id::String)
         dom = BoolDomainViewNot(x.domain)
-        return new(x, dom, id)
+        var = new(x, dom, id)
+        addChildrenVariable!(x, var)
+        return var
     end
 end
 
@@ -87,3 +92,7 @@ function Base.iterate(dom::BoolDomainViewNot, state=1)
     value, newState = returned
     return !value, newState
 end
+
+parentValue(::BoolVarViewNot, v::Bool) = ! v
+childrenValue(::BoolVar, v::Bool) = v
+childrenValue(y::BoolVarViewNot, v::Bool) = ! childrenValue(y.x, v)

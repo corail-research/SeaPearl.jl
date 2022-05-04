@@ -28,7 +28,7 @@ end
         foundDist, foundTW, foundPos, foundgrid_size = model.adhocInfo
 
         # This condition is there because of the way random are generated can change from one version to another
-        if VERSION >= v"1.6.0"
+        if VERSION == v"1.6.0"
             @test foundDist == [0 4 2 3 3 3 3 3 2 4; 
                                 4 0 2 1 3 3 1 3 4 2; 
                                 2 2 0 0 3 3 1 3 3 3; 
@@ -40,6 +40,19 @@ end
                                 2 4 3 3 1 2 3 1 0 4; 
                                 4 2 3 3 3 2 2 3 4 0]
             @test foundTW == [0 10; 23 23; 25 26; 17 18; 12 13; 20 21; 15 15; 28 29; 10 11; 5 6]
+        end
+        if VERSION >= v"1.7.0"
+            @test foundDist == [0 2 5 3 3 3 3 4 1 5; 
+                                2 0 4 2 1 1 4 3 1 3;
+                                5 4 0 2 4 4 4 2 4 4;
+                                3 2 2 0 2 1 3 1 3 2;
+                                3 1 4 2 0 1 5 2 2 2;
+                                3 1 4 1 1 0 4 2 2 2;
+                                3 4 4 3 5 4 0 4 3 6;
+                                4 3 2 1 2 2 4 0 3 2;
+                                1 1 4 3 2 2 3 3 0 4;
+                                5 3 4 2 2 2 6 2 4 0]
+            @test foundTW == [0 10; 31 31; 10 10; 21 22; 6 6; 22 22; 26 27; 4 4; 15 15; 19 20]
         end
         @test foundgrid_size == grid_size
 
@@ -81,7 +94,7 @@ end
         13 13 18 28 20 11 15 28 15 4 10 17 10 40 25 17 9 3 8 0 19;
         12 31 29 27 10 30 4 27 35 18 27 36 26 21 33 32 10 21 25 19 0]
 
-        time_windows = [0         408;
+        timeWindows = [0         408;
         62        68;
         181       205;
         306       324;
@@ -103,30 +116,30 @@ end
         9         21;
         275       300]
 
-        dist, time_windows = SeaPearl.fill_with_generator!(model, generator; dist=dist, time_windows=time_windows)
+        dist, timeWindows = SeaPearl.fill_with_generator!(model, generator; dist=dist, timeWindows=timeWindows)
 
         foundDist, foundTW, foundPos, foundgrid_size = model.adhocInfo
 
         @test foundDist == dist
-        @test foundTW == time_windows
+        @test foundTW == timeWindows
         @test foundgrid_size == grid_size
 
         variableheuristic = TsptwVariableSelection{false}()
         my_heuristic(x::SeaPearl.IntVar; cpmodel=nothing) = minimum(x.domain)
         valueheuristic = SeaPearl.BasicHeuristic(my_heuristic)
 
-        SeaPearl.search!(model, SeaPearl.DFSearch, variableheuristic, valueheuristic)
+        SeaPearl.search!(model, SeaPearl.DFSearch(), variableheuristic, valueheuristic)
 
         # println("dist", dist)
-        # println("time_windows", time_windows)
+        # println("timeWindows", timeWindows)
 
-        @test length(model.statistics.solutions) >= 1
+        @test model.statistics.numberOfSolutions >= 1
 
         # println("nodes: ", model.statistics.numberOfNodes)
 
         solution_found = Int[]
         for i in 1:(n_city-1)
-            push!(solution_found, model.statistics.solutions[end]["a_"*string(i)])
+            push!(solution_found, unique!(model.statistics.solutions)[end]["a_"*string(i)])
         end
 
         # From: http://www.hakank.org/minizinc/tsptw.mzn
@@ -154,13 +167,13 @@ end
 
         generator = SeaPearl.TsptwGenerator(n_city, grid_size, max_tw_gap, max_tw)
 
-        dist, time_windows = SeaPearl.fill_with_generator!(model, generator; seed=42)
+        dist, timeWindows = SeaPearl.fill_with_generator!(model, generator; seed=42)
 
         variableheuristic = TsptwVariableSelection{false}()
         my_heuristic(x::SeaPearl.IntVar; cpmodel=nothing) = minimum(x.domain)
         valueheuristic = SeaPearl.BasicHeuristic(my_heuristic)
 
-        SeaPearl.search!(model, SeaPearl.DFSearch, variableheuristic, valueheuristic)
+        SeaPearl.search!(model, SeaPearl.DFSearch(), variableheuristic, valueheuristic)
 
         #TODO findout why sometimes no solution are found in the randomly generated problem  
         @test length(model.statistics.solutions) >= 1
@@ -176,7 +189,7 @@ end
 
         generator = SeaPearl.TsptwGenerator(n_city, grid_size, max_tw_gap, max_tw)
 
-        dist, time_windows = SeaPearl.fill_with_generator!(model, generator; seed=42)
+        dist, timeWindows = SeaPearl.fill_with_generator!(model, generator; seed=42)
 
         @test SeaPearl.find_tsptw_dist_matrix(model) == dist
 
@@ -184,17 +197,4 @@ end
         @test_throws ErrorException SeaPearl.find_tsptw_dist_matrix(model2)
     end
 
-    @testset "arraybuffer_dims(::TsptwGenerator)" begin
-        trailer = SeaPearl.Trailer()
-        model = SeaPearl.CPModel(trailer)
-
-        n_city = 21
-        grid_size = 150
-        max_tw_gap = 3
-        max_tw = 8
-
-        generator = SeaPearl.TsptwGenerator(n_city, grid_size, max_tw_gap, max_tw)
-
-        @test SeaPearl.arraybuffer_dims(generator, SeaPearl.TsptwStateRepresentation{SeaPearl.TsptwFeaturization}) == (21, 29)
-    end
 end

@@ -1,10 +1,10 @@
 """
-    initroot!(toCall::Stack{Function}, ::Type{DFSearch},model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, newConstraints=nothing)
+    initroot!(toCall::Stack{Function}, ::DFSearch, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
 
 Used as a generic function to instantiate the research based on a specific Strategy <: SearchStrategy. 
     
 """
-function initroot!(toCall::Stack{Function}, ::Type{DFSearch}, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
+function initroot!(toCall::Stack{Function}, ::DFSearch, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
     return expandDfs!(toCall, model, variableHeuristic, valueSelection)
 end
 
@@ -21,6 +21,11 @@ function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
 
     # Dealing with limits
     model.statistics.numberOfNodes += 1
+    model.statistics.numberOfNodesBeforeRestart += 1
+    
+    if !belowTimeLimit(model)
+        return :TimeLimitStop
+    end
     if !belowNodeLimit(model)
         return :NodeLimitStop
     end
@@ -30,7 +35,12 @@ function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
 
     # Fix-point algorithm
     feasible, pruned = fixPoint!(model, newConstraints, prunedDomains)
+    model.statistics.lastPruning=sum(map(x-> length(x[2]),collect(pruned)))
+
     if !feasible
+        model.statistics.numberOfInfeasibleSolutions += 1
+        model.statistics.numberOfInfeasibleSolutionsBeforeRestart += 1
+
         return :Infeasible
     end
     if solutionFound(model)

@@ -1,5 +1,3 @@
-using SeaPearl
-
 @testset "notequal.jl" begin
     @testset "NotEqualConstant()" begin
         trailer = SeaPearl.Trailer()
@@ -115,7 +113,10 @@ using SeaPearl
         @test SeaPearl.propagate!(constraint2, toPropagate, prunedDomains)
         @test constraint in toPropagate
         @test !(constraint2 in toPropagate)
-        @test prunedDomains == SeaPearl.CPModification("-y" => [5])
+        @test prunedDomains == SeaPearl.CPModification(
+            "-y" => [5],
+            "y"  => [-5]
+        )
         @test length(y.domain) == 3
 
         #Unfeasible test

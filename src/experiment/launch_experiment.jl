@@ -29,13 +29,15 @@ function launch_experiment!(
         valueSelectionArray::Array{T, 1}, 
         generator::AbstractModelGenerator,
         nbEpisodes::Int64,
-        strategy::Type{DFSearch},
+        strategy::S1,
+        eval_strategy::S2,
         variableHeuristic::AbstractVariableSelection,
         out_solver::Bool,
         verbose::Bool;
         metrics::Union{Nothing, AbstractMetrics}=nothing,
-        evaluator::Union{Nothing, AbstractEvaluator}=SameInstancesEvaluator(valueSelectionArray,generator)
-    ) where T <: ValueSelection
+        evaluator::Union{Nothing, AbstractEvaluator}=SameInstancesEvaluator(valueSelectionArray,generator),
+        restartPerInstances::Int64,
+    ) where{T <: ValueSelection, S1,S2 <: SearchStrategy}
 
     nbHeuristics = length(valueSelectionArray)
 
@@ -55,7 +57,7 @@ function launch_experiment!(
     iter = ProgressBar(1:nbEpisodes)
     for i in iter
     #for i in 1:nbEpisodes
-        verbose && print(" --- EPISODE: ", i)
+        verbose && println(" --- EPISODE: ", i)
 
         empty!(model)
 
@@ -63,26 +65,25 @@ function launch_experiment!(
 
         for j in 1:nbHeuristics
             reset_model!(model)
-            
-            dt = @elapsed search!(model, strategy, variableHeuristic, valueSelectionArray[j], out_solver=out_solver)
-            
-            metricsArray[j](model,dt)  #adding results in the metrics data structure
-
             if isa(valueSelectionArray[j], LearnedHeuristic)
-                verbose && print(", Visited nodes with learnedHeuristic : ", model.statistics.numberOfNodes)
+                verbose && print("Visited nodes with learnedHeuristic : " )
             else
-                verbose && println(" vs Visited nodes with basic Heuristic n°$(j-1) : ", model.statistics.numberOfNodes)
+                verbose && print("Visited nodes with basic Heuristic n°$(j-1) : ")
             end
+            dt = @elapsed for k in 1:restartPerInstances
+                restart_search!(model)
+                search!(model, strategy, variableHeuristic, valueSelectionArray[j], out_solver=out_solver)
+
+                verbose && print(model.statistics.numberOfNodesBeforeRestart, ", ")    
+            end
+            metricsArray[j](model,dt)  #adding results in the metrics data structure
+            verbose && println()
         end
 
         if !isnothing(evaluator) && (i % evaluator.evalFreq == 0)
-            evaluate(evaluator, variableHeuristic, strategy)
+            evaluate(evaluator, variableHeuristic, eval_strategy; verbose = verbose)
         end
         verbose && println()
-    end
-    for j in 1:nbHeuristics
-        #compute slidding mean for each metrics
-        computemean!(metricsArray[j])  #how to handle non basic metrics here ? 
     end
     
     if !isnothing(evaluator)

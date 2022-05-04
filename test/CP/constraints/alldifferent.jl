@@ -1,4 +1,6 @@
+using SeaPearl
 using LightGraphs
+using Test
 
 @testset "alldifferent.jl" begin
     @testset "AllDifferent(::Vector{AbstractIntVar}, ::Trailer)" begin
@@ -30,7 +32,9 @@ using LightGraphs
         vec = Vector{SeaPearl.IntVar}([x, y, z])
 
         constraint = SeaPearl.AllDifferent(vec, trailer)
-        SeaPearl.setValue!(constraint.edgesState[Edge(1, 6)], SeaPearl.removed)
+        removed = BitVector(undef, constraint.numberOfEdges) .= false
+        removed[constraint.edgeToIndex[Edge(1, 6)]] = true
+        SeaPearl.updateremaining!(constraint, removed)
         graph, digraph = SeaPearl.initializeGraphs!(constraint)
 
         @test Edge(1, 4) in edges(graph)
@@ -59,22 +63,6 @@ using LightGraphs
         @test Edge(2, 6) in edgeset
         @test Edge(1, 5) in edgeset
     end
-    @testset "getAllEdges(::DiGraph, ::Vector{Int}, ::Vector{Int})" begin
-        bipartite = DiGraph(7)
-        add_edge!(bipartite, 4, 1)
-        add_edge!(bipartite, 5, 1)
-        add_edge!(bipartite, 1, 6)
-        add_edge!(bipartite, 2, 5)
-        add_edge!(bipartite, 6, 2)
-        add_edge!(bipartite, 3, 7)
-        edgeset = SeaPearl.getAllEdges(bipartite, [1, 2], [5, 6])
-
-        @test length(edgeset) == 4
-        @test Edge(1, 5) in edgeset
-        @test Edge(1, 6) in edgeset
-        @test Edge(2, 5) in edgeset
-        @test Edge(2, 6) in edgeset
-    end
     @testset "removeEdges!(::AllDifferent, ::Vector{Vector{Int}}, ::Graph, ::DiGraph)" begin
 
         trailer = SeaPearl.Trailer()
@@ -92,7 +80,7 @@ using LightGraphs
         graph, digraph = SeaPearl.initializeGraphs!(constraint)
         matching = SeaPearl.Matching(6, [Pair(1, 7), Pair(2, 8), Pair(3, 9), Pair(4, 10), Pair(5, 11), Pair(6, 12)])
         for (idx, match) in enumerate(matching.matches)
-            constraint.matching[idx] = SeaPearl.StateObject{Pair{Int, Int}}(match, trailer)
+            constraint.matching[idx] = SeaPearl.StateObject{Tuple{Int, Int, Bool}}((match..., false), trailer)
         end
         SeaPearl.setValue!(constraint.initialized, true)
         SeaPearl.buildDigraph!(digraph, graph, matching)
@@ -183,7 +171,7 @@ using LightGraphs
         @test SeaPearl.propagate!(con2, toPropagate, modif)
 
         SeaPearl.withNewState!(trailer) do
-            SeaPearl.assign!(rows[1].domain, 1)
+            SeaPearl.addToPrunedDomains!(modif, rows[1], SeaPearl.assign!(rows[1].domain, 1))
             toPropagate = Set{SeaPearl.Constraint}([con1, con2, con3])
 
             @test SeaPearl.propagate!(con1, toPropagate, modif)
@@ -192,7 +180,7 @@ using LightGraphs
         end
         modif = SeaPearl.CPModification()
         SeaPearl.withNewState!(trailer) do
-            SeaPearl.assign!(rows[1].domain, 2)
+            SeaPearl.addToPrunedDomains!(modif, rows[1], SeaPearl.assign!(rows[1].domain, 2))
             toPropagate = Set{SeaPearl.Constraint}([con1, con2, con3])
 
             @test SeaPearl.propagate!(con1, toPropagate, modif)
@@ -223,15 +211,15 @@ using LightGraphs
             #SeaPearl.addVariable!(model, rows_minus[i]; branchable=false)
         end
 
-        push!(model.constraints, SeaPearl.AllDifferent(rows, trailer))
-        push!(model.constraints, SeaPearl.AllDifferent(rows_plus, trailer))
-        push!(model.constraints, SeaPearl.AllDifferent(rows_minus, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.AllDifferent(rows, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.AllDifferent(rows_plus, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.AllDifferent(rows_minus, trailer))
 
         variableSelection = SeaPearl.MinDomainVariableSelection{false}()
         status = SeaPearl.solve!(model; variableHeuristic=variableSelection)
 
         @test status == :Optimal
-        @test length(model.statistics.solutions) == 10
+        @test model.statistics.numberOfSolutions == 10
     end
     @testset "7 queens full" begin
         n=7
@@ -256,14 +244,25 @@ using LightGraphs
             #SeaPearl.addVariable!(model, rows_minus[i]; branchable=false)
         end
 
-        push!(model.constraints, SeaPearl.AllDifferent(rows, trailer))
-        push!(model.constraints, SeaPearl.AllDifferent(rows_plus, trailer))
-        push!(model.constraints, SeaPearl.AllDifferent(rows_minus, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.AllDifferent(rows, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.AllDifferent(rows_plus, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.AllDifferent(rows_minus, trailer))
 
         variableSelection = SeaPearl.MinDomainVariableSelection{false}()
         status = SeaPearl.solve!(model; variableHeuristic=variableSelection)
 
         @test status == :Optimal
-        @test length(model.statistics.solutions) == 40
+        @test model.statistics.numberOfSolutions == 40
+    end
+
+    @testset "variablesArray()" begin 
+        trailer = SeaPearl.Trailer()
+        x = SeaPearl.IntVar(1, 3, "x", trailer)
+        y = SeaPearl.IntVar(2, 3, "y", trailer)
+        z = SeaPearl.IntVar(2, 3, "Z", trailer)
+        vec = Vector{SeaPearl.IntVar}([x, y, z])
+
+        constraint = SeaPearl.AllDifferent(vec, trailer)
+        @test length(SeaPearl.variablesArray(constraint)) == 3
     end
 end

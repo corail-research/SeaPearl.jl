@@ -1,6 +1,3 @@
-using SeaPearl
-using LightGraphs
-
 @testset "arrayOfEveryValue()" begin
     trailer = SeaPearl.Trailer()
 
@@ -18,8 +15,8 @@ end
     y = SeaPearl.IntVar(2, 3, "y", trailer)
     SeaPearl.addVariable!(model, x)
     SeaPearl.addVariable!(model, y)
-    push!(model.constraints, SeaPearl.Equal(x, y, trailer))
-    push!(model.constraints, SeaPearl.NotEqual(x, y, trailer))
+    SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
+    SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x, y, trailer))
 
     g = SeaPearl.CPLayerGraph(model)
 
@@ -45,8 +42,8 @@ end
     y = SeaPearl.IntVar(2, 3, "y", trailer)
     SeaPearl.addVariable!(model, x)
     SeaPearl.addVariable!(model, y)
-    push!(model.constraints, SeaPearl.Equal(x, y, trailer))
-    push!(model.constraints, SeaPearl.NotEqual(x, y, trailer))
+    SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
+    SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x, y, trailer))
 
     g = SeaPearl.CPLayerGraph(model)
 
@@ -83,8 +80,8 @@ end
     y = SeaPearl.IntVar(2, 3, "y", trailer)
     SeaPearl.addVariable!(model, x)
     SeaPearl.addVariable!(model, y)
-    push!(model.constraints, SeaPearl.Equal(x, y, trailer))
-    push!(model.constraints, SeaPearl.NotEqual(x, y, trailer))
+    SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
+    SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x, y, trailer))
 
     g = SeaPearl.CPLayerGraph(model)
 
@@ -103,8 +100,8 @@ end
     y = SeaPearl.IntVar(2, 3, "y", trailer)
     SeaPearl.addVariable!(model, x)
     SeaPearl.addVariable!(model, y)
-    push!(model.constraints, SeaPearl.Equal(x, y, trailer))
-    push!(model.constraints, SeaPearl.NotEqual(x, y, trailer))
+    SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
+    SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x, y, trailer))
 
     g = SeaPearl.CPLayerGraph(model)
 
@@ -130,8 +127,8 @@ end
     y = SeaPearl.IntVar(2, 3, "y", trailer)
     SeaPearl.addVariable!(model, x)
     SeaPearl.addVariable!(model, y)
-    push!(model.constraints, SeaPearl.Equal(x, y, trailer))
-    push!(model.constraints, SeaPearl.NotEqual(x, y, trailer))
+    SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
+    SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x, y, trailer))
 
     g = SeaPearl.CPLayerGraph(model)
 
@@ -158,8 +155,8 @@ end
     y = SeaPearl.IntVar(2, 3, "y", trailer)
     SeaPearl.addVariable!(model, x)
     SeaPearl.addVariable!(model, y)
-    push!(model.constraints, SeaPearl.Equal(x, y, trailer))
-    push!(model.constraints, SeaPearl.NotEqual(x, y, trailer))
+    SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
+    SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x, y, trailer))
 
     g = SeaPearl.CPLayerGraph(model)
 
@@ -174,4 +171,33 @@ end
     @test LightGraphs.outneighbors(g, 4) == [1, 2, 5, 6]
     @test LightGraphs.outneighbors(g, 6) == [4]
     @test LightGraphs.outneighbors(g, 5) == [3, 4]
+end
+
+@testset "CPLayerGraph => Simplegraph features" begin
+    trailer = SeaPearl.Trailer()
+    model = SeaPearl.CPModel(trailer)
+
+    x = SeaPearl.IntVar(2, 3, "x", trailer)
+    y = SeaPearl.IntVar(2, 3, "y", trailer)
+    SeaPearl.addVariable!(model, x)
+    SeaPearl.addVariable!(model, y)
+    SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
+    SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x, y, trailer))
+
+    g = SeaPearl.CPLayerGraph(model)
+    sg = SimpleGraph(g)
+
+    @test nv(sg) == 6
+    @test ne(sg) == 8
+
+    z = SeaPearl.IntVar(2, 3, "Z", trailer)
+    SeaPearl.addVariable!(model, z)   #add an isolated variable
+
+    g = SeaPearl.CPLayerGraph(model)
+    sg = SimpleGraph(g)
+
+    @test nv(sg) == 7  
+    @test ne(sg) == 10
+
+    @test adjacency_matrix(g)==adjacency_matrix(sg)
 end

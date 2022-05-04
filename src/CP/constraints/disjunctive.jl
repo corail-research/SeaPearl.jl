@@ -11,7 +11,7 @@ end
 Task stucture with a earliestStartingTime variable, a processing time constant and an ID
 """
 mutable struct Task
-    earliestStartingTime::SeaPearl.IntVar
+    earliestStartingTime::AbstractIntVar
     processingTime::Int
     id::Int
 end
@@ -66,6 +66,7 @@ struct Disjunctive <: Constraint
 
     function Disjunctive(earliestStartingTime::Array{IntVar}, 
                         processingTime::Array{Int}, trailer, filteringAlgorithm::Array{filteringAlgorithmTypes} = [algoTimeTabling])::Disjunctive
+
         tasks = []
         for i in 1:size(earliestStartingTime)[1]
             push!(tasks, Task(earliestStartingTime[i], 

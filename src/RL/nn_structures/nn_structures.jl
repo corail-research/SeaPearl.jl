@@ -1,6 +1,6 @@
 using Flux
 using Zygote
-using GraphSignals
+using CUDA
 
 abstract type NNStructure end
 
@@ -9,17 +9,21 @@ abstract type NNStructure end
 
 Make NNStructure able to work with batches.
 """
-function (nn::NNStructure)(x::AbstractArray{Float32,3})
-    batch_size = size(x)[end]
+(nn::NNStructure)(ts::AbstractTrajectoryState) = throw(ErrorException("missing function (::$(typeof(nn)))(::$(typeof(ts)))."))
+function (nn::NNStructure)(x::AbstractVector{<:TabularTrajectoryState})
+    batch_size = size(x, 3)
     qval = [nn(x[:, :, i]) for i in 1:batch_size]
     hcat(qval...)
 end
 
-include("flexGNN.jl")
-include("flex_variable_output_gnn.jl")
-include("weighted_graph_gat.jl")
+function (nn::NNStructure)(x::AbstractVector{<:NonTabularTrajectoryState})
+    qval = nn.(x)
+    return hcat(qval...)
+end
 
-abstract type NNArgs end
+include("cpnn.jl")
+include("fullfeaturedcpnn.jl")
+include("variableoutputcpnn.jl")
 
 struct ModelNotImplementedError{M} <: Exception
     m::M

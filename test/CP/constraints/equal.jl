@@ -25,7 +25,10 @@
         @test 6 in ax.domain
         @test !(9 in ax.domain)
         @test !(10 in ax.domain)
-        @test prunedDomains == SeaPearl.CPModification("3x" => [9, 12, 15, 18])
+        @test prunedDomains == SeaPearl.CPModification(
+            "3x" => [9, 12, 15, 18],
+            "x"  => [3, 4, 5, 6]
+        )
 
 
         cons2 = SeaPearl.EqualConstant(ax, 9, trailer)

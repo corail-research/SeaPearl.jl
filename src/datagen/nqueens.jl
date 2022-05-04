@@ -47,17 +47,9 @@ function fill_with_generator!(cpmodel::CPModel, gen::NQueensGenerator; seed=noth
         #SeaPearl.addVariable!(model, rows_minus[i]; branchable=false)
     end
 
-    push!(cpmodel.constraints, SeaPearl.AllDifferent(rows, cpmodel.trailer))
-    push!(cpmodel.constraints, SeaPearl.AllDifferent(rows_plus, cpmodel.trailer))
-    push!(cpmodel.constraints, SeaPearl.AllDifferent(rows_minus, cpmodel.trailer))
+    SeaPearl.addConstraint!(cpmodel, SeaPearl.AllDifferent(rows, cpmodel.trailer))
+    SeaPearl.addConstraint!(cpmodel, SeaPearl.AllDifferent(rows_plus, cpmodel.trailer))
+    SeaPearl.addConstraint!(cpmodel, SeaPearl.AllDifferent(rows_minus, cpmodel.trailer))
     return nothing
     #return model
 end
-
-
-"""
-    arraybuffer_dims(gen::NQueensGenerator, t::Type{DefaultStateRepresentation})
-
-Returns the size of the state representation in its matrix form, useful when construcing the trajectory for the RL agent
-"""
-arraybuffer_dims(gen::NQueensGenerator, t::Type{DefaultStateRepresentation{F}}) where {F} = (10+gen.board_size*4+3, 10+gen.board_size*4+3+3+feature_length(gen, t))

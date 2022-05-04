@@ -1,5 +1,3 @@
-using DataStructures
-
 @testset "dfs.jl" begin
     @testset "expandDfs!()" begin
         ### Checking status ###
@@ -19,6 +17,16 @@ using DataStructures
         toCall = Stack{Function}()
         @test SeaPearl.expandDfs!(toCall, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :SolutionLimitStop
         @test isempty(toCall)
+   
+        #:TimeLimitStop
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+        model.limit.searchingTime = 0
+        
+        toCall = Stack{Function}()
+        SeaPearl.tic()
+        @test SeaPearl.expandDfs!(toCall, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :TimeLimitStop
+        @test isempty(toCall)
 
         # :Infeasible
         trailer = SeaPearl.Trailer()
@@ -28,7 +36,7 @@ using DataStructures
         y = SeaPearl.IntVar(3, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
         @test SeaPearl.expandDfs!(toCall, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Infeasible
@@ -42,7 +50,7 @@ using DataStructures
         y = SeaPearl.IntVar(2, 2, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
         @test SeaPearl.expandDfs!(toCall, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :FoundSolution
@@ -57,7 +65,7 @@ using DataStructures
         y = SeaPearl.IntVar(2, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
         @test SeaPearl.expandDfs!(toCall, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Feasible
@@ -91,10 +99,10 @@ using DataStructures
         y = SeaPearl.IntVar(2, 2, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
 
         toCall = Stack{Function}()
-        @test SeaPearl.initroot!(toCall, SeaPearl.DFSearch, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic())== :FoundSolution
+        @test SeaPearl.initroot!(toCall, SeaPearl.DFSearch(), model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic())== :FoundSolution
         @test isempty(toCall)
 
     end
@@ -105,7 +113,7 @@ using DataStructures
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
         model.limit.numberOfNodes = 1
-        @test SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection()) == :NodeLimitStop
+        @test SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection()) == :NodeLimitStop
 
         # :SolutionLimitStop
         trailer = SeaPearl.Trailer()
@@ -116,7 +124,7 @@ using DataStructures
         y = SeaPearl.IntVar(2, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        @test SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection()) == :SolutionLimitStop
+        @test SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection()) == :SolutionLimitStop
 
         # :Infeasible
         trailer = SeaPearl.Trailer()
@@ -126,9 +134,9 @@ using DataStructures
         y = SeaPearl.IntVar(3, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
 
-        @test SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection()) == :Infeasible
+        @test SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection()) == :Infeasible
 
         # :Optimal
         trailer = SeaPearl.Trailer()
@@ -138,9 +146,9 @@ using DataStructures
         y = SeaPearl.IntVar(2, 2, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
 
-        @test SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection()) == :Optimal
+        @test SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection()) == :Optimal
         @test length(model.statistics.solutions) == 1
 
 
@@ -152,9 +160,9 @@ using DataStructures
         y = SeaPearl.IntVar(2, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
 
-        @test SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection()) == :Optimal
+        @test SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection()) == :Optimal
         @test length(model.statistics.solutions) == 2
         @test model.statistics.solutions[1] == Dict("x" => 3,"y" => 3)
         @test model.statistics.solutions[2] == Dict("x" => 2,"y" => 2)
@@ -170,9 +178,9 @@ using DataStructures
         y = SeaPearl.IntVar(2, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
 
-        @test SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Optimal
+        @test SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Optimal
         @test model.statistics.solutions[1] == Dict("x" => 3,"y" => 3)
         @test model.statistics.solutions[2] == Dict("x" => 2,"y" => 2)
 
@@ -182,10 +190,10 @@ using DataStructures
         y = SeaPearl.IntVar(2, 3, "y", model.trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, model.trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, model.trailer))
 
         my_heuristic(x::SeaPearl.IntVar; cpmodel=nothing) = minimum(x.domain)
-        @test SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(my_heuristic)) == :Optimal
+        @test SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(my_heuristic)) == :Optimal
         @test model.statistics.solutions[1] == Dict("x" => 2,"y" => 2)
         @test model.statistics.solutions[2] == Dict("x" => 3,"y" => 3)
 
@@ -200,9 +208,9 @@ using DataStructures
         y = SeaPearl.IntVar(2, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
 
-        @test SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(); out_solver=true) == :FoundSolution
+        @test SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(); out_solver=true) == :FoundSolution
         @test length(model.statistics.solutions) == 1
         @test model.statistics.solutions[1] == Dict("x" => 3,"y" => 3)
 
@@ -212,10 +220,10 @@ using DataStructures
         y = SeaPearl.IntVar(2, 3, "y", model.trailer)
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
-        push!(model.constraints, SeaPearl.Equal(x, y, model.trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, model.trailer))
 
         my_heuristic(x::SeaPearl.IntVar; cpmodel=nothing) = minimum(x.domain)
-        @test SeaPearl.search!(model, SeaPearl.DFSearch, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(my_heuristic); out_solver=true) == :FoundSolution
+        @test SeaPearl.search!(model, SeaPearl.DFSearch(), SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(my_heuristic); out_solver=true) == :FoundSolution
         @test length(model.statistics.solutions) == 1
         @test model.statistics.solutions[1] == Dict("x" => 2,"y" => 2)
 
@@ -223,25 +231,44 @@ using DataStructures
 
     @testset "search!() with a LearnedHeuristic I" begin
 
+
+        approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
+        target_approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
+        gnnlayers = 1
+        approximator_model = SeaPearl.CPNN(
+            graphChain = Flux.Chain(
+                SeaPearl.GraphConv(3 => 64, Flux.leakyrelu),
+                [approximator_GNN for i = 1:gnnlayers]...
+            ),
+            nodeChain = Flux.Chain(
+                Flux.Dense(64, 32, Flux.leakyrelu),
+                Flux.Dense(32, 32, Flux.leakyrelu),
+                Flux.Dense(32, 16, Flux.leakyrelu),
+            ),
+            outputChain = Flux.Dense(16, 4),
+        ) 
+        target_approximator_model = SeaPearl.CPNN(
+            graphChain = Flux.Chain(
+                SeaPearl.GraphConv(3 => 64, Flux.leakyrelu),
+                [target_approximator_GNN for i = 1:gnnlayers]...
+            ),
+            nodeChain = Flux.Chain(
+                Flux.Dense(64, 32, Flux.leakyrelu),
+                Flux.Dense(32, 32, Flux.leakyrelu),
+                Flux.Dense(32, 16, Flux.leakyrelu),
+            ),
+            outputChain = Flux.Dense(16, 4),
+        ) 
+                    
         agent = RL.Agent(
             policy = RL.QBasedPolicy(
                 learner = RL.DQNLearner(
                     approximator = RL.NeuralNetworkApproximator(
-                        model = Chain(
-                            Flux.flatten,
-                            Dense(11*17, 20, Flux.relu),
-                            Dense(20, 20, Flux.relu),
-                            Dense(20, 4, Flux.relu)
-                        ),
+                        model = approximator_model,
                         optimizer = ADAM(0.001f0)
                     ),
                     target_approximator = RL.NeuralNetworkApproximator(
-                        model = Chain(
-                            Flux.flatten,
-                            Dense(11*17, 20, Flux.relu),
-                            Dense(20, 20, Flux.relu),
-                            Dense(20, 4, Flux.relu)
-                        ),
+                        model = target_approximator_model,
                         optimizer = ADAM(0.001f0)
                     ),
                     loss_func = Flux.Losses.huber_loss,
@@ -267,11 +294,12 @@ using DataStructures
             ),
             trajectory = RL.CircularArraySLARTTrajectory(
                 capacity = 500,
-                state = Matrix{Float32} => (11, 17, 1),
+                state = SeaPearl.DefaultTrajectoryState[] => (),
+                action = Int => (),
                 legal_actions_mask = Vector{Bool} => (4, ),
             )
         )
-
+    
         # define the value selection
         valueSelection = SeaPearl.LearnedHeuristic(agent)
 
@@ -287,15 +315,15 @@ using DataStructures
         SeaPearl.addVariable!(model, x3)
         SeaPearl.addVariable!(model, x4)
 
-        push!(model.constraints, SeaPearl.NotEqual(x1, x2, trailer))
-        push!(model.constraints, SeaPearl.NotEqual(x2, x3, trailer))
-        push!(model.constraints, SeaPearl.NotEqual(x3, x4, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x1, x2, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x2, x3, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x3, x4, trailer))
 
         # define the variable selection
         variableSelection = SeaPearl.MinDomainVariableSelection()
 
         # launch the search 
-        SeaPearl.search!(model, SeaPearl.DFSearch, variableSelection, valueSelection)
+        SeaPearl.search!(model, SeaPearl.DFSearch(), variableSelection, valueSelection)
 
         possible_solutions = [
             Dict("x1" => 1, "x2" => 2, "x3" => 3, "x4" => 1),
@@ -319,25 +347,43 @@ using DataStructures
 
     @testset "search!() with a LearnedHeuristic out of the solver" begin
 
+        approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
+        target_approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
+        gnnlayers = 1
+        approximator_model = SeaPearl.CPNN(
+            graphChain = Flux.Chain(
+                SeaPearl.GraphConv(3 => 64, Flux.leakyrelu),
+                [approximator_GNN for i = 1:gnnlayers]...
+            ),
+            nodeChain = Flux.Chain(
+                Flux.Dense(64, 32, Flux.leakyrelu),
+                Flux.Dense(32, 32, Flux.leakyrelu),
+                Flux.Dense(32, 16, Flux.leakyrelu),
+            ),
+            outputChain = Flux.Dense(16, 4),
+        ) 
+        target_approximator_model = SeaPearl.CPNN(
+            graphChain = Flux.Chain(
+                SeaPearl.GraphConv(3 => 64, Flux.leakyrelu),
+                [target_approximator_GNN for i = 1:gnnlayers]...
+            ),
+            nodeChain = Flux.Chain(
+                Flux.Dense(64, 32, Flux.leakyrelu),
+                Flux.Dense(32, 32, Flux.leakyrelu),
+                Flux.Dense(32, 16, Flux.leakyrelu),
+            ),
+            outputChain = Flux.Dense(16, 4),
+        ) 
+                    
         agent = RL.Agent(
             policy = RL.QBasedPolicy(
                 learner = RL.DQNLearner(
                     approximator = RL.NeuralNetworkApproximator(
-                        model = Chain(
-                            Flux.flatten,
-                            Dense(11*17, 20, Flux.relu),
-                            Dense(20, 20, Flux.relu),
-                            Dense(20, 4, Flux.relu)
-                        ),
+                        model = approximator_model,
                         optimizer = ADAM(0.001f0)
                     ),
                     target_approximator = RL.NeuralNetworkApproximator(
-                        model = Chain(
-                            Flux.flatten,
-                            Dense(11*17, 20, Flux.relu),
-                            Dense(20, 20, Flux.relu),
-                            Dense(20, 4, Flux.relu)
-                        ),
+                        model = target_approximator_model,
                         optimizer = ADAM(0.001f0)
                     ),
                     loss_func = Flux.Losses.huber_loss,
@@ -347,7 +393,7 @@ using DataStructures
                     update_horizon = 1,
                     min_replay_history = 1,
                     update_freq = 1,
-                    target_update_freq = 100
+                    target_update_freq = 100,
                 ), 
                 explorer = RL.EpsilonGreedyExplorer(
                     ϵ_stable = 0.01,
@@ -363,10 +409,12 @@ using DataStructures
             ),
             trajectory = RL.CircularArraySLARTTrajectory(
                 capacity = 500,
-                state = Matrix{Float32} => (11, 17, 1),
+                state = SeaPearl.DefaultTrajectoryState[] => (),
+                action = Int => (),
                 legal_actions_mask = Vector{Bool} => (4, ),
             )
         )
+    
 
         # define the value selection
         valueSelection = SeaPearl.LearnedHeuristic(agent)
@@ -383,15 +431,15 @@ using DataStructures
         SeaPearl.addVariable!(model, x3)
         SeaPearl.addVariable!(model, x4)
 
-        push!(model.constraints, SeaPearl.NotEqual(x1, x2, trailer))
-        push!(model.constraints, SeaPearl.NotEqual(x2, x3, trailer))
-        push!(model.constraints, SeaPearl.NotEqual(x3, x4, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x1, x2, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x2, x3, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x3, x4, trailer))
 
         # define the variable selection
         variableSelection = SeaPearl.MinDomainVariableSelection()
 
         # launch the search 
-        SeaPearl.search!(model, SeaPearl.DFSearch, variableSelection, valueSelection; out_solver=true)
+        SeaPearl.search!(model, SeaPearl.DFSearch(), variableSelection, valueSelection; out_solver=true)
 
         possible_solutions = [
             Dict("x1" => 1, "x2" => 2, "x3" => 3, "x4" => 1),

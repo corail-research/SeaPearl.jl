@@ -48,7 +48,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::LegacyGraphColoringGenerato
     for i in 1:length(connexions)
         neighbors = Distributions.sample([j for j in 1:length(connexions) if j != i && connexions[i] > 0], connexions[i], replace=false)
         for j in neighbors
-            push!(cpmodel.constraints, SeaPearl.NotEqual(x[i], x[j], cpmodel.trailer))
+            SeaPearl.addConstraint!(cpmodel, SeaPearl.NotEqual(x[i], x[j], cpmodel.trailer))
         end
     end
 
@@ -56,7 +56,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::LegacyGraphColoringGenerato
     numberOfColors = SeaPearl.IntVar(1, nb_nodes, "numberOfColors", cpmodel.trailer)
     SeaPearl.addVariable!(cpmodel, numberOfColors)
     for var in x
-        push!(cpmodel.constraints, SeaPearl.LessOrEqual(var, numberOfColors, cpmodel.trailer))
+        SeaPearl.addConstraint!(cpmodel, SeaPearl.LessOrEqual(var, numberOfColors, cpmodel.trailer))
     end
     cpmodel.objective = numberOfColors
 
@@ -104,7 +104,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::HomogenousGraphColoringGene
     for i in 1:n
         for j in 1:n
             if i != j && rand() <= p
-                push!(cpmodel.constraints, SeaPearl.NotEqual(x[i], x[j], cpmodel.trailer))
+                SeaPearl.addConstraint!(cpmodel, SeaPearl.NotEqual(x[i], x[j], cpmodel.trailer))
             end
         end
     end
@@ -113,20 +113,20 @@ function fill_with_generator!(cpmodel::CPModel, gen::HomogenousGraphColoringGene
     numberOfColors = SeaPearl.IntVar(1, n, "numberOfColors", cpmodel.trailer)
     SeaPearl.addVariable!(cpmodel, numberOfColors)
     for var in x
-        push!(cpmodel.constraints, SeaPearl.LessOrEqual(var, numberOfColors, cpmodel.trailer))
+        SeaPearl.addConstraint!(cpmodel, SeaPearl.LessOrEqual(var, numberOfColors, cpmodel.trailer))
     end
     SeaPearl.addObjective!(cpmodel,numberOfColors)
     nothing
 end
 
 """
-    arraybuffer_dims(gen::HomogenousGraphColoringGenerator, t::Type{DefaultStateRepresentation})
+    struct ClusterizedGraphColoringGenerator <: AbstractModelGenerator
 
-Returns the size of the state representation in its matrix form, useful when construcing the trajectory for the RL agent
+    Generator of Graph Coloring instances : 
+    - n is the number of nodes
+    - k is the number of color
+    - p is the edge density of the graph
 """
-arraybuffer_dims(gen::HomogenousGraphColoringGenerator, t::Type{DefaultStateRepresentation{F}}) where {F} = (gen.nb_nodes^3, gen.nb_nodes^3+3+feature_length(gen, t))
-
-
 struct ClusterizedGraphColoringGenerator <: AbstractModelGenerator
     n::Int64
     k::Int64
@@ -174,7 +174,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::ClusterizedGraphColoringGen
     for i in 1:n
         for j in 1:n
             if i != j && assigned_colors[i] != assigned_colors[j] && rand() <= p
-                push!(cpmodel.constraints, SeaPearl.NotEqual(x[i], x[j], cpmodel.trailer))
+                SeaPearl.addConstraint!(cpmodel, SeaPearl.NotEqual(x[i], x[j], cpmodel.trailer))
             end
         end
     end
@@ -183,16 +183,10 @@ function fill_with_generator!(cpmodel::CPModel, gen::ClusterizedGraphColoringGen
     numberOfColors = SeaPearl.IntVar(1, n, "numberOfColors", cpmodel.trailer)
     SeaPearl.addVariable!(cpmodel, numberOfColors)
     for var in x
-        push!(cpmodel.constraints, SeaPearl.LessOrEqual(var, numberOfColors, cpmodel.trailer))
+        SeaPearl.addConstraint!(cpmodel, SeaPearl.LessOrEqual(var, numberOfColors, cpmodel.trailer))
     end
     SeaPearl.addObjective!(cpmodel,numberOfColors)
+
+    cpmodel.knownObjective = k 
     nothing
 end
-
-"""
-    arraybuffer_dims(gen::ClusterizedGraphColoringGenerator, t::Type{DefaultStateRepresentation})
-
-Returns the size of the state representation in its matrix form, useful when construcing the trajectory for the RL agent
-"""
-arraybuffer_dims(gen::ClusterizedGraphColoringGenerator, t::Type{DefaultStateRepresentation{F}}) where {F} = (1 + gen.n * 20, 1 + gen.n * 20 + 3 + feature_length(gen, t))
-

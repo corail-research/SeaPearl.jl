@@ -3,13 +3,13 @@
         valueSelectionArray::Union{T, Array{T, 1}}, 
         generator::AbstractModelGenerator,
         nbEpisodes::Int64=10,
-        strategy::Type{DFSearch}=DFSearch,
-        variableHeuristic=selectVariable)
+        strategy::S=DFSearch(),
+        variableHeuristic::AbstractVariableSelection=MinDomainVariableSelection(),
         out_solver::Bool=false,
         verbose::Bool=true,
-        evaluator::Union{Nothing, AbstractEvaluator}, 
+        evaluator::Union{Nothing, AbstractEvaluator},
         metrics::Union{Nothing,AbstractMetrics}=nothing
-        ) where T <: ValueSelection
+    ) where{ T <: ValueSelection, S <: SearchStrategy}
 
 Training the given LearnedHeuristics and using the Basic ones to compare performances. 
 This function managed the training mode of the LearnedHeuristic before and after a call to `launch_experiment!`.
@@ -21,13 +21,15 @@ function train!(;
         valueSelectionArray::Union{T, Array{T, 1}}, 
         generator::AbstractModelGenerator,
         nbEpisodes::Int64=10,
-        strategy::Type{DFSearch}=DFSearch,
+        strategy::S1=DFSearch(),
+        eval_strategy::S2=strategy,
         variableHeuristic::AbstractVariableSelection=MinDomainVariableSelection(),
         out_solver::Bool=false,
         verbose::Bool=true,
         evaluator::Union{Nothing, AbstractEvaluator},
-        metrics::Union{Nothing,AbstractMetrics}=nothing
-    ) where T <: ValueSelection
+        metrics::Union{Nothing,AbstractMetrics}=nothing, 
+        restartPerInstances = 1,
+    ) where{ T <: ValueSelection, S1, S2 <: SearchStrategy}
 
     if isa(valueSelectionArray, T)
         valueSelectionArray = [valueSelectionArray]
@@ -36,7 +38,7 @@ function train!(;
     for valueSelection in valueSelectionArray
         if isa(valueSelection, LearnedHeuristic)
             valueSelection.fitted_problem = typeof(generator)
-            valueSelection.fitted_strategy = strategy
+            valueSelection.fitted_strategy = typeof(strategy)
             # we could add more information later ...
 
             # make sure it is in training mode
@@ -49,11 +51,13 @@ function train!(;
         generator,
         nbEpisodes,
         strategy,
+        eval_strategy,
         variableHeuristic,
         out_solver,
         verbose;
         metrics=metrics,
         evaluator=evaluator,
+        restartPerInstances,
     )
 
     for valueSelection in valueSelectionArray
@@ -65,6 +69,7 @@ function train!(;
                 print("Has been trained on : ", typeof(generator))
                 print(" with strategy : ", strategy)
                 print(" during ", nbEpisodes, " episodes ")
+                restartPerInstances > 1 && print("with ", restartPerInstances, " restart per episode ")
                 out_solver && println("out of the solver.")
                 !out_solver && println("in the solver.")
                 println("Training mode now desactivated !")

@@ -1,3 +1,6 @@
+addChildrenVariable!(x::IntVar, y::IntVarView) = push!(x.children, y)
+addChildrenVariable!(x::IntVarView, y::IntVarView) = addChildrenVariable!(x.x, y)
+
 struct IntDomainViewMul <: IntDomainView
     orig            ::AbstractIntDomain
     a               ::Int
@@ -18,7 +21,9 @@ struct IntVarViewMul <: IntVarView
     function IntVarViewMul(x::AbstractIntVar, a::Int, id::String)
         @assert a > 0
         dom = IntDomainViewMul(x.domain, a)
-        return new(x, a, dom, id)
+        var = new(x, a, dom, id)
+        addChildrenVariable!(x, var)
+        return var
     end
 end
 
@@ -38,7 +43,9 @@ struct IntVarViewOpposite <: IntVarView
     """
     function IntVarViewOpposite(x::AbstractIntVar, id::String)
         dom = IntDomainViewOpposite(x.domain)
-        return new(x, dom, id)
+        var = new(x, dom, id)
+        addChildrenVariable!(x, var)
+        return var
     end
 end
 
@@ -60,7 +67,9 @@ struct IntVarViewOffset <: IntVarView
     """
     function IntVarViewOffset(x::AbstractIntVar, c::Int, id::String)
         dom = IntDomainViewOffset(x.domain, c)
-        return new(x, c, dom, id)
+        var = new(x, c, dom, id)
+        addChildrenVariable!(x, var)
+        return var
     end
 end
 
@@ -261,3 +270,11 @@ function updateMinFromRemovedVal!(dom::IntDomainViewOffset, v::Int)
         updateMinFromRemovedVal!(dom.orig, v - dom.c)
     end
 end
+
+parentValue(y::IntVarViewMul, v::Int) = v ÷ y.a
+parentValue(y::IntVarViewOffset, v::Int) = v - y.c
+parentValue(::IntVarViewOpposite, v::Int) = - v
+childrenValue(::IntVar, v::Int) = v
+childrenValue(y::IntVarViewMul, v::Int) = childrenValue(y.x, v) * y.a
+childrenValue(y::IntVarViewOffset, v::Int) = childrenValue(y.x, v) + y.c
+childrenValue(y::IntVarViewOpposite, v::Int) = - childrenValue(y.x, v)

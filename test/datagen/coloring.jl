@@ -1,5 +1,3 @@
-using Random
-
 @testset "coloring.jl" begin
     @testset "fill_with_generator!(::LegacyGraphColoringGenerator)" begin
         trailer = SeaPearl.Trailer()
@@ -33,25 +31,15 @@ using Random
         SeaPearl.fill_with_generator!(model, generator; seed=12)
 
         @test length(keys(model.variables)) == nb_nodes + 1
-        @test length(model.constraints) == 55
+
+        if VERSION == v"1.6.0"
+            @test length(model.constraints) == 55
+        elseif VERSION >= v"1.7.0"
+            @test length(model.constraints) == 50
+        end
             
         
     end
-
-    @testset "arraybuffer_dims(::HomogenousGraphColoringGenerator)" begin
-        trailer = SeaPearl.Trailer()
-        model = SeaPearl.CPModel(trailer)
-
-        nb_nodes = 10
-        probability = 0.5
-
-        generator = SeaPearl.HomogenousGraphColoringGenerator(nb_nodes, probability)
-
-        @test SeaPearl.arraybuffer_dims(generator, SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization}) == (1000, 1006)
-    end
-
-    
-
     
     @testset "fill_with_generator!(::ClusterizedGraphColoringGenerator)" begin
         trailer = SeaPearl.Trailer()
@@ -74,21 +62,6 @@ using Random
         end
             
         
-    end
-
-    
-
-    @testset "arraybuffer_dims(::ClusterizedGraphColoringGenerator)" begin
-        trailer = SeaPearl.Trailer()
-        model = SeaPearl.CPModel(trailer)
-
-        n = 10
-        k = 5
-        p = 0.5
-
-        generator = SeaPearl.ClusterizedGraphColoringGenerator(n, k, p)
-
-        @test SeaPearl.arraybuffer_dims(generator, SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization}) == (201, 207)
     end
 
 end

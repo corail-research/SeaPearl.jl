@@ -1,6 +1,8 @@
 @testset "nn_structures.jl" begin
 
-    include("flexGNN.jl")
-    include("weighted_graph_gat.jl")
+    include("cpnn.jl")
+    include("fullfeaturedcpnn.jl")
+    include("variableoutputcpnn.jl")
+    include("geometricflux.jl")
 
 end

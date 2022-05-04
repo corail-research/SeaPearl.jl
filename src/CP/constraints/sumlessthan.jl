@@ -83,6 +83,8 @@ function propagate!(constraint::SumLessThan, toPropagate::Set{Constraint}, prune
     return true
 end
 
+variablesArray(constraint::SumLessThan) = constraint.x
+
 function Base.show(io::IO, ::MIME"text/plain", con::SumLessThan)
     ids = [var.id for var in con.x]
     print(io, typeof(con), ": ", join(ids, " + "), " ≤ ", con.upper, ", active = ", con.active)

@@ -1,167 +1,305 @@
-using GraphPlot
-
-struct DefaultFeaturization <: AbstractFeaturization end
-
-
 include("cp_layer/cp_layer.jl")
 
 """
-    DefaultStateRepresentation{F}
+    DefaultStateRepresentation{F, TS}
 
-This is the default representation used by SeaPearl unless the user define his own and give
-the information to his LearnedHeurstic when defining it.
+This is the default representation used by SeaPearl unless the user define his own.
+
+It consists in a tripartite graph representation of the CP Model, with features associated with each node
+and an index specifying the variable that should be branched on.
+
+Fields:
+- `cplayergraph`: representation of the problem as a tripartite graph.
+- `nodeFeatures`: Feature matrix of the nodes. Each column corresponds to a node.
+- `globalFeatures`: Feature vector of the entire graph.
+- `variableIdx`: Index of the variable we are currently considering.
+- `allValuesIdx`: Index of value nodes in `cplayergraph`.
+- `valueToPos`: Dictionary mapping the value of an action to its position in the one-hot encoding of the value. 
+The boolean corresponds to the fact that the feature is used or not, the integer corresponds to the position of the feature in the vector.
+- `chosenFeatures`: Dictionary of featurization options. The boolean corresponds to whether the feature is active or not, 
+the integer corresponds to the position of the feature in the vector. See below for details about the options.
+- `constraintTypeToId`: Dictionary mapping the type of a constraint to its position in the one-hot encoding of the constraint type.
+
+The `chosenFeatures` dictionary specify a boolean -notifying whether the features are active or not - 
+and a position for the following features:
+- "constraint_activity": whether or not the constraint is active for constraint nodes
+- "constraint_type": a one-hot encoding of the constraint type for constraint nodes
+- "nb_involved_constraint_propagation": the number of times the constraint has been put in the fixPoint call stack for constraint nodes.
+- "nb_not_bounded_variable": the number of non-bound variable involve in the constraint for constraint nodes
+- "variable_domain_size": the current size of the domain of the variable for variable nodes 
+- "variable_initial_domain_size": the initial size of the domain of the variable for variable nodes
+- "variable_is_bound": whether or not the variable is bound for variable nodes
+- "values_onehot": a one-hot encoding of the value for value nodes
+- "values_raw": the raw value of the value for value nodes
 """
-mutable struct DefaultStateRepresentation{F} <: FeaturizedStateRepresentation{F}
+mutable struct DefaultStateRepresentation{F,TS} <: FeaturizedStateRepresentation{F,TS}
     cplayergraph::CPLayerGraph
-    features::Union{Nothing, Array{Float32, 2}}
-    variable_id::Union{Nothing, Int64}
-    possible_value_ids::Union{Nothing, Array{Int64}}
+    nodeFeatures::Union{Nothing,AbstractMatrix{Float32}}
+    globalFeatures::Union{Nothing,AbstractVector{Float32}}
+    variableIdx::Union{Nothing,Int64}
+    allValuesIdx::Union{Nothing,Vector{Int64}}
+    valueToPos::Union{Nothing,Dict{Int64,Int64}}
+    chosenFeatures::Union{Nothing,Dict{String,Tuple{Bool,Int64}}}
+    constraintTypeToId::Union{Nothing,Dict{Type,Int}}
+    nbFeatures::Int64
 end
 
-function DefaultStateRepresentation{F}(model::CPModel) where F
-    g = CPLayerGraph(model)
-    sr = DefaultStateRepresentation{F}(g, nothing, nothing, nothing)
-
-    features = featurize(sr)
-    sr.features = transpose(features)
-    sr
-end
-
-DefaultStateRepresentation(m::CPModel) = DefaultStateRepresentation{DefaultFeaturization}(m::CPModel)
+struct DefaultFeaturization <: AbstractFeaturization end
 
 """
-        function update_representation!(sr::DefaultStateRepresentation, model::CPModel, x::AbstractIntVar)
+    feature_length(sr::DefaultStateRepresentation{F,TS}) where {F,TS}
 
-While working with DefaultStateRepresentation, at each step of the research node, only the variable_id and the possible_value_ids need to be updated.
-features don't need to be updated as they encode the initial problem and the CPLayerGraph is automatically updated as it is linked to the CPModel.
+Returns the length of the feature vector.
+
+`sr.nbFeatures` is set in `initChosenFeatures`, which is called in `featurize` when the `DefaultStateRepresentation` is created.
+"""
+feature_length(sr::DefaultStateRepresentation{F,TS}) where {F,TS} = sr.nbFeatures
+
+"""
+    feature_length(gen::AbstractModelGenerator, ::Type{FeaturizedStateRepresentation})
+
+Returns the length of the feature vector, for the `DefaultFeaturization` with no chosen features.
+
+Must be overwritten for any other featurization. 
+
+The difference with the `feature_length(sr::DefaultStateRepresentation{F,TS})` function is that it takes a type as a parameter and not an instance.
+"""
+feature_length(::Type{<:FeaturizedStateRepresentation{DefaultFeaturization, TS}}) where TS = 3
+
+DefaultStateRepresentation(m::CPModel) = DefaultStateRepresentation{DefaultFeaturization,DefaultTrajectoryState}(m::CPModel)
+
+"""
+    DefaultStateRepresentation{F,TS}(model::CPModel; action_space=nothing, chosen_features::Union{Nothing, Dict{String,Bool}}=nothing) where {F,TS}
+
+Constructor to initialize the representation with an action space and a dictionary of feature choices.
+"""
+function DefaultStateRepresentation{F,TS}(model::CPModel; action_space=nothing, chosen_features::Union{Nothing,Dict{String,Bool}}=nothing) where {F,TS}
+    g = CPLayerGraph(model)
+    allValuesIdx = nothing
+    valueToPos = nothing
+    if !isnothing(action_space)
+        allValuesIdx = indexFromCpVertex.([g], ValueVertex.(action_space))
+        valueToPos = Dict{Int64,Int64}()
+        for (pos, value) in enumerate(action_space) # TODO : understand why value are all in action space
+            valueToPos[value] = pos
+        end
+    end
+
+    sr = DefaultStateRepresentation{F,TS}(g, nothing, nothing, nothing, allValuesIdx, valueToPos, nothing, nothing, 0)
+    if isnothing(chosen_features)
+        sr.nodeFeatures = featurize(sr) # custom featurize function doesn't necessarily support chosen_features
+    else
+        sr.nodeFeatures = featurize(sr; chosen_features=chosen_features)
+    end
+    sr.globalFeatures = global_featurize(sr)
+    return sr
+end
+
+function DefaultTrajectoryState(sr::DefaultStateRepresentation{F,DefaultTrajectoryState}) where {F}
+    if isnothing(sr.variableIdx)
+        throw(ErrorException("Unable to build a DefaultTrajectoryState, when the branching variable is nothing."))
+    end
+    adj = Matrix(adjacency_matrix(sr.cplayergraph))
+    fg = isnothing(sr.globalFeatures) ?
+         FeaturedGraph(adj; nf=sr.nodeFeatures) : FeaturedGraph(adj; nf=sr.nodeFeatures, gf=sr.globalFeatures)
+    return DefaultTrajectoryState(fg, sr.variableIdx, sr.allValuesIdx)
+end
+
+"""
+    update_representation!(sr::DefaultStateRepresentation, model::CPModel, x::AbstractIntVar)
+
+Update the StateRepesentation according to its Type and Featurization.
 """
 function update_representation!(sr::DefaultStateRepresentation, model::CPModel, x::AbstractIntVar)
-    sr.variable_id = indexFromCpVertex(sr.cplayergraph, VariableVertex(x))
-    sr.possible_value_ids = possible_values(sr.variable_id, sr.cplayergraph)
-    sr
+    update_features!(sr, model)
+    sr.variableIdx = indexFromCpVertex(sr.cplayergraph, VariableVertex(x))
+    return sr
 end
 
 """
-        function to_arraybuffer(sr::DefaultStateRepresentation, rows=nothing::Union{Nothing, Int})::Array{Float32, 2}
+    featurize(sr::DefaultStateRepresentation{DefaultFeaturization, TS})
 
-This function encodes the DefaultStateRepresentation in a Array{Float32, 2}. This function is usefull as the trajectory buffer can only stock Array.
-The argument "rows" allows the user to define the fixed size of the array that will encode the state. This is usefull as the size of the trajectory buffer
-is fixed in advance. This method makes the array-encoding robust to different instance size as long as the size does not exceed the maximum size defined
-by "rows". Such an encoding is a key element in the quest for generalization over different instances of a same problem.
+Create features for every node of the graph. Can be overwritten for a completely custom featurization.
 
-#TODO precisely describe the array construction whether rows=nothing or not.
+Default behavior consists in a 3D One-hot vector that encodes whether the node represents a Constraint, a Variable or a Value.
+
+It is also possible to pass a `chosen_features` dictionary allowing to choose among some non mandatory features. 
+It will be used in `initChosenFeatures` to initialize `sr.chosenFeatures`. 
+See `DefaultStateRepresentation` for a list of possible options.
+It is only necessary to specify the options you wish to activate.
 """
-function to_arraybuffer(sr::DefaultStateRepresentation, rows=nothing::Union{Nothing, Int})::Array{Float32, 2}
-    adj = Matrix(LightGraphs.LinAlg.adjacency_matrix(sr.cplayergraph))
-    var_id = sr.variable_id
+function featurize(sr::DefaultStateRepresentation{DefaultFeaturization,TS}; chosen_features::Union{Nothing,Dict{String,Bool}}=nothing) where {TS}
+    initChosenFeatures(sr, chosen_features)
 
-    var_code = zeros(Float32, size(adj, 1))
-    var_code[var_id] = 1f0
-
-    vector_values = zeros(Float32, size(adj, 1))
-    for i in sr.possible_value_ids
-        vector_values[i] = 1.
-    end
-
-
-    if isnothing(rows)
-        return hcat(ones(Float32, size(adj, 1), 1), adj, transpose(sr.features), var_code, vector_values)
-    end
-
-    @assert rows > size(adj, 1) "maxNumberOfCPNodes too small"
-
-    cp_graph_array = hcat(ones(Float32, size(adj, 1), 1), adj, zeros(Float32, size(adj, 1), rows - size(adj, 1)), transpose(sr.features), var_code, vector_values)
-    filler = zeros(Float32, rows - size(cp_graph_array, 1), size(cp_graph_array, 2))
-
-
-    return vcat(cp_graph_array, filler)
-
-end
-"""
-        function featuredgraph(array::Array{Float32, 2}, ::Type{DefaultStateRepresentation})::GeometricFlux.FeaturedGraph
-
-#TODO analyse and comment featured graph
-"""
-function featuredgraph(array::Array{Float32, 2}, ::Type{DefaultStateRepresentation})::GeometricFlux.FeaturedGraph
-    # Here we only take what's interesting, removing all null values that are there only to accept bigger graphs
-    row_indexes = findall(x -> x == 1, array[:, 1])
-    col_indexes = vcat(1 .+ row_indexes, (size(array, 1)+2):size(array, 2))
-    array = view(array, row_indexes, col_indexes)
-
-    n = size(array, 1)
-    dense_adj = array[:, 1:n]
-    features = array[:, n+1:end-2]
-
-    return GraphSignals.FeaturedGraph(dense_adj; nf=permutedims(features, [2, 1])) # Cannot use `transpose` to transpose here, see https://github.com/yuehhua/GraphSignals.jl/pull/19
-end
-
-function branchingvariable_id(array::Array{Float32, 2}, ::Type{DefaultStateRepresentation})::Int64
-    findfirst(x -> x == 1, array[:, end-1])
-end
-
-
-"""
-    function featurize(sr::DefaultStateRepresentation{DefaultFeaturization})
-
-Create features for every node of the graph. Supposed to be overwritten.
-Default behavior is to call `default_featurize` which consists in 3D One-hot vector that encodes whether the node represents a Constraint, a Variable or a Value
-"""
-function featurize(sr::DefaultStateRepresentation{DefaultFeaturization})
     g = sr.cplayergraph
-    features = zeros(Float32, nv(g), 3)
+    features = zeros(Float32, sr.nbFeatures, nv(g))
     for i in 1:nv(g)
         cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
         if isa(cp_vertex, ConstraintVertex)
-            features[i, 1] = 1.0f0
+            features[1, i] = 1.0f0
+            if sr.chosenFeatures["constraint_activity"][1]
+                features[sr.chosenFeatures["constraint_activity"][2], i] = cp_vertex.constraint.active.value
+            end
+            if sr.chosenFeatures["nb_involved_constraint_propagation"][1]
+                features[sr.chosenFeatures["nb_involved_constraint_propagation"][2], i] = 0
+            end
+            if sr.chosenFeatures["nb_not_bounded_variable"][1]
+                variables = variablesArray(cp_vertex.constraint)
+                features[sr.chosenFeatures["nb_not_bounded_variable"][2], i] = count(x -> !isbound(x), variables)
+            end
+            if sr.chosenFeatures["constraint_type"][1]
+                features[sr.constraintTypeToId[typeof(cp_vertex.constraint)], i] = 1
+            end
         end
         if isa(cp_vertex, VariableVertex)
-            features[i, 2] = 1.0f0
+            features[2, i] = 1.0f0
+            if sr.chosenFeatures["variable_initial_domain_size"][1]
+                features[sr.chosenFeatures["variable_initial_domain_size"][2], i] = length(cp_vertex.variable.domain)
+            end
+            if sr.chosenFeatures["variable_domain_size"][1]
+                features[sr.chosenFeatures["variable_domain_size"][2], i] = length(cp_vertex.variable.domain)
+            end
+            if sr.chosenFeatures["variable_is_bound"][1]
+                features[sr.chosenFeatures["variable_is_bound"][2], i] = isbound(cp_vertex.variable)
+            end
         end
         if isa(cp_vertex, ValueVertex)
-            features[i, 3] = 1.0f0
+            features[3, i] = 1.0f0
+            if sr.chosenFeatures["values_raw"][1]
+                features[sr.chosenFeatures["values_raw"][2], i] = cp_vertex.value
+            end
+            if sr.chosenFeatures["values_onehot"][1]
+                cp_vertex_idx = sr.valueToPos[cp_vertex.value]
+                features[sr.chosenFeatures["values_onehot"][2]+cp_vertex_idx-1, i] = 1
+            end
         end
     end
-    features
+
+    return features
 end
 
 """
-    feature_length(gen::AbstractModelGenerator, ::Type{DefaultStateRepresentation{DefaultFeaturization}})
+    initChosenFeatures(sr::DefaultStateRepresentation{DefaultFeaturization,TS}, chosen_features::Dict{String,Bool})
 
-Returns the length of the feature vector, useful for SeaPearl to choose the size of the container
+Builds the `sr.chosenFeatures` dictionary  and sets `sr.nbFeatures`.
 """
-feature_length(gen::SeaPearl.AbstractModelGenerator, ::Type{DefaultStateRepresentation{DefaultFeaturization}}) = 3
+function initChosenFeatures(sr::DefaultStateRepresentation{DefaultFeaturization,TS}, chosen_features::Union{Nothing,Dict{String,Bool}}) where {TS}
+    # Initialize chosenFeatures with all positions at -1 and presence to false
+    sr.chosenFeatures = Dict{String,Tuple{Bool,Int64}}(
+        "constraint_activity" => (false, -1),
+        "constraint_type" => (false, -1),
+        "nb_involved_constraint_propagation" => (false, -1),
+        "nb_not_bounded_variable" => (false, -1),
+        "variable_domain_size" => (false, -1),
+        "variable_initial_domain_size" => (false, -1),
+        "variable_is_bound" => (false, -1),
+        "values_onehot" => (false, -1),
+        "values_raw" => (false, -1),
+    )
 
-"""
-    function possible_values(variable_id::Int64, g::CPLayerGraph)
+    counter = 4 # There is at least three features : the one-hot encoding of the node type ∈ {Constraint, Value, Variable}
+    if !isnothing(chosen_features)
+        if haskey(chosen_features, "constraint_activity") && chosen_features["constraint_activity"]
+            sr.chosenFeatures["constraint_activity"] = (true, counter)
+            counter += 1
+        end
 
-Return the ids of the values that the variable denoted by `variable_id` can take.
-It actually returns the id of every ValueVertex neighbors of the VariableVertex.
+        if haskey(chosen_features, "nb_involved_constraint_propagation") && chosen_features["nb_involved_constraint_propagation"]
+            sr.chosenFeatures["nb_involved_constraint_propagation"] = (true, counter)
+            counter += 1
+        end
 
-"""
-function possible_values(variable_id::Int64, g::CPLayerGraph)
-    possible_values = LightGraphs.neighbors(g, variable_id)
-    filter!((id) -> isa(cpVertexFromIndex(g, convert(Int64, id)), ValueVertex), possible_values)
-    return possible_values
-end
+        if haskey(chosen_features, "variable_initial_domain_size") && chosen_features["variable_initial_domain_size"]
+            sr.chosenFeatures["variable_initial_domain_size"] = (true, counter)
+            counter += 1
+        end
 
-"""
-    function possible_value_ids(array::Array{Float32, 2})
+        if haskey(chosen_features, "variable_domain_size") && chosen_features["variable_domain_size"]
+            sr.chosenFeatures["variable_domain_size"] = (true, counter)
+            counter += 1
+        end
 
-Returns the ids of the ValueVertex that are in the domain of the variable we are branching on.
-"""
-function possible_value_ids(array::Array{Float32, 2}, ::Type{DefaultStateRepresentation})
-    findall(x -> x == 1, array[:, end])
-end
+        if haskey(chosen_features, "variable_is_bound") && chosen_features["variable_is_bound"]
+            sr.chosenFeatures["variable_is_bound"] = (true, counter)
+            counter += 1
+        end
 
-function print_tripartite(sr::DefaultStateRepresentation)
-    cpmodel = sr.cplayergraph
-    n = cpmodel.totalLength
-    nodefillc = []
-    for id in 1:n
-        v = cpmodel.idToNode[id]
-        if isa(v, VariableVertex) push!(nodefillc,"red")
-        elseif isa(v, ValueVertex) push!(nodefillc,"blue")
-        else  push!(nodefillc,"black") end
+        if haskey(chosen_features, "nb_not_bounded_variable") && chosen_features["nb_not_bounded_variable"]
+            sr.chosenFeatures["nb_not_bounded_variable"] = (true, counter)
+            counter += 1
+        end
+
+
+        if haskey(chosen_features, "constraint_type") && chosen_features["constraint_type"]
+            sr.chosenFeatures["constraint_type"] = (true, counter)
+            constraintTypeToId = Dict{Type,Int}()
+            constraintsList = keys(sr.cplayergraph.cpmodel.statistics.numberOfTimesInvolvedInPropagation)
+            for constraint in constraintsList
+                if !haskey(constraintTypeToId, typeof(constraint))
+                    constraintTypeToId[typeof(constraint)] = counter
+                    counter += 1
+                end
+            end
+            sr.constraintTypeToId = constraintTypeToId
+        end
+
+        if haskey(chosen_features, "values_raw") && chosen_features["values_raw"]
+            sr.chosenFeatures["values_raw"] = (true, counter)
+            counter += 1
+        end
+
+        if haskey(chosen_features, "values_onehot") && chosen_features["values_onehot"]
+            sr.chosenFeatures["values_onehot"] = (true, counter)
+            counter += sr.cplayergraph.numberOfValues
+        end
     end
-    gplot(cpmodel;nodefillc=nodefillc)
+
+    sr.nbFeatures = counter - 1
+end
+
+"""
+    update_features!(sr::DefaultStateRepresentation{DefaultFeaturization,TS}, ::CPModel)
+
+Updates the features of the graph nodes. 
+
+Use the `sr.chosenFeatures` dictionary to find out which features are used and their positions in the vector.
+"""
+function update_features!(sr::DefaultStateRepresentation{DefaultFeaturization,TS}, ::CPModel) where {TS}
+    g = sr.cplayergraph
+    for i in 1:nv(g)
+        cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
+        if isa(cp_vertex, ConstraintVertex)
+            if sr.chosenFeatures["constraint_activity"][1]
+                sr.nodeFeatures[sr.chosenFeatures["constraint_activity"][2], i] = cp_vertex.constraint.active.value
+            end
+
+            if sr.chosenFeatures["nb_involved_constraint_propagation"][1]
+                sr.nodeFeatures[sr.chosenFeatures["nb_involved_constraint_propagation"][2], i] = sr.cplayergraph.cpmodel.statistics.numberOfTimesInvolvedInPropagation[cp_vertex.constraint]
+            end
+
+            if sr.chosenFeatures["nb_not_bounded_variable"][1]
+                variables = variablesArray(cp_vertex.constraint)
+                sr.nodeFeatures[sr.chosenFeatures["nb_not_bounded_variable"][2], i] = count(x -> !isbound(x), variables)
+            end
+        end
+        if isa(cp_vertex, VariableVertex)
+            if sr.chosenFeatures["variable_domain_size"][1]
+                sr.nodeFeatures[sr.chosenFeatures["variable_domain_size"][2], i] = length(cp_vertex.variable.domain)
+            end
+
+            if sr.chosenFeatures["variable_is_bound"][1]
+                sr.nodeFeatures[sr.chosenFeatures["variable_is_bound"][2], i] = isbound(cp_vertex.variable)
+            end
+        end
+        if isa(cp_vertex, ValueVertex) # Probably useless, check before removing
+            if sr.chosenFeatures["values_raw"][1]
+                sr.nodeFeatures[sr.chosenFeatures["values_raw"][2], i] = cp_vertex.value
+            end
+
+            if sr.chosenFeatures["values_onehot"][1]
+                cp_vertex_idx = sr.valueToPos[cp_vertex.value]
+                sr.nodeFeatures[sr.chosenFeatures["values_onehot"][2]+cp_vertex_idx-1, i] = 1
+            end
+        end
+    end
 end

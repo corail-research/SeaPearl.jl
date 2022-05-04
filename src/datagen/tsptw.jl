@@ -22,7 +22,7 @@ https://arxiv.org/abs/2006.01610
 Basicaly finds positions with a uniform distributions, then sets the time windows by creating a feasible tour and adding
 some randomness by using uniform distributions with gap and the length of the time windows.
 """
-function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothing, dist = nothing, time_windows=nothing)
+function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothing, dist = nothing, timeWindows=nothing)
     if !isnothing(seed)
         Random.seed!(seed)
     end
@@ -31,7 +31,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
     y_pos = zeros(gen.n_city)
 
     ### Creating the TSPTW instance
-    if isnothing(dist) || isnothing(time_windows)
+    if isnothing(dist) || isnothing(timeWindows)
         pos_distribution = Uniform(0, gen.grid_size)
         x_pos = rand(pos_distribution, gen.n_city)
         y_pos = rand(pos_distribution, gen.n_city)
@@ -43,8 +43,8 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
             end
         end
 
-        time_windows = zeros(Int64, gen.n_city, 2)
-        time_windows[1, :] = [0 10]
+        timeWindows = zeros(Int64, gen.n_city, 2)
+        timeWindows[1, :] = [0 10]
 
         random_solution = [1, shuffle(Vector(2:gen.n_city))...]
 
@@ -54,19 +54,19 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
 
             cur_dist = dist[prev_city, cur_city]
 
-            tw_lb_min = time_windows[prev_city, 1] + cur_dist
+            tw_lb_min = timeWindows[prev_city, 1] + cur_dist
 
             rand_tw_lb = rand(DiscreteUniform(tw_lb_min, tw_lb_min + gen.max_tw_gap))
             rand_tw_ub = rand(DiscreteUniform(rand_tw_lb, rand_tw_lb + gen.max_tw))
 
-            time_windows[cur_city, :] = [rand_tw_lb rand_tw_ub]
+            timeWindows[cur_city, :] = [rand_tw_lb rand_tw_ub]
         end
     end
 
-    cpmodel.adhocInfo = dist, time_windows, hcat(x_pos, y_pos), gen.grid_size
+    cpmodel.adhocInfo = dist, timeWindows, hcat(x_pos, y_pos), gen.grid_size
 
 
-    max_upper_tw = Base.maximum(time_windows) * 2
+    max_upper_tw = Base.maximum(timeWindows) * 2
 
 
     ### Filling the CPModel
@@ -92,10 +92,10 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
     ## Intermediaries
     d = [IntVar(0, gen.grid_size * 2, "d_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # d[v_i, a_i]
     lowers = [IntVar(0, max_upper_tw, "td_"*string(i), cpmodel.trailer) for i in 1:(gen.n_city-1)] # t + d[v_i, a_i]
-    lower_ai = [IntVar(0, max_upper_tw, "lower_ai_"*string(i), cpmodel.trailer) for i in 1:(gen.n_city-1)] # time_windows[i, 1]
-    upper_tw_minus_1 = [IntVar(time_windows[i, 2] - 1, time_windows[i, 2] - 1, "upper_tw_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # time_windows[i, 2] + 1
+    lower_ai = [IntVar(0, max_upper_tw, "lower_ai_"*string(i), cpmodel.trailer) for i in 1:(gen.n_city-1)] # timeWindows[i, 1]
+    upper_tw_minus_1 = [IntVar(timeWindows[i, 2] - 1, timeWindows[i, 2] - 1, "upper_tw_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # timeWindows[i, 2] + 1
     one_var = IntVar(1, 1, "one", cpmodel.trailer)
-    upper_ai = [IntVar(0, max_upper_tw, "upper_ai_"*string(i), cpmodel.trailer) for i in 1:(gen.n_city-1)] # time_windows[a_i, 2]
+    upper_ai = [IntVar(0, max_upper_tw, "upper_ai_"*string(i), cpmodel.trailer) for i in 1:(gen.n_city-1)] # timeWindows[a_i, 2]
     j_index = [IntVarViewMul(one_var, j, "index_"*string(j)) for j in 1:gen.n_city]
 
     still_time = Array{BoolVar, 2}(undef, (gen.n_city, gen.n_city))
@@ -129,48 +129,48 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
 
     ## Constraints
     # Initialization
-    push!(cpmodel.constraints, EqualConstant(t[1], 0, cpmodel.trailer))
-    push!(cpmodel.constraints, EqualConstant(v[1], 1, cpmodel.trailer))
-    push!(cpmodel.constraints, EqualConstant(c[1], 0, cpmodel.trailer))
-    push!(cpmodel.constraints, SetEqualConstant(m[1], Set{Int}(collect(2:gen.n_city)), cpmodel.trailer))
+    SeaPearl.addConstraint!(cpmodel, EqualConstant(t[1], 0, cpmodel.trailer))
+    SeaPearl.addConstraint!(cpmodel, EqualConstant(v[1], 1, cpmodel.trailer))
+    SeaPearl.addConstraint!(cpmodel, EqualConstant(c[1], 0, cpmodel.trailer))
+    SeaPearl.addConstraint!(cpmodel, SetEqualConstant(m[1], Set{Int}(collect(2:gen.n_city)), cpmodel.trailer))
 
     # Variable definition
     for i in 1:(gen.n_city - 1)
         # m[i+1] = m[i] \ a[i]
-        push!(cpmodel.constraints, SetDiffSingleton(m[i+1], m[i], a[i], cpmodel.trailer))
+        SeaPearl.addConstraint!(cpmodel, SetDiffSingleton(m[i+1], m[i], a[i], cpmodel.trailer))
 
         # v[i+1] = a[i]
-        push!(cpmodel.constraints, Equal(v[i+1], a[i], cpmodel.trailer))
+        SeaPearl.addConstraint!(cpmodel, Equal(v[i+1], a[i], cpmodel.trailer))
 
         # t[i+1] = max(lowers[i], lower_ai[i])
-        push!(cpmodel.constraints, BinaryMaximumBC(t[i+1], lowers[i], lower_ai[i], cpmodel.trailer))
+        SeaPearl.addConstraint!(cpmodel, BinaryMaximumBC(t[i+1], lowers[i], lower_ai[i], cpmodel.trailer))
 
         # c[i + 1] = c[i] + d[i]
-        push!(cpmodel.constraints, SumToZero(AbstractIntVar[c[i], d[i], IntVarViewOpposite(c[i+1], "-c_"*string(i+1))], cpmodel.trailer))
+        SeaPearl.addConstraint!(cpmodel, SumToZero(AbstractIntVar[c[i], d[i], IntVarViewOpposite(c[i+1], "-c_"*string(i+1))], cpmodel.trailer))
 
-        # upper_ai = time_windows[a_i, 2]
-        push!(cpmodel.constraints, Element1D(time_windows[:, 2], a[i], upper_ai[i], cpmodel.trailer))
+        # upper_ai = timeWindows[a_i, 2]
+        SeaPearl.addConstraint!(cpmodel, Element1D(timeWindows[:, 2], a[i], upper_ai[i], cpmodel.trailer))
 
-        # lower_ai = time_windows[a_i, 1]
-        push!(cpmodel.constraints, Element1D(time_windows[:, 1], a[i], lower_ai[i], cpmodel.trailer))
+        # lower_ai = timeWindows[a_i, 1]
+        SeaPearl.addConstraint!(cpmodel, Element1D(timeWindows[:, 1], a[i], lower_ai[i], cpmodel.trailer))
 
         # d[i] = dist[v[i], a[i]]
-        push!(cpmodel.constraints, Element2D(dist, v[i], a[i], d[i], cpmodel.trailer))
+        SeaPearl.addConstraint!(cpmodel, Element2D(dist, v[i], a[i], d[i], cpmodel.trailer))
         # lowers[i] = t[i] + d[i]
-        push!(cpmodel.constraints, SumToZero(AbstractIntVar[t[i], d[i], IntVarViewOpposite(lowers[i], "-td_"*string(i))], cpmodel.trailer))
+        SeaPearl.addConstraint!(cpmodel, SumToZero(AbstractIntVar[t[i], d[i], IntVarViewOpposite(lowers[i], "-td_"*string(i))], cpmodel.trailer))
     end
     # d[n] = dist[a[n-1], 1]
-    push!(cpmodel.constraints, Element2D(dist, a[gen.n_city-1], one_var, d[gen.n_city], cpmodel.trailer))
+    SeaPearl.addConstraint!(cpmodel, Element2D(dist, a[gen.n_city-1], one_var, d[gen.n_city], cpmodel.trailer))
     # total_cost = c[n] + d[n]
-    push!(cpmodel.constraints, SumToZero(AbstractIntVar[c[gen.n_city], d[gen.n_city], IntVarViewOpposite(total_cost, "-total_cost")], cpmodel.trailer))
+    SeaPearl.addConstraint!(cpmodel, SumToZero(AbstractIntVar[c[gen.n_city], d[gen.n_city], IntVarViewOpposite(total_cost, "-total_cost")], cpmodel.trailer))
 
     # Validity constraints
     for i in 1:(gen.n_city - 1)
         # a[i] ∈ m[i]
-        push!(cpmodel.constraints, InSet(a[i], m[i], cpmodel.trailer))
+        SeaPearl.addConstraint!(cpmodel, InSet(a[i], m[i], cpmodel.trailer))
 
         # lowers[i] <= upper_ai
-        push!(cpmodel.constraints, LessOrEqual(lowers[i], upper_ai[i], cpmodel.trailer))
+        SeaPearl.addConstraint!(cpmodel, LessOrEqual(lowers[i], upper_ai[i], cpmodel.trailer))
     end
 
     # Pruning constraints
@@ -178,22 +178,22 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
         for i in 1:gen.n_city
             for j in 1:gen.n_city
                 # still_time[i, j] = t[i] < upper_tw[j]
-                push!(cpmodel.constraints, isLessOrEqual(still_time[i, j], t[i], upper_tw_minus_1[j], cpmodel.trailer))
+                SeaPearl.addConstraint!(cpmodel, isLessOrEqual(still_time[i, j], t[i], upper_tw_minus_1[j], cpmodel.trailer))
 
                 # j_in_m_i[i, j] = j_index[j] ∈ m[i]
-                push!(cpmodel.constraints, ReifiedInSet(j_index[j], m[i], j_in_m_i[i, j], cpmodel.trailer))
+                SeaPearl.addConstraint!(cpmodel, ReifiedInSet(j_index[j], m[i], j_in_m_i[i, j], cpmodel.trailer))
 
                 # t[i] >= upper[j] ⟹ j ∉ m[i]
                 # ≡ t[i] < upper[j] ⋁ j ∉ m[i]
                 # ≡ still_time[i, j] ⋁ ¬j_in_m_i[i, j]
-                push!(cpmodel.constraints, BinaryOr(still_time[i, j], BoolVarViewNot(j_in_m_i[i, j], "¬"*string(j)*"_in_m_"*string(i)), cpmodel.trailer))
+                SeaPearl.addConstraint!(cpmodel, BinaryOr(still_time[i, j], BoolVarViewNot(j_in_m_i[i, j], "¬"*string(j)*"_in_m_"*string(i)), cpmodel.trailer))
             end
         end
     end
 
     # Objective function: min total_cost
     SeaPearl.addObjective!(cpmodel,total_cost)
-    return dist, time_windows
+    return dist, timeWindows
 end
 
 """
@@ -201,6 +201,7 @@ end
 
 Find the distance matrix of a TSPTW instance generated by TsptwGenerator.
 """
+# FIXME this is a very convoluted way to retrieve the distance matrix
 function find_tsptw_dist_matrix(cpmodel::CPModel)
     for constraint in cpmodel.constraints
         if isa(constraint, Element2D)
@@ -213,10 +214,3 @@ function find_tsptw_dist_matrix(cpmodel::CPModel)
     end
     throw(ErrorException("The model given to find_tsptw_dist_matrix does not seem to be a TSPTW instance."))
 end
-
-"""
-    arraybuffer_dims(gen::TsptwGenerator, t::Type{TsptwStateRepresentation})
-
-Returns the size of the state representation in its matrix form, useful when construcing the trajectory for the RL agent
-"""
-arraybuffer_dims(gen::TsptwGenerator, t::Type{TsptwStateRepresentation{F}}) where {F} = (gen.n_city, gen.n_city+2+feature_length(gen, t))

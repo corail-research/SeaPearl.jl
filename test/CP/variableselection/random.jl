@@ -1,5 +1,3 @@
-using Random
-
 @testset "random.jl VariableSelection" begin
     @testset "RandomVariableSelection{TakeObjective=true}" begin
         trailer = SeaPearl.Trailer()
