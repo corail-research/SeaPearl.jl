@@ -16,6 +16,7 @@ mutable struct Statistics
     objectives                              ::Union{Nothing, Vector{Union{Nothing,Int}}}
     lastPruning                             ::Union{Nothing, Int}
     lastVar                                 ::Union{Nothing, AbstractIntVar} #last var on which we branched
+    numberOfTimesInvolvedInPropagation      ::Union{Nothing, Dict{Constraint,Int}}
 end
 
 mutable struct Limit
@@ -47,7 +48,7 @@ mutable struct CPModel
     limit                   ::Limit
     knownObjective          ::Union{Nothing,Int64}
     adhocInfo               ::Any
-    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Constraint[], trailer, nothing, nothing, Statistics(Dict{String, Int}(), 0,0, 0, 0, 0, 0, 0, Solution[],Int[], nothing, nothing, nothing), Limit(nothing, nothing, nothing), nothing)
+    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Constraint[], trailer, nothing, nothing, Statistics(Dict{String, Int}(), 0,0, 0, 0, 0, 0, 0, Solution[],Int[], nothing, nothing, nothing, Dict{Constraint, Int}()), Limit(nothing, nothing, nothing), nothing)
 end
 
 CPModel() = CPModel(Trailer())
@@ -91,6 +92,7 @@ function addConstraint!(model::CPModel,constraint::Constraint)
             model.statistics.infeasibleStatusPerVariable[id(var)]+=1
         end
     end
+    model.statistics.numberOfTimesInvolvedInPropagation[constraint] = 0
 end
 
 
