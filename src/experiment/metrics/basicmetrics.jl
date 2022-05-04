@@ -51,7 +51,7 @@ function (metrics::BasicMetrics{DontTakeObjective, <:BasicHeuristic})(model::CPM
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
     push!(metrics.meanNodeVisitedUntilEnd,model.statistics.numberOfNodes)
-    index = findall(!isnothing, model.statistics.solutions)  #return the index of the first solution if it exist
+    index = findall(!isnothing, model.statistics.solutions)  #return the list of index of real solution in model.statistics.solutions
     push!(metrics.meanNodeVisitedUntilfirstSolFound, !isempty(index) ? model.statistics.nodevisitedpersolution[index[1]] : nothing)
     push!(metrics.timeneeded,dt)
     return
@@ -61,7 +61,7 @@ function (metrics::BasicMetrics{TakeObjective, <:BasicHeuristic})(model::CPModel
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
     push!(metrics.meanNodeVisitedUntilEnd,model.statistics.numberOfNodes)
-    index = findall(!isnothing, model.statistics.solutions)  #return the index of the first solution
+    index = findall(!isnothing, model.statistics.solutions) #return the list of index of real solution in model.statistics.solutions
     push!(metrics.meanNodeVisitedUntilfirstSolFound, !isempty(index) ? model.statistics.nodevisitedpersolution[index[1]] : nothing)
     push!(metrics.timeneeded,dt)
     push!(metrics.scores,copy(model.statistics.objectives))
@@ -73,7 +73,7 @@ function (metrics::BasicMetrics{DontTakeObjective, <:LearnedHeuristic})(model::C
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
     push!(metrics.meanNodeVisitedUntilEnd,model.statistics.numberOfNodes)
-    index = findall(!isnothing, model.statistics.solutions)  #return the index of the first solution    
+    index = findall(!isnothing, model.statistics.solutions)  #return the list of index of real solution in model.statistics.solutions  
     push!(metrics.meanNodeVisitedUntilfirstSolFound, !isempty(index) ? model.statistics.nodevisitedpersolution[index[1]] : nothing)
     push!(metrics.timeneeded,dt)
     push!(metrics.totalReward,last_episode_total_reward(metrics.heuristic.agent.trajectory))
@@ -86,7 +86,7 @@ function (metrics::BasicMetrics{TakeObjective, <:LearnedHeuristic})(model::CPMod
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
     push!(metrics.meanNodeVisitedUntilEnd,model.statistics.numberOfNodes)
-    index = findall(!isnothing, model.statistics.solutions)  #return the index of the first solution    
+    index = findall(!isnothing, model.statistics.solutions)  #return the list of index of real solution in model.statistics.solutions 
     push!(metrics.meanNodeVisitedUntilfirstSolFound, !isempty(index) ? model.statistics.nodevisitedpersolution[index[1]] : nothing)
     push!(metrics.timeneeded,dt)
     push!(metrics.scores,copy(model.statistics.objectives))
@@ -95,6 +95,11 @@ function (metrics::BasicMetrics{TakeObjective, <:LearnedHeuristic})(model::CPMod
     return
 end 
 
+"""
+    function repeatlast!(metrics::BasicMetrics{<:AbstractTakeObjective, <:BasicHeuristic})
+
+The function is called during an evaluation. To avoid useless evaluation on deterministic heuristic, we simply copy the last solving procedure stored in the BasicMetrics.
+"""
 function repeatlast!(metrics::BasicMetrics{<:AbstractTakeObjective, <:BasicHeuristic})
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,last(metrics.nodeVisited))
