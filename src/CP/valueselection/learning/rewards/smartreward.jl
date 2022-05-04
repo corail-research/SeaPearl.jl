@@ -47,7 +47,7 @@ end
 
 Change the current reward at the DecisionPhase. This is called right before making the next decision, so you know you have the very last state before the new decision and every computation like fixPoints and backtracking has been done.
 
-This computes the reward : ρ*( 1+ tour_upper_bound  - last_dist) where ρ is a constant, tour_upper_bound and upper bound of the tour and lastdist the distance between the previous node and the target node decided by the previous decision (the reward is attributed just before takng a new decision)
+This computes the reward : ρ*( 1+ tour_upper_bound  - last_dist) where ρ is a constant, tour_upper_bound and upper bound of the tour and lastdist the distance between the previous node and the target node decided by the previous decision (the reward is attributed just before taking a new decision)
 """
 function set_reward!(::Type{DecisionPhase}, lh::LearnedHeuristic{SR, SmartReward, A}, model::CPModel) where {
     SR <: AbstractStateRepresentation,
@@ -57,7 +57,7 @@ function set_reward!(::Type{DecisionPhase}, lh::LearnedHeuristic{SR, SmartReward
     n =  size(dist)[1]
 
     tour_upper_bound = Base.maximum(dist) * n
-    max_dist = Float32(Base.maximum(dist))
+    max_dist = Float32(Base.maximum(dist))   #Max dist between two nodes
 
     if !isnothing(model.statistics.lastVar)
         x = model.statistics.lastVar
