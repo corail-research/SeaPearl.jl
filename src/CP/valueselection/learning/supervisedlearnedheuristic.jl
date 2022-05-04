@@ -84,21 +84,6 @@ function (valueSelection::SupervisedLearnedHeuristic)(::Type{InitializingPhase},
 end
 
 """
-    (valueSelection::SupervisedLearnedHeuristic)(::StepPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
-
-The step phase is the phase between every procedure call. It is the best place to get stats about the search tree, that's why
-we put a set_metrics! function here. As those metrics could be used to design a reward, we also put a set_reward! function.
-ATM, the metrics are updated after the reward assignment as the current_status given totally decribes the changes that are to be made.
-Another possibility would be to have old and new metrics in memory.
-"""
-function (valueSelection::SupervisedLearnedHeuristic)(PHASE::Type{StepPhase}, model::CPModel, current_status::Union{Nothing,Symbol})
-    set_reward!(PHASE, valueSelection, model, current_status)
-    # incremental metrics, set after reward is updated
-    set_metrics!(PHASE, valueSelection.search_metrics, model, current_status)
-    nothing
-end
-
-"""
     (valueSelection::SupervisedLearnedHeuristic)(::DecisionPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
 
 Observe, store useful informations in the buffer with agent(POST_ACT_STAGE, ...) and take a decision with the call to agent(PRE_ACT_STAGE).
@@ -134,30 +119,6 @@ function (valueSelection::SupervisedLearnedHeuristic)(PHASE::Type{DecisionPhase}
     end
 
     return action_to_value(valueSelection, action, state(env), model)
-end
-
-"""
-    (valueSelection::SupervisedLearnedHeuristic)(::EndingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
-
-Set the final reward, do last observation.
-"""
-function (valueSelection::SupervisedLearnedHeuristic)(PHASE::Type{EndingPhase}, model::CPModel, current_status::Union{Nothing,Symbol})
-    # the RL EPISODE stops
-    if valueSelection.firstActionTaken
-        set_reward!(DecisionPhase, valueSelection, model)  #last decision reward for the previous action taken just before the ending Phase
-    end
-    set_reward!(PHASE, valueSelection, model, current_status)
-    false_x = first(values(branchable_variables(model)))
-    env = get_observation!(valueSelection, model, false_x, true)
-
-    if valueSelection.trainMode
-        valueSelection.agent(RL.POST_ACT_STAGE, env) # get terminal and reward
-        valueSelection.agent(RL.POST_EPISODE_STAGE, env)  # let the agent see the last observation
-    end
-
-    if CUDA.has_cuda()
-        CUDA.reclaim()
-    end
 end
 
 """

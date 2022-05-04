@@ -33,6 +33,46 @@ running fixPoint!, backtracking, etc...
 abstract type LearnedHeuristic{SR<:AbstractStateRepresentation, R<:AbstractReward, A<:ActionOutput} <: ValueSelection end
 
 """
+    (valueSelection::LearnedHeuristic)(::StepPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
+
+The step phase is the phase between every procedure call. It is the best place to get stats about the search tree, that's why
+we put a set_metrics! function here. As those metrics could be used to design a reward, we also put a set_reward! function.
+ATM, the metrics are updated after the reward assignment as the current_status given totally decribes the changes that are to be made.
+Another possibility would be to have old and new metrics in memory.
+"""
+function (valueSelection::LearnedHeuristic)(PHASE::Type{StepPhase}, model::CPModel, current_status::Union{Nothing, Symbol})
+    set_reward!(PHASE, valueSelection, model, current_status)
+    # incremental metrics, set after reward is updated
+    set_metrics!(PHASE, valueSelection.search_metrics, model, current_status)
+    nothing
+end
+
+"""
+    (valueSelection::LearnedHeuristic)(::EndingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
+
+Set the final reward, do last observation.
+"""
+function (valueSelection::LearnedHeuristic)(PHASE::Type{EndingPhase}, model::CPModel, current_status::Union{Nothing, Symbol})
+    # the RL EPISODE stops
+    if valueSelection.firstActionTaken
+        set_reward!(DecisionPhase,valueSelection, model)  #last decision reward for the previous action taken just before the ending Phase
+    end
+    set_reward!(PHASE, valueSelection, model, current_status)
+    false_x = first(values(branchable_variables(model)))
+    env = get_observation!(valueSelection, model, false_x, true)
+    #println("EndingPhase  ", env.reward, " ", env.terminal, " ", env.legal_actions, " ", env.legal_actions_mask)
+
+    if valueSelection.trainMode
+        valueSelection.agent(RL.POST_ACT_STAGE, env) # get terminal and reward
+        valueSelection.agent(RL.POST_EPISODE_STAGE, env)  # let the agent see the last observation
+    end
+
+    if CUDA.has_cuda()
+        CUDA.reclaim()
+    end
+end
+
+"""
     SimpleLearnedHeuristic{SR<:AbstractStateRepresentation, R<:AbstractReward, A<:ActionOutput}
 
 `SimpleLearnedHeuristic` is value selection heuristic. It is the standard version of a `LearnedHeuristic` and 
@@ -51,7 +91,6 @@ mutable struct SimpleLearnedHeuristic{SR<:AbstractStateRepresentation, R<:Abstra
     trainMode::Bool
     chosen_features::Union{Nothing,Dict{String,Bool}}
     SimpleLearnedHeuristic{SR, R, A}(agent::RL.Agent; chosen_features=nothing) where {SR, R, A}= new{SR, R, A}(agent, nothing, nothing, nothing, nothing, nothing, nothing, false, true, chosen_features)
-
 end
 
 """
@@ -78,21 +117,6 @@ function (valueSelection::SimpleLearnedHeuristic)(::Type{InitializingPhase}, mod
 end
 
 """
-    (valueSelection::SimpleLearnedHeuristic)(::StepPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
-
-The step phase is the phase between every procedure call. It is the best place to get stats about the search tree, that's why
-we put a set_metrics! function here. As those metrics could be used to design a reward, we also put a set_reward! function.
-ATM, the metrics are updated after the reward assignment as the current_status given totally decribes the changes that are to be made.
-Another possibility would be to have old and new metrics in memory.
-"""
-function (valueSelection::SimpleLearnedHeuristic)(PHASE::Type{StepPhase}, model::CPModel, current_status::Union{Nothing, Symbol})
-    set_reward!(PHASE, valueSelection, model, current_status)
-    # incremental metrics, set after reward is updated
-    set_metrics!(PHASE, valueSelection.search_metrics, model, current_status)
-    nothing
-end
-
-"""
     (valueSelection::SimpleLearnedHeuristic)(::DecisionPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
 
 Observe, store useful informations in the buffer with agent(POST_ACT_STAGE, ...) and take a decision with the call to agent(PRE_ACT_STAGE).
@@ -106,7 +130,6 @@ function (valueSelection::SimpleLearnedHeuristic)(PHASE::Type{DecisionPhase}, mo
     model.statistics.lastVar = x
     env = get_observation!(valueSelection, model, x)
 
-    #println("Decision  ", env.reward, " ", env.terminal, " ", env.legal_actions, " ", env.legal_actions_mask)
     if valueSelection.firstActionTaken
         if valueSelection.trainMode
             valueSelection.agent(RL.POST_ACT_STAGE, env) # get terminal and reward
@@ -123,29 +146,4 @@ function (valueSelection::SimpleLearnedHeuristic)(PHASE::Type{DecisionPhase}, mo
     end
 
     return action_to_value(valueSelection, action, state(env), model)
-end
-
-"""
-    (valueSelection::SimpleLearnedHeuristic)(::EndingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
-
-Set the final reward, do last observation.
-"""
-function (valueSelection::SimpleLearnedHeuristic)(PHASE::Type{EndingPhase}, model::CPModel, current_status::Union{Nothing, Symbol})
-    # the RL EPISODE stops
-    if valueSelection.firstActionTaken
-        set_reward!(DecisionPhase,valueSelection, model)  #last decision reward for the previous action taken just before the ending Phase
-    end
-    set_reward!(PHASE, valueSelection, model, current_status)
-    false_x = first(values(branchable_variables(model)))
-    env = get_observation!(valueSelection, model, false_x, true)
-    #println("EndingPhase  ", env.reward, " ", env.terminal, " ", env.legal_actions, " ", env.legal_actions_mask)
-
-    if valueSelection.trainMode
-        valueSelection.agent(RL.POST_ACT_STAGE, env) # get terminal and reward
-        valueSelection.agent(RL.POST_EPISODE_STAGE, env)  # let the agent see the last observation
-    end
-
-    if CUDA.has_cuda()
-        CUDA.reclaim()
-    end
 end
