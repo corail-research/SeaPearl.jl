@@ -25,6 +25,7 @@ mutable struct SupervisedLearnedHeuristic{SR<:AbstractStateRepresentation,R<:Abs
     warmup_steps::Int64
     decay_steps::Int64
     step::Int64
+    rng::Union{Nothing, AbstractRNG} #for reproductibility
     
     function SupervisedLearnedHeuristic{SR,R,A}(
         agent::RL.Agent;
@@ -33,9 +34,10 @@ mutable struct SupervisedLearnedHeuristic{SR<:AbstractStateRepresentation,R<:Abs
         eta_init::Float64=0.5,
         eta_stable::Float64=0.5,
         warmup_steps::Int64=0,
-        decay_steps::Int64=0
+        decay_steps::Int64=0,
+        rng::Union{Nothing, AbstractRNG}=nothing
     ) where {SR,R,A}
-        new{SR,R,A}(agent, nothing, nothing, nothing, nothing, nothing, nothing, false, true, helpVariableHeuristic, helpValueHeuristic, nothing, eta_init, eta_stable, warmup_steps, decay_steps, 1)
+        new{SR,R,A}(agent, nothing, nothing, nothing, nothing, nothing, nothing, false, true, helpVariableHeuristic, helpValueHeuristic, nothing, eta_init, eta_stable, warmup_steps, decay_steps, 1, rng)
     end
 end
 
@@ -53,9 +55,10 @@ function (valueSelection::SupervisedLearnedHeuristic)(::Type{InitializingPhase},
     # FIXME get rid of this => prone to bugs
     false_x = first(values(branchable_variables(model)))
     env = get_observation!(valueSelection, model, false_x)
-    eta = get_eta(valueSelection) #get the current eta_init
     
-    if rand() < eta
+    eta = get_eta(valueSelection) #get the current eta_init
+    rng = isnothing(rng) ? MarsenneTwister() : rng 
+    if rand(rng) < eta
         #the instance is solved using classic CP on a duplicated model
         model_duplicate = deepcopy(model) 
         strategy = DFSearch()
