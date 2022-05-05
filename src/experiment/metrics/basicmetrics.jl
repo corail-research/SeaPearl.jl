@@ -15,6 +15,8 @@ It satisfies the two AbstractMetrics requirements:
     heuristic::H                                        ->  The related heuristic for which the metrics stores the results.
     nodeVisited::Vector{Vector{Int64}}                  ->  contains the result of each search in term of node visited : number of nodes visited to 
                                                             find every solution or infeasible case of an instance.
+    solutionFound::Vector{Vector{Bool}}                 ->  contains the result of each search in term of solution found: true if the dead-end
+                                                            is a solution and false otherwise.
     meanNodeVisitedUntilfirstSolFound::Vector{Float32}  ->  contains the result of each search in term of node visited to find a first solution.
     meanNodeVisitedUntilEnd::Vector{Float32}            ->  contains the result of each search in term of node visited until the end of the search.
     timeneeded::Vector{Float32}                         ->  contains the computing time required to complete each search.
@@ -28,6 +30,7 @@ It satisfies the two AbstractMetrics requirements:
 mutable struct BasicMetrics{O<:AbstractTakeObjective, H<:ValueSelection} <: AbstractMetrics
     heuristic::H
     nodeVisited::Vector{Vector{Int64}}
+    solutionFound::Vector{Vector{Bool}}
     meanNodeVisitedUntilfirstSolFound::Vector{Float32}
     meanNodeVisitedUntilEnd::Vector{Float32}
     timeneeded::Vector{Float32}
@@ -37,7 +40,7 @@ mutable struct BasicMetrics{O<:AbstractTakeObjective, H<:ValueSelection} <: Abst
     meanOver::Int64
     nbEpisodes::Int64
 
-    BasicMetrics{O,H}(heuristic,meanOver) where {O,H}= new{O, H}(heuristic,Vector{Vector{Int64}}(),Float32[],Float32[], Float32[], O==TakeObjective ? Vector{Vector{Float32}}() : nothing, (H == BasicHeuristic) ? nothing : Float32[], (H == BasicHeuristic) ? nothing : Float32[], meanOver,0)
+    BasicMetrics{O,H}(heuristic,meanOver) where {O,H}= new{O, H}(heuristic,Vector{Vector{Int64}}(),Vector{Vector{Int64}}(),Float32[],Float32[], Float32[], O==TakeObjective ? Vector{Vector{Float32}}() : nothing, (H == BasicHeuristic) ? nothing : Float32[], (H == BasicHeuristic) ? nothing : Float32[], meanOver,0)
 end
 
 BasicMetrics(model::CPModel, heuristic::ValueSelection; meanOver=1) = BasicMetrics{(!isnothing(model.objective)) ? TakeObjective : DontTakeObjective ,typeof(heuristic)}(heuristic,meanOver)
@@ -51,6 +54,7 @@ It updates all the metrics during the search.
 function (metrics::BasicMetrics{DontTakeObjective, <:BasicHeuristic})(model::CPModel,dt::Float64)
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
+    push!(metrics.solutionFound, (x -> !isnothing(x)).(model.statistics.solutions))
     push!(metrics.meanNodeVisitedUntilEnd,model.statistics.numberOfNodes)
     if ! isempty(model.statistics.nodevisitedpersolution)    #infeasible case
         push!(metrics.meanNodeVisitedUntilfirstSolFound,model.statistics.nodevisitedpersolution[1])
@@ -62,6 +66,7 @@ end
 function (metrics::BasicMetrics{TakeObjective, <:BasicHeuristic})(model::CPModel,dt::Float64)
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
+    push!(metrics.solutionFound, (x -> !isnothing(x)).(model.statistics.solutions))
     push!(metrics.meanNodeVisitedUntilEnd,model.statistics.numberOfNodes)
     if ! isempty(model.statistics.nodevisitedpersolution)    #infeasible case
         push!(metrics.meanNodeVisitedUntilfirstSolFound,model.statistics.nodevisitedpersolution[1])
@@ -76,6 +81,7 @@ end
 function (metrics::BasicMetrics{DontTakeObjective, <:LearnedHeuristic})(model::CPModel,dt::Float64)
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
+    push!(metrics.solutionFound, (x -> !isnothing(x)).(model.statistics.solutions))
     push!(metrics.meanNodeVisitedUntilEnd,model.statistics.numberOfNodes)
     if ! isempty(model.statistics.nodevisitedpersolution)    #infeasible case
         push!(metrics.meanNodeVisitedUntilfirstSolFound,model.statistics.nodevisitedpersolution[1])
@@ -90,6 +96,7 @@ end
 function (metrics::BasicMetrics{TakeObjective, <:LearnedHeuristic})(model::CPModel,dt::Float64) 
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
+    push!(metrics.solutionFound, (x -> !isnothing(x)).(model.statistics.solutions))
     push!(metrics.meanNodeVisitedUntilEnd,model.statistics.numberOfNodes)
     if ! isempty(model.statistics.nodevisitedpersolution)    #infeasible case
         push!(metrics.meanNodeVisitedUntilfirstSolFound,model.statistics.nodevisitedpersolution[1])
