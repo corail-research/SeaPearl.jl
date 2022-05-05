@@ -2,6 +2,10 @@
 const Solution = Dict{String, Union{Int, Bool, Set{Int}}}
 
 #TODO add documentation for BeforeRestart
+# lastPruning: number of deleted variable-value edges
+# objectiveDownPruning: min(model.objective.domain)(current) - min(model.objective.domain)(past state)
+# objectiveUpPruning: max(model.objective.domain)(current) - max(model.objective.domain)(past state)
+
 mutable struct Statistics
     infeasibleStatusPerVariable             ::Dict{String, Int}
     numberOfNodes                           ::Int
@@ -15,6 +19,8 @@ mutable struct Statistics
     nodevisitedpersolution                  ::Vector{Int}
     objectives                              ::Union{Nothing, Vector{Union{Nothing,Int}}}
     lastPruning                             ::Union{Nothing, Int}
+    objectiveDownPruning                    ::Union{Nothing, Int}
+    objectiveUpPruning                      ::Union{Nothing, Int}
     lastVar                                 ::Union{Nothing, AbstractIntVar} #last var on which we branched
 end
 
@@ -47,7 +53,7 @@ mutable struct CPModel
     limit                   ::Limit
     knownObjective          ::Union{Nothing,Int64}
     adhocInfo               ::Any
-    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Constraint[], trailer, nothing, nothing, Statistics(Dict{String, Int}(), 0,0, 0, 0, 0, 0, 0, Solution[],Int[], nothing, nothing, nothing), Limit(nothing, nothing, nothing), nothing)
+    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Constraint[], trailer, nothing, nothing, Statistics(Dict{String, Int}(), 0,0, 0, 0, 0, 0, 0, Solution[],Int[], nothing, nothing, nothing, nothing, nothing), Limit(nothing, nothing, nothing), nothing)
 end
 
 CPModel() = CPModel(Trailer())
@@ -338,3 +344,20 @@ function nb_boundvariables(model::CPModel)
     end
     return nb
 end
+
+"""
+    global_domain_cardinality(model::CPModel)
+
+Return the number of variable-value edges in the tripartite graph 
+(or equivalently the sum of domain cardinalities of the variables), excluding the objective variable.
+"""
+function global_domain_cardinality(model::CPModel)
+    cardinality = 0
+    for (id, x) in model.variables
+        if x != model.objective
+            cardinality += length(x.domain.values)
+        end
+    end
+    return cardinality
+end
+

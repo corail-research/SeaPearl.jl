@@ -7,10 +7,13 @@ mutable struct ExperimentalReward <: AbstractReward
     value::Float32
     initMin::Int
     initMax::Int
+    initialNumberOfVariableValueLinks::Int
+    gamma::Float32
+    beta::Float32
 end
 
 function ExperimentalReward(model::CPModel)
-    return ExperimentalReward(0, model.objective.domain.min.value, model.objective.domain.max.value)
+    return ExperimentalReward(0, model.objective.domain.min.value, model.objective.domain.max.value, global_domain_cardinality(model), 2.0, 2.0)
 end
 
 """
@@ -35,18 +38,24 @@ function set_reward!(::Type{DecisionPhase}, lh::LearnedHeuristic{SR, Experimenta
     SR <: AbstractStateRepresentation,
     A <: ActionOutput
 }
-    #lh.reward.value = nb_boundvariables(model)/length(branchable_variables(model)) - model.objective.domain.min.value
-    beta = 1.0
-    gamma1 = 0.5
-    gamma2 = 1.0
-    threshold = -10.0
-    first_part = (nb_boundvariables(model)/length(branchable_variables(model)))^beta
-    #second_part = gamma2*(lh.reward.initMin/model.objective.domain.min.value)^beta2
-    if !isnothing(model.objective)
-        second_part = max(-tan((π/(2*(lh.reward.initMax-lh.reward.initMin)))*(model.objective.domain.min.value-lh.reward.initMin)),threshold)
-        lh.reward.value = gamma1*first_part + gamma2*second_part
+    if !lh.firstActionTaken
+        #println("First action being taken")
+        lh.reward.value = 0
     else
-        lh.reward.value = first_part
+        lh.reward.value = (model.statistics.lastPruning/(lh.reward.initialNumberOfVariableValueLinks - length(branchable_variables(model))))^lh.reward.beta
+        if lh.reward.value>0.01
+            #println("Variable part: "*string(lh.reward.value))
+        end
+        if !isnothing(model.objective)
+            lh.reward.value += -(model.statistics.objectiveDownPruning/(lh.reward.initMax - lh.reward.initMin)) + (model.statistics.objectiveUpPruning/(lh.reward.initMax - lh.reward.initMin))
+            #println("Objective part: "*string(-(model.statistics.objectiveDownPruning/(lh.reward.initMax - lh.reward.initMin)) + (model.statistics.objectiveUpPruning/(lh.reward.initMax - lh.reward.initMin))))
+            if -(model.statistics.objectiveDownPruning/(lh.reward.initMax - lh.reward.initMin)) + (model.statistics.objectiveUpPruning/(lh.reward.initMax - lh.reward.initMin)) != 0
+                #println("Objective domain: "*string(model.objective.domain))
+                #println("Down pruning: "*string(model.statistics.objectiveDownPruning))
+                #println("Up pruning: "*string(model.statistics.objectiveUpPruning))
+            end
+        end
+        #println(lh.reward.value)
     end
 end
 
@@ -62,26 +71,21 @@ function set_reward!(::Type{EndingPhase}, lh::LearnedHeuristic{SR, ExperimentalR
     A <: ActionOutput
 }
     nqueens_conflict_counter = false
-    alpha = 1.0
-    kappa = 5*model.statistics.numberOfNodesBeforeRestart
+   
     if symbol == :FoundSolution
-        if isnothing(model.objective)
-            #lh.reward.value = 20*(20-model.statistics.numberOfNodes)
-            #lh.reward.value = 100
-            lh.reward.value = kappa*(count(values(model.branchable))/model.statistics.numberOfNodes)^alpha1
-        else
-            #lh.reward.value = 20*(10-assignedValue(model.objective))
-            println("Objective: "*string(assignedValue(model.objective)))
-            #lh.reward.value = kappa*(1/assignedValue(model.objective))^alpha2
-            lh.reward.value = (kappa/(lh.reward.initMin-lh.reward.initMax))*(assignedValue(model.objective)-lh.reward.initMax)
-        end
+        lh.reward.value = 0
+        println("Objective: "*string(assignedValue(model.objective)))
     else
-        #lh.reward.value = -1
         println("Infeasible")
-        lh.reward.value = -kappa
+        lh.reward.value = -lh.reward.gamma
+        if !isnothing(model.objective)
+            lh.reward.value += -1
+        end
+        println("Ending reward: "*string(lh.reward.value))
         if nqueens_conflict_counter
             # Getting the number of conflicts on nqueens
             # Getting assigned variables
+            println("nqueens_conflict_counter")
             boundvariables = Dict{Int,Int}()
             for (id, x) in model.variables
                 if isbound(x)
@@ -100,9 +104,7 @@ function set_reward!(::Type{EndingPhase}, lh::LearnedHeuristic{SR, ExperimentalR
             nb_conflicts += sum(values(counter(values(boundvariables))) .- 1)
             nb_conflicts += sum((posdiags .> 1) .* (posdiags .- 1))
             nb_conflicts += sum((negdiags .> 1) .* (negdiags .- 1))
-            #println("Number of conflicts: "*string(nb_conflicts))
-            #lh.reward.value -= 30*nb_conflicts
-            lh.reward.value -= kappa*nb_conflicts
+            lh.reward.value -= nb_conflicts
         end
     end
 
