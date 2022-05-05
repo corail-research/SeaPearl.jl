@@ -4,7 +4,8 @@
             capacity = 1000,
             state = Matrix{Float32} => (2, 2, 1),
         )
-
+        
+        @test SeaPearl.last_episode_total_reward(trajectory) == 0.
         
         push!(trajectory; state = Float32[1. 2.; 5. -1.], action = 2)
         push!(trajectory; reward = -100., terminal = true)
