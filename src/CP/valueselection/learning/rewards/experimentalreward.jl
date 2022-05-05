@@ -42,7 +42,7 @@ function set_reward!(::Type{DecisionPhase}, lh::LearnedHeuristic{SR, Experimenta
         #println("First action being taken")
         lh.reward.value = 0
     else
-        lh.reward.value = (model.statistics.lastPruning/(lh.reward.initialNumberOfVariableValueLinks - length(branchable_variables(model))))^lh.reward.beta
+        lh.reward.value = lh.reward.gamma*(model.statistics.lastPruning/(lh.reward.initialNumberOfVariableValueLinks - length(branchable_variables(model))))^lh.reward.beta
         if lh.reward.value>0.01
             #println("Variable part: "*string(lh.reward.value))
         end
