@@ -108,12 +108,13 @@ The function is called during an evaluation. To avoid useless evaluation on dete
 function repeatlast!(metrics::BasicMetrics{<:AbstractTakeObjective, <:BasicHeuristic})
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,last(metrics.nodeVisited))
+    push!(metrics.solutionFound, last(metrics.solutionFound))
     push!(metrics.meanNodeVisitedUntilEnd,last(metrics.meanNodeVisitedUntilEnd))
     push!(metrics.meanNodeVisitedUntilfirstSolFound,last(metrics.meanNodeVisitedUntilfirstSolFound))
     push!(metrics.timeneeded,last(metrics.timeneeded))
     if !isnothing(metrics.scores)  #In case neither a solution or an Infeasible case is reached
         push!(metrics.scores,last(metrics.scores))
     end
-    return last(metrics.timeneeded),last(metrics.meanNodeVisitedUntilEnd), sum(map(!isnothing,last(metrics.scores)))
+    return last(metrics.timeneeded),last(metrics.meanNodeVisitedUntilEnd), sum(map(!isnothing,last(metrics.solutionFound)))
 end
 
