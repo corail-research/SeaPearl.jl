@@ -44,9 +44,9 @@ function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
         # Last pruning takes all variables except the objective value into consideration
         model.statistics.lastPruning -= length(orderedPrunedValues)
         for val in orderedPrunedValues
-            if val < model.objective.domain.min.value
+            if val <= model.objective.domain.min.value
                 model.statistics.objectiveDownPruning += 1
-            elseif val > model.objective.domain.max.value
+            elseif val >= model.objective.domain.max.value
                 model.statistics.objectiveUpPruning += 1
             else
                 error("WARNING: Pruning from the middle of the domain of the objective variable detected")
