@@ -403,4 +403,99 @@
         # EPISODE 8
         @test round(SeaPearl.get_eta(lh); digits=1) == 0.2 # step = 8
     end
+
+    @testset "Random generator test" begin
+
+        approximator_model = SeaPearl.CPNN(
+            graphChain=Flux.Chain(
+                SeaPearl.GraphConv(3 => 64, Flux.leakyrelu)
+            ),
+            nodeChain=Flux.Chain(
+                Flux.Dense(64, 16, Flux.leakyrelu)
+            ),
+            outputChain=Flux.Dense(16, 4),
+        )
+        target_approximator_model = SeaPearl.CPNN(
+            graphChain=Flux.Chain(
+                SeaPearl.GraphConv(3 => 64, Flux.leakyrelu)
+            ),
+            nodeChain=Flux.Chain(
+                Flux.Dense(64, 16, Flux.leakyrelu)
+            ),
+            outputChain=Flux.Dense(16, 4),
+        )
+
+        agent = RL.Agent(
+            policy=RL.QBasedPolicy(
+                learner=RL.DQNLearner(
+                    approximator=RL.NeuralNetworkApproximator(
+                        model=approximator_model,
+                        optimizer=ADAM(0.001f0)
+                    ),
+                    target_approximator=RL.NeuralNetworkApproximator(
+                        model=target_approximator_model,
+                        optimizer=ADAM(0.001f0)
+                    ),
+                    loss_func=Flux.Losses.huber_loss
+                ),
+                explorer=RL.EpsilonGreedyExplorer(
+                    ϵ_stable=0.01,
+                    rng=MersenneTwister(33)
+                )
+            ),
+            trajectory=RL.CircularArraySLARTTrajectory(
+                capacity=500,
+                state=SeaPearl.DefaultTrajectoryState[] => (),
+                action=Int => (),
+                legal_actions_mask=Vector{Bool} => (4,),
+            )
+        )
+
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+
+        x1 = SeaPearl.IntVar(1, 2, "x1", trailer)
+        x2 = SeaPearl.IntVar(1, 2, "x2", trailer)
+        x3 = SeaPearl.IntVar(2, 3, "x3", trailer)
+        x4 = SeaPearl.IntVar(1, 4, "x4", trailer)
+        SeaPearl.addVariable!(model, x1)
+        SeaPearl.addVariable!(model, x2)
+        SeaPearl.addVariable!(model, x3)
+        SeaPearl.addVariable!(model, x4)
+
+        SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x1, x2, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x2, x3, trailer))
+        SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x3, x4, trailer))
+
+        variable_heuristic = SeaPearl.MinDomainVariableSelection()
+        lh = SeaPearl.SupervisedLearnedHeuristic(
+            agent,
+            eta_init=.5,
+            eta_stable=0.5,
+            warmup_steps=0,
+            decay_steps=0,
+            rng=MersenneTwister(1234)
+        )
+        SeaPearl.update_with_cpmodel!(lh, model)
+
+        lh(SeaPearl.InitializingPhase, model)
+        @test isnothing(lh.helpSolution)
+        SeaPearl.reset_model!(model)
+        
+        lh(SeaPearl.InitializingPhase, model)
+        @test isnothing(lh.helpSolution)
+        SeaPearl.reset_model!(model)
+        
+        lh(SeaPearl.InitializingPhase, model)
+        @test isnothing(lh.helpSolution)
+        SeaPearl.reset_model!(model)
+        
+        lh(SeaPearl.InitializingPhase, model)
+        @test !isnothing(lh.helpSolution)
+        SeaPearl.reset_model!(model)
+        
+        lh(SeaPearl.InitializingPhase, model)
+        @test isnothing(lh.helpSolution)
+
+    end
 end
