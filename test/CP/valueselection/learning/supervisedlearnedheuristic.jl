@@ -217,7 +217,7 @@
 
     end
 
-    @testset "SupervisedLearnedHeuristic test solution" begin
+    @testset "SupervisedLearnedHeuristic test helpSolution" begin
         approximator_model = SeaPearl.CPNN(
             graphChain=Flux.Chain(
                 SeaPearl.GraphConv(3 => 64, Flux.leakyrelu)
@@ -280,6 +280,7 @@
         SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x2, x3, trailer))
         SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x3, x4, trailer))
 
+        variable_heuristic = SeaPearl.MinDomainVariableSelection()
         lh = SeaPearl.SupervisedLearnedHeuristic(
             agent,
             eta_init=1.0,
@@ -295,6 +296,39 @@
         # Since eta_init = 1.0 an helpSolution is calculated
         lh(SeaPearl.InitializingPhase, model)
         @test !isnothing(lh.helpSolution)
+        @test lh.helpSolution == Dict{String,Union{Bool,Int64,Set{Int64}}}("x1" => 2, "x4" => 4, "x2" => 1, "x3" => 3)
 
+        # We check that the values returned by the heuristic correspond to those of the helpSolution.
+        # Variable 1
+        lh(SeaPearl.StepPhase, model, :Feasible)
+        x = variable_heuristic(model)
+        v = lh(SeaPearl.DecisionPhase, model, x)
+        @test v == lh.helpSolution[x.id]
+        lh(SeaPearl.EndingPhase, model, :Feasible)
+        SeaPearl.assign!(x, v)
+
+        # Variable 2
+        lh(SeaPearl.StepPhase, model, :Feasible)
+        x = variable_heuristic(model)
+        v = lh(SeaPearl.DecisionPhase, model, x)
+        @test v == lh.helpSolution[x.id]
+        lh(SeaPearl.EndingPhase, model, :Feasible)
+        SeaPearl.assign!(x, v)
+
+        # Variable 3
+        lh(SeaPearl.StepPhase, model, :Feasible)
+        x = variable_heuristic(model)
+        v = lh(SeaPearl.DecisionPhase, model, x)
+        @test v == lh.helpSolution[x.id]
+        lh(SeaPearl.EndingPhase, model, :Feasible)
+        SeaPearl.assign!(x, v)
+
+        # Variable 4
+        lh(SeaPearl.StepPhase, model, :Feasible)
+        x = variable_heuristic(model)
+        v = lh(SeaPearl.DecisionPhase, model, x)
+        @test v == lh.helpSolution[x.id]
+        lh(SeaPearl.EndingPhase, model, :Feasible)
+        SeaPearl.assign!(x, v)
     end
 end
