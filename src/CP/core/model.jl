@@ -361,8 +361,12 @@ Return the number of variable-value edges in the tripartite graph
 function global_domain_cardinality(model::CPModel)
     cardinality = 0
     for (id, x) in model.variables
-        if x != model.objective
-            cardinality += length(x.domain.values)
+        if x != model.objective && !isa(x, IntVarView) && !isa(x, BoolVarView)
+            if isa(x.domain,BoolDomain)
+                cardinality += length(x.domain.inner.values)
+            else
+                cardinality += length(x.domain.values)
+            end
         end
     end
     return cardinality
