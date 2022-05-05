@@ -16,9 +16,7 @@ on more smooth cases.
 This is done by getting a geometric distribution of each node connectivity (number of edges) and then select
 randomly the connexions. 
 """
-function fill_with_generator!(cpmodel::CPModel, gen::LegacyGraphColoringGenerator;  rng::Union{Nothing,AbstractRNG} = nothing)
-    rng = isnothing(rng) ? MersenneTwister() : rng
-
+function fill_with_generator!(cpmodel::CPModel, gen::LegacyGraphColoringGenerator;  rng::AbstractRNG = MersenneTwister())
     density = gen.density
     nb_nodes = gen.nb_nodes
 
@@ -83,9 +81,7 @@ creating temporary files for efficiency purpose ! Density should be more than 1.
 Very simple case from: Exploring the k-colorable Landscape with Iterated Greedy by Culberson & Luo
 https://pdfs.semanticscholar.org/e6cc/ab8f757203bf15680dbf456f295a7a31431a.pdf
 """
-function fill_with_generator!(cpmodel::CPModel, gen::HomogenousGraphColoringGenerator;  rng::Union{Nothing,AbstractRNG} = nothing)
-    rng = isnothing(rng) ? MersenneTwister() : rng
-
+function fill_with_generator!(cpmodel::CPModel, gen::HomogenousGraphColoringGenerator;  rng::AbstractRNG = MersenneTwister())
     p = gen.probability
     n = gen.nb_nodes
 
@@ -145,10 +141,7 @@ creating temporary files for efficiency purpose ! Density should be more than 1.
 Very simple case from: Exploring the k-colorable Landscape with Iterated Greedy by Culberson & Luo
 https://pdfs.semanticscholar.org/e6cc/ab8f757203bf15680dbf456f295a7a31431a.pdf
 """
-function fill_with_generator!(cpmodel::CPModel, gen::ClusterizedGraphColoringGenerator; rng::Union{Nothing,AbstractRNG} = nothing)
-    rng = isnothing(rng) ? MersenneTwister() : rng
-
-    
+function fill_with_generator!(cpmodel::CPModel, gen::ClusterizedGraphColoringGenerator; rng::AbstractRNG = MersenneTwister())
     n = gen.n
     p = gen.p
     k = gen.k

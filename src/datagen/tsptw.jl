@@ -25,10 +25,7 @@ some randomness by using uniform distributions with gap and the length of the ti
 Rng is a random number generator used to ensure experiment reproductibility accross devices. It is often set at the beginning of an experiment to generate deterministic training samples. 
 
 """
-function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; rng::Union{Nothing,AbstractRNG} = nothing, dist = nothing, timeWindows=nothing)
-    
-    rng = isnothing(rng) ? MersenneTwister() : rng
-
+function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; rng::AbstractRNG = MersenneTwister(), dist = nothing, timeWindows=nothing)
     x_pos = zeros(gen.n_city)
     y_pos = zeros(gen.n_city)
 

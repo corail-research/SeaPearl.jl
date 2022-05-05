@@ -121,10 +121,8 @@ end
 """
 
 
-function fill_with_generator!(cpmodel::CPModel, gen::Eternity2Generator; rng::Union{Nothing,AbstractRNG} = nothing)
+function fill_with_generator!(cpmodel::CPModel, gen::Eternity2Generator; rng::AbstractRNG = MersenneTwister())
     cpmodel.limit.numberOfSolutions = 1
-
-    rng = isnothing(rng) ? MersenneTwister() : rng
 
     n=gen.n
     m=gen.m

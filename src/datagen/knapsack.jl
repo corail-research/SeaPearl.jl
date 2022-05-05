@@ -19,11 +19,7 @@ https://www.researchgate.net/publication/2548374_Core_Problems_in_Knapsack_Algor
 
 Rng is a random number generator used to ensure experiment reproductibility accross devices. It is often set at the beginning of an experiment to generate deterministic training samples. 
 """
-function fill_with_generator!(cpmodel::CPModel, gen::KnapsackGenerator; rng::Union{Nothing,AbstractRNG} = nothing)
-
-    rng = isnothing(rng) ? MersenneTwister() : rng
-
-    
+function fill_with_generator!(cpmodel::CPModel, gen::KnapsackGenerator; rng::AbstractRNG = MersenneTwister())
     correlation = gen.correlation
     max_weight = gen.max_weight
     nb_items = gen.nb_items

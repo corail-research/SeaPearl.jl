@@ -30,11 +30,7 @@ creating temporary files for efficiency purpose.
 Rng is a random number generator used to ensure experiment reproductibility accross devices. It is often set at the beginning of an experiment to generate deterministic training samples. 
 
 """
-function fill_with_generator!(cpmodel::CPModel, gen::LatinGenerator; rng::Union{Nothing,AbstractRNG} = nothing)
-
-    rng = isnothing(rng) ? MersenneTwister() : rng
-
-    
+function fill_with_generator!(cpmodel::CPModel, gen::LatinGenerator; rng::AbstractRNG = MersenneTwister())
     N = gen.N
     p = gen.p
     cpmodel.limit.numberOfSolutions = 1

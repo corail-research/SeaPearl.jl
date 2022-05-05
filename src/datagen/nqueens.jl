@@ -21,7 +21,7 @@ Rng is a random number generator used to ensure experiment reproductibility accr
 This generator create graps for the NQueens problem.
 
 """
-function fill_with_generator!(cpmodel::CPModel, gen::NQueensGenerator; rng::Nothing = nothing)
+function fill_with_generator!(cpmodel::CPModel, gen::NQueensGenerator; rng::AbstractRNG = MersenneTwister())
     cpmodel.limit.numberOfSolutions = 1
 
     #density = gen.density
