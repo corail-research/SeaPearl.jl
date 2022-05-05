@@ -121,23 +121,23 @@ function (valueSelection::SupervisedLearnedHeuristic)(PHASE::Type{DecisionPhase}
 end
 
 """
-    get_eta(vs::SupervisedLearnedHeuristic)
+    get_eta(valueSelection::SupervisedLearnedHeuristic)
 
 Get the current value of `eta` (η), which is the probability for the solver to calculate and provide a classic CP-generated solution to the agent.
 """
-function get_eta(vs::SupervisedLearnedHeuristic)
-    vs.step += 1
-    if vs.decay_steps == 0
-        return vs.eta_init
+function get_eta(valueSelection::SupervisedLearnedHeuristic)
+    valueSelection.step += 1
+    if valueSelection.decay_steps == 0
+        return valueSelection.eta_init
     end
 
-    step = vs.step
-    if step <= vs.warmup_steps
-        return vs.eta_init
-    elseif step >= (vs.warmup_steps + vs.decay_steps)
-        return vs.eta_stable
+    step = valueSelection.step
+    if step <= valueSelection.warmup_steps
+        return valueSelection.eta_init
+    elseif step >= (valueSelection.warmup_steps + valueSelection.decay_steps)
+        return valueSelection.eta_stable
     else
-        steps_left = vs.warmup_steps + vs.decay_steps - step
-        return vs.eta_stable + steps_left / vs.decay_steps * (vs.eta_init - vs.eta_stable)
+        steps_left = valueSelection.warmup_steps + valueSelection.decay_steps - step
+        return valueSelection.eta_stable + steps_left / valueSelection.decay_steps * (valueSelection.eta_init - valueSelection.eta_stable)
     end
 end
