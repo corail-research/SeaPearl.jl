@@ -47,7 +47,7 @@ function set_reward!(::Type{DecisionPhase}, lh::LearnedHeuristic{SR, Experimenta
             #println("Variable part: "*string(lh.reward.value))
         end
         if !isnothing(model.objective)
-            lh.reward.value += -(model.statistics.objectiveDownPruning/(lh.reward.initMax - lh.reward.initMin)) + (model.statistics.objectiveUpPruning/(lh.reward.initMax - lh.reward.initMin))
+            lh.reward.value += (-(model.statistics.objectiveDownPruning/(lh.reward.initMax - lh.reward.initMin)) + (model.statistics.objectiveUpPruning/(lh.reward.initMax - lh.reward.initMin)) + 1) / 2
             #println("Objective part: "*string(-(model.statistics.objectiveDownPruning/(lh.reward.initMax - lh.reward.initMin)) + (model.statistics.objectiveUpPruning/(lh.reward.initMax - lh.reward.initMin))))
             if -(model.statistics.objectiveDownPruning/(lh.reward.initMax - lh.reward.initMin)) + (model.statistics.objectiveUpPruning/(lh.reward.initMax - lh.reward.initMin)) != 0
                 #println("Objective domain: "*string(model.objective.domain))
@@ -74,14 +74,13 @@ function set_reward!(::Type{EndingPhase}, lh::LearnedHeuristic{SR, ExperimentalR
    
     if symbol == :FoundSolution
         lh.reward.value = 0
-        println("Objective: "*string(assignedValue(model.objective)))
+        println("Feasible -> Objective = "*string(assignedValue(model.objective)))
     else
         println("Infeasible")
         lh.reward.value = -lh.reward.gamma
         if !isnothing(model.objective)
             lh.reward.value += -1
         end
-        println("Ending reward: "*string(lh.reward.value))
         if nqueens_conflict_counter
             # Getting the number of conflicts on nqueens
             # Getting assigned variables
@@ -107,5 +106,6 @@ function set_reward!(::Type{EndingPhase}, lh::LearnedHeuristic{SR, ExperimentalR
             lh.reward.value -= nb_conflicts
         end
     end
+    println("Ending reward: "*string(lh.reward.value))
 
 end
