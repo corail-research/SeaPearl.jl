@@ -70,6 +70,7 @@ agent = RL.Agent(
     include("rewards/rewards.jl")
     include("utils.jl")
     include("learnedheuristic.jl")
+    include("supervisedlearnedheuristic.jl")
 
     LearnedHeristicBasicConstructor = SeaPearl.SimpleLearnedHeuristic(agent)
     @test isa(LearnedHeristicBasicConstructor,SeaPearl.SimpleLearnedHeuristic{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}, SeaPearl.DefaultReward, SeaPearl.FixedOutput})
