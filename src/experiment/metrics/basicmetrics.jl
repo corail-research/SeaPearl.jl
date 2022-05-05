@@ -113,7 +113,8 @@ function (metrics::BasicMetrics{TakeObjective, <:LearnedHeuristic})(model::CPMod
     index = findfirst(!isnothing, model.statistics.solutions) #return the list of index of real solution in model.statistics.solutions
     push!(metrics.meanNodeVisitedUntilfirstSolFound, !isnothing(index) ? model.statistics.nodevisitedpersolution[index] : nothing)
     push!(metrics.timeneeded,dt)
-    push!(metrics.scores,copy(model.statistics.objectives))
+    if !isempty(model.statistics.objectives)
+        push!(metrics.scores,copy(model.statistics.objectives))
     end
     total_reward = last_episode_total_reward(metrics.heuristic.agent.trajectory)
     #=
