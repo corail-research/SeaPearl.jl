@@ -331,4 +331,76 @@
         lh(SeaPearl.EndingPhase, model, :Feasible)
         SeaPearl.assign!(x, v)
     end
+
+    @testset "SupervisedLearnedHeuristic test get_eta" begin
+        approximator_model = SeaPearl.CPNN(
+            graphChain=Flux.Chain(
+                SeaPearl.GraphConv(3 => 64, Flux.leakyrelu)
+            ),
+            nodeChain=Flux.Chain(
+                Flux.Dense(64, 16, Flux.leakyrelu)
+            ),
+            outputChain=Flux.Dense(16, 4),
+        )
+        target_approximator_model = SeaPearl.CPNN(
+            graphChain=Flux.Chain(
+                SeaPearl.GraphConv(3 => 64, Flux.leakyrelu)
+            ),
+            nodeChain=Flux.Chain(
+                Flux.Dense(64, 16, Flux.leakyrelu)
+            ),
+            outputChain=Flux.Dense(16, 4),
+        )
+
+        agent = RL.Agent(
+            policy=RL.QBasedPolicy(
+                learner=RL.DQNLearner(
+                    approximator=RL.NeuralNetworkApproximator(
+                        model=approximator_model,
+                        optimizer=ADAM(0.001f0)
+                    ),
+                    target_approximator=RL.NeuralNetworkApproximator(
+                        model=target_approximator_model,
+                        optimizer=ADAM(0.001f0)
+                    ),
+                    loss_func=Flux.Losses.huber_loss
+                ),
+                explorer=RL.EpsilonGreedyExplorer(
+                    ϵ_stable=0.01,
+                    rng=MersenneTwister(33)
+                )
+            ),
+            trajectory=RL.CircularArraySLARTTrajectory(
+                capacity=500,
+                state=SeaPearl.DefaultTrajectoryState[] => (),
+                action=Int => (),
+                legal_actions_mask=Vector{Bool} => (4,),
+            )
+        )
+
+        lh = SeaPearl.SupervisedLearnedHeuristic(
+            agent,
+            eta_init=1.0,
+            eta_stable=0.2,
+            warmup_steps=2,
+            decay_steps=4
+        )
+
+        # EPISODE 1
+        @test round(SeaPearl.get_eta(lh); digits=1) == 1.0 # step = 1
+        # EPISODE 2
+        @test round(SeaPearl.get_eta(lh); digits=1) == 1.0 # step = 2
+        # EPISODE 3
+        @test round(SeaPearl.get_eta(lh); digits=1) == 0.8 # step = 3
+        # EPISODE 4
+        @test round(SeaPearl.get_eta(lh); digits=1) == 0.6 # step = 4
+        # EPISODE 5
+        @test round(SeaPearl.get_eta(lh); digits=1) == 0.4 # step = 5
+        # EPISODE 6
+        @test round(SeaPearl.get_eta(lh); digits=1) == 0.2 # step = 6
+        # EPISODE 7
+        @test round(SeaPearl.get_eta(lh); digits=1) == 0.2 # step = 7
+        # EPISODE 8
+        @test round(SeaPearl.get_eta(lh); digits=1) == 0.2 # step = 8
+    end
 end
