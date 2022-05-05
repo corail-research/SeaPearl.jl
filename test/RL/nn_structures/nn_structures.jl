@@ -4,5 +4,6 @@
     include("fullfeaturedcpnn.jl")
     include("variableoutputcpnn.jl")
     include("geometricflux.jl")
+    include("weighted_graph_gat.jl")
 
 end
