@@ -115,6 +115,6 @@ function repeatlast!(metrics::BasicMetrics{<:AbstractTakeObjective, <:BasicHeuri
     if !isnothing(metrics.scores)  #In case neither a solution or an Infeasible case is reached
         push!(metrics.scores,last(metrics.scores))
     end
-    return last(metrics.timeneeded),last(metrics.meanNodeVisitedUntilEnd), sum(map(!isnothing,last(metrics.solutionFound)))
+    return last(metrics.timeneeded),last(metrics.meanNodeVisitedUntilEnd), sum(map(x -> x,last(metrics.solutionFound)))
 end
 
