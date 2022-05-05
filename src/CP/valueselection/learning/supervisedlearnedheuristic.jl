@@ -3,8 +3,8 @@
 
 `SupervisedLearnedHeuristic` is value selection heuristic. The agent learns from both his previous actions and classic CP-generated solutions. 
 For each episode, with probability η (êta), a solution is generated using classic CP and is provided to the agent, which will take the exact same
-actions to retrieve the same solution. This operation aims at providing the agent with solutions to learn from, in order to accelerate the learning,
-since it is sometimes difficult to provide a solution using an untrained RL agent, for some problems like TSPTW.
+actions to retrieve the same solution. This operation aims at providing the agent with solutions to learn from, in order to accelerate the learning, 
+because it is sometimes difficult for an untrained LR agent to find a solution by itself.
 """
 
 mutable struct SupervisedLearnedHeuristic{SR<:AbstractStateRepresentation,R<:AbstractReward,A<:ActionOutput} <: LearnedHeuristic{SR,R,A}
@@ -25,7 +25,7 @@ mutable struct SupervisedLearnedHeuristic{SR<:AbstractStateRepresentation,R<:Abs
     warmup_steps::Int64
     decay_steps::Int64
     step::Int64
-    rng::AbstractRNG #for reproductibility
+    rng::AbstractRNG #for reproducibility
     
     function SupervisedLearnedHeuristic{SR,R,A}(
         agent::RL.Agent;

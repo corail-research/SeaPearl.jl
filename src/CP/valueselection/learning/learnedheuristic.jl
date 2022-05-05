@@ -14,7 +14,7 @@ and your functions will be called instead of the default ones.
 abstract type AbstractReward end
 
 """
-LearnedHeuristic{SR<:AbstractStateRepresentation, R<:AbstractReward, A<:ActionOutput} end
+    LearnedHeuristic{SR<:AbstractStateRepresentation, R<:AbstractReward, A<:ActionOutput}
 
 The LearnedHeuristic is a value selection heuristic learned thanks to a training made by solving problem instances from files 
 or from an `AbstractModelGenerator`. From the RL point of view, LearnedHeuristic contains an agent which is
@@ -23,7 +23,7 @@ a representation of the instance at its current state. The agent learns thanks t
 during the search. He tries to maximize the total reward.
 
 From the RL point of view, this LearnedHeuristic also plays part of the role normally played by the environment. Indeed, the
-SimpleLearnedHeuristic stores the action space, the current state and reward. The other role that a classic RL environment 
+LearnedHeuristic stores the action space, the current state and reward. The other role that a classic RL environment 
 plays is describing the consequences of an action: in SeaPearl, this is done by the CP part - branching, 
 running fixPoint!, backtracking, etc...
 
