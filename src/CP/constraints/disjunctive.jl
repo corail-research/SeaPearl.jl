@@ -241,3 +241,5 @@ function detectablePrecedence!(constraint::Disjunctive, toPropagate::Set{Constra
     end
     return true
 end
+
+variablesArray(constraint::Disjunctive) = [task.earliestStartingTime for task in constraint.tasks]

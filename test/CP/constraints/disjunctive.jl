@@ -539,6 +539,30 @@
         status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection,)
 
         @test status == :Optimal
-        @test (model.statistics.solutions[end]["obj"]) == 5
+        @test (filter!(!isnothing, model.statistics.solutions)[end]["obj"]) == 5
+    end
+
+
+    @testset "variablesArray" begin
+    trailer = SeaPearl.Trailer()
+    model = SeaPearl.CPModel(trailer)
+
+    task1 = SeaPearl.IntVar(1, 1, "task1", trailer)
+    task2 = SeaPearl.IntVar(2, 3, "task2", trailer)
+    task3 = SeaPearl.IntVar(1, 7, "task3", trailer)
+    SeaPearl.addVariable!(model, task1)
+    SeaPearl.addVariable!(model, task2)
+    SeaPearl.addVariable!(model, task3)
+
+    p1 = 2
+    p2 = 3
+    p3 = 3
+    tasks = Vector{SeaPearl.IntVar}([task1, task2, task3])
+    processing_time = [p1, p2, p3]
+    disjunctive = SeaPearl.Disjunctive(tasks, processing_time, trailer)
+
+    @test SeaPearl.variablesArray(disjunctive)[1] == task1
+    @test SeaPearl.variablesArray(disjunctive)[2] == task2
+    @test SeaPearl.variablesArray(disjunctive)[3] == task3
     end
 end
