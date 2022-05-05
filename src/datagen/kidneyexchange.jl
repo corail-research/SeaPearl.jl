@@ -1,5 +1,3 @@
-using SeaPearl
-using Distributions
 using StatsBase: sample
 
 struct KepGenerator <: AbstractModelGenerator 
@@ -8,7 +6,7 @@ struct KepGenerator <: AbstractModelGenerator
 end
 
 """
-    fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator)::CPModel    
+    fill_with_generator!(cpmodel::CPModel, gen::KepGenerator; seed=nothing)   
 
 Fill a CPModel with the variables and constraints generated. We fill it directly instead of 
 creating temporary files for efficiency purpose!
@@ -17,11 +15,11 @@ The decision matrix `x` is the adjacent matrix of the graph (i.e. the instance).
 x[i, j] is branchable => pair i can receive a kidney from pair j
 x[i, j] is not branchable => pair i can not receive a kidney from pair j
 
-The generator ensure that all pairs have at least one in edge and one out edge (i.e. one branchable variable per row and column).
+The generator ensure that all pairs have at least one in and out arcs (i.e. one branchable variable per row and column).
 For this we first place one branchable variable in each line of the matrix with a different column index each time.
 Then, the remaining edges are assigned randomly between the non-asssigned elements of the decision matrix.
 """
-function fill_with_generator!(model, gen; seed=nothing)
+function fill_with_generator!(model, gen::KepGenerator; seed=nothing)
     if !isnothing(seed)
         Random.seed!(seed)
     end
