@@ -14,5 +14,7 @@
             @test length(model.constraints) == 3
             empty!(model)
         end
+
+
     end
 end
