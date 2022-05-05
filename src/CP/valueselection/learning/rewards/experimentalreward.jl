@@ -5,15 +5,19 @@ This is the default reward, that will be used if no custom reward is specified w
 """
 mutable struct ExperimentalReward <: AbstractReward 
     value::Float32
-    initMin::Int
-    initMax::Int
+    initMin::Union{Nothing,Int}
+    initMax::Union{Nothing,Int}
     initialNumberOfVariableValueLinks::Int
     gamma::Float32
     beta::Float32
 end
 
 function ExperimentalReward(model::CPModel)
-    return ExperimentalReward(0, model.objective.domain.min.value, model.objective.domain.max.value, global_domain_cardinality(model), 2.0, 2.0)
+    if !isnothing(model.objective)
+        return ExperimentalReward(0, model.objective.domain.min.value, model.objective.domain.max.value, global_domain_cardinality(model), 2.0, 2.0)
+    else
+        return ExperimentalReward(0, nothing, nothing, global_domain_cardinality(model), 2.0, 2.0)
+    end
 end
 
 """
