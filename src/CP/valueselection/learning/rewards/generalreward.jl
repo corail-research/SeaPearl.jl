@@ -81,7 +81,11 @@ function set_reward!(::Type{EndingPhase}, lh::LearnedHeuristic{SR, GeneralReward
    
     if symbol == :FoundSolution
         lh.reward.value = 0
-        println("Feasible -> Objective = "*string(assignedValue(model.objective)))
+        if !isnothing(model.objective)
+            println("Feasible -> Objective = "*string(assignedValue(model.objective)))
+        else
+            println("Feasible")
+        end
     else
         println("Infeasible")
         lh.reward.value = -lh.reward.gamma
