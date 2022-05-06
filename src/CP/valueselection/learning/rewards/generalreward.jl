@@ -1,7 +1,7 @@
 """
     struct GeneralReward <: AbstractReward end
 
-This is the default reward, that will be used if no custom reward is specified when constructing the `LearnedHeuristic`.
+This is a general reward encouraging a smart exploration of the tree in the case DFSearch is used.
 """
 mutable struct GeneralReward <: AbstractReward 
     value::Float32

@@ -20,8 +20,8 @@ mutable struct Statistics
     nodevisitedpersolution                  ::Vector{Int}
     objectives                              ::Union{Nothing, Vector{Union{Nothing,Int}}}
     lastPruning                             ::Union{Nothing, Int}
-    objectiveDownPruning                    ::Union{Nothing, Int}
-    objectiveUpPruning                      ::Union{Nothing, Int}
+    objectiveDownPruning                    ::Union{Nothing, Float32}
+    objectiveUpPruning                      ::Union{Nothing, Float32}
     lastVar                                 ::Union{Nothing, AbstractIntVar} #last var on which we branched
     numberOfTimesInvolvedInPropagation      ::Union{Nothing, Dict{Constraint,Int}}
 end

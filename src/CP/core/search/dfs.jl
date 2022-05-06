@@ -50,7 +50,9 @@ function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
                 elseif val >= model.objective.domain.max.value
                     model.statistics.objectiveUpPruning += 1
                 else
-                    error("WARNING: Pruning from the middle of the domain of the objective variable detected")
+                    # Pruning from the middle of the domain of the objective variable
+                    model.statistics.objectiveDownPruning += (model.objective.domain.max.value - val)/(model.objective.domain.max.value-model.objective.domain.min.value)
+                    model.statistics.objectiveUpPruning += (val - model.objective.domain.min.value)/(model.objective.domain.max.value-model.objective.domain.min.value)
                 end
             end
         else
