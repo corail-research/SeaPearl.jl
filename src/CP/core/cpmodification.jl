@@ -19,7 +19,7 @@ function updateChildren!(prunedDomains::CPModification, x::Union{IntVar, BoolVar
     for y in x.children
         childrenPruned = childrenValue.([y], pruned)
         if haskey(prunedDomains, y.id)
-            prunedDomains[y.id] = append!(prunedDomains[y.id], Array(childrenPruned))
+            append!(prunedDomains[y.id], Array(childrenPruned))
         else
             prunedDomains[y.id] = Array(childrenPruned)
         end
