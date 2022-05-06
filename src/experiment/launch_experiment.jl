@@ -40,20 +40,21 @@ function launch_experiment!(
         rngTraining::AbstractRNG,
     ) where{T <: ValueSelection, S1,S2 <: SearchStrategy}
 
+
     nbHeuristics = length(valueSelectionArray)
 
-     #get the type of CPmodel ( does it contains an objective )
+    #get the type of CPmodel ( does it contains an objective )
     trailer = Trailer()
     model = CPModel(trailer)
-    fill_with_generator!(model, generator) 
-    metricsArray=AbstractMetrics[]
+    fill_with_generator!(model, generator)
+    metricsArray = AbstractMetrics[]
     for j in 1:nbHeuristics
         if !isnothing(metrics)
-            push!(metricsArray,metrics(model,valueSelectionArray[j]))
+            push!(metricsArray, metrics(model, valueSelectionArray[j]))
         else
-            push!(metricsArray,BasicMetrics(model,valueSelectionArray[j]))
+            push!(metricsArray, BasicMetrics(model, valueSelectionArray[j]))
         end
-    end 
+    end
 
     empty!(model)
     fill_with_generator!(model, generator)
@@ -65,7 +66,7 @@ function launch_experiment!(
 
     iter = ProgressBar(1:nbEpisodes)
     for i in iter
-    #for i in 1:nbEpisodes
+        #for i in 1:nbEpisodes
         verbose && println(" --- EPISODE: ", i)
 
         empty!(model)
@@ -73,16 +74,17 @@ function launch_experiment!(
         
         for j in 1:nbHeuristics
             reset_model!(model)
+        
             if isa(valueSelectionArray[j], LearnedHeuristic)
                 verbose && print("Visited nodes with learnedHeuristic : " )
-            dt = @elapsed for k in 1:restartPerInstances
-                restart_search!(model)
-                search!(model, strategy, variableHeuristic, valueSelectionArray[j], out_solver=out_solver)
-
-                verbose && print(model.statistics.numberOfNodesBeforeRestart, ": ",model.statistics.numberOfSolutions, "(",model.statistics.AccumulatedRewardBeforeRestart,") / ")
+            
+                dt = @elapsed for k in 1:restartPerInstances
+                    restart_search!(model)
+                    search!(model, strategy, variableHeuristic, valueSelectionArray[j], out_solver=out_solver)
+                    verbose && print(model.statistics.numberOfNodesBeforeRestart, ": ",model.statistics.numberOfSolutions, "(",model.statistics.AccumulatedRewardBeforeRestart,") / ")
                 end 
-            metricsArray[j](model,dt)  #adding results in the metrics data structure
-            verbose && println()
+                metricsArray[j](model,dt)  #adding results in the metrics data structure
+                verbose && println()
             end
         end
 
@@ -91,10 +93,10 @@ function launch_experiment!(
         end
         verbose && println()
     end
-    
+
     if !isnothing(evaluator)
         return metricsArray, evaluator.metrics
-
     end
-    return metricsArray,[]
+    
+    return metricsArray, []
 end
