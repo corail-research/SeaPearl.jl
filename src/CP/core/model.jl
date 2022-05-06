@@ -41,6 +41,7 @@ or filled by an `AbstractModelGenerator`.
 mutable struct CPModel
     variables               ::Dict{String, AbstractVar}
     branchable              ::Dict{String, Bool}
+    branchable_variables    ::Dict{String, AbstractVar}
     constraints             ::Array{Constraint}
     trailer                 ::Trailer
     objective               ::Union{Nothing, AbstractIntVar}
@@ -50,7 +51,7 @@ mutable struct CPModel
     knownObjective          ::Union{Nothing,Int64}
     adhocInfo               ::Any
 
-    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Constraint[], trailer, nothing, nothing, Statistics(Dict{String, Int}(), 0,0, 0, 0, 0, 0, 0, 0, Solution[],Int[], nothing, nothing, nothing, Dict{Constraint, Int}()), Limit(nothing, nothing, nothing), nothing)
+    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Dict{String, AbstractVar}(), Constraint[], trailer, nothing, nothing, Statistics(Dict{String, Int}(), 0,0, 0, 0, 0, 0, 0, 0, Solution[],Int[], nothing, nothing, nothing, Dict{Constraint, Int}()), Limit(nothing, nothing, nothing), nothing)
 end
 
 CPModel() = CPModel(Trailer())
@@ -70,6 +71,10 @@ function addVariable!(model::CPModel, x::AbstractVar; branchable=true)
     model.statistics.infeasibleStatusPerVariable[id(x)]=0
     model.branchable[x.id] = branchable
     model.variables[x.id] = x
+    if branchable
+        model.branchable_variables[x.id] = x
+    end
+
 end
 
 """
@@ -167,12 +172,15 @@ this function increments by one the statistic infeasibleStatusPerVariable for ea
 keeps in track for each variable the number of times the variable was involved in a constraint that led to an infeasible state during a fixpoint. This statistic
 is used by the failure-based variable selection heuristic.
 """
-function triggerInfeasible!(constraint::Constraint, model::CPModel)
-    for var in variablesArray(constraint)
-        if haskey(model.branchable, id(var))
-            model.statistics.infeasibleStatusPerVariable[id(var)]+=1
+function triggerInfeasible!(constraint::Constraint, model::CPModel; isFailureBased::Bool=false)
+    if isFailureBased
+        for var in variablesArray(constraint)
+            if haskey(model.branchable, id(var))
+                model.statistics.infeasibleStatusPerVariable[id(var)]+=1
+            end
         end
     end
+
     push!(model.statistics.solutions, nothing)
     push!(model.statistics.nodevisitedpersolution,model.statistics.numberOfNodes)
 

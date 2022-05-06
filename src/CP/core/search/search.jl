@@ -40,7 +40,7 @@ function search!(model::CPModel, strategy::S, variableHeuristic::AbstractVariabl
         end
 
         currentProcedure = pop!(toCall)
-        currentStatus = currentProcedure(model)
+        currentStatus::Union{Nothing, Symbol} = currentProcedure(model)
     end
     # set final reward and last observation
     model.statistics.numberOfSolutions=sum(map(x->!isnothing(x),model.statistics.solutions))
