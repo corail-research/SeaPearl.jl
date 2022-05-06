@@ -21,20 +21,19 @@ https://arxiv.org/abs/2006.01610
 
 Basicaly finds positions with a uniform distributions, then sets the time windows by creating a feasible tour and adding
 some randomness by using uniform distributions with gap and the length of the time windows.
-"""
-function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothing, dist = nothing, timeWindows=nothing)
-    if !isnothing(seed)
-        Random.seed!(seed)
-    end
 
+Rng is a random number generator used to ensure experiment reproductibility accross devices. It is often set at the beginning of an experiment to generate deterministic training samples. 
+
+"""
+function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; rng::AbstractRNG = MersenneTwister(), dist = nothing, timeWindows=nothing)
     x_pos = zeros(gen.n_city)
     y_pos = zeros(gen.n_city)
 
     ### Creating the TSPTW instance
     if isnothing(dist) || isnothing(timeWindows)
         pos_distribution = Uniform(0, gen.grid_size)
-        x_pos = rand(pos_distribution, gen.n_city)
-        y_pos = rand(pos_distribution, gen.n_city)
+        x_pos = rand(rng, pos_distribution, gen.n_city)
+        y_pos = rand(rng, pos_distribution, gen.n_city)
 
         dist = zeros(Int64, gen.n_city, gen.n_city)
         for i in 1:gen.n_city
@@ -46,7 +45,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
         timeWindows = zeros(Int64, gen.n_city, 2)
         timeWindows[1, :] = [0 10]
 
-        random_solution = [1, shuffle(Vector(2:gen.n_city))...]
+        random_solution = [1, shuffle(rng, Vector(2:gen.n_city))...]
 
         for i in 2:gen.n_city
             prev_city = random_solution[i-1]
@@ -56,8 +55,8 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; seed=nothin
 
             tw_lb_min = timeWindows[prev_city, 1] + cur_dist
 
-            rand_tw_lb = rand(DiscreteUniform(tw_lb_min, tw_lb_min + gen.max_tw_gap))
-            rand_tw_ub = rand(DiscreteUniform(rand_tw_lb, rand_tw_lb + gen.max_tw))
+            rand_tw_lb = rand(rng, DiscreteUniform(tw_lb_min, tw_lb_min + gen.max_tw_gap))
+            rand_tw_ub = rand(rng, DiscreteUniform(rand_tw_lb, rand_tw_lb + gen.max_tw))
 
             timeWindows[cur_city, :] = [rand_tw_lb rand_tw_ub]
         end

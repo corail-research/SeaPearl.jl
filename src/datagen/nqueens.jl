@@ -15,14 +15,14 @@ end
 Fill a CPModel with the variables and constraints generated. We fill it directly instead of
 creating temporary files for efficiency purpose.
 
+Rng is a random number generator used to ensure experiment reproductibility accross devices. It is often set at the beginning of an experiment to generate deterministic training samples. 
+
+
 This generator create graps for the NQueens problem.
 
 """
-function fill_with_generator!(cpmodel::CPModel, gen::NQueensGenerator; seed=nothing)
+function fill_with_generator!(cpmodel::CPModel, gen::NQueensGenerator; rng::AbstractRNG = MersenneTwister())
     cpmodel.limit.numberOfSolutions = 1
-    if !isnothing(seed)
-        Random.seed!(seed)
-    end
 
     #density = gen.density
     board_size = gen.board_size

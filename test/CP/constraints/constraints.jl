@@ -1,5 +1,6 @@
 @testset "constraints" begin
     include("algorithms/matching.jl")
+    include("datasstructures/timeline.jl")
     include("absolute.jl")
     include("datasstructures/disjointSet.jl")
     include("datasstructures/rsparsebitset.jl")
@@ -18,11 +19,16 @@
     include("reifiedinset.jl")
     include("binaryor.jl")
     include("isbinaryor.jl")
+    include("binaryxor.jl")
+    include("isbinaryxor.jl")
     include("setdiffsingleton.jl")
     include("element2d.jl")
     include("element1d.jl")
     include("binarymaximum.jl")
     include("setequalconstant.jl")
+    include("isbinaryand.jl")
+    include("binaryimplication.jl")
+    include("binaryequivalence.jl")
     
     @testset "addOnDomainChange!()" begin
         trailer = SeaPearl.Trailer()

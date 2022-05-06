@@ -37,6 +37,7 @@ function launch_experiment!(
         metrics::Union{Nothing, AbstractMetrics}=nothing,
         evaluator::Union{Nothing, AbstractEvaluator}=SameInstancesEvaluator(valueSelectionArray,generator),
         restartPerInstances::Int64,
+        rngTraining::AbstractRNG,
     ) where{T <: ValueSelection, S1,S2 <: SearchStrategy}
 
     nbHeuristics = length(valueSelectionArray)
@@ -54,33 +55,38 @@ function launch_experiment!(
         end
     end 
 
+    empty!(model)
+    fill_with_generator!(model, generator)
+    #false evaluation used to compile the evaluate function that was previously compiled during first "true" evaluation virtually distorting 1st eval computing time
+    if !isnothing(evaluator) 
+        evaluate(evaluator, variableHeuristic, eval_strategy; verbose = verbose)
+        empty!(evaluator)
+    end
+
     iter = ProgressBar(1:nbEpisodes)
     for i in iter
     #for i in 1:nbEpisodes
         verbose && println(" --- EPISODE: ", i)
 
         empty!(model)
-
-        fill_with_generator!(model, generator)
-
+        fill_with_generator!(model, generator; rng = rngTraining)
+        
         for j in 1:nbHeuristics
             reset_model!(model)
             if isa(valueSelectionArray[j], LearnedHeuristic)
                 verbose && print("Visited nodes with learnedHeuristic : " )
-            else
-                verbose && print("Visited nodes with basic Heuristic n°$(j-1) : ")
-            end
             dt = @elapsed for k in 1:restartPerInstances
                 restart_search!(model)
                 search!(model, strategy, variableHeuristic, valueSelectionArray[j], out_solver=out_solver)
 
-                verbose && print(model.statistics.numberOfNodesBeforeRestart, ", ")    
-            end
+                verbose && print(model.statistics.numberOfNodesBeforeRestart, ": ",model.statistics.numberOfSolutions, "(",model.statistics.AccumulatedRewardBeforeRestart,") / ")
+                end 
             metricsArray[j](model,dt)  #adding results in the metrics data structure
             verbose && println()
+            end
         end
 
-        if !isnothing(evaluator) && (i % evaluator.evalFreq == 0)
+        if !isnothing(evaluator) && (i % evaluator.evalFreq == 1)
             evaluate(evaluator, variableHeuristic, eval_strategy; verbose = verbose)
         end
         verbose && println()

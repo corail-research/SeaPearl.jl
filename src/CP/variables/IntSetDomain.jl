@@ -144,6 +144,14 @@ function exchangePositions!(dom::IntSetDomain, v1::Int, v2::Int)
     return dom
 end
 
+
+"""
+    length(dom::IntDomain)
+
+Return the size of `dom`. Done in constant time.
+"""
+Base.length(dom::SeaPearl.IntSetDomain) = length(dom.values)
+
 function Base.show(io::IO, dom::IntSetDomain)
     print(io, "required_values = ", required_values(dom), "; possibles_values = ", possible_not_required_values(dom))
 end
