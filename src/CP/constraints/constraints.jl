@@ -3,6 +3,7 @@ include("datasstructures/rsparsebitset.jl")
 
 include("absolute.jl")
 include("disjunctive.jl")
+include("datasstructures/timeline.jl")
 include("alldifferent.jl")
 include("compacttable.jl")
 include("equal.jl")

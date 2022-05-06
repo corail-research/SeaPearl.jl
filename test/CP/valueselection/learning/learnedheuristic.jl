@@ -255,6 +255,64 @@
 
         lh(SeaPearl.EndingPhase, model, :Optimal)
         @test lh.agent.trajectory[:reward][end] == 0.975f0    #last DecisionReward (-0.025f0) + EndingReward (+1)
+        
 
+
+
+
+    end
+    @testset "explorer variation on testmode" begin 
+        agent = RL.Agent(
+            policy = RL.QBasedPolicy(
+                learner = RL.DQNLearner(
+                    approximator = RL.NeuralNetworkApproximator(
+                        model = approximator_model,
+                        optimizer = ADAM(0.001f0)
+                    ),
+                    target_approximator = RL.NeuralNetworkApproximator(
+                        model = target_approximator_model,
+                        optimizer = ADAM(0.001f0)
+                    ),
+                    loss_func = Flux.Losses.huber_loss,
+                    stack_size = nothing,
+                    γ = 0.99f0,
+                    batch_size = 32,
+                    update_horizon = 1,
+                    min_replay_history = 1,
+                    update_freq = 1,
+                    target_update_freq = 100,
+                ),
+                explorer = RL.EpsilonGreedyExplorer(
+                    ϵ_stable = 0.00,
+                    kind = :linear,
+                    ϵ_init = 1.0,
+                    warmup_steps = 1,
+                    decay_steps = 1000,
+                    step = 1,
+                    is_break_tie = false,
+                    #is_training = true,
+                    rng = MersenneTwister(33)
+                )
+            ),
+            trajectory = RL.CircularArraySLARTTrajectory(
+                capacity = 500,
+                state = SeaPearl.DefaultTrajectoryState[] => (),
+                action = Int => (),
+                legal_actions_mask = Vector{Bool} => (4, ),
+            )
+        )
+        lh = SeaPearl.LearnedHeuristic(agent)
+
+        Flux.testmode!(lh,true)
+        @test ReinforcementLearningCore.get_ϵ(lh.agent.policy.explorer) == 0
+        dummy_value = 1
+        lh.agent.policy.explorer(dummy_value) #add step
+        @test ReinforcementLearningCore.get_ϵ(lh.agent.policy.explorer) == 0
+        
+        Flux.testmode!(lh,false)
+        @test ReinforcementLearningCore.get_ϵ(lh.agent.policy.explorer) == 1
+        dummy_value = 1
+        lh.agent.policy.explorer(dummy_value) #add step
+        @test ReinforcementLearningCore.get_ϵ(lh.agent.policy.explorer) == 0.999
     end
 end

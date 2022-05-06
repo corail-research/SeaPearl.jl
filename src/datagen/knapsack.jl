@@ -16,12 +16,10 @@ It is possible to give `Inf` as the `gen.correlation` to have a strict equality 
 `gen.correlation` must be strictly positive.
 This method is from the following paper:
 https://www.researchgate.net/publication/2548374_Core_Problems_in_Knapsack_Algorithms
+
+Rng is a random number generator used to ensure experiment reproductibility accross devices. It is often set at the beginning of an experiment to generate deterministic training samples. 
 """
-function fill_with_generator!(cpmodel::CPModel, gen::KnapsackGenerator; seed=nothing)
-    if !isnothing(seed)
-        Random.seed!(seed)
-    end
-    
+function fill_with_generator!(cpmodel::CPModel, gen::KnapsackGenerator; rng::AbstractRNG = MersenneTwister())
     correlation = gen.correlation
     max_weight = gen.max_weight
     nb_items = gen.nb_items
@@ -31,14 +29,14 @@ function fill_with_generator!(cpmodel::CPModel, gen::KnapsackGenerator; seed=not
     
     # create values, weights and capacity
     weights_distr = DiscreteUniform(1, max_weight)
-    weights = rand(weights_distr, nb_items)
+    weights = rand(rng, weights_distr, nb_items)
 
     deviation = floor(max_weight/(10*correlation))
     value_distr = truncated.(DiscreteUniform.(weights .- deviation, weights .+ deviation), 1, Inf)
-    values = rand.(value_distr)
+    values = rand.(rng, value_distr)
 
     c = floor(nb_items * max_weight/2 / 4)
-    capacity = rand(DiscreteUniform(c, c*4))
+    capacity = rand(rng, DiscreteUniform(c, c*4))
     
     
     ### Variables

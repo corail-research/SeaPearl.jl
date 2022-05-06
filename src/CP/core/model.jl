@@ -10,7 +10,8 @@ mutable struct Statistics
     numberOfSolutionsBeforeRestart          ::Int
     numberOfInfeasibleSolutionsBeforeRestart::Int
     numberOfNodesBeforeRestart              ::Int
-    AccumulatedRewardBeforeReset            ::Float32
+    AccumulatedRewardBeforeReset            ::Float32 # =last_episode_total_reward(lh.agent.trajectory)
+    AccumulatedRewardBeforeRestart          ::Float32
     solutions                               ::Vector{Union{Nothing,Solution}}
     nodevisitedpersolution                  ::Vector{Int}
     objectives                              ::Union{Nothing, Vector{Union{Nothing,Int}}}
@@ -48,7 +49,8 @@ mutable struct CPModel
     limit                   ::Limit
     knownObjective          ::Union{Nothing,Int64}
     adhocInfo               ::Any
-    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Constraint[], trailer, nothing, nothing, Statistics(Dict{String, Int}(), 0,0, 0, 0, 0, 0, 0, Solution[],Int[], nothing, nothing, nothing, Dict{Constraint, Int}()), Limit(nothing, nothing, nothing), nothing)
+
+    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Constraint[], trailer, nothing, nothing, Statistics(Dict{String, Int}(), 0,0, 0, 0, 0, 0, 0, 0, Solution[],Int[], nothing, nothing, nothing, Dict{Constraint, Int}()), Limit(nothing, nothing, nothing), nothing)
 end
 
 CPModel() = CPModel(Trailer())
@@ -225,6 +227,7 @@ function Base.isempty(model::CPModel)::Bool
         && model.statistics.numberOfSolutionsBeforeRestart == 0
         && model.statistics.numberOfNodesBeforeRestart == 0
         && model.statistics.AccumulatedRewardBeforeReset == 0
+        && model.statistics.AccumulatedRewardBeforeRestart == 0
         && isnothing(model.limit.numberOfNodes)
         && isnothing(model.limit.numberOfSolutions)
         && isnothing(model.limit.searchingTime)
@@ -257,6 +260,7 @@ function Base.empty!(model::CPModel)
     model.statistics.numberOfSolutionsBeforeRestart = 0
     model.statistics.numberOfNodesBeforeRestart = 0
     model.statistics.AccumulatedRewardBeforeReset = 0
+    model.statistics.AccumulatedRewardBeforeRestart = 0
     model.limit.numberOfNodes = nothing
     model.limit.numberOfSolutions = nothing
     model.limit.searchingTime = nothing
@@ -293,9 +297,8 @@ function reset_model!(model::CPModel)
     model.statistics.numberOfSolutionsBeforeRestart = 0
     model.statistics.numberOfNodesBeforeRestart = 0
     model.statistics.AccumulatedRewardBeforeReset = 0
-
+    model.statistics.AccumulatedRewardBeforeRestart = 0  
 end
-
 """
 restart_search!(model::CPModel)
 
@@ -309,6 +312,8 @@ function restart_search!(model::CPModel)
     model.statistics.numberOfInfeasibleSolutionsBeforeRestart = 0
     model.statistics.numberOfSolutionsBeforeRestart = 0
     model.statistics.numberOfNodesBeforeRestart = 0
+    model.statistics.AccumulatedRewardBeforeRestart = 0
+
 end
 
 """

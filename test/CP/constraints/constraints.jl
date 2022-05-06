@@ -1,5 +1,6 @@
 @testset "constraints" begin
     include("algorithms/matching.jl")
+    include("datasstructures/timeline.jl")
     include("absolute.jl")
     include("datasstructures/disjointSet.jl")
     include("datasstructures/rsparsebitset.jl")

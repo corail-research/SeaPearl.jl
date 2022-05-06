@@ -9,6 +9,7 @@ manually change the mode again if he wants.
 """
 function Flux.testmode!(lh::LearnedHeuristic, mode = true)
     Flux.testmode!(lh.agent, mode)
+    lh.agent.policy.explorer.is_training = !mode
     lh.trainMode = !mode
 end
 
@@ -105,6 +106,8 @@ function get_observation!(lh::LearnedHeuristic, model::CPModel, x::AbstractIntVa
     
     # Initialize reward for the next state: not compulsory with DefaultReward, but maybe useful in case the user forgets it
     model.statistics.AccumulatedRewardBeforeReset += lh.reward.value
+    model.statistics.AccumulatedRewardBeforeRestart += lh.reward.value
+
     lh.reward.value = 0
 
     # synchronize state: 

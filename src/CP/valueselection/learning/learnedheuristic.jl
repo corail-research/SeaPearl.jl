@@ -14,7 +14,7 @@ and your functions will be called instead of the default ones.
 abstract type AbstractReward end
 
 """
-    LearnedHeuristic{SR<:AbstractStateRepresentation, R<:AbstractReward, A<:ActionOutput}
+    mutable struct LearnedHeuristic{SR<:AbstractStateRepresentation, R<:AbstractReward, A<:ActionOutput}
 
 The LearnedHeuristic is a value selection heuristic learned thanks to a training made by solving problem instances from files 
 or from an `AbstractModelGenerator`. From the RL point of view, LearnedHeuristic contains an agent which is
