@@ -40,12 +40,12 @@ from the `HeterogeneousFeaturedGraph` wrapper.
 function Flux.functor(::Type{HeterogeneousTrajectoryState}, s)
     contovar = Flux.unsqueeze(s.fg.contovar, 3)
     valtovar = Flux.unsqueeze(s.fg.valtovar, 3)
-    connf = Flux.unsqueeze(s.fg.connf, 3)
     varnf = Flux.unsqueeze(s.fg.varnf, 3)
+    connf = Flux.unsqueeze(s.fg.connf, 3)
     valnf = Flux.unsqueeze(s.fg.valnf, 3)
     gf = Flux.unsqueeze(s.fg.gf, 2)
 
-    return (contovar, valtovar, connf, varnf, valnf, gf), ls -> BatchedHeterogeneousTrajectoryState{Float32}(
+    return (contovar, valtovar, varnf, connf, valnf, gf), ls -> BatchedHeterogeneousTrajectoryState{Float32}(
         fg = BatchedHeterogeneousFeaturedGraph{Float32}(ls[1], ls[2], ls[3], ls[4], ls[5], ls[6]),
         variableIdx = [s.variableIdx],
     )
