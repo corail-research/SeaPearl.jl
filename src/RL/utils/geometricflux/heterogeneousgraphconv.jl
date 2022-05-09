@@ -22,11 +22,11 @@ end
 
 Flux.@functor HeterogeneousGraphConv
 
-function (g::HeterogeneousGraphConv)(fgs::HeterogeneousBatchedFeaturedGraph{Float32}, original_fgs::HeterogeneousBatchedFeaturedGraph{Float32}) 
+function (g::HeterogeneousGraphConv)(fgs::BatchedHeterogeneousFeaturedGraph{Float32}, original_fgs::BatchedHeterogeneousFeaturedGraph{Float32}) 
     A11, A12, A13 = fgs.A11, fgs.A12, fgs.A13
     H1, H2, H3 = fgs.nf1, fgs.nf2, fgs.nf3
     X1, X2, X3 = original_fgs.nf1, original_fgs.nf2, original_fgs.nf3
-    return HeterogeneousBatchedFeaturedGraph{Float32}(
+    return BatchedHeterogeneousFeaturedGraph{Float32}(
         A11,
         A12,
         A13,
