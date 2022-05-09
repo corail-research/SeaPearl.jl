@@ -46,4 +46,4 @@ end
 include("featuredgraph.jl")
 include("batchedfeaturedgraph.jl")
 include("heterogeneousfeaturedgraph.jl")
-include("heterogeneousbatchedfeaturedgraph.jl")
+include("batchedheterogeneousfeaturedgraph.jl")

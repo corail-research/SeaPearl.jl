@@ -1,11 +1,11 @@
 """
-HeterogeneousBatchedFeaturedGraph
+BatchedHeterogeneousFeaturedGraph
 
 A batched representation of the HeterogeneousFeaturedGraph, to enable parallel computation.
 
 It is deliberately more restrictive to prevent incorrect usage.
 """
-struct HeterogeneousBatchedFeaturedGraph{T <: Real} <: AbstractFeaturedGraph
+struct BatchedHeterogeneousFeaturedGraph{T <: Real} <: AbstractFeaturedGraph
     contovar::AbstractArray{T, 3}
     valtovar::AbstractArray{T, 3}
     connf::AbstractArray{T, 3}
@@ -13,15 +13,15 @@ struct HeterogeneousBatchedFeaturedGraph{T <: Real} <: AbstractFeaturedGraph
     valnf::AbstractArray{T, 3}
     gf::AbstractMatrix{T}
 
-    function HeterogeneousBatchedFeaturedGraph{T}(contovar, valtovar, connf, varnf, valnf, gf) where T <: Real
+    function BatchedHeterogeneousFeaturedGraph{T}(contovar, valtovar, connf, varnf, valnf, gf) where T <: Real
         check_dimensions(contovar, valtovar, connf, varnf, valnf, gf)
         return new{T}(contovar, valtovar, connf, varnf, valnf, gf)
     end
 end
 
-HeterogeneousBatchedFeaturedGraph(contovar, valtovar, connf, varnf, valnf, gf) = HeterogeneousBatchedFeaturedGraph{Float32}(contovar, valtovar, connf, varnf, valnf, gf)
+BatchedHeterogeneousFeaturedGraph(contovar, valtovar, connf, varnf, valnf, gf) = BatchedHeterogeneousFeaturedGraph{Float32}(contovar, valtovar, connf, varnf, valnf, gf)
 
-function HeterogeneousBatchedFeaturedGraph{T}(fgs::Vector{FG}) where {T <: Real, FG <: HeterogeneousFeaturedGraph}
+function BatchedHeterogeneousFeaturedGraph{T}(fgs::Vector{FG}) where {T <: Real, FG <: HeterogeneousFeaturedGraph}
     ngraphs = length(fgs)
     maxNumberOfConstraintNodes = Base.maximum(n_constraint_node, fgs)
     maxNumberOfVariableNodes = Base.maximum(n_variable_node, fgs)
@@ -47,7 +47,7 @@ function HeterogeneousBatchedFeaturedGraph{T}(fgs::Vector{FG}) where {T <: Real,
         gf[:, i] = fg.gf
     end
 
-    return HeterogeneousBatchedFeaturedGraph{T}(contovar, valtovar, connf, varnf, valnf, gf)
+    return BatchedHeterogeneousFeaturedGraph{T}(contovar, valtovar, connf, varnf, valnf, gf)
 end
 
-HeterogeneousBatchedFeaturedGraph(fgs::Vector{FG}) where {FG <: FeaturedGraph} = HeterogeneousBatchedFeaturedGraph{Float32}(fgs)
+BatchedHeterogeneousFeaturedGraph(fgs::Vector{FG}) where {FG <: FeaturedGraph} = BatchedHeterogeneousFeaturedGraph{Float32}(fgs)
