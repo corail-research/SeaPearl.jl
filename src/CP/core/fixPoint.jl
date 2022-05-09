@@ -9,7 +9,7 @@ Return a tuple with a boolean corresponding to the feasibility and a `CPModifica
 - `new_constraints::Union{Array{Constraint}, Nothing}`: if this is filled with a set of constraints, 
 only those will be propagated in the first place.
 """
-function fixPoint!(model::CPModel, new_constraints::Union{Array{Constraint}, Nothing}=nothing, prunedDomains::Union{CPModification,Nothing}=nothing)
+function fixPoint!(model::CPModel, new_constraints::Union{Array{Constraint}, Nothing}=nothing, prunedDomains::Union{CPModification,Nothing}=nothing; isFailureBased::Bool=false)
     toPropagate = Set{Constraint}()
 
     if isnothing(prunedDomains)
@@ -42,7 +42,7 @@ function fixPoint!(model::CPModel, new_constraints::Union{Array{Constraint}, Not
             model.statistics.numberOfTimesInvolvedInPropagation[constraint] += 1
         end
         if !propagate!(constraint, toPropagate, prunedDomains)
-            triggerInfeasible!(constraint, model)   
+            triggerInfeasible!(constraint, model; isFailureBased=isFailureBased)   
             return false, prunedDomains
         end
     end

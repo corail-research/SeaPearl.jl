@@ -433,4 +433,136 @@
         @test status == :Optimal
         @test (model.statistics.solutions[end-1]["obj"]) == 5
     end
+
+
+    @testset "propagate detectablePrecedence" begin
+        trailer = SeaPearl.Trailer()
+        task1 = SeaPearl.IntVar(0, 15, "task1", trailer)
+        task2 = SeaPearl.IntVar(2, 13, "task2", trailer)
+        task3 = SeaPearl.IntVar(9, 23, "task3", trailer)
+        task4 = SeaPearl.IntVar(12, 14, "task4", trailer)
+
+        p1 = 4
+        p2 = 9
+        p3 = 7
+        p4 = 6
+        tasks = Vector{SeaPearl.IntVar}([task1, task2, task3, task4])
+        processing_time = [p1, p2, p3, p4]
+        constraint = SeaPearl.Disjunctive(tasks, processing_time, trailer, [SeaPearl.algoDetectablePrecedence])
+
+        toPropagate = Set{SeaPearl.Constraint}([constraint])
+        prunedDomains = SeaPearl.CPModification()
+
+        res = SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
+        @test res
+        @test length(task1.domain) == 16
+        @test length(task2.domain) == 12
+        @test length(task3.domain) == 5
+        @test length(task4.domain) == 2
+        @test 19 in task3.domain
+        @test 20 in task3.domain
+        @test 21 in task3.domain
+        @test 22 in task3.domain
+        @test 23 in task3.domain
+        @test 13 in task4.domain
+        @test 14 in task4.domain
+    end
+
+
+    @testset "full solving with 3 tasks, optimal status and multiple solution for detectablePrecedence" begin
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+
+        task1 = SeaPearl.IntVar(1, 1, "task1", trailer)
+        task2 = SeaPearl.IntVar(2, 3, "task2", trailer)
+        task3 = SeaPearl.IntVar(1, 7, "task3", trailer)
+        SeaPearl.addVariable!(model, task1)
+        SeaPearl.addVariable!(model, task2)
+        SeaPearl.addVariable!(model, task3)
+
+        p1 = 2
+        p2 = 3
+        p3 = 3
+        tasks = Vector{SeaPearl.IntVar}([task1, task2, task3])
+        processing_time = [p1, p2, p3]
+        push!(model.constraints,SeaPearl.Disjunctive(tasks, processing_time, trailer, [SeaPearl.algoDetectablePrecedence]))
+
+        variableSelection = SeaPearl.MinDomainVariableSelection{false}()
+        status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection)
+
+        @test status == :Optimal
+        @test length(model.statistics.solutions) == 2
+        @test 1 in task1.domain
+        @test 3 in task2.domain
+        @test 6 in task3.domain
+        @test 7 in task3.domain
+        @test 1 == length(task1.domain)
+        @test 1 == length(task2.domain)
+        @test 2 == length(task3.domain)
+    end
+
+
+    @testset "job shop test wiht two tasks and detectablePrecedence" begin
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+        nbMachine = 2
+        nbTask = 2
+        timeLimit = 10
+        tasks = Matrix(undef, nbTask, nbMachine)
+        objectif = SeaPearl.IntVar(0, timeLimit, "obj", trailer)
+        SeaPearl.addVariable!(model, objectif)
+        processingTime = [1 4; 4 1]
+        endTask = Matrix(undef, nbTask, nbMachine)
+
+        for i in 1:nbTask
+            for j in 1:nbMachine
+                tasks[i,j] = SeaPearl.IntVar(0, timeLimit, "task_"*string(i)*"_"*string(j), trailer)
+                endTask[i,j] = SeaPearl.IntVarViewOffset(tasks[i,j], processingTime[i,j], "end_"*string(i)*"_"*string(j))
+                SeaPearl.addVariable!(model, tasks[i,j])
+                push!(model.constraints, SeaPearl.LessOrEqual(endTask[i,j], objectif, trailer))
+            end
+        end
+
+        for i in 1:nbTask
+            push!(model.constraints, SeaPearl.Disjunctive([tasks[i,j] for j in 1:nbMachine], 
+                                                            [processingTime[i,j] for j in 1:nbMachine],
+                                                            trailer, [SeaPearl.algoDetectablePrecedence]))
+        end
+        for j in 1:nbMachine
+            push!(model.constraints, SeaPearl.Disjunctive([tasks[i,j] for i in 1:nbTask], 
+                                                            [processingTime[i,j] for i in 1:nbTask],
+                                                            trailer, [SeaPearl.algoDetectablePrecedence]))
+        end
+
+        SeaPearl.addObjective!(model, objectif)
+        variableSelection = SeaPearl.MinDomainVariableSelection{false}()
+        status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection,)
+
+        @test status == :Optimal
+        @test (filter!(!isnothing, model.statistics.solutions)[end]["obj"]) == 5
+    end
+
+
+    @testset "variablesArray" begin
+    trailer = SeaPearl.Trailer()
+    model = SeaPearl.CPModel(trailer)
+
+    task1 = SeaPearl.IntVar(1, 1, "task1", trailer)
+    task2 = SeaPearl.IntVar(2, 3, "task2", trailer)
+    task3 = SeaPearl.IntVar(1, 7, "task3", trailer)
+    SeaPearl.addVariable!(model, task1)
+    SeaPearl.addVariable!(model, task2)
+    SeaPearl.addVariable!(model, task3)
+
+    p1 = 2
+    p2 = 3
+    p3 = 3
+    tasks = Vector{SeaPearl.IntVar}([task1, task2, task3])
+    processing_time = [p1, p2, p3]
+    disjunctive = SeaPearl.Disjunctive(tasks, processing_time, trailer)
+
+    @test SeaPearl.variablesArray(disjunctive)[1] == task1
+    @test SeaPearl.variablesArray(disjunctive)[2] == task2
+    @test SeaPearl.variablesArray(disjunctive)[3] == task3
+    end
 end

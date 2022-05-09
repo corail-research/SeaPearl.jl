@@ -13,7 +13,7 @@
         SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
         SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x, y, trailer))
 
-        lh = SeaPearl.LearnedHeuristic(agent)
+        lh = SeaPearl.SimpleLearnedHeuristic(agent)
 
         SeaPearl.update_with_cpmodel!(lh, model)
 
@@ -35,7 +35,7 @@
         SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
         SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x, y, trailer))
 
-        lh = SeaPearl.LearnedHeuristic(agent)
+        lh = SeaPearl.SimpleLearnedHeuristic(agent)
         SeaPearl.update_with_cpmodel!(lh, model)
 
         SeaPearl.sync_state!(lh, model, x)
@@ -81,7 +81,7 @@
         SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
         SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x, y, trailer))
 
-        lh = SeaPearl.LearnedHeuristic(agent)
+        lh = SeaPearl.SimpleLearnedHeuristic(agent)
         SeaPearl.update_with_cpmodel!(lh, model)
 
         obs = SeaPearl.get_observation!(lh, model, x)
@@ -123,7 +123,7 @@
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
 
-        lh = SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}, SeaPearl.DefaultReward, SeaPearl.FixedOutput}(agent)
+        lh = SeaPearl.SimpleLearnedHeuristic{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}, SeaPearl.DefaultReward, SeaPearl.FixedOutput}(agent)
         SeaPearl.update_with_cpmodel!(lh, model)
 
         obs = SeaPearl.get_observation!(lh, model, x)

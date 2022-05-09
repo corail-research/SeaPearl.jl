@@ -16,51 +16,21 @@ abstract type AbstractReward end
 """
     mutable struct LearnedHeuristic{SR<:AbstractStateRepresentation, R<:AbstractReward, A<:ActionOutput}
 
-The LearnedHeuristic is a value selection heuristic which is learned thanks to a training made by solving a certain amount
-of problem instances from files or from an `AbstractModelGenerator`. From the RL point of view, this is an agent which is
-learning how to choose an appropriate action (value to assign) when observing an `AbstractStateRepresentation`. The agent
-learns thanks to rewards that are given regularly during the search. He wil try to maximize the total reward.
+The LearnedHeuristic is a value selection heuristic learned thanks to a training made by solving problem instances from files 
+or from an `AbstractModelGenerator`. From the RL point of view, LearnedHeuristic contains an agent which is
+learning how to choose an appropriate action (value to assign) when observing an `AbstractStateRepresentation`, which is 
+a representation of the instance at its current state. The agent learns thanks to rewards that are given regularly 
+during the search. He tries to maximize the total reward.
 
 From the RL point of view, this LearnedHeuristic also plays part of the role normally played by the environment. Indeed, the
-LearnedHeuristic stores the action space, the current state and reward. The other role that a classic RL environment has is describing
-the consequences of an action: in SeaPearl, this is done by the CP part - branching, running fixPoint!, backtracking, etc...
-"""
-mutable struct LearnedHeuristic{SR<:AbstractStateRepresentation, R<:AbstractReward, A<:ActionOutput} <: ValueSelection
-    agent::RL.Agent
-    fitted_problem::Union{Nothing, Type{G}} where G
-    fitted_strategy::Union{Nothing, Type{S}} where S <: SearchStrategy
-    action_space::Union{Nothing, Array{Int64,1}}
-    current_state::Union{Nothing, SR}
-    reward::Union{Nothing, R}
-    search_metrics::Union{Nothing, SearchMetrics}
-    firstActionTaken::Bool
-    trainMode::Bool
-    chosen_features::Union{Nothing,Dict{String,Bool}}
-    LearnedHeuristic{SR, R, A}(agent::RL.Agent; chosen_features=nothing) where {SR, R, A}= new{SR, R, A}(agent, nothing, nothing, nothing, nothing, nothing, nothing, false, true, chosen_features)
-end
+LearnedHeuristic stores the action space, the current state and reward. The other role that a classic RL environment 
+plays is describing the consequences of an action: in SeaPearl, this is done by the CP part - branching, 
+running fixPoint!, backtracking, etc...
+
 
 """
-    (valueSelection::LearnedHeuristic)(::InitializingPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
 
-Update the part of the LearnedHeuristic which act like an RL environment, by initializing it with informations caracteritic of the new CPModel. Creates an
-initial observation with a false variable. A fixPoint! will be called before the LearnedHeuristic takes its first decision.
-Finally, makes the agent call the process of the RL pre_episode_stage (basically making sure that the buffer is empty).
-"""
-function (valueSelection::LearnedHeuristic)(::Type{InitializingPhase}, model::CPModel)
-    # create the environment
-    valueSelection.firstActionTaken = false
-    update_with_cpmodel!(valueSelection, model; chosen_features=valueSelection.chosen_features)
-    # FIXME get rid of this => prone to bugs
-    false_x = first(values(branchable_variables(model)))
-    env = get_observation!(valueSelection, model, false_x)
-
-    # Reset the agent, useful for things like recurrent networks
-    Flux.reset!(valueSelection.agent)
-
-    if valueSelection.trainMode
-        valueSelection.agent(RL.PRE_EPISODE_STAGE, env)
-    end
-end
+abstract type LearnedHeuristic{SR<:AbstractStateRepresentation, R<:AbstractReward, A<:ActionOutput} <: ValueSelection end
 
 """
     (valueSelection::LearnedHeuristic)(::StepPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
@@ -75,39 +45,6 @@ function (valueSelection::LearnedHeuristic)(PHASE::Type{StepPhase}, model::CPMod
     # incremental metrics, set after reward is updated
     set_metrics!(PHASE, valueSelection.search_metrics, model, current_status)
     nothing
-end
-
-"""
-    (valueSelection::LearnedHeuristic)(::DecisionPhase, model::CPModel, x::Union{Nothing, AbstractIntVar}, current_status::Union{Nothing, Symbol})
-
-Observe, store useful informations in the buffer with agent(POST_ACT_STAGE, ...) and take a decision with the call to agent(PRE_ACT_STAGE).
-The metrics that aren't updated in the StepPhase, which are more related to variables domains, are updated here. Once updated, they can
-be used in the other set_reward! function as the reward of the last action will only be collected in the RL.POST_ACT_STAGE.
-"""
-function (valueSelection::LearnedHeuristic)(PHASE::Type{DecisionPhase}, model::CPModel, x::Union{Nothing, AbstractIntVar})
-    # domain change metrics, set before reward is updated
-    set_metrics!(PHASE, valueSelection.search_metrics, model, x)
-    set_reward!(PHASE, valueSelection, model)
-    model.statistics.lastVar = x
-    env = get_observation!(valueSelection, model, x)
-
-    #println("Decision  ", env.reward, " ", env.terminal, " ", env.legal_actions, " ", env.legal_actions_mask)
-    if valueSelection.firstActionTaken
-        if valueSelection.trainMode
-            valueSelection.agent(RL.POST_ACT_STAGE, env) # get terminal and reward
-        end
-    else
-        valueSelection.firstActionTaken = true
-    end
-
-    action = valueSelection.agent(env) # Choose action
-    if valueSelection.trainMode
-        # TODO: swap to async computation once in deployment
-        #@async valueSelection.agent(RL.PRE_ACT_STAGE, env, action) # Store state and action
-        valueSelection.agent(RL.PRE_ACT_STAGE, env, action)
-    end
-
-    return action_to_value(valueSelection, action, state(env), model)
 end
 
 """

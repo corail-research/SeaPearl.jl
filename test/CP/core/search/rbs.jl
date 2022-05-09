@@ -422,7 +422,7 @@
     )
         
         # define the value selection
-        valueSelection = SeaPearl.LearnedHeuristic(agent)
+        valueSelection = SeaPearl.SimpleLearnedHeuristic(agent)
 
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
@@ -531,7 +531,7 @@
         )
 
         # define the value selection
-        valueSelection = SeaPearl.LearnedHeuristic(agent)
+        valueSelection = SeaPearl.SimpleLearnedHeuristic(agent)
 
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)

@@ -1,95 +1,95 @@
 @testset "learnedheuristic.jl" begin
 
-    @testset "LearnedHeuristic" begin
+    @testset "SimpleLearnedHeuristic" begin
 
-        learnedheuristic = SeaPearl.LearnedHeuristic(agent)
+        simplelearnedheuristic = SeaPearl.SimpleLearnedHeuristic(agent)
 
-        @test learnedheuristic.agent == agent
-        @test isnothing(learnedheuristic.fitted_problem)
-        @test isnothing(learnedheuristic.fitted_strategy)
-        @test isnothing(learnedheuristic.action_space)
-        @test isnothing(learnedheuristic.current_state)
-        @test isnothing(learnedheuristic.reward)
-        @test isnothing(learnedheuristic.search_metrics)
+        @test simplelearnedheuristic.agent == agent
+        @test isnothing(simplelearnedheuristic.fitted_problem)
+        @test isnothing(simplelearnedheuristic.fitted_strategy)
+        @test isnothing(simplelearnedheuristic.action_space)
+        @test isnothing(simplelearnedheuristic.current_state)
+        @test isnothing(simplelearnedheuristic.reward)
+        @test isnothing(simplelearnedheuristic.search_metrics)
 
-        learnedheuristic.fitted_problem = SeaPearl.LegacyGraphColoringGenerator
-        learnedheuristic.fitted_strategy = SeaPearl.DFSearch
+        simplelearnedheuristic.fitted_problem = SeaPearl.LegacyGraphColoringGenerator
+        simplelearnedheuristic.fitted_strategy = SeaPearl.DFSearch
 
-        @test learnedheuristic.fitted_problem == SeaPearl.LegacyGraphColoringGenerator
-        @test learnedheuristic.fitted_strategy == SeaPearl.DFSearch
+        @test simplelearnedheuristic.fitted_problem == SeaPearl.LegacyGraphColoringGenerator
+        @test simplelearnedheuristic.fitted_strategy == SeaPearl.DFSearch
 
     end
 
 
-    @testset "LearnedHeuristic in action" begin
+    @testset "SimpleLearnedHeuristic in action" begin
 
-    approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
-    target_approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
-    gnnlayers = 1
-    approximator_model = SeaPearl.CPNN(
-        graphChain = Flux.Chain(
-            SeaPearl.GraphConv(3 => 64, Flux.leakyrelu),
-            [approximator_GNN for i = 1:gnnlayers]...
-        ),
-        nodeChain = Flux.Chain(
-            Flux.Dense(64, 32, Flux.leakyrelu),
-            Flux.Dense(32, 32, Flux.leakyrelu),
-            Flux.Dense(32, 16, Flux.leakyrelu),
-        ),
-        outputChain = Flux.Dense(16, 4),
-    )
-    target_approximator_model = SeaPearl.CPNN(
-        graphChain = Flux.Chain(
-            SeaPearl.GraphConv(3 => 64, Flux.leakyrelu),
-            [target_approximator_GNN for i = 1:gnnlayers]...
-        ),
-        nodeChain = Flux.Chain(
-            Flux.Dense(64, 32, Flux.leakyrelu),
-            Flux.Dense(32, 32, Flux.leakyrelu),
-            Flux.Dense(32, 16, Flux.leakyrelu),
-        ),
-        outputChain = Flux.Dense(16, 4),
-    )
-
-    agent = RL.Agent(
-        policy = RL.QBasedPolicy(
-            learner = RL.DQNLearner(
-                approximator = RL.NeuralNetworkApproximator(
-                    model = approximator_model,
-                    optimizer = ADAM(0.001f0)
-                ),
-                target_approximator = RL.NeuralNetworkApproximator(
-                    model = target_approximator_model,
-                    optimizer = ADAM(0.001f0)
-                ),
-                loss_func = Flux.Losses.huber_loss,
-                stack_size = nothing,
-                γ = 0.99f0,
-                batch_size = 32,
-                update_horizon = 1,
-                min_replay_history = 1,
-                update_freq = 1,
-                target_update_freq = 100,
+        approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
+        target_approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
+        gnnlayers = 1
+        approximator_model = SeaPearl.CPNN(
+            graphChain=Flux.Chain(
+                SeaPearl.GraphConv(3 => 64, Flux.leakyrelu),
+                [approximator_GNN for i = 1:gnnlayers]...
             ),
-            explorer = RL.EpsilonGreedyExplorer(
-                ϵ_stable = 0.01,
-                kind = :exp,
-                ϵ_init = 1.0,
-                warmup_steps = 0,
-                decay_steps = 500,
-                step = 1,
-                is_break_tie = false,
-                #is_training = true,
-                rng = MersenneTwister(33)
-            )
-        ),
-        trajectory = RL.CircularArraySLARTTrajectory(
-            capacity = 500,
-            state = SeaPearl.DefaultTrajectoryState[] => (),
-            action = Int => (),
-            legal_actions_mask = Vector{Bool} => (4, ),
+            nodeChain=Flux.Chain(
+                Flux.Dense(64, 32, Flux.leakyrelu),
+                Flux.Dense(32, 32, Flux.leakyrelu),
+                Flux.Dense(32, 16, Flux.leakyrelu),
+            ),
+            outputChain=Flux.Dense(16, 4),
         )
-    )
+        target_approximator_model = SeaPearl.CPNN(
+            graphChain=Flux.Chain(
+                SeaPearl.GraphConv(3 => 64, Flux.leakyrelu),
+                [target_approximator_GNN for i = 1:gnnlayers]...
+            ),
+            nodeChain=Flux.Chain(
+                Flux.Dense(64, 32, Flux.leakyrelu),
+                Flux.Dense(32, 32, Flux.leakyrelu),
+                Flux.Dense(32, 16, Flux.leakyrelu),
+            ),
+            outputChain=Flux.Dense(16, 4),
+        )
+
+        agent = RL.Agent(
+            policy=RL.QBasedPolicy(
+                learner=RL.DQNLearner(
+                    approximator=RL.NeuralNetworkApproximator(
+                        model=approximator_model,
+                        optimizer=ADAM(0.001f0)
+                    ),
+                    target_approximator=RL.NeuralNetworkApproximator(
+                        model=target_approximator_model,
+                        optimizer=ADAM(0.001f0)
+                    ),
+                    loss_func=Flux.Losses.huber_loss,
+                    stack_size=nothing,
+                    γ=0.99f0,
+                    batch_size=32,
+                    update_horizon=1,
+                    min_replay_history=1,
+                    update_freq=1,
+                    target_update_freq=100,
+                ),
+                explorer=RL.EpsilonGreedyExplorer(
+                    ϵ_stable=0.01,
+                    kind=:exp,
+                    ϵ_init=1.0,
+                    warmup_steps=0,
+                    decay_steps=500,
+                    step=1,
+                    is_break_tie=false,
+                    #is_training = true,
+                    rng=MersenneTwister(33)
+                )
+            ),
+            trajectory=RL.CircularArraySLARTTrajectory(
+                capacity=500,
+                state=SeaPearl.DefaultTrajectoryState[] => (),
+                action=Int => (),
+                legal_actions_mask=Vector{Bool} => (4,),
+            )
+        )
 
 
         trailer = SeaPearl.Trailer()
@@ -108,7 +108,7 @@
         SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x2, x3, trailer))
         SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x3, x4, trailer))
 
-        lh = SeaPearl.LearnedHeuristic(agent)
+        lh = SeaPearl.SimpleLearnedHeuristic(agent)
         SeaPearl.update_with_cpmodel!(lh, model)
         false_x = first(values(model.variables))
         env = SeaPearl.get_observation!(lh, model, false_x)
@@ -146,7 +146,7 @@
         lh.agent(RL.POST_ACT_STAGE, env)
 
         @test length(lh.agent.trajectory[:state]) == 4
-        @test size(lh.agent.trajectory[:legal_actions_mask]) == (4,4)
+        @test size(lh.agent.trajectory[:legal_actions_mask]) == (4, 4)
         @test length(lh.agent.trajectory[:action]) == 4
         @test length(lh.agent.trajectory[:reward]) == 4
         @test length(lh.agent.trajectory[:terminal]) == 4
@@ -157,73 +157,73 @@
 
 
 
-    approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
-    target_approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
-    gnnlayers = 1
-    approximator_model = SeaPearl.CPNN(
-        graphChain = Flux.Chain(
-            SeaPearl.GraphConv(3 => 64, Flux.leakyrelu),
-            [approximator_GNN for i = 1:gnnlayers]...
-        ),
-        nodeChain = Flux.Chain(
-            Flux.Dense(64, 32, Flux.leakyrelu),
-            Flux.Dense(32, 32, Flux.leakyrelu),
-            Flux.Dense(32, 16, Flux.leakyrelu),
-        ),
-        outputChain = Flux.Dense(16, 4),
-    )
-    target_approximator_model = SeaPearl.CPNN(
-        graphChain = Flux.Chain(
-            SeaPearl.GraphConv(3 => 64, Flux.leakyrelu),
-            [target_approximator_GNN for i = 1:gnnlayers]...
-        ),
-        nodeChain = Flux.Chain(
-            Flux.Dense(64, 32, Flux.leakyrelu),
-            Flux.Dense(32, 32, Flux.leakyrelu),
-            Flux.Dense(32, 16, Flux.leakyrelu),
-        ),
-        outputChain = Flux.Dense(16, 4),
-    )
-
-    agent = RL.Agent(
-        policy = RL.QBasedPolicy(
-            learner = RL.DQNLearner(
-                approximator = RL.NeuralNetworkApproximator(
-                    model = approximator_model,
-                    optimizer = ADAM(0.001f0)
-                ),
-                target_approximator = RL.NeuralNetworkApproximator(
-                    model = target_approximator_model,
-                    optimizer = ADAM(0.001f0)
-                ),
-                loss_func = Flux.Losses.huber_loss,
-                stack_size = nothing,
-                γ = 0.99f0,
-                batch_size = 32,
-                update_horizon = 1,
-                min_replay_history = 1,
-                update_freq = 1,
-                target_update_freq = 100,
+        approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
+        target_approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
+        gnnlayers = 1
+        approximator_model = SeaPearl.CPNN(
+            graphChain=Flux.Chain(
+                SeaPearl.GraphConv(3 => 64, Flux.leakyrelu),
+                [approximator_GNN for i = 1:gnnlayers]...
             ),
-            explorer = RL.EpsilonGreedyExplorer(
-                ϵ_stable = 0.01,
-                kind = :exp,
-                ϵ_init = 1.0,
-                warmup_steps = 0,
-                decay_steps = 500,
-                step = 1,
-                is_break_tie = false,
-                #is_training = true,
-                rng = MersenneTwister(33)
-            )
-        ),
-        trajectory = RL.CircularArraySLARTTrajectory(
-            capacity = 500,
-            state = SeaPearl.DefaultTrajectoryState[] => (),
-            action = Int => (),
-            legal_actions_mask = Vector{Bool} => (4, ),
+            nodeChain=Flux.Chain(
+                Flux.Dense(64, 32, Flux.leakyrelu),
+                Flux.Dense(32, 32, Flux.leakyrelu),
+                Flux.Dense(32, 16, Flux.leakyrelu),
+            ),
+            outputChain=Flux.Dense(16, 4),
         )
-    )
+        target_approximator_model = SeaPearl.CPNN(
+            graphChain=Flux.Chain(
+                SeaPearl.GraphConv(3 => 64, Flux.leakyrelu),
+                [target_approximator_GNN for i = 1:gnnlayers]...
+            ),
+            nodeChain=Flux.Chain(
+                Flux.Dense(64, 32, Flux.leakyrelu),
+                Flux.Dense(32, 32, Flux.leakyrelu),
+                Flux.Dense(32, 16, Flux.leakyrelu),
+            ),
+            outputChain=Flux.Dense(16, 4),
+        )
+
+        agent = RL.Agent(
+            policy=RL.QBasedPolicy(
+                learner=RL.DQNLearner(
+                    approximator=RL.NeuralNetworkApproximator(
+                        model=approximator_model,
+                        optimizer=ADAM(0.001f0)
+                    ),
+                    target_approximator=RL.NeuralNetworkApproximator(
+                        model=target_approximator_model,
+                        optimizer=ADAM(0.001f0)
+                    ),
+                    loss_func=Flux.Losses.huber_loss,
+                    stack_size=nothing,
+                    γ=0.99f0,
+                    batch_size=32,
+                    update_horizon=1,
+                    min_replay_history=1,
+                    update_freq=1,
+                    target_update_freq=100,
+                ),
+                explorer=RL.EpsilonGreedyExplorer(
+                    ϵ_stable=0.01,
+                    kind=:exp,
+                    ϵ_init=1.0,
+                    warmup_steps=0,
+                    decay_steps=500,
+                    step=1,
+                    is_break_tie=false,
+                    #is_training = true,
+                    rng=MersenneTwister(33)
+                )
+            ),
+            trajectory=RL.CircularArraySLARTTrajectory(
+                capacity=500,
+                state=SeaPearl.DefaultTrajectoryState[] => (),
+                action=Int => (),
+                legal_actions_mask=Vector{Bool} => (4,),
+            )
+        )
 
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
@@ -244,7 +244,7 @@
         variableHeuristic = SeaPearl.MinDomainVariableSelection{false}()
         x = variableHeuristic(model)
 
-        lh = SeaPearl.LearnedHeuristic(agent)
+        lh = SeaPearl.SimpleLearnedHeuristic(agent)
         SeaPearl.update_with_cpmodel!(lh, model)
 
 
@@ -255,61 +255,57 @@
 
         lh(SeaPearl.EndingPhase, model, :Optimal)
         @test lh.agent.trajectory[:reward][end] == 0.975f0    #last DecisionReward (-0.025f0) + EndingReward (+1)
-        
-
-
-
-
     end
-    @testset "explorer variation on testmode" begin 
+
+    @testset "explorer variation on testmode" begin
         agent = RL.Agent(
-            policy = RL.QBasedPolicy(
-                learner = RL.DQNLearner(
-                    approximator = RL.NeuralNetworkApproximator(
-                        model = approximator_model,
-                        optimizer = ADAM(0.001f0)
+            policy=RL.QBasedPolicy(
+                learner=RL.DQNLearner(
+                    approximator=RL.NeuralNetworkApproximator(
+                        model=approximator_model,
+                        optimizer=ADAM(0.001f0)
                     ),
-                    target_approximator = RL.NeuralNetworkApproximator(
-                        model = target_approximator_model,
-                        optimizer = ADAM(0.001f0)
+                    target_approximator=RL.NeuralNetworkApproximator(
+                        model=target_approximator_model,
+                        optimizer=ADAM(0.001f0)
                     ),
-                    loss_func = Flux.Losses.huber_loss,
-                    stack_size = nothing,
-                    γ = 0.99f0,
-                    batch_size = 32,
-                    update_horizon = 1,
-                    min_replay_history = 1,
-                    update_freq = 1,
-                    target_update_freq = 100,
+                    loss_func=Flux.Losses.huber_loss,
+                    stack_size=nothing,
+                    γ=0.99f0,
+                    batch_size=32,
+                    update_horizon=1,
+                    min_replay_history=1,
+                    update_freq=1,
+                    target_update_freq=100,
                 ),
-                explorer = RL.EpsilonGreedyExplorer(
-                    ϵ_stable = 0.00,
-                    kind = :linear,
-                    ϵ_init = 1.0,
-                    warmup_steps = 1,
-                    decay_steps = 1000,
-                    step = 1,
-                    is_break_tie = false,
+                explorer=RL.EpsilonGreedyExplorer(
+                    ϵ_stable=0.00,
+                    kind=:linear,
+                    ϵ_init=1.0,
+                    warmup_steps=1,
+                    decay_steps=1000,
+                    step=1,
+                    is_break_tie=false,
                     #is_training = true,
-                    rng = MersenneTwister(33)
+                    rng=MersenneTwister(33)
                 )
             ),
-            trajectory = RL.CircularArraySLARTTrajectory(
-                capacity = 500,
-                state = SeaPearl.DefaultTrajectoryState[] => (),
-                action = Int => (),
-                legal_actions_mask = Vector{Bool} => (4, ),
+            trajectory=RL.CircularArraySLARTTrajectory(
+                capacity=500,
+                state=SeaPearl.DefaultTrajectoryState[] => (),
+                action=Int => (),
+                legal_actions_mask=Vector{Bool} => (4,),
             )
         )
-        lh = SeaPearl.LearnedHeuristic(agent)
+        lh = SeaPearl.SimpleLearnedHeuristic(agent)
 
-        Flux.testmode!(lh,true)
+        Flux.testmode!(lh, true)
         @test ReinforcementLearningCore.get_ϵ(lh.agent.policy.explorer) == 0
         dummy_value = 1
         lh.agent.policy.explorer(dummy_value) #add step
         @test ReinforcementLearningCore.get_ϵ(lh.agent.policy.explorer) == 0
-        
-        Flux.testmode!(lh,false)
+
+        Flux.testmode!(lh, false)
         @test ReinforcementLearningCore.get_ϵ(lh.agent.policy.explorer) == 1
         dummy_value = 1
         lh.agent.policy.explorer(dummy_value) #add step

@@ -5,7 +5,7 @@ MinDomainVariableSelection(;take_objective=true) = MinDomainVariableSelection{ta
 function (::MinDomainVariableSelection{false})(cpmodel::CPModel)
     selectedVar = nothing
     minSize = typemax(Int)
-    for (k, x) in branchable_variables(cpmodel)
+    for (k, x) in cpmodel.branchable_variables
         if x !== cpmodel.objective && !isbound(x) && length(x.domain) < minSize
             selectedVar = x
             minSize = length(x.domain)
@@ -20,7 +20,7 @@ end
 function (::MinDomainVariableSelection{true})(cpmodel::CPModel)
     selectedVar = nothing
     minSize = typemax(Int)
-    for (k, x) in branchable_variables(cpmodel)
+    for (k, x) in cpmodel.branchable_variables
         if !isbound(x) && length(x.domain) < minSize
             selectedVar = x
             minSize = length(x.domain)

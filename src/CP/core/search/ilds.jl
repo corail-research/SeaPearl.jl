@@ -41,7 +41,7 @@ function expandIlds!(toCall::Stack{Function}, discrepancy::Int64, model::CPModel
         return :SolutionLimitStop
     end
     # Fix-point algorithm
-    feasible, pruned = fixPoint!(model, newConstraints, prunedDomains)
+    feasible, pruned = fixPoint!(model, newConstraints, prunedDomains; isFailureBased=isa(variableHeuristic, FailureBasedVariableSelection))
     model.statistics.lastPruning = sum(map(x-> length(x[2]),collect(pruned)))
 
     if !feasible

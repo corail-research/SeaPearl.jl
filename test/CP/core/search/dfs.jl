@@ -229,7 +229,7 @@
 
     end
 
-    @testset "search!() with a LearnedHeuristic I" begin
+    @testset "search!() with a SimpleLearnedHeuristic I" begin
 
 
         approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
@@ -301,7 +301,7 @@
         )
     
         # define the value selection
-        valueSelection = SeaPearl.LearnedHeuristic(agent)
+        valueSelection = SeaPearl.SimpleLearnedHeuristic(agent)
 
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
@@ -345,7 +345,7 @@
 
     end
 
-    @testset "search!() with a LearnedHeuristic out of the solver" begin
+    @testset "search!() with a SimpleLearnedHeuristic out of the solver" begin
 
         approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
         target_approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
@@ -417,7 +417,7 @@
     
 
         # define the value selection
-        valueSelection = SeaPearl.LearnedHeuristic(agent)
+        valueSelection = SeaPearl.SimpleLearnedHeuristic(agent)
 
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
@@ -461,7 +461,7 @@
 
     end
 
-    @testset "search!() with a LearnedHeuristic II" begin
+    @testset "search!() with a SimpleLearnedHeuristic II" begin
 
         nothing
 

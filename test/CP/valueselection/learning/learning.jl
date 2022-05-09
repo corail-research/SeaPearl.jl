@@ -70,9 +70,10 @@ agent = RL.Agent(
     include("rewards/rewards.jl")
     include("utils.jl")
     include("learnedheuristic.jl")
+    include("supervisedlearnedheuristic.jl")
 
-    LearnedHeristicBasicConstructor = SeaPearl.LearnedHeuristic(agent)
-    @test isa(LearnedHeristicBasicConstructor,SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}, SeaPearl.DefaultReward, SeaPearl.FixedOutput})
+    LearnedHeristicBasicConstructor = SeaPearl.SimpleLearnedHeuristic(agent)
+    @test isa(LearnedHeristicBasicConstructor,SeaPearl.SimpleLearnedHeuristic{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}, SeaPearl.DefaultReward, SeaPearl.FixedOutput})
     @test isnothing(LearnedHeristicBasicConstructor.fitted_problem)
     @test isnothing(LearnedHeristicBasicConstructor.fitted_strategy)
     @test isnothing(LearnedHeristicBasicConstructor.action_space)

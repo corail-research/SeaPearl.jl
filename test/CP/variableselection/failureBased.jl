@@ -40,9 +40,9 @@
 
         @test variableselection(cpmodel) == x1
 
-        SeaPearl.triggerInfeasible!(SeaPearl.NotEqual(x3, x4, trailer), cpmodel)
-        SeaPearl.triggerInfeasible!(SeaPearl.NotEqual(x3, x4, trailer), cpmodel)
-        SeaPearl.triggerInfeasible!(SeaPearl.NotEqual(x3, x4, trailer), cpmodel)
+        SeaPearl.triggerInfeasible!(SeaPearl.NotEqual(x3, x4, trailer), cpmodel; isFailureBased=true)
+        SeaPearl.triggerInfeasible!(SeaPearl.NotEqual(x3, x4, trailer), cpmodel; isFailureBased=true)
+        SeaPearl.triggerInfeasible!(SeaPearl.NotEqual(x3, x4, trailer), cpmodel; isFailureBased=true)
 
         @test variableselection(cpmodel) == x3
     end 
@@ -87,9 +87,9 @@
 
         @test variableselection(cpmodel) == x1
 
-        SeaPearl.triggerInfeasible!(SeaPearl.NotEqual(x3, x4, trailer), cpmodel)
-        SeaPearl.triggerInfeasible!(SeaPearl.NotEqual(x3, x4, trailer), cpmodel)
-        SeaPearl.triggerInfeasible!(SeaPearl.NotEqual(x3, x4, trailer), cpmodel)
+        SeaPearl.triggerInfeasible!(SeaPearl.NotEqual(x3, x4, trailer), cpmodel; isFailureBased=true)
+        SeaPearl.triggerInfeasible!(SeaPearl.NotEqual(x3, x4, trailer), cpmodel; isFailureBased=true)
+        SeaPearl.triggerInfeasible!(SeaPearl.NotEqual(x3, x4, trailer), cpmodel; isFailureBased=true)
 
         @test variableselection(cpmodel) == x3
 
