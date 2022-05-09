@@ -36,8 +36,8 @@ and a position for the following features:
 """
 mutable struct HeterogeneousStateRepresentation{F,TS} <: FeaturizedStateRepresentation{F,TS}
     cplayergraph::CPLayerGraph
-    constraintNodeFeatures::Union{Nothing,AbstractMatrix{Float32}}
     variableNodeFeatures::Union{Nothing,AbstractMatrix{Float32}}
+    constraintNodeFeatures::Union{Nothing,AbstractMatrix{Float32}}
     valueNodeFeatures::Union{Nothing,AbstractMatrix{Float32}}
     globalFeatures::Union{Nothing,AbstractVector{Float32}}
     variableIdx::Union{Nothing,Int64}
@@ -45,5 +45,265 @@ mutable struct HeterogeneousStateRepresentation{F,TS} <: FeaturizedStateRepresen
     valueToPos::Union{Nothing,Dict{Int64,Int64}}
     chosenFeatures::Union{Nothing,Dict{String,Tuple{Bool,Int64}}}
     constraintTypeToId::Union{Nothing,Dict{Type,Int}}
-    nbFeatures::Int64
+    nbVariableFeatures::Int64
+    nbConstraintFeatures::Int64
+    nbValueFeatures::Int64
+end
+
+struct DefaultFeaturization <: AbstractFeaturization end
+
+"""
+    feature_length(sr::HeterogeneousStateRepresentation{F,TS}) where {F,TS}
+
+Returns the length of the feature vector.
+
+`sr.nbFeatures` is set in `initChosenFeatures`, which is called in `featurize` when the `HeterogeneousStateRepresentation` is created.
+"""
+feature_length(sr::HeterogeneousStateRepresentation{F,TS}) where {F,TS} = sr.nbVariableFeatures + sr.nbConstraintFeatures + sr.nbValueFeatures
+
+"""
+    feature_length(gen::AbstractModelGenerator, ::Type{FeaturizedStateRepresentation})
+
+Returns the length of the feature vector, for the `DefaultFeaturization` with no chosen features.
+
+Must be overwritten for any other featurization. 
+
+The difference with the `feature_length(sr::HeterogeneousStateRepresentation{F,TS})` function is that it takes a type as a parameter and not an instance.
+"""
+feature_length(::Type{<:FeaturizedStateRepresentation{DefaultFeaturization, TS}}) where TS = 3
+
+HeterogeneousStateRepresentation(m::CPModel) = HeterogeneousStateRepresentation{DefaultFeaturization,DefaultTrajectoryState}(m::CPModel)
+
+"""
+    HeterogeneousStateRepresentation{F,TS}(model::CPModel; action_space=nothing, chosen_features::Union{Nothing, Dict{String,Bool}}=nothing) where {F,TS}
+
+Constructor to initialize the representation with an action space and a dictionary of feature choices.
+"""
+function HeterogeneousStateRepresentation{F,TS}(model::CPModel; action_space=nothing, chosen_features::Union{Nothing,Dict{String,Bool}}=nothing) where {F,TS}
+    g = CPLayerGraph(model)
+    allValuesIdx = nothing
+    valueToPos = nothing
+    if !isnothing(action_space)
+        allValuesIdx = indexFromCpVertex.([g], ValueVertex.(action_space))
+        valueToPos = Dict{Int64,Int64}()
+        for (pos, value) in enumerate(action_space) # TODO : understand why value are all in action space
+            valueToPos[value] = pos
+        end
+    end
+
+    sr = HeterogeneousStateRepresentation{F,TS}(g, constraintNodeFeatures, variableNodeFeatures, valueNodeFeatures, nothing, allValuesIdx, valueToPos, chosen_features, nothing, 0)
+    sr.variableNodeFeatures, sr.constraintNodeFeatures, sr.valueNodeFeatures = featurize(sr; chosen_features=chosen_features)
+    sr.globalFeatures = global_featurize(sr)
+    return sr
+end
+
+function DefaultTrajectoryState(sr::HeterogeneousStateRepresentation{F,DefaultTrajectoryState}) where {F}
+    if isnothing(sr.variableIdx)
+        throw(ErrorException("Unable to build a DefaultTrajectoryState, when the branching variable is nothing."))
+    end
+    adj = Matrix(adjacency_matrix(sr.cplayergraph))
+    fg = isnothing(sr.globalFeatures) ?
+         FeaturedGraph(adj; nf=sr.nodeFeatures) : FeaturedGraph(adj; nf=sr.nodeFeatures, gf=sr.globalFeatures)
+    return DefaultTrajectoryState(fg, sr.variableIdx, sr.allValuesIdx)
+end
+
+"""
+    update_representation!(sr::HeterogeneousStateRepresentation, model::CPModel, x::AbstractIntVar)
+
+Update the StateRepesentation according to its Type and Featurization.
+"""
+function update_representation!(sr::HeterogeneousStateRepresentation, model::CPModel, x::AbstractIntVar)
+    update_features!(sr, model)
+    sr.variableIdx = indexFromCpVertex(sr.cplayergraph, VariableVertex(x))
+    return sr
+end
+
+"""
+    featurize(sr::HeterogeneousStateRepresentation{DefaultFeaturization, TS})
+
+Create features for every node of the graph. Can be overwritten for a completely custom featurization.
+
+Default behavior consists in a 3D One-hot vector that encodes whether the node represents a Constraint, a Variable or a Value.
+
+It is also possible to pass a `chosen_features` dictionary allowing to choose among some non mandatory features. 
+It will be used in `initChosenFeatures` to initialize `sr.chosenFeatures`. 
+See `HeterogeneousStateRepresentation` for a list of possible options.
+It is only necessary to specify the options you wish to activate.
+"""
+function featurize(sr::HeterogeneousStateRepresentation{DefaultFeaturization,TS}; chosen_features::Union{Nothing,Dict{String,Bool}}=nothing) where {TS}
+    initChosenFeatures(sr, chosen_features)
+
+    g = sr.cplayergraph
+    variableFeatures = zeros(Float32, sr.nbVariableFeatures, g.numberOfVariables)
+    constraintFeatures = zeros(Float32, sr.nbConstraintFeatures, g.numberOfConstraints)
+    valueFeatures = zeros(Float32, sr.nbValueFeatures, g.numberOfValues)
+    for i in 1:nv(g)
+        cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
+        if isa(cp_vertex, VariableVertex)
+            if sr.chosenFeatures["variable_initial_domain_size"][1]
+                variableFeatures[sr.chosenFeatures["variable_initial_domain_size"][2], i] = length(cp_vertex.variable.domain)
+            end
+            if sr.chosenFeatures["variable_domain_size"][1]
+                variableFeatures[sr.chosenFeatures["variable_domain_size"][2], i] = length(cp_vertex.variable.domain)
+            end
+            if sr.chosenFeatures["variable_is_bound"][1]
+                variableFeatures[sr.chosenFeatures["variable_is_bound"][2], i] = isbound(cp_vertex.variable)
+            end
+        end
+        if isa(cp_vertex, ConstraintVertex)
+            if sr.chosenFeatures["constraint_activity"][1]
+                constraintFeatures[sr.chosenFeatures["constraint_activity"][2], i] = cp_vertex.constraint.active.value
+            end
+            if sr.chosenFeatures["nb_involved_constraint_propagation"][1]
+                constraintFeatures[sr.chosenFeatures["nb_involved_constraint_propagation"][2], i] = 0
+            end
+            if sr.chosenFeatures["nb_not_bounded_variable"][1]
+                variables = variablesArray(cp_vertex.constraint)
+                constraintFeatures[sr.chosenFeatures["nb_not_bounded_variable"][2], i] = count(x -> !isbound(x), variables)
+            end
+            if sr.chosenFeatures["constraint_type"][1]
+                constraintFeatures[sr.constraintTypeToId[typeof(cp_vertex.constraint)], i] = 1
+            end
+        end
+        if isa(cp_vertex, ValueVertex)
+            if sr.chosenFeatures["values_raw"][1]
+                valueFeatures[sr.chosenFeatures["values_raw"][2], i] = cp_vertex.value
+            end
+            if sr.chosenFeatures["values_onehot"][1]
+                cp_vertex_idx = sr.valueToPos[cp_vertex.value]
+                valueFeatures[sr.chosenFeatures["values_onehot"][2]+cp_vertex_idx-1, i] = 1
+            end
+        end
+    end
+
+    return variableFeatures, constraintFeatures, valueFeatures
+end
+
+"""
+    initChosenFeatures(sr::HeterogeneousStateRepresentation{DefaultFeaturization,TS}, chosen_features::Dict{String,Bool})
+
+Builds the `sr.chosenFeatures` dictionary  and sets `sr.nbFeatures`.
+"""
+function initChosenFeatures(sr::HeterogeneousStateRepresentation{DefaultFeaturization,TS}, chosen_features::Union{Nothing,Dict{String,Bool}}) where {TS}
+    # Initialize chosenFeatures with all positions at -1 and presence to false
+    sr.chosenFeatures = Dict{String,Tuple{Bool,Int64}}(
+        "constraint_activity" => (false, -1),
+        "constraint_type" => (false, -1),
+        "nb_involved_constraint_propagation" => (false, -1),
+        "nb_not_bounded_variable" => (false, -1),
+        "variable_domain_size" => (false, -1),
+        "variable_initial_domain_size" => (false, -1),
+        "variable_is_bound" => (false, -1),
+        "values_onehot" => (false, -1),
+        "values_raw" => (false, -1),
+    )
+
+    variable_counter = 1
+    constraint_counter = 1
+    value_counter = 1
+    if !isnothing(chosen_features)
+        if haskey(chosen_features, "constraint_activity") && chosen_features["constraint_activity"]
+            sr.chosenFeatures["constraint_activity"] = (true, constraint_counter)
+            constraint_counter += 1
+        end
+
+        if haskey(chosen_features, "nb_involved_constraint_propagation") && chosen_features["nb_involved_constraint_propagation"]
+            sr.chosenFeatures["nb_involved_constraint_propagation"] = (true, constraint_counter)
+            constraint_counter += 1
+        end
+
+        if haskey(chosen_features, "variable_initial_domain_size") && chosen_features["variable_initial_domain_size"]
+            sr.chosenFeatures["variable_initial_domain_size"] = (true, variable_counter)
+            variable_counter += 1
+        end
+
+        if haskey(chosen_features, "variable_domain_size") && chosen_features["variable_domain_size"]
+            sr.chosenFeatures["variable_domain_size"] = (true, variable_counter)
+            variable_counter += 1
+        end
+
+        if haskey(chosen_features, "variable_is_bound") && chosen_features["variable_is_bound"]
+            sr.chosenFeatures["variable_is_bound"] = (true, variable_counter)
+            variable_counter += 1
+        end
+
+        if haskey(chosen_features, "nb_not_bounded_variable") && chosen_features["nb_not_bounded_variable"]
+            sr.chosenFeatures["nb_not_bounded_variable"] = (true, constraint_counter)
+            constraint_counter += 1
+        end
+
+
+        if haskey(chosen_features, "constraint_type") && chosen_features["constraint_type"]
+            sr.chosenFeatures["constraint_type"] = (true, constraint_counter)
+            constraintTypeToId = Dict{Type,Int}()
+            constraintsList = keys(sr.cplayergraph.cpmodel.statistics.numberOfTimesInvolvedInPropagation)
+            for constraint in constraintsList
+                if !haskey(constraintTypeToId, typeof(constraint))
+                    constraintTypeToId[typeof(constraint)] = constraint_counter
+                    constraint_counter += 1
+                end
+            end
+            sr.constraintTypeToId = constraintTypeToId
+        end
+
+        if haskey(chosen_features, "values_raw") && chosen_features["values_raw"]
+            sr.chosenFeatures["values_raw"] = (true, value_counter)
+            value_counter += 1
+        end
+
+        if haskey(chosen_features, "values_onehot") && chosen_features["values_onehot"]
+            sr.chosenFeatures["values_onehot"] = (true, value_counter)
+            value_counter += sr.cplayergraph.numberOfValues
+        end
+    end
+    sr.nbVariableFeatures = variable_counter - 1
+    sr.nbConstraintFeatures = constraint_counter - 1
+    sr.nbValueFeatures = value_counter - 1
+end
+
+"""
+    update_features!(sr::HeterogeneousStateRepresentation{DefaultFeaturization,TS}, ::CPModel)
+
+Updates the features of the graph nodes. 
+
+Use the `sr.chosenFeatures` dictionary to find out which features are used and their positions in the vector.
+"""
+function update_features!(sr::HeterogeneousStateRepresentation{DefaultFeaturization,TS}, ::CPModel) where {TS}
+    g = sr.cplayergraph
+    for i in 1:nv(g)
+        cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
+        if isa(cp_vertex, VariableVertex)
+            if sr.chosenFeatures["variable_domain_size"][1]
+                sr.nodeFeatures[sr.chosenFeatures["variable_domain_size"][2], i] = length(cp_vertex.variable.domain)
+            end
+
+            if sr.chosenFeatures["variable_is_bound"][1]
+                sr.nodeFeatures[sr.chosenFeatures["variable_is_bound"][2], i] = isbound(cp_vertex.variable)
+            end
+        end
+        if isa(cp_vertex, ConstraintVertex)
+            if sr.chosenFeatures["constraint_activity"][1]
+                sr.constraintNodeFeatures[sr.chosenFeatures["constraint_activity"][2], i] = cp_vertex.constraint.active.value
+            end
+
+            if sr.chosenFeatures["nb_involved_constraint_propagation"][1]
+                sr.constraintNodeFeatures[sr.chosenFeatures["nb_involved_constraint_propagation"][2], i] = sr.cplayergraph.cpmodel.statistics.numberOfTimesInvolvedInPropagation[cp_vertex.constraint]
+            end
+
+            if sr.chosenFeatures["nb_not_bounded_variable"][1]
+                variables = variablesArray(cp_vertex.constraint)
+                sr.constraintNodeFeatures[sr.chosenFeatures["nb_not_bounded_variable"][2], i] = count(x -> !isbound(x), variables)
+            end
+        end
+        if isa(cp_vertex, ValueVertex) # Probably useless, check before removing
+            if sr.chosenFeatures["values_raw"][1]
+                sr.valueNodeFeatures[sr.chosenFeatures["values_raw"][2], i] = cp_vertex.value
+            end
+
+            if sr.chosenFeatures["values_onehot"][1]
+                cp_vertex_idx = sr.valueToPos[cp_vertex.value]
+                sr.valueNodeFeatures[sr.chosenFeatures["values_onehot"][2]+cp_vertex_idx-1, i] = 1
+            end
+        end
+    end
 end
