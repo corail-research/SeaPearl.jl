@@ -151,7 +151,8 @@ function featurize(sr::HeterogeneousStateRepresentation{DefaultFeaturization,TS}
                     elseif isa(cpvertex.constraint.child, BoolVarViewNot)
                         constraintFeatures[sr.constraintTypeToId[typeof(cp_vertex.constraint) + 3], i] = 1
                     else
-                        error("WARNING: Unknwon VarViewType: please implement DefaultFeaturization for this type!")
+                        error("WARNING: Unknown VarViewType: please implement DefaultFeaturization for this type!")
+                    end
                 end
             end
         end

@@ -128,7 +128,6 @@ struct CPLayerGraph <: LightGraphs.AbstractGraph{Int}
             nodeToId[ConstraintVertex(viewConstraints[i])] = numberOfConstraints + i
         end
 
-        end
         numberOfConstraints += length(viewConstraints)
         # Filling variables
         for i in 1:numberOfVariables
