@@ -96,7 +96,7 @@ struct CPLayerGraph <: LightGraphs.AbstractGraph{Int}
                     push!(variables, constraintVar)
 
                     # Creating a new constraint and storing constraint-variable connections
-                    viewcon = ViewConstraint(constraintVar, constraintVar.x)
+                    viewcon = ViewConstraint(constraintVar.x, constraintVar)
                     push!(viewConstraints, viewcon)
 
                     constraintVar = constraintVar.x
@@ -111,8 +111,6 @@ struct CPLayerGraph <: LightGraphs.AbstractGraph{Int}
 
         numberOfVariables = length(variables)
 
-
-        totalLength = numberOfConstraints + numberOfVariables + numberOfValues
         nodeToId = Dict{CPLayerVertex, Int}()
         idToNode = Array{CPLayerVertex}(undef, totalLength)
 
@@ -130,6 +128,7 @@ struct CPLayerGraph <: LightGraphs.AbstractGraph{Int}
 
         end
         numberOfConstraints += length(viewConstraints)
+        totalLength = numberOfConstraints + numberOfVariables + numberOfValues
         # Filling variables
         for i in 1:numberOfVariables
             idToNode[numberOfConstraints + i] = VariableVertex(variables[i])
