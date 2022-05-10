@@ -113,17 +113,19 @@ function featurize(sr::HeterogeneousStateRepresentation{DefaultFeaturization,TS}
     variableFeatures = zeros(Float32, sr.nbVariableFeatures, g.numberOfVariables)
     constraintFeatures = zeros(Float32, sr.nbConstraintFeatures, g.numberOfConstraints)
     valueFeatures = zeros(Float32, sr.nbValueFeatures, g.numberOfValues)
+    ncon = sr.cplayergraph.numberOfConstraints
+    nvar = sr.cplayergraph.numberOfVariables
     for i in 1:nv(g)
         cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
         if isa(cp_vertex, VariableVertex)
             if sr.chosenFeatures["variable_initial_domain_size"][1]
-                variableFeatures[sr.chosenFeatures["variable_initial_domain_size"][2], i] = length(cp_vertex.variable.domain)
+                variableFeatures[sr.chosenFeatures["variable_initial_domain_size"][2], i - ncon] = length(cp_vertex.variable.domain)
             end
             if sr.chosenFeatures["variable_domain_size"][1]
-                variableFeatures[sr.chosenFeatures["variable_domain_size"][2], i] = length(cp_vertex.variable.domain)
+                variableFeatures[sr.chosenFeatures["variable_domain_size"][2], i - ncon] = length(cp_vertex.variable.domain)
             end
             if sr.chosenFeatures["variable_is_bound"][1]
-                variableFeatures[sr.chosenFeatures["variable_is_bound"][2], i] = isbound(cp_vertex.variable)
+                variableFeatures[sr.chosenFeatures["variable_is_bound"][2], i - ncon] = isbound(cp_vertex.variable)
             end
         end
         if isa(cp_vertex, ConstraintVertex)
@@ -139,15 +141,27 @@ function featurize(sr::HeterogeneousStateRepresentation{DefaultFeaturization,TS}
             end
             if sr.chosenFeatures["constraint_type"][1]
                 constraintFeatures[sr.constraintTypeToId[typeof(cp_vertex.constraint)], i] = 1
+                if isa(cpvertex.constraint, ViewConstraint)
+                    if isa(cpvertex.constraint.child, IntVarViewMul)
+                        constraintFeatures[sr.constraintTypeToId[typeof(cp_vertex.constraint) + 1], i] = cp_vertex.constraint.child.a
+                    elseif isa(cpvertex.constraint.child, IntVarViewOffset)
+                        constraintFeatures[sr.constraintTypeToId[typeof(cp_vertex.constraint) + 2], i] = cp_vertex.constraint.child.c
+                    elseif isa(cpvertex.constraint.child, IntVarViewOpposite)
+                        constraintFeatures[sr.constraintTypeToId[typeof(cp_vertex.constraint) + 1], i] = -1
+                    elseif isa(cpvertex.constraint.child, BoolVarViewNot)
+                        constraintFeatures[sr.constraintTypeToId[typeof(cp_vertex.constraint) + 3], i] = 1
+                    else
+                        error("WARNING: Unknwon VarViewType: please implement DefaultFeaturization for this type!")
+                end
             end
         end
         if isa(cp_vertex, ValueVertex)
             if sr.chosenFeatures["values_raw"][1]
-                valueFeatures[sr.chosenFeatures["values_raw"][2], i] = cp_vertex.value
+                valueFeatures[sr.chosenFeatures["values_raw"][2], i - ncon - nvar] = cp_vertex.value
             end
             if sr.chosenFeatures["values_onehot"][1]
                 cp_vertex_idx = sr.valueToPos[cp_vertex.value]
-                valueFeatures[sr.chosenFeatures["values_onehot"][2]+cp_vertex_idx-1, i] = 1
+                valueFeatures[sr.chosenFeatures["values_onehot"][2] + cp_vertex_idx - 1, i - ncon - nvar] = 1
             end
         end
     end
@@ -210,13 +224,18 @@ function initChosenFeatures(sr::HeterogeneousStateRepresentation{DefaultFeaturiz
 
 
         if haskey(chosen_features, "constraint_type") && chosen_features["constraint_type"]
-            sr.chosenFeatures["constraint_type"] = (true, constraint_counter)
+            sr.chosenFeatures["constraint_type"] = (true, counter)
             constraintTypeToId = Dict{Type,Int}()
-            constraintsList = keys(sr.cplayergraph.cpmodel.statistics.numberOfTimesInvolvedInPropagation)
+            nbcon = sr.cplayergraph.numberOfConstraints
+            constraintsList = sr.cplayergraph.idToNode[1:nbcon]
             for constraint in constraintsList
                 if !haskey(constraintTypeToId, typeof(constraint))
-                    constraintTypeToId[typeof(constraint)] = constraint_counter
-                    constraint_counter += 1
+                    constraintTypeToId[typeof(constraint)] = counter
+                    if isa(constraint,ViewConstraint)
+                        counter += 4 
+                    else
+                        counter += 1
+                    end
                 end
             end
             sr.constraintTypeToId = constraintTypeToId
@@ -246,15 +265,17 @@ Use the `sr.chosenFeatures` dictionary to find out which features are used and t
 """
 function update_features!(sr::HeterogeneousStateRepresentation{DefaultFeaturization,TS}, ::CPModel) where {TS}
     g = sr.cplayergraph
+    ncon = sr.cplayergraph.numberOfConstraints
+    nvar = sr.cplayergraph.numberOfVariables
     for i in 1:nv(g)
         cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
         if isa(cp_vertex, VariableVertex)
             if sr.chosenFeatures["variable_domain_size"][1]
-                sr.nodeFeatures[sr.chosenFeatures["variable_domain_size"][2], i] = length(cp_vertex.variable.domain)
+                sr.nodeFeatures[sr.chosenFeatures["variable_domain_size"][2], i - ncon] = length(cp_vertex.variable.domain)
             end
 
             if sr.chosenFeatures["variable_is_bound"][1]
-                sr.nodeFeatures[sr.chosenFeatures["variable_is_bound"][2], i] = isbound(cp_vertex.variable)
+                sr.nodeFeatures[sr.chosenFeatures["variable_is_bound"][2], i - ncon] = isbound(cp_vertex.variable)
             end
         end
         if isa(cp_vertex, ConstraintVertex)
@@ -273,12 +294,12 @@ function update_features!(sr::HeterogeneousStateRepresentation{DefaultFeaturizat
         end
         if isa(cp_vertex, ValueVertex) # Probably useless, check before removing
             if sr.chosenFeatures["values_raw"][1]
-                sr.valueNodeFeatures[sr.chosenFeatures["values_raw"][2], i] = cp_vertex.value
+                sr.valueNodeFeatures[sr.chosenFeatures["values_raw"][2], i - ncon - nvar] = cp_vertex.value
             end
 
             if sr.chosenFeatures["values_onehot"][1]
                 cp_vertex_idx = sr.valueToPos[cp_vertex.value]
-                sr.valueNodeFeatures[sr.chosenFeatures["values_onehot"][2]+cp_vertex_idx-1, i] = 1
+                sr.valueNodeFeatures[sr.chosenFeatures["values_onehot"][2]+cp_vertex_idx-1, i - ncon - nvar] = 1
             end
         end
     end
