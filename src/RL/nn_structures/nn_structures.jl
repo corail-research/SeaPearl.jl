@@ -22,6 +22,7 @@ function (nn::NNStructure)(x::AbstractVector{<:NonTabularTrajectoryState})
 end
 
 include("cpnn.jl")
+include("heterogeneouscpnn.jl")
 include("fullfeaturedcpnn.jl")
 include("variableoutputcpnn.jl")
 
