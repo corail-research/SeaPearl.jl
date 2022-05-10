@@ -156,6 +156,7 @@ function featurize(sr::DefaultStateRepresentation{DefaultFeaturization,TS}; chos
                         features[sr.constraintTypeToId[typeof(cp_vertex.constraint) + 3], i] = 1
                     else
                         error("WARNING: Unknwon VarViewType: please implement DefaultFeaturization for this type!")
+                    end
                 end
             end
         end
