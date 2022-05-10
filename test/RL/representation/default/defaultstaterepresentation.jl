@@ -152,7 +152,7 @@ adj = [0 1 0 1;
         @test size(batchedDts.variableIdx,1) == 2
     end
 
-    @testset "DefaultFeaturization with chose_features without ordered values" begin
+    @testset "DefaultFeaturization with chosen_features without ordered values" begin
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
 
@@ -188,7 +188,7 @@ adj = [0 1 0 1;
             "nb_not_bounded_variable" => false
         )
         sr = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}(model; action_space = 1:4, chosen_features=chosen_features)
-        
+
         # Testing the initialization of the node features
         # TODO: improve the tests here
         @test sr.nodeFeatures[1:3,:] == Float32[1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0 1.0 0.0 0.0 0.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0]
@@ -215,7 +215,7 @@ adj = [0 1 0 1;
         
     end
 
-    @testset "DefaultFeaturization with chose_features with value ordering" begin
+    @testset "DefaultFeaturization with chosen_features with value ordering" begin
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
 
