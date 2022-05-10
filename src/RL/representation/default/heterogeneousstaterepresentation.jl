@@ -102,8 +102,9 @@ function HeterogeneousTrajectoryState(sr::HeterogeneousStateRepresentation{F,Het
         throw(ErrorException("Unable to build an HeterogeneousTrajectoryState, when the branching variable is nothing."))
     end
     contovar, valtovar = adjacency_matrices(sr.cplayergraph)
-    fg = HeterogeneousFeaturedGraph(contovar, valtovar, sr.variableNodeFeatures, sr.constraintNodeFeatures, sr.valueNodeFeatures, sr.globalFeatures)
-    return HeterogeneousTrajectoryState(fg, sr.variableIdx, sr.allValuesIdx)
+    globalFeatures = isnothing(sr.globalFeatures) ? zeros(0) : sr.globalFeatures
+    fg = HeterogeneousFeaturedGraph(contovar, valtovar, sr.variableNodeFeatures, sr.constraintNodeFeatures, sr.valueNodeFeatures, globalFeatures)
+    return HeterogeneousTrajectoryState(fg, sr.variableIdx)
 end
 
 """
