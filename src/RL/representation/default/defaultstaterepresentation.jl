@@ -149,14 +149,14 @@ function featurize(sr::DefaultStateRepresentation{DefaultFeaturization,TS}; chos
             end
             if sr.chosenFeatures["constraint_type"][1]
                 features[sr.constraintTypeToId[typeof(cp_vertex.constraint)], i] = 1
-                if isa(cpvertex.constraint, ViewConstraint)
-                    if isa(cpvertex.constraint.child, IntVarViewMul)
+                if isa(cp_vertex.constraint, ViewConstraint)
+                    if isa(cp_vertex.constraint.child, IntVarViewMul)
                         features[sr.constraintTypeToId[typeof(cp_vertex.constraint) + 1], i] = cp_vertex.constraint.child.a
-                    elseif isa(cpvertex.constraint.child, IntVarViewOffset)
+                    elseif isa(cp_vertex.constraint.child, IntVarViewOffset)
                         features[sr.constraintTypeToId[typeof(cp_vertex.constraint) + 2], i] = cp_vertex.constraint.child.c
-                    elseif isa(cpvertex.constraint.child, IntVarViewOpposite)
+                    elseif isa(cp_vertex.constraint.child, IntVarViewOpposite)
                         features[sr.constraintTypeToId[typeof(cp_vertex.constraint) + 1], i] = -1
-                    elseif isa(cpvertex.constraint.child, BoolVarViewNot)
+                    elseif isa(cp_vertex.constraint.child, BoolVarViewNot)
                         features[sr.constraintTypeToId[typeof(cp_vertex.constraint) + 3], i] = 1
                     else
                         error("WARNING: Unknwon VarViewType: please implement DefaultFeaturization for this type!")
@@ -247,11 +247,11 @@ function initChosenFeatures(sr::DefaultStateRepresentation{DefaultFeaturization,
             sr.chosenFeatures["constraint_type"] = (true, counter)
             constraintTypeToId = Dict{Type,Int}()
             nbcon = sr.cplayergraph.numberOfConstraints
-            constraintsList = sr.cplayergraph.idToNode[1:nbcon]
-            for constraint in constraintsList
-                if !haskey(constraintTypeToId, typeof(constraint))
-                    constraintTypeToId[typeof(constraint)] = counter
-                    if isa(constraint,ViewConstraint)
+            constraintsVertexList = sr.cplayergraph.idToNode[1:nbcon]
+            for vertex in constraintsVertexList
+                if !haskey(constraintTypeToId, typeof(vertex.constraint))
+                    constraintTypeToId[typeof(vertex.constraint)] = counter
+                    if isa(vertex.constraint,ViewConstraint)
                         counter += 4 
                     else
                         counter += 1
