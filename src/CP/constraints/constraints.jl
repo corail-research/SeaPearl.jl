@@ -73,4 +73,4 @@ struct ViewConstraint <: Constraint
     child   ::Union{SeaPearl.IntVarView, SeaPearl.BoolVarView}
 end
 
-variablesArray(constraint::ViewConstraint) = [parent, child]
+variablesArray(constraint::ViewConstraint) = [constraint.parent, constraint.child]
