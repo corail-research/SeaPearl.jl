@@ -10,7 +10,7 @@ This structure is here to provide a flexible way to create a nn model which resp
 Making modification on the graph, then extract one node feature and modify it.
 """
 Base.@kwdef struct HeterogeneousCPNN <: NNStructure
-    graphChain::Flux.Chain = Flux.Chain()
+    graphChain
     nodeChain::Flux.Chain = Flux.Chain()
     globalChain::Flux.Chain = Flux.Chain()
     outputChain::Union{Flux.Dense, Flux.Chain} = Flux.Chain()
@@ -26,10 +26,17 @@ function (nn::HeterogeneousCPNN)(states::BatchedHeterogeneousTrajectoryState)
 
     # chain working on the graph(s)
     fg = nn.graphChain(states.fg)
-
+    variableFeatures = fg.varnf
+    # extract the feature(s) of the variable(s) we're working on
+    indices = nothing
+    Zygote.ignore() do
+        # Double check that we are extracting the right variable
+        indices = CartesianIndex.(zip(variableIdx, 1:batchSize))
+    end
+    variableFeature = variableFeatures[:, indices]
     # chain working on the node(s) feature(s)
-    chainNodeOutput = nn.nodeChain(states.fg.varnf)
-
+    chainNodeOutput = nn.nodeChain(variableFeature)
+    
     if isempty(globalFeatures)
         # output layers
         output = nn.outputChain(chainNodeOutput)

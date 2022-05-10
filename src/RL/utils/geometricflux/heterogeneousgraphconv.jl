@@ -29,9 +29,9 @@ function (g::HeterogeneousGraphConv)(fgs::BatchedHeterogeneousFeaturedGraph{Floa
         contovar,
         valtovar,
         g.σ.(g.weightsvar ⊠ vcat(X1, H1, H2 ⊠ contovar, H3 ⊠ valtovar) .+ g.biasvar),
-        g.σ.(g.weightscon ⊠ vcat(X2, H2, H1 ⊠ transpose(contovar)) .+ g.biascon),
-        g.σ.(g.weightsval ⊠ vcat(X3, H3, H1 ⊠ transpose(valtovar)) .+ g.biasval),
-        fg.gf
+        g.σ.(g.weightscon ⊠ vcat(X2, H2, H1 ⊠ permutedims(contovar, [2,1,3])) .+ g.biascon),
+        g.σ.(g.weightsval ⊠ vcat(X3, H3, H1 ⊠ permutedims(valtovar, [2,1,3])) .+ g.biasval),
+        fgs.gf
     )
 end
 
