@@ -1,19 +1,19 @@
-mutable struct HeterogeneousFeaturedGraph{T <: AbstractMatrix, N <: AbstractMatrix, E <: AbstractArray, G <: AbstractVector} <: AbstractFeaturedGraph
+mutable struct HeterogeneousFeaturedGraph{T<:AbstractMatrix,N<:AbstractMatrix,G<:AbstractVector} <: AbstractFeaturedGraph
     contovar::T
     valtovar::T
     varnf::N
     connf::N
     valnf::N
     gf::G
-    
-    function HeterogeneousFeaturedGraph(contovar::T, valtovar::T, varnf::N, connf::N, valnf::N, gf::G) where {T <: AbstractMatrix, N <: AbstractMatrix, E <: AbstractArray, G <: AbstractVector}
+
+    function HeterogeneousFeaturedGraph(contovar::T, valtovar::T, varnf::N, connf::N, valnf::N, gf::G) where {T<:AbstractMatrix,N<:AbstractMatrix,G<:AbstractVector}
         check_dimensions(contovar, valtovar, varnf, connf, valnf, gf)
-        return new{T,N,E,G}(contovar, valtovar, varnf, connf, valnf, gf)
+        return new{T,N,G}(contovar, valtovar, varnf, connf, valnf, gf)
     end
 
-    function HeterogeneousFeaturedGraph{T, N, E, G}(contovar::AbstractArray, valtovar::AbstractArray, varnf::AbstractArray, connf::AbstractArray, valnf::AbstractArray, gf::AbstractArray) where {T <: AbstractMatrix, N <: AbstractMatrix, E <: AbstractArray, G <: AbstractVector}
+    function HeterogeneousFeaturedGraph{T,N,G}(contovar::AbstractArray, valtovar::AbstractArray, varnf::AbstractArray, connf::AbstractArray, valnf::AbstractArray, gf::AbstractArray) where {T<:AbstractMatrix,N<:AbstractMatrix,G<:AbstractVector}
         check_dimensions(contovar, valtovar, varnf, connf, valnf, gf)
-        return new{T, N, E, G}(contovar, valtovar, varnf, connf, valnf, gf)
+        return new{T,N,G}(contovar, valtovar, varnf, connf, valnf, gf)
     end
 end
 
