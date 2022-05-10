@@ -66,3 +66,11 @@ getOnDomainChange(x::Union{IntVar, BoolVar, IntSetVar}) = x.onDomainChange
 getOnDomainChange(x::Union{IntVarView, BoolVarView}) = getOnDomainChange(x.x)
 
 variablesArray(constraint::Constraint) = throw(ErrorException("missing function variablesArray(::$(typeof(constraint)))."))
+
+
+struct ViewConstraint <: Constraint
+    parent  ::Union{SeaPearl.AbstractIntVar, SeaPearl.AbstractBoolVar}
+    child   ::Union{SeaPearl.IntVarView, SeaPearl.BoolVarView}
+end
+
+variablesArray(constraint::ViewConstraint) = [parent, child]

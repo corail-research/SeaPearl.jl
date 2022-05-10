@@ -145,6 +145,18 @@ function featurize(sr::DefaultStateRepresentation{DefaultFeaturization,TS}; chos
             end
             if sr.chosenFeatures["constraint_type"][1]
                 features[sr.constraintTypeToId[typeof(cp_vertex.constraint)], i] = 1
+                if isa(cpvertex.constraint, ViewConstraint)
+                    if isa(cpvertex.constraint.child, IntVarViewMul)
+                        features[sr.constraintTypeToId[typeof(cp_vertex.constraint) + 1], i] = cp_vertex.constraint.child.a
+                    elseif isa(cpvertex.constraint.child, IntVarViewOffset)
+                        features[sr.constraintTypeToId[typeof(cp_vertex.constraint) + 2], i] = cp_vertex.constraint.child.c
+                    elseif isa(cpvertex.constraint.child, IntVarViewOpposite)
+                        features[sr.constraintTypeToId[typeof(cp_vertex.constraint) + 1], i] = -1
+                    elseif isa(cpvertex.constraint.child, BoolVarViewNot)
+                        features[sr.constraintTypeToId[typeof(cp_vertex.constraint) + 3], i] = 1
+                    else
+                        error("WARNING: Unknwon VarViewType: please implement DefaultFeaturization for this type!")
+                end
             end
         end
         if isa(cp_vertex, VariableVertex)
@@ -229,11 +241,16 @@ function initChosenFeatures(sr::DefaultStateRepresentation{DefaultFeaturization,
         if haskey(chosen_features, "constraint_type") && chosen_features["constraint_type"]
             sr.chosenFeatures["constraint_type"] = (true, counter)
             constraintTypeToId = Dict{Type,Int}()
-            constraintsList = keys(sr.cplayergraph.cpmodel.statistics.numberOfTimesInvolvedInPropagation)
+            nbcon = sr.cplayergraph.numberOfConstraints
+            constraintsList = sr.cplayergraph.idToNode[1:nbcon]
             for constraint in constraintsList
                 if !haskey(constraintTypeToId, typeof(constraint))
                     constraintTypeToId[typeof(constraint)] = counter
-                    counter += 1
+                    if isa(constraint,ViewConstraint)
+                        counter += 4 
+                    else
+                        counter += 1
+                    end
                 end
             end
             sr.constraintTypeToId = constraintTypeToId
