@@ -91,7 +91,7 @@ function HeterogeneousStateRepresentation{F,TS}(model::CPModel; action_space=not
         end
     end
 
-    sr = HeterogeneousStateRepresentation{F,TS}(g, constraintNodeFeatures, variableNodeFeatures, valueNodeFeatures, nothing, allValuesIdx, valueToPos, chosen_features, nothing, 0)
+    sr = HeterogeneousStateRepresentation{F,TS}(g, nothing, nothing, nothing, nothing, nothing, allValuesIdx, valueToPos, chosen_features, nothing, 0, 0, 0)
     sr.variableNodeFeatures, sr.constraintNodeFeatures, sr.valueNodeFeatures = featurize(sr; chosen_features=chosen_features)
     sr.globalFeatures = global_featurize(sr)
     return sr
