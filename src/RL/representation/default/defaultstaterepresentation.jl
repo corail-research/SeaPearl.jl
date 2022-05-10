@@ -134,7 +134,11 @@ function featurize(sr::DefaultStateRepresentation{DefaultFeaturization,TS}; chos
         if isa(cp_vertex, ConstraintVertex)
             features[1, i] = 1.0f0
             if sr.chosenFeatures["constraint_activity"][1]
-                features[sr.chosenFeatures["constraint_activity"][2], i] = cp_vertex.constraint.active.value
+                if isa(cp_vertex.constraint, ViewConstraint)
+                    features[sr.chosenFeatures["constraint_activity"][2], i] = isbound(cp_vertex.constraint.parent)
+                else
+                    features[sr.chosenFeatures["constraint_activity"][2], i] = cp_vertex.constraint.active.value
+                end
             end
             if sr.chosenFeatures["nb_involved_constraint_propagation"][1]
                 features[sr.chosenFeatures["nb_involved_constraint_propagation"][2], i] = 0
@@ -284,7 +288,11 @@ function update_features!(sr::DefaultStateRepresentation{DefaultFeaturization,TS
         cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
         if isa(cp_vertex, ConstraintVertex)
             if sr.chosenFeatures["constraint_activity"][1]
-                sr.nodeFeatures[sr.chosenFeatures["constraint_activity"][2], i] = cp_vertex.constraint.active.value
+                if isa(cp_vertex.constraint, ViewConstraint)
+                    sr.nodeFeatures[sr.chosenFeatures["constraint_activity"][2], i] = isbound(cp_vertex.constraint.parent)
+                else
+                    sr.nodeFeatures[sr.chosenFeatures["constraint_activity"][2], i] = cp_vertex.constraint.active.value
+                end
             end
 
             if sr.chosenFeatures["nb_involved_constraint_propagation"][1]
