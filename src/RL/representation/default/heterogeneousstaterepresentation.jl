@@ -67,7 +67,7 @@ function HeterogeneousStateRepresentation{F,TS}(model::CPModel; action_space=not
         end
     end
 
-    sr = HeterogeneousStateRepresentation{F,TS}(g, nothing, nothing, nothing, nothing, nothing, allValuesIdx, valueToPos, chosen_features, nothing, 0, 0, 0)
+    sr = HeterogeneousStateRepresentation{F,TS}(g, nothing, nothing, nothing, nothing, nothing, allValuesIdx, valueToPos, nothing, nothing, 0, 0, 0)
     sr.variableNodeFeatures, sr.constraintNodeFeatures, sr.valueNodeFeatures = featurize(sr; chosen_features=chosen_features)
     sr.globalFeatures = global_featurize(sr)
     return sr
@@ -233,9 +233,9 @@ function initChosenFeatures(sr::HeterogeneousStateRepresentation{DefaultFeaturiz
                 if !haskey(constraintTypeToId, typeof(constraint))
                     constraintTypeToId[typeof(constraint)] = counter
                     if isa(constraint,ViewConstraint)
-                        counter += 4 
+                        constraint_counter += 4 
                     else
-                        counter += 1
+                        constraint_counter += 1
                     end
                 end
             end
