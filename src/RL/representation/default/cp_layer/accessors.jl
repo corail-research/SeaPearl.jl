@@ -148,3 +148,25 @@ end
 function LightGraphs.adjacency_matrix(cplayergraph::CPLayerGraph)
     return adjacency_matrix(Graph(cplayergraph))
 end
+
+function adjacency_matrices(cplayergraph::CPLayerGraph)
+    g = Graph(cplayergraph) # Update the graph with the new information
+    nvar = cplayergraph.numberOfVariables
+    ncon = cplayergraph.numberOfConstraints
+    nval = cplayergraph.numberOfValues
+    contovar = zeros(ncon, nvar)
+    valtovar = zeros(nval, nvar)
+    for (i, node) in enumerate(cplayergraph.idToNode)
+        if isa(node, ConstraintVertex)
+            neighbors = outneighbors(g, i)
+            for neighbor in neighbors
+                contovar[i, neighbor - ncon] = 1
+            end
+        else if isa(node, ValueVertex)
+            neighbors = outneighbors(g, i)
+            for neighbor in neighbors
+                valtovar[i, neighbor - ncon - nvar] = 1
+        end
+    end
+    return contovar, valtovar
+end
