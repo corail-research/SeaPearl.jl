@@ -296,7 +296,7 @@
         # Since eta_init = 1.0 an helpSolution is calculated
         lh(SeaPearl.InitializingPhase, model)
         @test !isnothing(lh.helpSolution)
-        @test lh.helpSolution == Dict{String,Union{Bool,Int64,Set{Int64}}}("x1" => 2, "x4" => 4, "x2" => 1, "x3" => 3)
+        @test lh.helpSolution == Dict{String,Union{Bool,Int64,Set{Int64}}}("x1" => 1, "x2" => 2, "x3" => 3, "x4" => 1)
 
         # We check that the values returned by the heuristic correspond to those of the helpSolution.
         # Variable 1
