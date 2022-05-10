@@ -104,4 +104,6 @@ global_feature_length(sr::Type{<:FeaturizedStateRepresentation}) = 0
 
 include("default/defaulttrajectorystate.jl")
 include("default/defaultstaterepresentation.jl")
+include("default/heterogeneoustrajectorystate.jl")
+include("default/heterogeneousstaterepresentation.jl")
 include("tsptw/tsptwstaterepresentation.jl")
