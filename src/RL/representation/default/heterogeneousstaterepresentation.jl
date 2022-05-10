@@ -72,7 +72,7 @@ The difference with the `feature_length(sr::HeterogeneousStateRepresentation{F,T
 """
 feature_length(::Type{<:FeaturizedStateRepresentation{DefaultFeaturization, TS}}) where TS = 3
 
-HeterogeneousStateRepresentation(m::CPModel) = HeterogeneousStateRepresentation{DefaultFeaturization,DefaultTrajectoryState}(m::CPModel)
+HeterogeneousStateRepresentation(m::CPModel) = HeterogeneousStateRepresentation{DefaultFeaturization,HeterogeneousTrajectoryState}(m::CPModel)
 
 """
     HeterogeneousStateRepresentation{F,TS}(model::CPModel; action_space=nothing, chosen_features::Union{Nothing, Dict{String,Bool}}=nothing) where {F,TS}
@@ -97,14 +97,13 @@ function HeterogeneousStateRepresentation{F,TS}(model::CPModel; action_space=not
     return sr
 end
 
-function DefaultTrajectoryState(sr::HeterogeneousStateRepresentation{F,DefaultTrajectoryState}) where {F}
+function HeterogeneousTrajectoryState(sr::HeterogeneousStateRepresentation{F,HeterogeneousTrajectoryState}) where {F}
     if isnothing(sr.variableIdx)
-        throw(ErrorException("Unable to build a DefaultTrajectoryState, when the branching variable is nothing."))
+        throw(ErrorException("Unable to build an HeterogeneousTrajectoryState, when the branching variable is nothing."))
     end
-    adj = Matrix(adjacency_matrix(sr.cplayergraph))
-    fg = isnothing(sr.globalFeatures) ?
-         FeaturedGraph(adj; nf=sr.nodeFeatures) : FeaturedGraph(adj; nf=sr.nodeFeatures, gf=sr.globalFeatures)
-    return DefaultTrajectoryState(fg, sr.variableIdx, sr.allValuesIdx)
+    contovar, valtovar = Matrix(adjacency_matrices(sr.cplayergraph))
+    fg = HeterogeneousFeaturedGraph(contovar, valtovar, sr.variableNodeFeatures, sr.constraintNodeFeatures, sr.valueNodeFeatures, sr.globalFeatures)
+    return HeterogeneousTrajectoryState(fg, sr.variableIdx, sr.allValuesIdx)
 end
 
 """
