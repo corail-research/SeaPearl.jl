@@ -66,7 +66,7 @@ function (valueSelection::SupervisedLearnedHeuristic)(::Type{InitializingPhase},
         if !isnothing(model_duplicate.statistics.solutions)
             solutions = model_duplicate.statistics.solutions[model_duplicate.statistics.solutions.!=nothing]
             if length(solutions) >= 1
-                valueSelection.helpSolution = last(solutions)
+                valueSelection.helpSolution = last(solutions) # the last solution is at least as good as the previous ones
             end
         end
     else
