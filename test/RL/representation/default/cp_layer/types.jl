@@ -17,7 +17,7 @@
         SeaPearl.ConstraintVertex(model.constraints[1]), 
         SeaPearl.ConstraintVertex(model.constraints[2]),
         SeaPearl.ConstraintVertex(model.constraints[3]),
-        SeaPearl.ConstraintVertex(ViewConstraint(y,z)),
+        SeaPearl.ConstraintVertex(SeaPearl.ViewConstraint(y,z)),
         SeaPearl.VariableVertex(z),
         SeaPearl.VariableVertex(x),
         SeaPearl.VariableVertex(y),
@@ -34,13 +34,13 @@
     end
 
     @test Matrix(LightGraphs.LinAlg.adjacency_matrix(g.fixedEdgesGraph)) == [
-        0 0 0 0 1 1 0
-        0 0 0 0 1 1 0
         0 0 0 0 0 1 1
         0 0 0 0 0 1 1
+        0 0 0 0 1 0 1
+        0 0 0 0 1 0 1
+        0 0 1 1 0 0 0
         1 1 0 0 0 0 0
         1 1 1 1 0 0 0
-        0 0 1 1 0 0 0
     ]
 
     @test g.numberOfConstraints == 4
