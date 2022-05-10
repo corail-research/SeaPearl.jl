@@ -20,43 +20,43 @@ end
 # ========== Accessing ==========
 
 """
-    variable_node_feature(::FeaturedGraph)
+    variable_node_feature(::HeterogeneousFeaturedGraph)
 Return the variable nodes features matrix of the graph.
 """
-variable_node_feature(fg::FeaturedGraph) = fg.varnf
+variable_node_feature(fg::HeterogeneousFeaturedGraph) = fg.varnf
 
 """
-    constraint_node_feature(::FeaturedGraph)
+    constraint_node_feature(::HeterogeneousFeaturedGraph)
 Return the constraint nodes features matrix of the graph.
 """
-constraint_node_feature(fg::FeaturedGraph) = fg.connf
+constraint_node_feature(fg::HeterogeneousFeaturedGraph) = fg.connf
 
 """
-    value_node_feature(::FeaturedGraph)
+    value_node_feature(::HeterogeneousFeaturedGraph)
 Return the value nodes features matrix of the graph.
 """
-value_node_feature(fg::FeaturedGraph) = fg.valnf
+value_node_feature(fg::HeterogeneousFeaturedGraph) = fg.valnf
 
 """
-    n_variable_node(::FeaturedGraph)
+    n_variable_node(::HeterogeneousFeaturedGraph)
 Return the number of variable nodes of the graph.
 """
-n_variable_node(fg::FeaturedGraph) = fg.size()
+n_variable_node(fg::HeterogeneousFeaturedGraph) = fg.size()
 
 """
-    n_constraint_node(::FeaturedGraph)
+    n_constraint_node(::HeterogeneousFeaturedGraph)
 Return the number of constraint nodes of the graph.
 """
-n_constraint_node(fg::FeaturedGraph) = fg.size()
+n_constraint_node(fg::HeterogeneousFeaturedGraph) = fg.size()
 
 """
-    n_value_node(::FeaturedGraph)
+    n_value_node(::HeterogeneousFeaturedGraph)
 Return the number of value nodes of the graph.
 """
-n_value_node(fg::FeaturedGraph) = fg.size()
+n_value_node(fg::HeterogeneousFeaturedGraph) = fg.size()
 
 """
-    global_feature(::FeaturedGraph)
+    global_feature(::HeterogeneousFeaturedGraph)
 Return the global feature vector of the graph.
 """
-global_feature(fg::FeaturedGraph) = fg.gf
+global_feature(fg::HeterogeneousFeaturedGraph) = fg.gf
