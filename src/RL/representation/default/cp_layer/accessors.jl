@@ -165,7 +165,7 @@ function adjacency_matrices(cplayergraph::CPLayerGraph)
         elseif isa(node, ValueVertex)
             neighbors = outneighbors(g, i)
             for neighbor in neighbors
-                valtovar[i, neighbor - ncon - nvar] = 1
+                valtovar[i - ncon - nvar, neighbor - ncon] = 1
             end
         end
     end
