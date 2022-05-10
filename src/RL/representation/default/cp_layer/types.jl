@@ -103,13 +103,13 @@ struct CPLayerGraph <: LightGraphs.AbstractGraph{Int}
                 end
             end
         end
-        totalLength = numberOfConstraints + length(viewConstraints) + numberOfVariables + numberOfValues
         variables = collect((variables))
-
+        
         # We sort the variables by their id to get a consistent order
         sort!(variables; by=(x) -> x.id)
-
+        
         numberOfVariables = length(variables)
+        totalLength = numberOfConstraints + length(viewConstraints) + numberOfVariables + numberOfValues
 
         nodeToId = Dict{CPLayerVertex, Int}()
         idToNode = Array{CPLayerVertex}(undef, totalLength)
