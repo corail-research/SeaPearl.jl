@@ -1,5 +1,3 @@
-include("cp_layer/cp_layer.jl")
-
 """
     HeterogeneousStateRepresentation{F, TS}
 
@@ -49,28 +47,6 @@ mutable struct HeterogeneousStateRepresentation{F,TS} <: FeaturizedStateRepresen
     nbConstraintFeatures::Int64
     nbValueFeatures::Int64
 end
-
-struct DefaultFeaturization <: AbstractFeaturization end
-
-"""
-    feature_length(sr::HeterogeneousStateRepresentation{F,TS}) where {F,TS}
-
-Returns the length of the feature vector.
-
-`sr.nbFeatures` is set in `initChosenFeatures`, which is called in `featurize` when the `HeterogeneousStateRepresentation` is created.
-"""
-feature_length(sr::HeterogeneousStateRepresentation{F,TS}) where {F,TS} = sr.nbVariableFeatures + sr.nbConstraintFeatures + sr.nbValueFeatures
-
-"""
-    feature_length(gen::AbstractModelGenerator, ::Type{FeaturizedStateRepresentation})
-
-Returns the length of the feature vector, for the `DefaultFeaturization` with no chosen features.
-
-Must be overwritten for any other featurization. 
-
-The difference with the `feature_length(sr::HeterogeneousStateRepresentation{F,TS})` function is that it takes a type as a parameter and not an instance.
-"""
-feature_length(::Type{<:FeaturizedStateRepresentation{DefaultFeaturization, TS}}) where TS = 3
 
 HeterogeneousStateRepresentation(m::CPModel) = HeterogeneousStateRepresentation{DefaultFeaturization,HeterogeneousTrajectoryState}(m::CPModel)
 
