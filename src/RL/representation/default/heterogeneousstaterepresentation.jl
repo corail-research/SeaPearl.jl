@@ -130,7 +130,11 @@ function featurize(sr::HeterogeneousStateRepresentation{DefaultFeaturization,TS}
         end
         if isa(cp_vertex, ConstraintVertex)
             if sr.chosenFeatures["constraint_activity"][1]
-                constraintFeatures[sr.chosenFeatures["constraint_activity"][2], i] = cp_vertex.constraint.active.value
+                if isa(cp_vertex.constraint, ViewConstraint)
+                    constraintFeatures[sr.chosenFeatures["constraint_activity"][2], i] = isbound(cp_vertex.constraint.parent)
+                else
+                    constraintFeatures[sr.chosenFeatures["constraint_activity"][2], i] = cp_vertex.constraint.active.value
+                end
             end
             if sr.chosenFeatures["nb_involved_constraint_propagation"][1]
                 constraintFeatures[sr.chosenFeatures["nb_involved_constraint_propagation"][2], i] = 0
@@ -272,16 +276,20 @@ function update_features!(sr::HeterogeneousStateRepresentation{DefaultFeaturizat
         cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
         if isa(cp_vertex, VariableVertex)
             if sr.chosenFeatures["variable_domain_size"][1]
-                sr.nodeFeatures[sr.chosenFeatures["variable_domain_size"][2], i - ncon] = length(cp_vertex.variable.domain)
+                sr.variableNodeFeatures[sr.chosenFeatures["variable_domain_size"][2], i - ncon] = length(cp_vertex.variable.domain)
             end
 
             if sr.chosenFeatures["variable_is_bound"][1]
-                sr.nodeFeatures[sr.chosenFeatures["variable_is_bound"][2], i - ncon] = isbound(cp_vertex.variable)
+                sr.variableNodeFeatures[sr.chosenFeatures["variable_is_bound"][2], i - ncon] = isbound(cp_vertex.variable)
             end
         end
         if isa(cp_vertex, ConstraintVertex)
             if sr.chosenFeatures["constraint_activity"][1]
-                sr.constraintNodeFeatures[sr.chosenFeatures["constraint_activity"][2], i] = cp_vertex.constraint.active.value
+                if isa(cp_vertex.constraint, ViewConstraint)
+                    sr.constraintNodeFeatures[sr.chosenFeatures["constraint_activity"][2], i] = isbound(cp_vertex.constraint.parent)
+                else
+                    sr.constraintNodeFeatures[sr.chosenFeatures["constraint_activity"][2], i] = cp_vertex.constraint.active.value
+                end
             end
 
             if sr.chosenFeatures["nb_involved_constraint_propagation"][1]
