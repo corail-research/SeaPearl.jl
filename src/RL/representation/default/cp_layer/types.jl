@@ -88,21 +88,22 @@ struct CPLayerGraph <: LightGraphs.AbstractGraph{Int}
         variableConnections = Tuple{AbstractVar, AbstractVar}[]
 
         # Take into account IntVarViews that are only declared in constraints
+        # Array listing constraints representing view relations between variables
+        viewConstraints = []
         for constraint in cpmodel.constraints
             for constraintVar in variablesArray(constraint)
                 while typeof(constraintVar) <: Union{IntVarView, BoolVarView}
                     push!(variables, constraintVar)
 
-                    # Storing variable connections
-                    push!(variableConnections, (constraintVar, constraintVar.x))
-
+                    # Creating a new constraint and storing constraint-variable connections
+                    viewcon = ViewConstraint(constraintVar, constraintVar.x)
+                    push!(viewConstraints, viewcon)
 
                     constraintVar = constraintVar.x
                 end
             end
         end
-
-
+        
         variables = collect((variables))
 
         # We sort the variables by their id to get a consistent order
@@ -121,6 +122,14 @@ struct CPLayerGraph <: LightGraphs.AbstractGraph{Int}
             nodeToId[ConstraintVertex(cpmodel.constraints[i])] = i
         end
 
+        # Filling view constraints
+        for i in 1:length(viewConstraints)
+            idToNode[numberOfConstraints + i] = ConstraintVertex(viewConstraints[i])
+            nodeToId[ConstraintVertex(viewConstraints[i])] = numberOfConstraints + i
+        end
+
+        end
+        numberOfConstraints += length(viewConstraints)
         # Filling variables
         for i in 1:numberOfVariables
             idToNode[numberOfConstraints + i] = VariableVertex(variables[i])
@@ -143,11 +152,6 @@ struct CPLayerGraph <: LightGraphs.AbstractGraph{Int}
                     add_edge!(fixedEdgesGraph, id, nodeToId[VariableVertex(x)])
                 end
             end
-        end
-
-        for (x1, x2) in variableConnections
-            v1, v2 = VariableVertex(x1), VariableVertex(x2)
-            add_edge!(fixedEdgesGraph, nodeToId[v1], nodeToId[v2])
         end
 
         return new(cpmodel, idToNode, nodeToId, fixedEdgesGraph, numberOfConstraints, numberOfVariables, numberOfValues, totalLength)
