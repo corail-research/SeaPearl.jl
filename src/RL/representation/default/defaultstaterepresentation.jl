@@ -1,5 +1,3 @@
-include("cp_layer/cp_layer.jl")
-
 """
     DefaultStateRepresentation{F, TS}
 
@@ -43,8 +41,6 @@ mutable struct DefaultStateRepresentation{F,TS} <: FeaturizedStateRepresentation
     constraintTypeToId::Union{Nothing,Dict{Type,Int}}
     nbFeatures::Int64
 end
-
-struct DefaultFeaturization <: AbstractFeaturization end
 
 """
     feature_length(sr::DefaultStateRepresentation{F,TS}) where {F,TS}
