@@ -81,7 +81,7 @@
             "values_raw" => true,
         )
 
-        hsr = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.HeterogeneousTrajectoryState}(model; chosen_features=chosen_features)
+        hsr = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}(model; chosen_features=chosen_features)
         SeaPearl.update_representation!(hsr, model, x)
 
         @test Matrix(LightGraphs.LinAlg.adjacency_matrix(hsr.cplayergraph)) == [
@@ -137,8 +137,8 @@
             "values_onehot" => true,
         )
         action_space = SeaPearl.branchable_values(model)
-        
-        hsr = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.HeterogeneousTrajectoryState}(model; action_space=action_space, chosen_features=chosen_features)
+
+        hsr = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}(model; action_space=action_space, chosen_features=chosen_features)
         SeaPearl.update_representation!(hsr, model, x)
 
         @test Matrix(LightGraphs.LinAlg.adjacency_matrix(hsr.cplayergraph)) == [
@@ -177,7 +177,7 @@
     @testset "HeterogeneousTrajectoryState constructor" begin
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
-    
+
         x = SeaPearl.IntVar(2, 3, "x", trailer)
         y = SeaPearl.IntVar(2, 3, "y", trailer)
         SeaPearl.addVariable!(model, x)
@@ -196,17 +196,17 @@
         )
         action_space = SeaPearl.branchable_values(model)
 
-        hsr = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.HeterogeneousTrajectoryState}(model; action_space=action_space, chosen_features=chosen_features)
+        hsr = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}(model; action_space=action_space, chosen_features=chosen_features)
         SeaPearl.update_representation!(hsr, model, x) #add x as the branching variable
         hts = SeaPearl.HeterogeneousTrajectoryState(hsr)  #creates the HeterogeneousTrajectoryState object
 
-        batchedHtsSingle = hts |> cpu   
-        @test batchedHtsSingle.fg.contovar[:,:,1]== hts.fg.contovar
-        @test batchedHtsSingle.fg.valtovar[:,:,1]== hts.fg.valtovar
-        @test batchedHtsSingle.fg.varnf[:,:,1] == hts.fg.varnf
-        @test batchedHtsSingle.fg.connf[:,:,1] == hts.fg.connf
-        @test batchedHtsSingle.fg.valnf[:,:,1] == hts.fg.valnf
-        @test batchedHtsSingle.fg.gf[:,1] == hts.fg.gf
+        batchedHtsSingle = hts |> cpu
+        @test batchedHtsSingle.fg.contovar[:, :, 1] == hts.fg.contovar
+        @test batchedHtsSingle.fg.valtovar[:, :, 1] == hts.fg.valtovar
+        @test batchedHtsSingle.fg.varnf[:, :, 1] == hts.fg.varnf
+        @test batchedHtsSingle.fg.connf[:, :, 1] == hts.fg.connf
+        @test batchedHtsSingle.fg.valnf[:, :, 1] == hts.fg.valnf
+        @test batchedHtsSingle.fg.gf[:, 1] == hts.fg.gf
         @test batchedHtsSingle.variableIdx[1] == hts.variableIdx
 
         SeaPearl.assign!(x, 2)
@@ -214,14 +214,14 @@
         SeaPearl.update_representation!(hsr, model, x) #add x as the branching variable
         hts2 = SeaPearl.HeterogeneousTrajectoryState(hsr)  #creates the HeterogeneousTrajectoryState object
 
-        batchedHts = [hts,hts2] |> cpu   
-        @test size(batchedHts.fg.contovar,3) == 2
-        @test size(batchedHts.fg.valtovar,3) == 2
-        @test size(batchedHts.fg.varnf,3) == 2
-        @test size(batchedHts.fg.connf,3) == 2
-        @test size(batchedHts.fg.valnf,3) == 2
-        @test size(batchedHts.fg.gf,2) == 2
-        @test size(batchedHts.variableIdx,1) == 2
+        batchedHts = [hts, hts2] |> cpu
+        @test size(batchedHts.fg.contovar, 3) == 2
+        @test size(batchedHts.fg.valtovar, 3) == 2
+        @test size(batchedHts.fg.varnf, 3) == 2
+        @test size(batchedHts.fg.connf, 3) == 2
+        @test size(batchedHts.fg.valnf, 3) == 2
+        @test size(batchedHts.fg.gf, 2) == 2
+        @test size(batchedHts.variableIdx, 1) == 2
     end
 
     @testset "HeterogeneousSR with on the square graph coloring problem" begin
@@ -246,7 +246,7 @@
             SeaPearl.addConstraint!(model, SeaPearl.LessOrEqual(var, numberOfColors, model.trailer))
         end
         model.objective = numberOfColors
-        
+
         # Choosing features and initializing the state representation
         chosen_features = Dict(
             "constraint_type" => true,
@@ -257,30 +257,67 @@
             "variable_is_bound" => true,
             "values_onehot" => true,
         )
-        sr = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.HeterogeneousTrajectoryState}(model; action_space = 1:4, chosen_features=chosen_features)
+        hsr = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}(model; action_space=1:4, chosen_features=chosen_features)
+
+        contovar, valtovar = SeaPearl.adjacency_matrices(hsr.cplayergraph)
+
+        @test contovar == [
+            1 1 0 0 0
+            0 1 1 0 0
+            0 0 1 1 0
+            1 0 0 1 0
+            1 0 0 0 1
+            0 1 0 0 1
+            0 0 1 0 1
+            0 0 0 1 1
+        ]
+
+        @test valtovar == [
+            1 1 1 1 1
+            1 1 1 1 1
+            1 1 1 1 1
+            1 1 1 1 1
+        ]
 
         @test SeaPearl.branchable_values(model) == [4, 2, 3, 1]
 
         # Testing the initialization of the node features
-        @test sr.variableNodeFeatures == [4 4 4 4 4; 4 4 4 4 4; 0 0 0 0 0]
-        @test sr.constraintNodeFeatures == [1 1 1 1 1 1 1 1; 2 2 2 2 2 2 2 2; 1 1 1 1 0 0 0 0; 0 0 0 0 1 1 1 1]
-        @test sr.valueNodeFeatures == [0 0 0 1; 0 1 0 0; 0 0 1 0; 1 0 0 0]
+        @test hsr.variableNodeFeatures == [4 4 4 4 4; 4 4 4 4 4; 0 0 0 0 0]
+        @test hsr.constraintNodeFeatures == [1 1 1 1 1 1 1 1; 2 2 2 2 2 2 2 2; 1 1 1 1 0 0 0 0; 0 0 0 0 1 1 1 1]
+        @test hsr.valueNodeFeatures == [0 0 0 1; 0 1 0 0; 0 0 1 0; 1 0 0 0]
 
         # assign color 1 to x[1]
-        prunedDomains = SeaPearl.CPModification();
-        SeaPearl.addToPrunedDomains!(prunedDomains, x[1], SeaPearl.assign!(x[1].domain, 1));
+        prunedDomains = SeaPearl.CPModification()
+        SeaPearl.addToPrunedDomains!(prunedDomains, x[1], SeaPearl.assign!(x[1].domain, 1))
         feasible, pruned = SeaPearl.fixPoint!(model, nothing, prunedDomains)
-        SeaPearl.update_features!(sr, model)
+        SeaPearl.update_features!(hsr, model)
+
+        contovar, valtovar = SeaPearl.adjacency_matrices(hsr.cplayergraph)
+
+        println(valtovar)
+
+        @test contovar == [
+            1 1 0 0 0
+            0 1 1 0 0
+            0 0 1 1 0
+            1 0 0 1 0
+            1 0 0 0 1
+            0 1 0 0 1
+            0 0 1 0 1
+            0 0 0 1 1
+        ]
+
+        @test valtovar == [
+            0 1 1 1 1
+            0 1 1 1 1
+            0 1 1 1 1
+            1 0 1 0 0
+        ]
 
         # Testing the node features after fixPoint!
-        println(sr.variableNodeFeatures)
-        println(sr.constraintNodeFeatures)
-
-        @test sr.variableNodeFeatures == [4 4 4 4 4; 1 3 4 3 3; 1 0 0 0 0]
-        @test sr.constraintNodeFeatures == [0 1 1 0 0 1 1 1; 1 2 2 1 1 2 2 2; 1 1 1 1 0 0 0 0; 0 0 0 0 1 1 1 1]
-        @test sr.valueNodeFeatures == [0 0 0 1; 0 1 0 0; 0 0 1 0; 1 0 0 0]
-
-
+        @test hsr.variableNodeFeatures == [4 4 4 4 4; 1 3 4 3 3; 1 0 0 0 0]
+        @test hsr.constraintNodeFeatures == [0 1 1 0 0 1 1 1; 1 2 2 1 1 2 2 2; 1 1 1 1 0 0 0 0; 0 0 0 0 1 1 1 1]
+        @test hsr.valueNodeFeatures == [0 0 0 1; 0 1 0 0; 0 0 1 0; 1 0 0 0]
     end
 
 end
