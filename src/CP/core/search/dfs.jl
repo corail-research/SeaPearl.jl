@@ -35,30 +35,7 @@ function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
 
     # Fix-point algorithm
     feasible, pruned = fixPoint!(model, newConstraints, prunedDomains; isFailureBased=isa(variableHeuristic, FailureBasedVariableSelection))
-    model.statistics.lastPruning = sum(map(x-> length(x[2]),collect(pruned)))
-    if !isnothing(model.objective)
-        if haskey(pruned,model.objective.id)
-            model.statistics.objectiveDownPruning = 0
-            model.statistics.objectiveUpPruning = 0
-            orderedPrunedValues = sort(pruned[model.objective.id])
-            #println("pruned values"*string(orderedPrunedValues))
-            # Last pruning takes all variables except the objective value into consideration
-            model.statistics.lastPruning -= length(orderedPrunedValues)
-            for val in orderedPrunedValues
-                if val <= model.objective.domain.min.value
-                    model.statistics.objectiveDownPruning += 1
-                elseif val >= model.objective.domain.max.value
-                    model.statistics.objectiveUpPruning += 1
-                else
-                    # Pruning from the middle of the domain of the objective variable
-                    model.statistics.objectiveDownPruning += (model.objective.domain.max.value - val)/(model.objective.domain.max.value-model.objective.domain.min.value)
-                    model.statistics.objectiveUpPruning += (val - model.objective.domain.min.value)/(model.objective.domain.max.value-model.objective.domain.min.value)
-                end
-            end
-        else
-            model.statistics.objectiveDownPruning = 0
-            model.statistics.objectiveUpPruning = 0
-        end
+    updateStatistics!(model,pruned)
     end
 
 
@@ -77,9 +54,6 @@ function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
     x = variableHeuristic(model)
     # Value selection
     v = valueSelection(DecisionPhase, model, x)
-    #println("value: "*string(v))
-
-    #println("Value : ", v, " assigned to : ", x.id)
 
     push!(toCall, (model) -> (restoreState!(model.trailer); :BackTracking))
     push!(toCall, (model) -> (
