@@ -102,12 +102,12 @@ Create features for every node of the graph. Can be overwritten for a completely
 Default behavior consists in a 3D One-hot vector that encodes whether the node represents a Constraint, a Variable or a Value.
 
 It is also possible to pass a `chosen_features` dictionary allowing to choose among some non mandatory features. 
-It will be used in `initChosenFeatures` to initialize `sr.chosenFeatures`. 
+It will be used in `initChosenFeatures!` to initialize `sr.chosenFeatures`. 
 See `HeterogeneousStateRepresentation` for a list of possible options.
 It is only necessary to specify the options you wish to activate.
 """
 function featurize(sr::HeterogeneousStateRepresentation{DefaultFeaturization,TS}; chosen_features::Union{Nothing,Dict{String,Bool}}=nothing) where {TS}
-    initChosenFeatures(sr, chosen_features)
+    initChosenFeatures!(sr, chosen_features)
 
     g = sr.cplayergraph
     variableFeatures = zeros(Float32, sr.nbVariableFeatures, g.numberOfVariables)
@@ -175,11 +175,11 @@ function featurize(sr::HeterogeneousStateRepresentation{DefaultFeaturization,TS}
 end
 
 """
-    initChosenFeatures(sr::HeterogeneousStateRepresentation{DefaultFeaturization,TS}, chosen_features::Dict{String,Bool})
+    initChosenFeatures!(sr::HeterogeneousStateRepresentation{DefaultFeaturization,TS}, chosen_features::Dict{String,Bool})
 
 Builds the `sr.chosenFeatures` dictionary  and sets `sr.nbFeatures`.
 """
-function initChosenFeatures(sr::HeterogeneousStateRepresentation{DefaultFeaturization,TS}, chosen_features::Union{Nothing,Dict{String,Bool}}) where {TS}
+function initChosenFeatures!(sr::HeterogeneousStateRepresentation{DefaultFeaturization,TS}, chosen_features::Union{Nothing,Dict{String,Bool}}) where {TS}
     # Initialize chosenFeatures with all positions at -1 and presence to false
     sr.chosenFeatures = Dict{String,Tuple{Bool,Int64}}(
         "constraint_activity" => (false, -1),
