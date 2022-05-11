@@ -90,7 +90,7 @@ Update the StateRepesentation according to its Type and Featurization.
 """
 function update_representation!(sr::HeterogeneousStateRepresentation, model::CPModel, x::AbstractIntVar)
     update_features!(sr, model)
-    sr.variableIdx = indexFromCpVertex(sr.cplayergraph, VariableVertex(x))
+    sr.variableIdx = indexFromCpVertex(sr.cplayergraph, VariableVertex(x)) - sr.cplayergraph.numberOfConstraints
     return sr
 end
 

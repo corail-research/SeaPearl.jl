@@ -27,6 +27,7 @@ function (nn::HeterogeneousCPNN)(states::BatchedHeterogeneousTrajectoryState)
     # chain working on the graph(s)
     fg = nn.graphChain(states.fg)
     variableFeatures = fg.varnf
+    globalFeatures = fg.gf
     # extract the feature(s) of the variable(s) we're working on
     indices = nothing
     Zygote.ignore() do
