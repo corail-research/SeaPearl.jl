@@ -88,16 +88,6 @@ function (metrics::BasicMetrics{DontTakeObjective, <:LearnedHeuristic})(model::C
     println(total_reward)
     print("Loss: ")
     println(metrics.heuristic.agent.policy.learner.loss)
-    
-    if metrics.nbEpisodes%100==0
-        println("Network weights")
-        println(norm(metrics.heuristic.agent.policy.learner.approximator.model.graphChain[1].weight1))
-        println(norm(metrics.heuristic.agent.policy.learner.approximator.model.graphChain[2].weight1))
-        println(norm(metrics.heuristic.agent.policy.learner.approximator.model.nodeChain[1].weight))
-        println(norm(metrics.heuristic.agent.policy.learner.approximator.model.nodeChain[2].weight))
-        println(norm(metrics.heuristic.agent.policy.learner.approximator.model.outputChain[1].weight))
-        println(norm(metrics.heuristic.agent.policy.learner.approximator.model.outputChain[2].weight))
-    end
     =#
     push!(metrics.totalReward,total_reward)
     push!(metrics.loss,metrics.heuristic.agent.policy.learner.loss)
@@ -113,9 +103,7 @@ function (metrics::BasicMetrics{TakeObjective, <:LearnedHeuristic})(model::CPMod
     index = findfirst(!isnothing, model.statistics.solutions) #return the list of index of real solution in model.statistics.solutions
     push!(metrics.meanNodeVisitedUntilfirstSolFound, !isnothing(index) ? model.statistics.nodevisitedpersolution[index] : nothing)
     push!(metrics.timeneeded,dt)
-    if !isempty(model.statistics.objectives)
-        push!(metrics.scores,copy(model.statistics.objectives))
-    end
+    push!(metrics.scores,copy(model.statistics.objectives))
     total_reward = last_episode_total_reward(metrics.heuristic.agent.trajectory)
     #=
     # Uncomment to print these metrics during training

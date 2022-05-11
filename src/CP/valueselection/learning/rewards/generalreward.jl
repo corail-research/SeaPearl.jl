@@ -70,13 +70,7 @@ function set_reward!(::Type{EndingPhase}, lh::LearnedHeuristic{SR, GeneralReward
     # The rewards given in the EndingPhase ensure that any found feasible solution always gets a higher reward than any infeasible solution
     if symbol == :FoundSolution
         lh.reward.value = 0
-        if !isnothing(model.objective)
-            println("Feasible -> Objective = "*string(assignedValue(model.objective)))
-        else
-            println("Feasible")
-        end
     else
-        println("Infeasible")
         lh.reward.value = -lh.reward.gamma
         if !isnothing(model.objective)
             lh.reward.value += -1

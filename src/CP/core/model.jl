@@ -384,12 +384,12 @@ end
 
 
 """
-    updateStatistics!(model::CPModel, pruned::CPModification)
+    updateStatistics!(model::CPModel, pruned)
 
 Called in DFS to update the appropriate statistics used in GeneralReward
 """
 
-function updateStatistics!(model::CPModel, pruned::CPModification)
+function updateStatistics!(model::CPModel, pruned)
     model.statistics.lastPruning = sum(map(x-> length(x[2]),collect(pruned)))
     if !isnothing(model.objective)
         if haskey(pruned,model.objective.id)
