@@ -41,19 +41,19 @@ value_node_feature(fg::HeterogeneousFeaturedGraph) = fg.valnf
     n_variable_node(::HeterogeneousFeaturedGraph)
 Return the number of variable nodes of the graph.
 """
-n_variable_node(fg::HeterogeneousFeaturedGraph) = fg.size()
+n_variable_node(fg::HeterogeneousFeaturedGraph) = size(fg.varnf,2)
 
 """
     n_constraint_node(::HeterogeneousFeaturedGraph)
 Return the number of constraint nodes of the graph.
 """
-n_constraint_node(fg::HeterogeneousFeaturedGraph) = fg.size()
+n_constraint_node(fg::HeterogeneousFeaturedGraph) = size(fg.connf,2)
 
 """
     n_value_node(::HeterogeneousFeaturedGraph)
 Return the number of value nodes of the graph.
 """
-n_value_node(fg::HeterogeneousFeaturedGraph) = fg.size()
+n_value_node(fg::HeterogeneousFeaturedGraph) = size(fg.valnf,2)
 
 """
     global_feature(::HeterogeneousFeaturedGraph)
