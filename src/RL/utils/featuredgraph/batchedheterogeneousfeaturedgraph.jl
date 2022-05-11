@@ -50,4 +50,4 @@ function BatchedHeterogeneousFeaturedGraph{T}(fgs::Vector{FG}) where {T <: Real,
     return BatchedHeterogeneousFeaturedGraph{T}(contovar, valtovar, varnf, connf, valnf, gf)
 end
 
-BatchedHeterogeneousFeaturedGraph(fgs::Vector{FG}) where {FG <: FeaturedGraph} = BatchedHeterogeneousFeaturedGraph{Float32}(fgs)
+BatchedHeterogeneousFeaturedGraph(fgs::Vector{FG}) where {FG <: HeterogeneousFeaturedGraph} = BatchedHeterogeneousFeaturedGraph{Float32}(fgs)
