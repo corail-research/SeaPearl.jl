@@ -8,11 +8,13 @@ mutable struct GeneralReward <: AbstractReward
     initMin::Union{Nothing,Int}
     initMax::Union{Nothing,Int}
     initialNumberOfVariableValueLinks::Int
-    gamma::Float32
-    beta::Float32
+    gamma::Float32 # Gamma balances the "variable" and the "objective" part of the reward
+    beta::Float32 # Beta governs the convexity of the "variable" part of the reward given at the DecisionPhase
 end
 
 function GeneralReward(model::CPModel)
+    # Beta and gamma should be changed here.
+    # Beta should be larger than one to ensure convexity of the "variable" part of the reward given at the DecisionPhase
     if !isnothing(model.objective)
         return GeneralReward(0, model.objective.domain.min.value, model.objective.domain.max.value, global_domain_cardinality(model), 2.0, 2.0)
     else
@@ -43,26 +45,14 @@ function set_reward!(::Type{DecisionPhase}, lh::LearnedHeuristic{SR, GeneralRewa
     A <: ActionOutput
 }
     if !lh.firstActionTaken
-        #println("First action being taken")
         lh.reward.value = 0
     else
+        # The "variable" part of the reward fosters the agent to perform assignments which prune the search space as fast as possible
         lh.reward.value = lh.reward.gamma*(model.statistics.lastPruning/(lh.reward.initialNumberOfVariableValueLinks - length(branchable_variables(model))))^lh.reward.beta
-        #println(model.statistics.lastPruning)
-        #println(lh.reward.initialNumberOfVariableValueLinks - length(branchable_variables(model)))
-        #println(string(lh.reward.value))
-        if lh.reward.value>0.001
-            #println("Variable part: "*string(lh.reward.value))
-        end
         if !isnothing(model.objective)
+            # The "objective part of the reward deters the agent from performing assigments that prune the lowest values of the domain of the objective variable
             lh.reward.value += -(model.statistics.objectiveDownPruning/(lh.reward.initMax - lh.reward.initMin)) + (model.statistics.objectiveUpPruning/(lh.reward.initMax - lh.reward.initMin))
-            #println("Objective part: "*string(-(model.statistics.objectiveDownPruning/(lh.reward.initMax - lh.reward.initMin)) + (model.statistics.objectiveUpPruning/(lh.reward.initMax - lh.reward.initMin))))
-            if -(model.statistics.objectiveDownPruning/(lh.reward.initMax - lh.reward.initMin)) + (model.statistics.objectiveUpPruning/(lh.reward.initMax - lh.reward.initMin)) != 0
-                #println("Objective domain: "*string(model.objective.domain))
-                #println("Down pruning: "*string(model.statistics.objectiveDownPruning))
-                #println("Up pruning: "*string(model.statistics.objectiveUpPruning))
-            end
         end
-        #println(lh.reward.value)
     end
 end
 
@@ -77,8 +67,7 @@ function set_reward!(::Type{EndingPhase}, lh::LearnedHeuristic{SR, GeneralReward
     SR <: AbstractStateRepresentation, 
     A <: ActionOutput
 }
-    nqueens_conflict_counter = false
-   
+    # The rewards given in the EndingPhase ensure that any found feasible solution always gets a higher reward than any infeasible solution
     if symbol == :FoundSolution
         lh.reward.value = 0
         if !isnothing(model.objective)
@@ -92,31 +81,5 @@ function set_reward!(::Type{EndingPhase}, lh::LearnedHeuristic{SR, GeneralReward
         if !isnothing(model.objective)
             lh.reward.value += -1
         end
-        if nqueens_conflict_counter
-            # Getting the number of conflicts on nqueens
-            # Getting assigned variables
-            println("nqueens_conflict_counter")
-            boundvariables = Dict{Int,Int}()
-            for (id, x) in model.variables
-                if isbound(x)
-                    boundvariables[parse(Int,split(id,"_")[end])] = assignedValue(x)
-                end
-            end
-            # Getting diagonals ids
-            posdiags = zeros(39)
-            negdiags = zeros(39)
-            for (i, j) in boundvariables
-                posdiags[i+j-1] += 1
-                negdiags[i+(20-j)] += 1
-            end
-
-            nb_conflicts = 0
-            nb_conflicts += sum(values(counter(values(boundvariables))) .- 1)
-            nb_conflicts += sum((posdiags .> 1) .* (posdiags .- 1))
-            nb_conflicts += sum((negdiags .> 1) .* (negdiags .- 1))
-            lh.reward.value -= nb_conflicts
-        end
     end
-    #println("Ending reward: "*string(lh.reward.value))
-
 end
