@@ -147,13 +147,13 @@ function featurize(sr::HeterogeneousStateRepresentation{DefaultFeaturization,TS}
                 constraintFeatures[sr.constraintTypeToId[typeof(cp_vertex.constraint)], i] = 1
                 if isa(cp_vertex.constraint, ViewConstraint)
                     if isa(cp_vertex.constraint.child, IntVarViewMul)
-                        constraintFeatures[sr.constraintTypeToId[typeof(cp_vertex.constraint) + 1], i] = cp_vertex.constraint.child.a
+                        constraintFeatures[sr.constraintTypeToId[typeof(cp_vertex.constraint)] + 1, i] = cp_vertex.constraint.child.a
                     elseif isa(cp_vertex.constraint.child, IntVarViewOffset)
-                        constraintFeatures[sr.constraintTypeToId[typeof(cp_vertex.constraint) + 2], i] = cp_vertex.constraint.child.c
+                        constraintFeatures[sr.constraintTypeToId[typeof(cp_vertex.constraint)] + 2, i] = cp_vertex.constraint.child.c
                     elseif isa(cp_vertex.constraint.child, IntVarViewOpposite)
-                        constraintFeatures[sr.constraintTypeToId[typeof(cp_vertex.constraint) + 1], i] = -1
+                        constraintFeatures[sr.constraintTypeToId[typeof(cp_vertex.constraint)] + 1, i] = -1
                     elseif isa(cp_vertex.constraint.child, BoolVarViewNot)
-                        constraintFeatures[sr.constraintTypeToId[typeof(cp_vertex.constraint) + 3], i] = 1
+                        constraintFeatures[sr.constraintTypeToId[typeof(cp_vertex.constraint)] + 3, i] = 1
                     else
                         error("WARNING: Unknown VarViewType: please implement DefaultFeaturization for this type!")
                     end
@@ -229,13 +229,13 @@ function initChosenFeatures(sr::HeterogeneousStateRepresentation{DefaultFeaturiz
 
 
         if haskey(chosen_features, "constraint_type") && chosen_features["constraint_type"]
-            sr.chosenFeatures["constraint_type"] = (true, counter)
+            sr.chosenFeatures["constraint_type"] = (true, constraint_counter)
             constraintTypeToId = Dict{Type,Int}()
             nbcon = sr.cplayergraph.numberOfConstraints
             constraintsVertexList = sr.cplayergraph.idToNode[1:nbcon]
             for vertex in constraintsVertexList
                 if !haskey(constraintTypeToId, typeof(vertex.constraint))
-                    constraintTypeToId[typeof(vertex.constraint)] = counter
+                    constraintTypeToId[typeof(vertex.constraint)] = constraint_counter
                     if isa(vertex.constraint,ViewConstraint)
                         constraint_counter += 4 
                     else
