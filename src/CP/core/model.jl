@@ -413,4 +413,5 @@ function updateStatistics!(model::CPModel, pruned::CPModification)
             model.statistics.objectiveDownPruning = 0
             model.statistics.objectiveUpPruning = 0
         end
+    end
 end
