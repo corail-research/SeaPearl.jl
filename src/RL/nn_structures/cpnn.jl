@@ -53,3 +53,44 @@ function (nn::CPNN)(states::BatchedDefaultTrajectoryState)
         return output
     end
 end
+
+# Overloads the Base.string() function for storing parameters of the neural networks associated to experiments.
+function Base.string(nn::CPNN)
+    final_string = "graphChain:"
+    for layer in nn.graphChain.layers
+        final_string *= " "*Base.string(typeof(layer))*" "
+        if isa(layer,SeaPearl.GraphConv)
+            final_string *= Base.string(size(layer.weight1))*" \n"
+        else
+            final_string *= Base.string(size(layer.weight))*" \n"
+        end
+    end
+    final_string *= "nodeChain:"
+    for layer in nn.nodeChain.layers
+        final_string *= " "*Base.string(typeof(layer))*" "
+        if isa(layer,SeaPearl.GraphConv)
+            final_string *= Base.string(size(layer.weight1))*" \n"
+        else
+            final_string *= Base.string(size(layer.weight))*" \n"
+        end
+    end
+    final_string *= "globalChain:"
+    for layer in nn.globalChain.layers
+        final_string *= " "*Base.string(typeof(layer))*" "
+        if isa(layer,SeaPearl.GraphConv)
+            final_string *= Base.string(size(layer.weight1))*" \n"
+        else
+            final_string *= Base.string(size(layer.weight))*" \n"
+        end
+    end
+    final_string *= "outputChain:"
+    for layer in nn.outputChain.layers
+        final_string *= " "*Base.string(typeof(layer))*" "
+        if isa(layer,SeaPearl.GraphConv)
+            final_string *= Base.string(size(layer.weight1))*" \n"
+        else
+            final_string *= Base.string(size(layer.weight))*" \n"
+        end
+    end
+    return final_string
+end

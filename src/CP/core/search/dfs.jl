@@ -35,7 +35,8 @@ function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
 
     # Fix-point algorithm
     feasible, pruned = fixPoint!(model, newConstraints, prunedDomains; isFailureBased=isa(variableHeuristic, FailureBasedVariableSelection))
-    model.statistics.lastPruning=sum(map(x-> length(x[2]),collect(pruned)))
+    updateStatistics!(model,pruned)
+
 
     if !feasible
         model.statistics.numberOfInfeasibleSolutions += 1
@@ -52,8 +53,6 @@ function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
     x = variableHeuristic(model)
     # Value selection
     v = valueSelection(DecisionPhase, model, x)
-
-    #println("Value : ", v, " assigned to : ", x.id)
 
     push!(toCall, (model) -> (restoreState!(model.trailer); :BackTracking))
     push!(toCall, (model) -> (
