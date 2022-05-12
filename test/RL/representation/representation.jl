@@ -12,6 +12,7 @@ end
     include("default/cp_layer/cp_layer.jl")
     include("default/defaulttrajectorystate.jl")
     include("default/defaultstaterepresentation.jl")
+    include("default/heterogeneousstaterepresentation.jl")
     include("tsptw/tsptwtrajectorystate.jl")
     include("tsptw/tsptwstaterepresentation.jl")
 
