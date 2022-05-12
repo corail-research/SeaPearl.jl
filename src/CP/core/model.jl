@@ -2,6 +2,10 @@
 const Solution = Dict{String, Union{Int, Bool, Set{Int}}}
 
 #TODO add documentation for BeforeRestart
+# lastPruning: number of deleted variable-value edges
+# objectiveDownPruning: min(model.objective.domain)(current) - min(model.objective.domain)(past state)
+# objectiveUpPruning: max(model.objective.domain)(current) - max(model.objective.domain)(past state)
+
 mutable struct Statistics
     infeasibleStatusPerVariable             ::Dict{String, Int}
     numberOfNodes                           ::Int
@@ -16,6 +20,8 @@ mutable struct Statistics
     nodevisitedpersolution                  ::Vector{Int}
     objectives                              ::Union{Nothing, Vector{Union{Nothing,Int}}}
     lastPruning                             ::Union{Nothing, Int}
+    objectiveDownPruning                    ::Union{Nothing, Float32}
+    objectiveUpPruning                      ::Union{Nothing, Float32}
     lastVar                                 ::Union{Nothing, AbstractIntVar} #last var on which we branched
     numberOfTimesInvolvedInPropagation      ::Union{Nothing, Dict{Constraint,Int}}
 end
@@ -51,7 +57,8 @@ mutable struct CPModel
     knownObjective          ::Union{Nothing,Int64}
     adhocInfo               ::Any
 
-    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Dict{String, AbstractVar}(), Constraint[], trailer, nothing, nothing, Statistics(Dict{String, Int}(), 0,0, 0, 0, 0, 0, 0, 0, Solution[],Int[], nothing, nothing, nothing, Dict{Constraint, Int}()), Limit(nothing, nothing, nothing), nothing)
+
+    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Dict{String, AbstractVar}(), Constraint[], trailer, nothing, nothing, Statistics(Dict{String, Int}(), 0, 0, 0, 0, 0, 0, 0, 0, Solution[],Int[], nothing, nothing, nothing, nothing, nothing, Dict{Constraint, Int}()), Limit(nothing, nothing, nothing), nothing)
 end
 
 CPModel() = CPModel(Trailer())
@@ -352,4 +359,59 @@ function nb_boundvariables(model::CPModel)
         nb += isbound(x) * 1
     end
     return nb
+end
+
+"""
+    global_domain_cardinality(model::CPModel)
+
+Return the number of variable-value edges in the tripartite graph 
+(or equivalently the sum of domain cardinalities of the variables), excluding the objective variable.
+"""
+function global_domain_cardinality(model::CPModel)
+    cardinality = 0
+    for (id, x) in model.variables
+        if x != model.objective && !isa(x, IntVarView) && !isa(x, BoolVarView)
+            if isa(x.domain,BoolDomain)
+                cardinality += length(x.domain.inner.values)
+            else
+                cardinality += length(x.domain.values)
+            end
+        end
+    end
+    return cardinality
+end
+
+
+
+"""
+    updateStatistics!(model::CPModel, pruned)
+
+Called in DFS to update the appropriate statistics used in GeneralReward
+"""
+
+function updateStatistics!(model::CPModel, pruned)
+    model.statistics.lastPruning = sum(map(x-> length(x[2]),collect(pruned)))
+    if !isnothing(model.objective)
+        if haskey(pruned,model.objective.id)
+            model.statistics.objectiveDownPruning = 0
+            model.statistics.objectiveUpPruning = 0
+            orderedPrunedValues = sort(pruned[model.objective.id])
+            # Last pruning takes all variables except the objective value into consideration
+            model.statistics.lastPruning -= length(orderedPrunedValues)
+            for val in orderedPrunedValues
+                if val <= model.objective.domain.min.value
+                    model.statistics.objectiveDownPruning += 1
+                elseif val >= model.objective.domain.max.value
+                    model.statistics.objectiveUpPruning += 1
+                else
+                    # Pruning from the middle of the domain of the objective variable
+                    model.statistics.objectiveDownPruning += (model.objective.domain.max.value - val)/(model.objective.domain.max.value-model.objective.domain.min.value)
+                    model.statistics.objectiveUpPruning += (val - model.objective.domain.min.value)/(model.objective.domain.max.value-model.objective.domain.min.value)
+                end
+            end
+        else
+            model.statistics.objectiveDownPruning = 0
+            model.statistics.objectiveUpPruning = 0
+        end
+    end
 end

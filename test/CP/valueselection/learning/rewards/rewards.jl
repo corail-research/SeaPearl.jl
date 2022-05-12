@@ -36,6 +36,7 @@ end
 @testset "rewards.jl" begin 
 
     include("defaultreward.jl")
+    include("generalreward.jl")
     include("tsptwreward.jl")
 
     @testset "Custom reward" begin

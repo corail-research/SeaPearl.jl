@@ -80,7 +80,16 @@ function (metrics::BasicMetrics{DontTakeObjective, <:LearnedHeuristic})(model::C
     index = findfirst(!isnothing, model.statistics.solutions) #return the list of index of real solution in model.statistics.solutions
     push!(metrics.meanNodeVisitedUntilfirstSolFound, !isnothing(index) ? model.statistics.nodevisitedpersolution[index] : nothing)
     push!(metrics.timeneeded,dt)
-    push!(metrics.totalReward,last_episode_total_reward(metrics.heuristic.agent.trajectory))
+    
+    total_reward = last_episode_total_reward(metrics.heuristic.agent.trajectory)
+    #=
+    # Uncomment to print metrics during execution
+    print("Episode reward: ")
+    println(total_reward)
+    print("Loss: ")
+    println(metrics.heuristic.agent.policy.learner.loss)
+    =#
+    push!(metrics.totalReward,total_reward)
     push!(metrics.loss,metrics.heuristic.agent.policy.learner.loss)
     return
 end 
@@ -95,7 +104,16 @@ function (metrics::BasicMetrics{TakeObjective, <:LearnedHeuristic})(model::CPMod
     push!(metrics.meanNodeVisitedUntilfirstSolFound, !isnothing(index) ? model.statistics.nodevisitedpersolution[index] : nothing)
     push!(metrics.timeneeded,dt)
     push!(metrics.scores,copy(model.statistics.objectives))
-    push!(metrics.totalReward,last_episode_total_reward(metrics.heuristic.agent.trajectory))
+    total_reward = last_episode_total_reward(metrics.heuristic.agent.trajectory)
+    #=
+    # Uncomment to print these metrics during training
+    print("Reward: ")
+    println(total_reward)
+    print("Loss: ")
+    println(metrics.heuristic.agent.policy.learner.loss)
+    println("")
+    =#
+    push!(metrics.totalReward,total_reward)
     push!(metrics.loss,metrics.heuristic.agent.policy.learner.loss)
     return
 end 
