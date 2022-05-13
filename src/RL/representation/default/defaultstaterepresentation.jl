@@ -151,13 +151,13 @@ function featurize(sr::DefaultStateRepresentation{DefaultFeaturization,TS}; chos
                 features[sr.constraintTypeToId[typeof(cp_vertex.constraint)], i] = 1
                 if isa(cp_vertex.constraint, ViewConstraint)
                     if isa(cp_vertex.constraint.child, IntVarViewMul)
-                        features[sr.constraintTypeToId[typeof(cp_vertex.constraint) + 1], i] = cp_vertex.constraint.child.a
+                        features[sr.constraintTypeToId[typeof(cp_vertex.constraint)] + 1, i] = cp_vertex.constraint.child.a
                     elseif isa(cp_vertex.constraint.child, IntVarViewOffset)
-                        features[sr.constraintTypeToId[typeof(cp_vertex.constraint) + 2], i] = cp_vertex.constraint.child.c
+                        features[sr.constraintTypeToId[typeof(cp_vertex.constraint)] + 2, i] = cp_vertex.constraint.child.c
                     elseif isa(cp_vertex.constraint.child, IntVarViewOpposite)
-                        features[sr.constraintTypeToId[typeof(cp_vertex.constraint) + 1], i] = -1
+                        features[sr.constraintTypeToId[typeof(cp_vertex.constraint)] + 1, i] = -1
                     elseif isa(cp_vertex.constraint.child, BoolVarViewNot)
-                        features[sr.constraintTypeToId[typeof(cp_vertex.constraint) + 3], i] = 1
+                        features[sr.constraintTypeToId[typeof(cp_vertex.constraint)] + 3, i] = 1
                     else
                         error("WARNING: Unknwon VarViewType: please implement DefaultFeaturization for this type!")
                     end
