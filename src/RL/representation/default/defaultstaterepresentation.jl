@@ -36,6 +36,7 @@ mutable struct DefaultStateRepresentation{F,TS} <: FeaturizedStateRepresentation
     globalFeatures::Union{Nothing,AbstractVector{Float32}}
     variableIdx::Union{Nothing,Int64}
     allValuesIdx::Union{Nothing,Vector{Int64}}
+    possibleValuesIdx::Union{Nothing, Vector{Int64}}
     valueToPos::Union{Nothing,Dict{Int64,Int64}}
     chosenFeatures::Union{Nothing,Dict{String,Tuple{Bool,Int64}}}
     constraintTypeToId::Union{Nothing,Dict{Type,Int}}
@@ -73,6 +74,8 @@ function DefaultStateRepresentation{F,TS}(model::CPModel; action_space=nothing, 
     g = CPLayerGraph(model)
     allValuesIdx = nothing
     valueToPos = nothing
+    possibleValuesIdx = nothing
+
     if !isnothing(action_space)
         allValuesIdx = indexFromCpVertex.([g], ValueVertex.(action_space))
         valueToPos = Dict{Int64,Int64}()
@@ -81,7 +84,7 @@ function DefaultStateRepresentation{F,TS}(model::CPModel; action_space=nothing, 
         end
     end
 
-    sr = DefaultStateRepresentation{F,TS}(g, nothing, nothing, nothing, allValuesIdx, valueToPos, nothing, nothing, 0)
+    sr = DefaultStateRepresentation{F,TS}(g, nothing, nothing, nothing, allValuesIdx, nothing, valueToPos, nothing, nothing, 0)
     if isnothing(chosen_features)
         sr.nodeFeatures = featurize(sr) # custom featurize function doesn't necessarily support chosen_features
     else
@@ -108,7 +111,11 @@ Update the StateRepesentation according to its Type and Featurization.
 """
 function update_representation!(sr::DefaultStateRepresentation, model::CPModel, x::AbstractIntVar)
     update_features!(sr, model)
+    ncon = sr.cplayergraph.numberOfConstraints
+    nvar = sr.cplayergraph.numberOfVariables
+    sr.possibleValuesIdx = map(v -> indexFromCpVertex(sr.cplayergraph, ValueVertex(v)), collect(x.domain)) .- ncon .- nvar
     sr.variableIdx = indexFromCpVertex(sr.cplayergraph, VariableVertex(x))
+
     return sr
 end
 
