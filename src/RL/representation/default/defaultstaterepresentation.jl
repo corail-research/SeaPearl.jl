@@ -101,7 +101,7 @@ function DefaultTrajectoryState(sr::DefaultStateRepresentation{F,DefaultTrajecto
     adj = Matrix(adjacency_matrix(sr.cplayergraph))
     fg = isnothing(sr.globalFeatures) ?
          FeaturedGraph(adj; nf=sr.nodeFeatures) : FeaturedGraph(adj; nf=sr.nodeFeatures, gf=sr.globalFeatures)
-    return DefaultTrajectoryState(fg, sr.variableIdx, sr.allValuesIdx)
+    return DefaultTrajectoryState(fg, sr.variableIdx, sr.allValuesIdx, sr.possibleValuesIdx)
 end
 
 """

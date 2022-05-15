@@ -8,10 +8,11 @@ The most basic state representation, with a featured graph, the index of the var
 struct DefaultTrajectoryState <: GraphTrajectoryState
     fg::FeaturedGraph
     variableIdx::Int
-    allValuesIdx::Union{AbstractVector{Int}, Nothing}
+    allValuesIdx::Union{Nothing, AbstractVector{Int}}
+    possibleValuesIdx::Union{Nothing, Vector{Int64}}
 
-    DefaultTrajectoryState(fg, variableIdx, allValuesIdx) = new(fg, variableIdx, allValuesIdx)
-    DefaultTrajectoryState(fg, variableIdx) = new(fg, variableIdx, nothing)
+    DefaultTrajectoryState(fg, variableIdx, allValuesIdx, possibleValuesIdx) = new(fg, variableIdx, allValuesIdx, possibleValuesIdx)
+    DefaultTrajectoryState(fg, variableIdx) = new(fg, variableIdx, nothing, nothing)
 end
 
 DefaultTrajectoryState(sr::AbstractStateRepresentation) = throw(ErrorException("missing function DefaultTrajectoryState(::$(typeof(sr)))."))
@@ -27,9 +28,11 @@ computation on a few graphs.
 Base.@kwdef struct BatchedDefaultTrajectoryState{T} <: NonTabularTrajectoryState
     fg::BatchedFeaturedGraph{T}
     variableIdx::AbstractVector{Int}
-    allValuesIdx::Union{AbstractMatrix{Int}, Nothing} = nothing
+    allValuesIdx::Union{Nothing, AbstractMatrix{Int}} = nothing
+    possibleValuesIdx::Union{Nothing, AbstractVector{Vector{Int64}}} = nothing
+
 end
-BatchedDefaultTrajectoryState(fg, var, val) = BatchedDefaultTrajectoryState{Float32}(fg=fg, variableIdx=var, allValuesIdx=val)
+BatchedDefaultTrajectoryState(fg, var, val, posval) = BatchedDefaultTrajectoryState{Float32}(fg=fg, variableIdx=var, allValuesIdx=val, possibleValuesIdx = posval)
 
 """
     Flux.functor(::Type{DefaultTrajectoryState}, s)
@@ -46,13 +49,18 @@ function Flux.functor(::Type{DefaultTrajectoryState}, s)
     ef = Flux.unsqueeze(s.fg.ef, 4)
     gf = Flux.unsqueeze(s.fg.gf, 2)
     allValuesIdx = nothing
+    possibleValuesIdx = nothing
+    if !isnothing(s.possibleValuesIdx)
+        possibleValuesIdx = [s.possibleValuesIdx]
+    end
     if !isnothing(s.allValuesIdx)
         allValuesIdx = Flux.unsqueeze(s.allValuesIdx, 2)
     end
     return (adj, nf, ef, gf), ls -> BatchedDefaultTrajectoryState{Float32}(
         fg = BatchedFeaturedGraph{Float32}(ls[1]; nf=ls[2], ef=ls[3], gf=ls[4]),
         variableIdx = [s.variableIdx],
-        allValuesIdx = allValuesIdx
+        allValuesIdx = allValuesIdx,
+        possibleValuesIdx = possibleValuesIdx
     )
 end
 
@@ -69,27 +77,32 @@ function Flux.functor(::Type{Vector{DefaultTrajectoryState}}, v)
     batchSize = length(v)
     variableIdx = ones(Int, batchSize)
     allValuesIdx = nothing
+    possibleValuesIdx = nothing 
     if !isnothing(v[1].allValuesIdx)
         maxActions = Base.maximum(s -> length(s.allValuesIdx), v)
         allValuesIdx = zeros(Int, maxActions, batchSize)
     end
     
     Zygote.ignore() do
+        variableIdx = (state -> state.variableIdx).(v)
+        possibleValuesIdx = (state -> state.possibleValuesIdx).(v)
         # TODO: this could probably be optimized
         for (idx, state) in enumerate(v)
-            variableIdx[idx] = state.variableIdx
             if !isnothing(allValuesIdx)
                 allValuesIdx[1:length(state.allValuesIdx), idx] = state.allValuesIdx
             end
         end
     end
 
-    fg = BatchedFeaturedGraph([state.fg for state in v])
+    fg = BatchedFeaturedGraph([state.fg for state in v], 
+    )
     
+
     return (fg,), ls -> BatchedDefaultTrajectoryState{Float32}(
         fg = ls[1],
         variableIdx = variableIdx,
-        allValuesIdx = allValuesIdx
+        allValuesIdx = allValuesIdx, 
+        possibleValuesIdx = possibleValuesIdx
     )
 end
-Flux.functor(::Type{BatchedDefaultTrajectoryState{T}}, ts) where T = (ts.fg,), ls -> BatchedDefaultTrajectoryState{T}(ls[1], ts.variableIdx, ts.allValuesIdx) 
+Flux.functor(::Type{BatchedDefaultTrajectoryState{T}}, ts) where T = (ts.fg,), ls -> BatchedDefaultTrajectoryState{T}(ls[1], ts.variableIdx, ts.allValuesIdx, ts.possibleValuesIdx) 

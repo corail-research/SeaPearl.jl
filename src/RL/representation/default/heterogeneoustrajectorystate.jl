@@ -8,8 +8,10 @@ The most basic state representation, with a featured graph, the index of the var
 struct HeterogeneousTrajectoryState <: GraphTrajectoryState
     fg::HeterogeneousFeaturedGraph
     variableIdx::Int
+    possibleValuesIdx::Union{Nothing, Vector{Int64}}
 
-    HeterogeneousTrajectoryState(fg, variableIdx) = new(fg, variableIdx)
+
+    HeterogeneousTrajectoryState(fg, variableIdx, possibleValuesIdx) = new(fg, variableIdx, possibleValuesIdx)
 end
 
 HeterogeneousTrajectoryState(sr::AbstractStateRepresentation) = throw(ErrorException("missing function HeterogeneousTrajectoryState(::$(typeof(sr)))."))
@@ -25,8 +27,10 @@ computation on a few graphs.
 Base.@kwdef struct BatchedHeterogeneousTrajectoryState{T} <: NonTabularTrajectoryState
     fg::BatchedHeterogeneousFeaturedGraph{T}
     variableIdx::AbstractVector{Int}
+    possibleValuesIdx::Union{Nothing, AbstractVector{Vector{Int64}}} #Todo change this to abstract matrix
+
 end
-BatchedHeterogeneousTrajectoryState(fg, var) = BatchedHeterogeneousTrajectoryState{Float32}(fg=fg, variableIdx=var)
+BatchedHeterogeneousTrajectoryState(fg, var, val) = BatchedHeterogeneousTrajectoryState{Float32}(fg=fg, variableIdx=var, possibleValuesIdx = val)
 
 """
     Flux.functor(::Type{HeterogeneousTrajectoryState}, s)
@@ -47,7 +51,8 @@ function Flux.functor(::Type{HeterogeneousTrajectoryState}, s)
 
     return (contovar, valtovar, varnf, connf, valnf, gf), ls -> BatchedHeterogeneousTrajectoryState{Float32}(
         fg = BatchedHeterogeneousFeaturedGraph{Float32}(ls[1], ls[2], ls[3], ls[4], ls[5], ls[6]),
-        variableIdx = [s.variableIdx],
+        variableIdx = [s.variableIdx], 
+        possibleValuesIdx = [s.possibleValuesIdx]
     )
 end
 
@@ -63,16 +68,19 @@ the appropriated size to store all the graphs in 3D tensors.
 function Flux.functor(::Type{Vector{HeterogeneousTrajectoryState}}, v)
     batchSize = length(v)
     variableIdx = ones(Int, batchSize)
-    
+    possibleValuesIdx = nothing
+
     Zygote.ignore() do
         variableIdx = (state -> state.variableIdx).(v)
+        possibleValuesIdx = (state -> state.possibleValuesIdx).(v)
     end
 
     fg = BatchedHeterogeneousFeaturedGraph([state.fg for state in v])
     
     return (fg,), ls -> BatchedHeterogeneousTrajectoryState{Float32}(
         fg = ls[1],
-        variableIdx = variableIdx
+        variableIdx = variableIdx,
+        possibleValuesIdx = possibleValuesIdx
     )
 end
 Flux.functor(::Type{BatchedHeterogeneousTrajectoryState{T}}, ts) where T = (ts.fg,), ls -> BatchedHeterogeneousTrajectoryState{T}(ls[1], ts.variableIdx, ts.allValuesIdx) 
