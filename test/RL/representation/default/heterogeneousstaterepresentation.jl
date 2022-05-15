@@ -6,7 +6,7 @@
         constraintNodeFeatures = [3.0f0 3.0f0; 4.0f0 4.0f0]
         valueNodeFeatures = [6.0f0 6.0f0; 6.0f0 6.0f0]
         variableIdx = 1
-        hsr = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}(g, variableNodeFeatures, constraintNodeFeatures, valueNodeFeatures, nothing, variableIdx, nothing, nothing, nothing, nothing, 2, 2, 2)
+        hsr = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}(g, variableNodeFeatures, constraintNodeFeatures, valueNodeFeatures, nothing, variableIdx, nothing, nothing, nothing, nothing, nothing, 2, 2, 2)
 
         @test hsr.cplayergraph == g
         @test hsr.variableNodeFeatures == variableNodeFeatures
@@ -211,7 +211,7 @@
 
         SeaPearl.assign!(x, 2)
         SeaPearl.fixPoint!(model, SeaPearl.getOnDomainChange(x))
-        SeaPearl.update_representation!(hsr, model, x) #add x as the branching variable
+        SeaPearl.update_representation!(hsr, model, y) #add x as the branching variable
         hts2 = SeaPearl.HeterogeneousTrajectoryState(hsr)  #creates the HeterogeneousTrajectoryState object
 
         batchedHts = [hts, hts2] |> cpu

@@ -5,7 +5,8 @@
         ts1 = SeaPearl.DefaultTrajectoryState(
             SeaPearl.FeaturedGraph(graph; nf=rand(3,6)),
             2,
-            collect(3:6)
+            collect(3:6), 
+            collect(3:4), 
         )
         ts2 = SeaPearl.DefaultTrajectoryState(
             SeaPearl.FeaturedGraph(graph; nf=rand(3,6)),
@@ -50,14 +51,14 @@
         bfg = SeaPearl.BatchedFeaturedGraph{Float32}(graph)
         var = collect(1:3)
         val = rand(1:6, 2, 3)
-
-        batched = SeaPearl.BatchedDefaultTrajectoryState(bfg, var, val)
+        posval = [rand(1:6, 2) for i in 1:3 ]
+        batched = SeaPearl.BatchedDefaultTrajectoryState(bfg, var, val, posval)
 
         @test isa(batched, SeaPearl.BatchedDefaultTrajectoryState{Float32})
 
-        batched = SeaPearl.BatchedDefaultTrajectoryState{Float32}(fg=bfg, variableIdx=var)
+        batched = SeaPearl.BatchedDefaultTrajectoryState{Float32}(fg=bfg, variableIdx=var, possibleValuesIdx = posval)
 
-        @test isnothing(batched.allValuesIdx)
+        @test isnothing(batched.allValuesIdx) 
     end
 
     # TODO test Flux.functor(::Type{Vector{DefaultTrajectoryState}}, v)
