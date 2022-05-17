@@ -24,10 +24,10 @@ computation on a few graphs.
 Base.@kwdef struct BatchedHeterogeneousTrajectoryState{T} <: NonTabularTrajectoryState
     fg::BatchedHeterogeneousFeaturedGraph{T}
     variableIdx::AbstractVector{Int}
-    possibleValuesIdx::Union{Nothing, Vector{Int64}} #Todo change this to abstract matrix
+    possibleValuesIdx::Union{Nothing, AbstractVector{Vector{Int64}}} #Todo change this to abstract matrix
 
 end
-BatchedHeterogeneousTrajectoryState(fg, var, val) = BatchedHeterogeneousTrajectoryState{AbstractMatrix}(fg=fg, variableIdx=var, possibleValuesIdx = val)
+BatchedHeterogeneousTrajectoryState(fg, var, val) = BatchedHeterogeneousTrajectoryState{Float32}(fg=fg, variableIdx=var, possibleValuesIdx = val)
 
 """
     Flux.functor(::Type{HeterogeneousTrajectoryState}, s)
