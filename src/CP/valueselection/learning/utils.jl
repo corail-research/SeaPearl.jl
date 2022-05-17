@@ -172,7 +172,12 @@ end
 Return the ids of the valid indexes from the Array representation of the AbstractStateRepresentation. Used to be able to work with 
 ActionOutput of variable size (VariableOutput).
 """
-function from_order_to_id(state::AbstractTrajectoryState, value_order::Int64, SR::Type{<:AbstractStateRepresentation})
+function from_order_to_id(state::Union{DefaultTrajectoryState, BatchedDefaultTrajectoryState, HeterogeneousTrajectoryState, BatchedHeterogeneousTrajectoryState}, value_order::Int64, SR::Type{<:AbstractStateRepresentation})
+    @assert !isnothing(state.possibleValuesIdx)
+    return state.possibleValuesIdx[value_order] + size(state.fg.varnf)[2] + size(state.fg.connf)[2]
+end
+
+function from_order_to_id(state::TsptwTrajectoryState, value_order::Int64, SR::Type{<:AbstractStateRepresentation})
     @assert !isnothing(state.possibleValuesIdx)
     return state.possibleValuesIdx[value_order]
 end
@@ -182,7 +187,7 @@ end
 
 Mapping action taken to corresponding value when handling VariableOutput type of ActionOutput.
 """
-function action_to_value(vs::LearnedHeuristic{SR, R, VariableOutput}, action::Int64, state::AbstractTrajectoryState, model::CPModel) where {SR <: DefaultStateRepresentation, R}
+function action_to_value(vs::LearnedHeuristic{SR, R, VariableOutput}, action::Int64, state::AbstractTrajectoryState, model::CPModel) where {SR <: Union{DefaultStateRepresentation, HeterogeneousStateRepresentation}, R}
     value_id = from_order_to_id(state, action, SR)
     cp_vertex = cpVertexFromIndex(vs.current_state.cplayergraph, value_id)
     @assert isa(cp_vertex, ValueVertex)
