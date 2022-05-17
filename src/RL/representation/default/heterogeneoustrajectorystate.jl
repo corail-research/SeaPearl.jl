@@ -83,4 +83,5 @@ function Flux.functor(::Type{Vector{HeterogeneousTrajectoryState}}, v)
         possibleValuesIdx = possibleValuesIdx
     )
 end
-Flux.functor(::Type{BatchedHeterogeneousTrajectoryState{T}}, ts) where T = (ts.fg,), ls -> BatchedHeterogeneousTrajectoryState{T}(ls[1], ts.variableIdx, ts.allValuesIdx) 
+
+Flux.functor(::Type{BatchedHeterogeneousTrajectoryState{T}}, ts) where T = (ts.fg,), ls -> BatchedHeterogeneousTrajectoryState{T}(ls[1], ts.variableIdx, ts.possibleValuesIdx) 
