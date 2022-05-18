@@ -62,12 +62,10 @@ function (nn::HeterogeneousCPNN)(state::HeterogeneousTrajectoryState)
 
     # chain working on the graph(s)
     fg = nn.graphChain(state.fg)
-    variableFeatures = fg.varnf
-    valueFeatures = fg.valnf
     
     globalFeatures = fg.gf
     # extract the feature(s) of the variable(s) we're working on
-    variableFeature = variableFeatures[:, variableIdx]
+    variableFeature = fg.varnf[:, variableIdx]
     
     chainNodeOutput = nn.nodeChain(variableFeature)
     if isempty(globalFeatures)
