@@ -51,3 +51,49 @@ function BatchedHeterogeneousFeaturedGraph{T}(fgs::Vector{FG}) where {T <: Real,
 end
 
 BatchedHeterogeneousFeaturedGraph(fgs::Vector{FG}) where {FG <: HeterogeneousFeaturedGraph} = BatchedHeterogeneousFeaturedGraph{Float32}(fgs)
+
+# ========== Accessing ==========
+
+"""
+    variable_node_feature(::HeterogeneousFeaturedGraph)
+Return the variable nodes features matrix of the graph.
+"""
+variable_node_feature(fg::BatchedHeterogeneousFeaturedGraph{T}) where {T} = fg.varnf
+
+"""
+    constraint_node_feature(::HeterogeneousFeaturedGraph)
+Return the constraint nodes features matrix of the batch of graph.
+"""
+constraint_node_feature(fg::BatchedHeterogeneousFeaturedGraph{T}) where {T} = fg.connf
+
+"""
+    value_node_feature(::HeterogeneousFeaturedGraph)
+Return the value nodes features matrix of the batch of graph.
+"""
+value_node_feature(fg::BatchedHeterogeneousFeaturedGraph{T}) where {T} = fg.valnf
+
+"""
+    n_variable_node(::HeterogeneousFeaturedGraph)
+Return the number of variable nodes of the batch of graph.
+"""
+n_variable_node(fg::BatchedHeterogeneousFeaturedGraph{T}) where {T} = map(v -> size(fg.varnf[:,:,v],2), axes(fg.varnf, 3))
+#could be replace with size(fg.varnf[:,:,1],2)
+
+"""
+    n_constraint_node(::HeterogeneousFeaturedGraph)
+Return the number of constraint nodes of the batch of graph.
+"""
+n_constraint_node(fg::BatchedHeterogeneousFeaturedGraph{T}) where {T} = map(v -> size(fg.connf[:,:,v],2), axes(fg.connf, 3))
+#could be replace with size(fg.connf[:,:,1],2)
+"""
+    n_value_node(::HeterogeneousFeaturedGraph)
+Return the number of value nodes of the batch of graph.
+"""
+n_value_node(fg::BatchedHeterogeneousFeaturedGraph{T}) where {T} = map(v -> size(fg.valnf[:,:,v],2), axes(fg.valnf, 3))
+#could be replace with size(fg.valnf[:,:,1],2)
+
+"""
+    global_feature(::HeterogeneousFeaturedGraph)
+Return the global feature vector of the batch of graph.
+"""
+global_feature(fg::BatchedHeterogeneousFeaturedGraph{T}) where {T}  = fg.gf
