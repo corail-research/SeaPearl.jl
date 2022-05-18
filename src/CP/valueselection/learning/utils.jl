@@ -172,12 +172,12 @@ end
 Return the ids of the valid indexes from the Array representation of the AbstractStateRepresentation. Used to be able to work with 
 ActionOutput of variable size (VariableOutput).
 """
-function from_order_to_id(state::Union{DefaultTrajectoryState, BatchedDefaultTrajectoryState, HeterogeneousTrajectoryState, BatchedHeterogeneousTrajectoryState}, value_order::Int64, SR::Type{<:AbstractStateRepresentation})
+function from_order_to_id(state::Union{HeterogeneousTrajectoryState, BatchedHeterogeneousTrajectoryState}, value_order::Int64, SR::Type{<:AbstractStateRepresentation})
     @assert !isnothing(state.possibleValuesIdx)
     return state.possibleValuesIdx[value_order] + size(state.fg.varnf)[2] + size(state.fg.connf)[2]
 end
 
-function from_order_to_id(state::TsptwTrajectoryState, value_order::Int64, SR::Type{<:AbstractStateRepresentation})
+function from_order_to_id(state::Union{DefaultTrajectoryState, BatchedDefaultTrajectoryState, TsptwTrajectoryState}, value_order::Int64, SR::Type{<:AbstractStateRepresentation})
     @assert !isnothing(state.possibleValuesIdx)
     return state.possibleValuesIdx[value_order]
 end
