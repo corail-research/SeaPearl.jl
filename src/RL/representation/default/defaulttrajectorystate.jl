@@ -4,6 +4,11 @@ using FillArrays
     DefaultTrajectoryState
 
 The most basic state representation, with a featured graph, the index of the variable to branch on and optionnaly a list of possible values.
+
+    fg::FeaturedGraph                                   Associated tri-partite graph containing features on each node.
+    variableIdx::Int                                    Index of the node in the feature graph that represents the choosen variable. 
+    allValuesIdx::Union{Nothing, AbstractVector{Int}}   Indexes of the nodes in the feature graph that reprensents values
+    possibleValuesIdx::Union{Nothing, Vector{Int64}}    Indexes of the nodes in the feature graph that reprensents values in the domain of definition of the variable. 
 """
 struct DefaultTrajectoryState <: GraphTrajectoryState
     fg::FeaturedGraph
