@@ -113,7 +113,7 @@ function update_representation!(sr::DefaultStateRepresentation, model::CPModel, 
     update_features!(sr, model)
     ncon = sr.cplayergraph.numberOfConstraints
     nvar = sr.cplayergraph.numberOfVariables
-    sr.possibleValuesIdx = map(v -> indexFromCpVertex(sr.cplayergraph, ValueVertex(v)), collect(x.domain)) .- ncon .- nvar
+    sr.possibleValuesIdx = map(v -> indexFromCpVertex(sr.cplayergraph, ValueVertex(v)), collect(x.domain))
     sr.variableIdx = indexFromCpVertex(sr.cplayergraph, VariableVertex(x))
 
     return sr
