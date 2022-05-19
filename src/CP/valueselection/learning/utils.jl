@@ -139,7 +139,7 @@ function get_observation!(lh::LearnedHeuristic, model::CPModel, x::AbstractIntVa
 
     # synchronize state: 
     sync_state!(lh, model, x)
-    state = trajectoryState(lh.current_state)
+    state = deepcopy(trajectoryState(lh.current_state))
 
     if !wears_mask(lh)
         return unmaskedCPEnv(reward, done, state, action_space_index)
