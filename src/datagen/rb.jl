@@ -45,12 +45,8 @@ creating temporary files for efficiency purpose !
 This is the algorithm proposed by "Random constraint satisfaction: Easy generation of 
 hard (satisfiable) instances" (Xu. et al, 2007) to generate forced satisfiable instance of RB.
 """
-function fill_with_generator!(cpmodel::CPModel, gen::RBGenerator; seed=nothing)
-    if !isnothing(seed)
-        Random.seed!(seed)
-    end
-    
-    random_solution = rand(1:gen.d, gen.n)
+function fill_with_generator!(cpmodel::CPModel, gen::RBGenerator;  rng::AbstractRNG = MersenneTwister())    
+    random_solution = rand(rng, 1:gen.d, gen.n)
 
     # create variables
     x = SeaPearl.IntVar[]
@@ -61,7 +57,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::RBGenerator; seed=nothing)
     
     # add constraints
     for i in 1:gen.m
-        scope = StatsBase.sample(1:gen.n, gen.k, replace=false, ordered=false)
+        scope = StatsBase.sample(rng, 1:gen.n, gen.k, replace=false, ordered=false)
         variables = [x[j] for j in scope]
         table = zeros(Int64, gen.k, gen.nb)
         table[:, 1] = [random_solution[j] for j in scope]
@@ -71,7 +67,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::RBGenerator; seed=nothing)
         tuples = [collect(tuple) for tuple in tuples]
 
         deleteat!(tuples, findfirst(t -> t == table[:, 1], tuples))
-        allowed_tuples = StatsBase.sample(tuples, gen.nb-1)
+        allowed_tuples = StatsBase.sample(rng, tuples, gen.nb-1, replace=false)
 
         for (i, tuple) in enumerate(allowed_tuples)
             table[:, i + 1] = tuple
