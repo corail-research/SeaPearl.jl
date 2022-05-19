@@ -56,7 +56,7 @@
         variableIndices = Flux.unsqueeze(CartesianIndex.(variableIdx, 1:batchSize), 1)
         branchingVariableFeatures = variableFeatures[:, variableIndices] # Fx1xB
 
-        CorrectbranchingVariableFeatures = reshape([3 1 2 2],2,1,2) #embeddings of the variables [3,1] for x and [2,2] for y
+        CorrectbranchingVariableFeatures = reshape([3.0 3.0 2.0 2.0],2,1,2) #embeddings of the variables [3,1] for x and [2,2] for y
         @test branchingVariableFeatures == CorrectbranchingVariableFeatures
 
         relevantVariableFeatures = reshape(nn.nodeChain(RL.flatten_batch(branchingVariableFeatures)), :, 1, batchSize) # F'x1xB
