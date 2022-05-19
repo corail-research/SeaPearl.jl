@@ -1,5 +1,6 @@
 @testset "BatchedBatchedHeterogeneousFeaturedGraph{Float64}" begin 
     @testset "check dimensions" begin 
+        #Here we are considering a batch of two identic samples
         #trying to pass symmetric type-specific adjacency matrix
         contovar = cat([0 1 1; 1 0 0; 1 0 0], [0 1 1; 1 0 0; 1 0 0], dims=3)
         valtovar = cat([0 0 1 1 0; 0 0 0 1 1; 1 0 0 0 0; 1 1 0 0 0; 0 1 0 0 0], [0 0 1 1 0; 0 0 0 1 1; 1 0 0 0 0; 1 1 0 0 0; 0 1 0 0 0],dims= 3)
@@ -10,7 +11,7 @@
 
         @test_throws AssertionError SeaPearl.BatchedHeterogeneousFeaturedGraph{Float64}(contovar, valtovar, varnf, connf, valnf, gf)  
 
-        #efining the type-specific matrix the proper way
+        #edefining the type-specific matrix the proper way
         contovar = cat([1 1], [1 1], dims=3)
         valtovar = cat([1 0; 1 1; 0 1], [1 0; 1 1; 0 1], dims= 3)
 
