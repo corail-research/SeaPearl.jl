@@ -19,10 +19,7 @@ The generator ensure that all pairs have at least one incoming arc and one outgo
 For this we first place one branchable variable in each line of the matrix with a different column index each time.
 Then, the remaining edges are assigned randomly between the non-asssigned elements of the decision matrix.
 """
-function fill_with_generator!(model, gen::KepGenerator; seed=nothing)
-    if !isnothing(seed)
-        Random.seed!(seed)
-    end
+function fill_with_generator!(model, gen::KepGenerator; rng::AbstractRNG = MersenneTwister())
     density = gen.density
     nb_nodes = gen.nb_nodes
     total_edges = round(Int, nb_nodes*nb_nodes*density)
@@ -32,7 +29,7 @@ function fill_with_generator!(model, gen::KepGenerator; seed=nothing)
 
     # ensure that all pairs have at least one in edge and one out edge 
     indexes = [(i,j) for i = 1:nb_nodes for j = 1:nb_nodes]
-    permutation = shuffle([i for i=1:nb_nodes]) # permutation[i] = j => x[i, j] is branchable
+    permutation = shuffle(rng, [i for i=1:nb_nodes]) # permutation[i] = j => x[i, j] is branchable
     flat_index_required_branchable = [permutation[i] + (i-1)*nb_nodes for i in 1:nb_nodes]
     index_branchable = [] # Array that will containing the indexes (as tuples) of the branchable variables
     for i in reverse(flat_index_required_branchable)
@@ -41,7 +38,7 @@ function fill_with_generator!(model, gen::KepGenerator; seed=nothing)
 
     # the remaining edges are assigned randomly between the non-asssigned elements of the decision matrix
     nb_unassigned_edges = total_edges - nb_nodes
-    append!(index_branchable, sample(indexes, nb_unassigned_edges))
+    append!(index_branchable, sample(rng, indexes, nb_unassigned_edges, replace=false))
 
     ### Variables ###
     x = Matrix{SeaPearl.AbstractIntVar}(undef, nb_nodes, nb_nodes)
