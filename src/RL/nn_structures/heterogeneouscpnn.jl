@@ -27,6 +27,8 @@ function (nn::HeterogeneousCPNN)(states::BatchedHeterogeneousTrajectoryState)
     # chain working on the graph(s)
     fg = nn.graphChain(states.fg)
     variableFeatures = fg.varnf
+    valueFeatures = fg.valnf
+    
     globalFeatures = fg.gf
     # extract the feature(s) of the variable(s) we're working on
     indices = nothing
@@ -35,9 +37,37 @@ function (nn::HeterogeneousCPNN)(states::BatchedHeterogeneousTrajectoryState)
         indices = CartesianIndex.(zip(variableIdx, 1:batchSize))
     end
     variableFeature = variableFeatures[:, indices]
+    #graphVariableEmbedding = Base.maximum(variableFeatures,dims=2)
+    #graphValueEmbedding = Base.maximum(valueFeatures,dims=2)
     # chain working on the node(s) feature(s)
+    #chainNodeOutput = nn.nodeChain(vcat(variableFeature, graphVariableEmbedding[:,1,:], graphValueEmbedding[:,1,:]))
     chainNodeOutput = nn.nodeChain(variableFeature)
+    if isempty(globalFeatures)
+        # output layers
+        output = nn.outputChain(chainNodeOutput)
+        return output
+    else
+        # chain working on the global features
+        chainGlobalOutput = nn.globalChain(globalFeatures)
+
+        # output layers
+        finalInput = vcat(chainNodeOutput, chainGlobalOutput)
+        output = nn.outputChain(finalInput)
+        return output
+    end
+end
+
+function (nn::HeterogeneousCPNN)(state::HeterogeneousTrajectoryState)
+    variableIdx = state.variableIdx
+
+    # chain working on the graph(s)
+    fg = nn.graphChain(state.fg)
     
+    globalFeatures = fg.gf
+    # extract the feature(s) of the variable(s) we're working on
+    variableFeature = fg.varnf[:, variableIdx]
+    
+    chainNodeOutput = nn.nodeChain(variableFeature)
     if isempty(globalFeatures)
         # output layers
         output = nn.outputChain(chainNodeOutput)

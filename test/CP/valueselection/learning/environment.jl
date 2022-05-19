@@ -2,7 +2,7 @@
     
     @testset "CPEnv{TS}" begin
         graph = Matrix(adjacency_matrix(random_regular_graph(6, 3)))
-        ts = SeaPearl.DefaultTrajectoryState(SeaPearl.FeaturedGraph(graph; nf=rand(3, 6)), 1)
+        ts = SeaPearl.DefaultTrajectoryState(SeaPearl.FeaturedGraph(graph; nf=rand(3, 6)), 1, collect(1:4), [1, 4])
         env = SeaPearl.CPEnv{SeaPearl.DefaultTrajectoryState}(
             .0, 
             false, 
@@ -14,7 +14,7 @@
 
         Random.seed!(0)
         actions = Set([agent(env) for I = 1:10])
-
+        
         @test actions == Set([1,4])
     end
 end

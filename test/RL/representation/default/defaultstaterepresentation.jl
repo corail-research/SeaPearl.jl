@@ -9,7 +9,7 @@ adj = [0 1 0 1;
         g = SeaPearl.CPLayerGraph()
         nodeFeatures = [1.0f0 1.0f0; 2.0f0 2.0f0]
         variableIdx = 1
-        dsr = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}(g, nodeFeatures, nothing, variableIdx, nothing, nothing, nothing, nothing, 3)
+        dsr = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}(g, nodeFeatures, nothing, variableIdx, nothing, nothing, nothing, nothing, nothing, 3)
 
         @test dsr.cplayergraph == g
         @test dsr.nodeFeatures == nodeFeatures

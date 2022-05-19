@@ -40,6 +40,7 @@ mutable struct HeterogeneousStateRepresentation{F,TS} <: FeaturizedStateRepresen
     globalFeatures::Union{Nothing,AbstractVector{Float32}}
     variableIdx::Union{Nothing,Int64}
     allValuesIdx::Union{Nothing,Vector{Int64}}
+    possibleValuesIdx::Union{Nothing, Vector{Int64}}
     valueToPos::Union{Nothing,Dict{Int64,Int64}}
     chosenFeatures::Union{Nothing,Dict{String,Tuple{Bool,Int64}}}
     constraintTypeToId::Union{Nothing,Dict{Type,Int}}
@@ -67,7 +68,7 @@ function HeterogeneousStateRepresentation{F,TS}(model::CPModel; action_space=not
         end
     end
 
-    sr = HeterogeneousStateRepresentation{F,TS}(g, nothing, nothing, nothing, nothing, nothing, allValuesIdx, valueToPos, nothing, nothing, 0, 0, 0)
+    sr = HeterogeneousStateRepresentation{F,TS}(g, nothing, nothing, nothing, nothing, nothing, allValuesIdx, nothing, valueToPos, nothing, nothing, 0, 0, 0)
     sr.variableNodeFeatures, sr.constraintNodeFeatures, sr.valueNodeFeatures = featurize(sr; chosen_features=chosen_features)
     sr.globalFeatures = global_featurize(sr)
     return sr
@@ -80,7 +81,7 @@ function HeterogeneousTrajectoryState(sr::HeterogeneousStateRepresentation{F,Het
     contovar, valtovar = adjacency_matrices(sr.cplayergraph)
     globalFeatures = isnothing(sr.globalFeatures) ? zeros(0) : sr.globalFeatures
     fg = HeterogeneousFeaturedGraph(contovar, valtovar, sr.variableNodeFeatures, sr.constraintNodeFeatures, sr.valueNodeFeatures, globalFeatures)
-    return HeterogeneousTrajectoryState(fg, sr.variableIdx)
+    return HeterogeneousTrajectoryState(fg, sr.variableIdx, sr.possibleValuesIdx)
 end
 
 """
@@ -90,6 +91,9 @@ Update the StateRepesentation according to its Type and Featurization.
 """
 function update_representation!(sr::HeterogeneousStateRepresentation, model::CPModel, x::AbstractIntVar)
     update_features!(sr, model)
+    ncon = sr.cplayergraph.numberOfConstraints
+    nvar = sr.cplayergraph.numberOfVariables
+    sr.possibleValuesIdx = map(v -> indexFromCpVertex(sr.cplayergraph, ValueVertex(v)), collect(x.domain)) .- ncon .- nvar
     sr.variableIdx = indexFromCpVertex(sr.cplayergraph, VariableVertex(x)) - sr.cplayergraph.numberOfConstraints
     return sr
 end

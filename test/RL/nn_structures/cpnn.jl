@@ -19,7 +19,10 @@
         nodeFeatures = [rand(3, 10) for i = 1:4]
         featuredGraphs = [SeaPearl.FeaturedGraph(g; nf=nf) for (g, nf) in zip(graphs, nodeFeatures)]
 
-        trajectoryVector = SeaPearl.DefaultTrajectoryState.(featuredGraphs, rand(1:10, 4))
+        actionSpace = [rand(1:10, 3) for i = 1:4]
+        possibleactionSpace = [rand(1:3, 3) for i = 1:4]
+
+        trajectoryVector = SeaPearl.DefaultTrajectoryState.(featuredGraphs, rand(1:10, 4), actionSpace, possibleactionSpace)
         nnInput = trajectoryVector |> cpu
 
         output = modelNN(nnInput)
@@ -64,7 +67,10 @@
         globalFeatures = [rand(2) for i = 1:4]
         featuredGraphs = [SeaPearl.FeaturedGraph(g; nf=nf, gf=gf) for (g, nf, gf) in zip(graphs, nodeFeatures, globalFeatures)]
 
-        trajectoryVector = SeaPearl.DefaultTrajectoryState.(featuredGraphs, rand(1:10, 4))
+        actionSpace = [rand(1:10, 3) for i = 1:4]
+        possibleactionSpace = [rand(1:3, 3) for i = 1:4]
+
+        trajectoryVector = SeaPearl.DefaultTrajectoryState.(featuredGraphs, rand(1:10, 4), actionSpace, possibleactionSpace)
         nnInput = trajectoryVector |> cpu
 
         output = modelNN(nnInput)

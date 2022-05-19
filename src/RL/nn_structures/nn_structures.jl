@@ -23,6 +23,8 @@ end
 
 include("cpnn.jl")
 include("heterogeneouscpnn.jl")
+include("heterogeneousvariableoutputcpnn.jl")
+include("heterogeneousfullfeaturedcpnn.jl")
 include("fullfeaturedcpnn.jl")
 include("variableoutputcpnn.jl")
 

@@ -23,17 +23,19 @@ end
 function check_dimensions(contovar::T, valtovar::T, varnf::N, connf::N, valnf::N, gf::G) where {T<:AbstractArray,N<:AbstractArray,E<:AbstractArray,G<:AbstractArray}
     @assert ndims(contovar) == ndims(valtovar)
     if ndims(contovar) == 2
+        @assert ndims(valtovar) == 2 "valtovar adjacency matrix has improper number of dimensions."
         @assert ndims(varnf) == 2 "Variable Node feature Matrix has improper number of dimensions."
         @assert ndims(connf) == 2 "Constraint Node feature Matrix has improper number of dimensions."
         @assert ndims(valnf) == 2 "Value Node feature Matrix has improper number of dimensions."
         @assert ndims(gf) == 1 "Global feature Matrix has improper number of dimensions."
     elseif ndims(contovar) == 3
+        @assert ndims(valtovar) == 3 "valtovar adjacency matrix has improper number of dimensions."
         @assert ndims(varnf) == 3 "Variable Node feature Matrix has improper number of dimensions."
         @assert ndims(connf) == 3 "Constraint Node feature Matrix has improper number of dimensions."
         @assert ndims(valnf) == 3 "Value Node feature Matrix has improper number of dimensions."
         @assert ndims(gf) == 2 "Global feature Matrix has improper number of dimensions."
 
-        @assert size(contovar, 3) == size(valtovar, 3) == size(varnf, 3) == size(connf, 3) == size(valnf, 3) == size(gf, 2) "Inconsistent number of graphs accross matrices."
+        @assert size(contovar, 3) == size(valtovar, 3) == size(varnf, 3) == size(connf, 3) == size(valnf, 3) == size(gf, 2) "Inconsistent number of batchs accross matrices."
     end
     @assert size(contovar, 2) == size(valtovar, 2) "The number of variable nodes is not consistent between contovar and valtovar."
     @assert size(contovar, 2) == size(varnf, 2) "The number of variable nodes is not consistent between contovar and varnf."
