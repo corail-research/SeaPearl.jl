@@ -80,9 +80,7 @@ function addVariable!(model::CPModel, x::AbstractVar; branchable=true)
     model.variables[x.id] = x
     if branchable
         model.branchable_variables[x.id] = x
-        println(model.branchable_variables[x.id])
     end
-    println(model.variables[x.id])
     
 end
 
