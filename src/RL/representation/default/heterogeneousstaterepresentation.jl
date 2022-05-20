@@ -131,6 +131,12 @@ function featurize(sr::HeterogeneousStateRepresentation{DefaultFeaturization,TS}
             if sr.chosenFeatures["variable_is_bound"][1]
                 variableFeatures[sr.chosenFeatures["variable_is_bound"][2], i - ncon] = isbound(cp_vertex.variable)
             end
+            if sr.chosenFeatures["variable_is_branchable"][1]
+                variableFeatures[sr.chosenFeatures["variable_is_branchable"][2], i] = int(haskey(sr.cplayergraph.cpmodel.branchable, sr.cplayergraph.nodeToId[cp_vertex]))
+            end
+            if sr.chosenFeatures["variable_is_objective"][1]
+                variableFeatures[sr.chosenFeatures["variable_is_objective"][2], i] = sr.cplayergraph.cpmodel.objective == cp_vertex.variable
+            end
         end
         if isa(cp_vertex, ConstraintVertex)
             if sr.chosenFeatures["constraint_activity"][1]
@@ -193,6 +199,8 @@ function initChosenFeatures!(sr::HeterogeneousStateRepresentation{DefaultFeaturi
         "variable_domain_size" => (false, -1),
         "variable_initial_domain_size" => (false, -1),
         "variable_is_bound" => (false, -1),
+        "variable_is_branchable" => (false, -1),
+        "variable_is_objective" => (false, -1),
         "values_onehot" => (false, -1),
         "values_raw" => (false, -1),
     )
@@ -223,6 +231,16 @@ function initChosenFeatures!(sr::HeterogeneousStateRepresentation{DefaultFeaturi
 
         if haskey(chosen_features, "variable_is_bound") && chosen_features["variable_is_bound"]
             sr.chosenFeatures["variable_is_bound"] = (true, variable_counter)
+            variable_counter += 1
+        end
+
+        if haskey(chosen_features, "variable_is_objective") && chosen_features["variable_is_objective"]
+            sr.chosenFeatures["variable_is_objective"] = (true, variable_counter)
+            variable_counter += 1
+        end
+
+        if haskey(chosen_features, "nb_not_bounded_variable") && chosen_features["nb_not_bounded_variable"]
+            sr.chosenFeatures["nb_not_bounded_variable"] = (true, variable_counter)
             variable_counter += 1
         end
 

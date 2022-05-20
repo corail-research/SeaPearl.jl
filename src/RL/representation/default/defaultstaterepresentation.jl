@@ -182,6 +182,12 @@ function featurize(sr::DefaultStateRepresentation{DefaultFeaturization,TS}; chos
             if sr.chosenFeatures["variable_is_bound"][1]
                 features[sr.chosenFeatures["variable_is_bound"][2], i] = isbound(cp_vertex.variable)
             end
+            if sr.chosenFeatures["variable_is_branchable"][1]
+                features[sr.chosenFeatures["variable_is_branchable"][2], i] = int(haskey(sr.cplayergraph.cpmodel.branchable, sr.cplayergraph.nodeToId[cp_vertex]))
+            end
+            if sr.chosenFeatures["variable_is_objective"][1]
+                features[sr.chosenFeatures["variable_is_objective"][2], i] = sr.cplayergraph.cpmodel.objective == cp_vertex.variable
+            end
         end
         if isa(cp_vertex, ValueVertex)
             features[3, i] = 1.0f0
@@ -213,6 +219,8 @@ function initChosenFeatures!(sr::DefaultStateRepresentation{DefaultFeaturization
         "variable_domain_size" => (false, -1),
         "variable_initial_domain_size" => (false, -1),
         "variable_is_bound" => (false, -1),
+        "variable_is_branchable" => (false, -1),
+        "variable_is_objective" => (false, -1),
         "values_onehot" => (false, -1),
         "values_raw" => (false, -1),
     )
@@ -241,6 +249,16 @@ function initChosenFeatures!(sr::DefaultStateRepresentation{DefaultFeaturization
 
         if haskey(chosen_features, "variable_is_bound") && chosen_features["variable_is_bound"]
             sr.chosenFeatures["variable_is_bound"] = (true, counter)
+            counter += 1
+        end
+
+        if haskey(chosen_features, "variable_is_branchable") && chosen_features["variable_is_branchable"]
+            sr.chosenFeatures["variable_is_branchable"] = (true, counter)
+            counter += 1
+        end
+
+        if haskey(chosen_features, "variable_is_objective") && chosen_features["variable_is_objective"]
+            sr.chosenFeatures["variable_is_objective"] = (true, counter)
             counter += 1
         end
 
