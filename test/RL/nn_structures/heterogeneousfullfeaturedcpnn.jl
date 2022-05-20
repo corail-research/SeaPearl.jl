@@ -35,6 +35,7 @@
         SeaPearl.assign!(x, 2)
         state2 = SeaPearl.get_observation!(lh, model, y).state
         states = [state1,state2] |> cpu      #create BatchedDefaultTrajectoryState with two samples
+        #The GNN is the identity function
         nn = SeaPearl.HeterogeneousFullFeaturedCPNN(Flux.Chain(),Flux.Chain(),Flux.Chain(),Flux.Dense(6, 1, Flux.leakyrelu))
 
         @test  SeaPearl.wears_mask(nn) == true
@@ -53,7 +54,7 @@
         globalFeatures = featuredGraph.gf # GxB
     
         # Extract the features corresponding to the varibales
-        variableIndices = Flux.unsqueeze(CartesianIndex.(variableIdx, 1:batchSize), 1)
+        variableIndices = Flux.unsqueeze(CartesianIndex.(variableIdx, 1:batchSize), 1) #TODO I had to deactivate Zigote.ignore
         branchingVariableFeatures = variableFeatures[:, variableIndices] # Fx1xB
 
         CorrectbranchingVariableFeatures = reshape([3.0 3.0 2.0 2.0],2,1,2) #embeddings of the variables [3,1] for x and [2,2] for y
@@ -61,9 +62,14 @@
 
         relevantVariableFeatures = reshape(nn.nodeChain(RL.flatten_batch(branchingVariableFeatures)), :, 1, batchSize) # F'x1xB
     
+        @test relevantVariableFeatures ==  reshape([3.0 3.0 2.0 2.0],2,1,2)
         # Extract the features corresponding to the values
         relevantValueFeatures = reshape(nn.nodeChain(RL.flatten_batch(valueFeatures)), :, actionSpaceSize, batchSize) # F'xAxB
-    
+        @test relevantValueFeatures == reshape([0.0  0.0  1.0  0.0  0.0  0.0  1.0  0.0
+                                                0.0  0.0  0.0  1.0  0.0  0.0  0.0  1.0
+                                                0.0  1.0  0.0  0.0  0.0  1.0  0.0  0.0
+                                                1.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0],:,4,2)
+
         finalFeatures = nothing
         if sizeof(globalFeatures) != 0
     
@@ -83,13 +89,20 @@
                 relevantVariableFeatures .+ mask, # F'xAxB
                 relevantValueFeatures,
             ) # (F'+F')xAxB
-            finalFeatures = RL.flatten_batch(finalFeatures) # (F'+F')x(A+B)
+            finalFeatures = RL.flatten_batch(finalFeatures) # (F'+F')x(AxB)
         end
     
         # output layer
-        predictions = nn.outputChain(finalFeatures) # Ox(A+B)
-        output = reshape(predictions, actionSpaceSize, batchSize) # OxAxB
+        @test finalFeatures  ==   [3.0  3.0  3.0  3.0  2.0  2.0  2.0  2.0
+                                   3.0  3.0  3.0  3.0  2.0  2.0  2.0  2.0
+                                   0.0  0.0  1.0  0.0  0.0  0.0  1.0  0.0
+                                   0.0  0.0  0.0  1.0  0.0  0.0  0.0  1.0
+                                   0.0  1.0  0.0  0.0  0.0  1.0  0.0  0.0
+                                   1.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0]
+
+        predictions = nn.outputChain(finalFeatures) # Ox(1xB)
+        output = reshape(predictions, actionSpaceSize, batchSize) # OxB
     
         @test output == nn(states)
     end 
-end 
+end     
