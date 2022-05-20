@@ -42,7 +42,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::LegacyGraphColoringGenerato
 
     # edge constraints
     for i in 1:length(connexions)
-        neighbors = Distributions.sample(rng, [j for j in 1:length(connexions) if j != i && connexions[i] > 0], connexions[i], replace=false)
+        neighbors = Distributions.sample(rng, [j for j in (i+1):length(connexions) if connexions[i] > 0], connexions[i], replace=false)
         for j in neighbors
             SeaPearl.addConstraint!(cpmodel, SeaPearl.NotEqual(x[i], x[j], cpmodel.trailer))
         end
@@ -94,8 +94,8 @@ function fill_with_generator!(cpmodel::CPModel, gen::HomogenousGraphColoringGene
     
     # edge constraints
     for i in 1:n
-        for j in 1:n
-            if i != j && rand(rng) <= p
+        for j in (i+1):n
+            if rand(rng) <= p
                 SeaPearl.addConstraint!(cpmodel, SeaPearl.NotEqual(x[i], x[j], cpmodel.trailer))
             end
         end
@@ -160,8 +160,8 @@ function fill_with_generator!(cpmodel::CPModel, gen::ClusterizedGraphColoringGen
     
     # edge constraints
     for i in 1:n
-        for j in 1:n
-            if i != j && assigned_colors[i] != assigned_colors[j] && rand(rng) <= p
+        for j in (i+1):n
+            if assigned_colors[i] != assigned_colors[j] && rand(rng) <= p
                 SeaPearl.addConstraint!(cpmodel, SeaPearl.NotEqual(x[i], x[j], cpmodel.trailer))
             end
         end
