@@ -169,7 +169,7 @@ adj = [0 1 0 1;
         SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x[4], x[1], model.trailer))
         # Objective
         numberOfColors = SeaPearl.IntVar(1, 4, "numberOfColors", model.trailer)
-        SeaPearl.addVariable!(model, numberOfColors)
+        SeaPearl.addVariable!(model, numberOfColors; branchable=false)
         for var in x
             SeaPearl.addConstraint!(model, SeaPearl.LessOrEqual(var, numberOfColors, model.trailer))
         end
@@ -184,6 +184,8 @@ adj = [0 1 0 1;
             "variable_initial_domain_size" => true,
             "variable_domain_size" => false,
             "variable_is_bound" => false,
+            "variable_is_branchable" => true,
+            "variable_is_objective" => true,
             "nb_involved_constraint_propagation" => true,
             "nb_not_bounded_variable" => false
         )
@@ -195,8 +197,10 @@ adj = [0 1 0 1;
         @test sr.nodeFeatures[4,:] == Float32[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         @test sr.nodeFeatures[5,:] == Float32[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         @test sr.nodeFeatures[6,:] == Float32[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 4.0, 4.0, 4.0, 4.0, 0.0, 0.0, 0.0, 0.0]
-        @test sum(sr.nodeFeatures[7:8,:],dims=1) == Float32[1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0]
-        @test sr.nodeFeatures[9:12,:] == Float32[0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0]
+        @test sr.nodeFeatures[7,:] == Float32[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        @test sr.nodeFeatures[8,:] == Float32[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0]
+        @test sum(sr.nodeFeatures[9:10,:],dims=1) == Float32[1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0]
+        @test sr.nodeFeatures[11:14,:] == Float32[0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0]
 
         
         # assign color 1 to x[1]
@@ -210,8 +214,10 @@ adj = [0 1 0 1;
         @test sr.nodeFeatures[4,:] == Float32[0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         @test all(sr.nodeFeatures[5,1:8] .> Float32[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
         @test sr.nodeFeatures[6,:] == Float32[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 4.0, 4.0, 4.0, 4.0, 0.0, 0.0, 0.0, 0.0]
-        @test sum(sr.nodeFeatures[7:8,:],dims=1) == Float32[1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0]
-        @test sr.nodeFeatures[9:12,:] == Float32[0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0]
+        @test sr.nodeFeatures[7,:] == Float32[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        @test sr.nodeFeatures[8,:] == Float32[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0]
+        @test sum(sr.nodeFeatures[9:10,:],dims=1) == Float32[1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0]
+        @test sr.nodeFeatures[11:14,:] == Float32[0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0]
         
     end
 
