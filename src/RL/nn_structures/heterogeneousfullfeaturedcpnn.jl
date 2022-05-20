@@ -55,18 +55,18 @@ function (nn::HeterogeneousFullFeaturedCPNN)(states::BatchedHeterogeneousTraject
             globalFeatures .+ mask, # G'xAxB
             relevantValueFeatures,
         ) # (F'+G'+F')xAxB
-        finalFeatures = RL.flatten_batch(finalFeatures) # (F'+G'+F')x(A+B)
+        finalFeatures = RL.flatten_batch(finalFeatures) # (F'+G'+F')x(AxB)
     else
         # Prepare the input of the outputChain
         finalFeatures = vcat(
             relevantVariableFeatures .+ mask, # F'xAxB
             relevantValueFeatures,
         ) # (F'+F')xAxB
-        finalFeatures = RL.flatten_batch(finalFeatures) # (F'+F')x(A+B)
+        finalFeatures = RL.flatten_batch(finalFeatures) # (F'+F')x(AxB)
     end
 
     # output layer
-    predictions = nn.outputChain(finalFeatures) # Ox(A+B)
+    predictions = nn.outputChain(finalFeatures) # Ox(AxB)
     output = reshape(predictions, actionSpaceSize, batchSize) # OxAxB
 
     return output
