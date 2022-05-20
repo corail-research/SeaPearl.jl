@@ -42,4 +42,8 @@
         @test SeaPearl.global_feature(hfg) == gf
     end 
 
+    @testset "BatchedHeterogeneousFeaturedGraph{T}(fgs::Vector{FG}) " begin 
+        #TODO add test so check that matrices are padded the right way
+    end 
+
 end 
