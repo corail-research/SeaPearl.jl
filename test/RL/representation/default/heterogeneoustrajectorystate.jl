@@ -131,7 +131,9 @@ agent = RL.Agent(
         hts = SeaPearl.HeterogeneousTrajectoryState(fg, var, val)
         bhts = hts |> cpu
 
-        @test isa(bhts, SeaPearl.BatchedHeterogeneousTrajectoryState)
+        @test isa(bhts, SeaPearl.HeterogeneousTrajectoryState)
+        #@test isa(bhts, SeaPearl.BatchedHeterogeneousTrajectoryState)
+
     end
 
     @testset "Flux.functor(::Type{Vector{HeterogeneousTrajectoryState}}, v)" begin 
@@ -170,7 +172,8 @@ agent = RL.Agent(
         hts = SeaPearl.HeterogeneousTrajectoryState(fg, var, val)
         bhts = hts |> cpu  |> cpu 
 
-        @test isa(bhts, SeaPearl.BatchedHeterogeneousTrajectoryState)
+        @test isa(bhts, SeaPearl.HeterogeneousTrajectoryState)
+        #@test isa(bhts, SeaPearl.BatchedHeterogeneousTrajectoryState)
     end
 
     @testset "advanced testset on BatchedHeterogeneousTrajectoryState" begin
