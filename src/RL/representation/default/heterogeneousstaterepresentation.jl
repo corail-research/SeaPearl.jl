@@ -239,8 +239,8 @@ function initChosenFeatures!(sr::HeterogeneousStateRepresentation{DefaultFeaturi
             variable_counter += 1
         end
 
-        if haskey(chosen_features, "nb_not_bounded_variable") && chosen_features["nb_not_bounded_variable"]
-            sr.chosenFeatures["nb_not_bounded_variable"] = (true, variable_counter)
+        if haskey(chosen_features, "variable_is_branchable") && chosen_features["variable_is_branchable"]
+            sr.chosenFeatures["variable_is_branchable"] = (true, variable_counter)
             variable_counter += 1
         end
 
