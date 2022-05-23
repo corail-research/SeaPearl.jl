@@ -57,7 +57,7 @@
         if VERSION == v"1.6.0"
             @test length(model.constraints) == 55
         elseif VERSION >= v"1.7.0"
-            @test length(model.constraints) == 57
+            @test length(model.constraints) == 34 
         end
         
         model1 = SeaPearl.CPModel(trailer)
