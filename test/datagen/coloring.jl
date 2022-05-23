@@ -13,7 +13,7 @@
         SeaPearl.fill_with_generator!(model, generator; rng = rng)
 
         @test length(keys(model.variables)) == nb_nodes + 1
-        @test length(model.constraints) == 24
+        @test length(model.constraints) == 22
         
 
         model1 = SeaPearl.CPModel(trailer)
@@ -29,7 +29,7 @@
         rng = MersenneTwister(14)
         SeaPearl.fill_with_generator!(model3, generator; rng = rng)
 
-        for i in 1:24
+        for i in 1:22
             @test model1.constraints[i].y.id == model2.constraints[i].y.id
             @test model1.constraints[i].x.id == model2.constraints[i].x.id
         end
@@ -96,7 +96,7 @@
 
         # This condition is there because of the way random are generated can change from one version to another
         if VERSION >= v"1.6.0"
-            @test length(model.constraints) == 38
+            @test length(model.constraints) == 23
         end
             
         model1 = SeaPearl.CPModel(trailer)

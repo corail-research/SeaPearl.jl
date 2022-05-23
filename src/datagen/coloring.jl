@@ -42,7 +42,8 @@ function fill_with_generator!(cpmodel::CPModel, gen::LegacyGraphColoringGenerato
 
     # edge constraints
     for i in 1:length(connexions)
-        neighbors = Distributions.sample(rng, [j for j in (i+1):length(connexions) if connexions[i] > 0], connexions[i], replace=false)
+        possible_neightbors =  [j for j in (i+1):length(connexions) if connexions[i] > 0]
+        neighbors = Distributions.sample(rng, possible_neightbors, min(connexions[i], length(possible_neightbors)),replace=false)
         for j in neighbors
             SeaPearl.addConstraint!(cpmodel, SeaPearl.NotEqual(x[i], x[j], cpmodel.trailer))
         end
