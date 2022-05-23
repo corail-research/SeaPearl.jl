@@ -1,19 +1,32 @@
 """
     HeterogeneousFullFeaturedCPNN(;
         graphChain::Flux.Chain
-        nodeChain::Flux.Chain
+        varChain::Flux.Chain = Flux.Chain()
+        valChain::Flux.Chain = Flux.Chain()
         globalChain::Flux.Chain
         outputChain::Flux.Dense
     )
 
 This structure is here to provide a flexible way to create a nn model which respect this approach:
 Making modification on the graph, then extract one node feature and modify it. This CPNN is designed to process HeterogeneousFeaturedGraphs.
+
+This pipeline works in the following way : 
+
+1) We apply a GNN on the input featured graph.
+2) We extract the contextualized-feature of the branching variable and pass it trought varChain
+3) We extract the contextualized-feature of each value that is part of the variable's domain of definition and pass it trought valChain.
+4) We concat the two reshaped previous results (*optionnaly* with a global feature) and pass it trought outputChain to generate the output Q-vector.
 """
 Base.@kwdef struct HeterogeneousFullFeaturedCPNN <: NNStructure
     graphChain
-    nodeChain::Flux.Chain = Flux.Chain()
+    varChain::Flux.Chain = Flux.Chain()
+    valChain::Flux.Chain = Flux.Chain()
     globalChain::Flux.Chain = Flux.Chain()
     outputChain::Union{Flux.Dense, Flux.Chain} = Flux.Chain()
+
+    function HeterogeneousFullFeaturedCPNN(graphChain, nodeChain::Flux.Chain = Flux.Chain(), globalChain::Flux.Chain = Flux.Chain(), outputChain::Union{Flux.Dense, Flux.Chain} = Flux.Chain())
+        return new(graphChain, nodeChain, deepcopy(nodeChain),globalChain, outputChain)
+    end
 end
 
 # Enable the `|> gpu` syntax from Flux
@@ -38,10 +51,10 @@ function (nn::HeterogeneousFullFeaturedCPNN)(states::BatchedHeterogeneousTraject
         variableIndices = Flux.unsqueeze(CartesianIndex.(variableIdx, 1:batchSize), 1)
     end
     branchingVariableFeatures = variableFeatures[:, variableIndices] # Fx1xB
-    relevantVariableFeatures = reshape(nn.nodeChain(RL.flatten_batch(branchingVariableFeatures)), :, 1, batchSize) # F'x1xB
+    relevantVariableFeatures = reshape(nn.varChain(RL.flatten_batch(branchingVariableFeatures)), :, 1, batchSize) # F'x1xB
 
     # Extract the features corresponding to the values
-    relevantValueFeatures = reshape(nn.nodeChain(RL.flatten_batch(valueFeatures)), :, actionSpaceSize, batchSize) # F'xAxB
+    relevantValueFeatures = reshape(nn.valChain(RL.flatten_batch(valueFeatures)), :, actionSpaceSize, batchSize) # F'xAxB
 
     finalFeatures = nothing
     if sizeof(globalFeatures) != 0
@@ -85,10 +98,10 @@ function (nn::HeterogeneousFullFeaturedCPNN)(states::HeterogeneousTrajectoryStat
 
     # Extract the features corresponding to the varibales
     branchingVariableFeatures = variableFeatures[:, variableIdx] # Fx1
-    relevantVariableFeatures = nn.nodeChain(branchingVariableFeatures) # F'x1
+    relevantVariableFeatures = nn.varChain(branchingVariableFeatures) # F'x1
 
     # Extract the features corresponding to the values
-    relevantValueFeatures = nn.nodeChain(valueFeatures) # F'xA
+    relevantValueFeatures = nn.valChain(valueFeatures) # F'xA
 
     finalFeatures = nothing
     if sizeof(globalFeatures) != 0

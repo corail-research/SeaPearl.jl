@@ -1,5 +1,14 @@
 @testset "heterogeneousfullfeaturedcpnn" begin
 
+    @testset "constructor using a single nodeChain" begin
+
+        nn = SeaPearl.HeterogeneousFullFeaturedCPNN(Flux.Chain(),Flux.Chain(Flux.Dense(10, 10, Flux.leakyrelu)),Flux.Chain(),Flux.Dense(6, 1, Flux.leakyrelu))
+
+        #test that the created VarChain and ValChain are not pointing to the same address
+        @test pointer_from_objref(nn.varChain.layers[1].weight) != pointer_from_objref(nn.valChain.layers[1].weight)
+        @test pointer_from_objref(nn.varChain.layers[1].bias) != pointer_from_objref(nn.valChain.layers[1].bias)
+    end
+
     @testset "array manipulmation verification for BatchedHeterogeneousTrajectoryState input" begin 
 
         trailer = SeaPearl.Trailer()
@@ -60,11 +69,11 @@
         CorrectbranchingVariableFeatures = reshape([3.0 3.0 2.0 2.0],2,1,2) #embeddings of the variables [3,1] for x and [2,2] for y
         @test branchingVariableFeatures == CorrectbranchingVariableFeatures
 
-        relevantVariableFeatures = reshape(nn.nodeChain(RL.flatten_batch(branchingVariableFeatures)), :, 1, batchSize) # F'x1xB
+        relevantVariableFeatures = reshape(nn.varChain(RL.flatten_batch(branchingVariableFeatures)), :, 1, batchSize) # F'x1xB
     
         @test relevantVariableFeatures ==  reshape([3.0 3.0 2.0 2.0],2,1,2)
         # Extract the features corresponding to the values
-        relevantValueFeatures = reshape(nn.nodeChain(RL.flatten_batch(valueFeatures)), :, actionSpaceSize, batchSize) # F'xAxB
+        relevantValueFeatures = reshape(nn.valChain(RL.flatten_batch(valueFeatures)), :, actionSpaceSize, batchSize) # F'xAxB
         @test relevantValueFeatures == reshape([0.0  0.0  1.0  0.0  0.0  0.0  1.0  0.0
                                                 0.0  0.0  0.0  1.0  0.0  0.0  0.0  1.0
                                                 0.0  1.0  0.0  0.0  0.0  1.0  0.0  0.0
