@@ -183,6 +183,16 @@ function from_order_to_id(state::Union{DefaultTrajectoryState, BatchedDefaultTra
 end
 
 """
+    from_id_to_order(state::Union{DefaultTrajectoryState, BatchedDefaultTrajectoryState, TsptwTrajectoryState}, value_id::Int64)
+
+Returns the index of the given `value_id` in the `state.possibleValuesIdx`. Used to work in `supervisedLeanedHeuristic` 
+to retrieve an action (which is the index in `state.possibleValuesIdx`) from a value. 
+"""
+function from_id_to_order(state::Union{DefaultTrajectoryState, BatchedDefaultTrajectoryState, TsptwTrajectoryState}, value_id::Int64)
+    @assert !isnothing(state.possibleValuesIdx)
+    return findfirst(x->x == value_id, state.possibleValuesIdx)
+end
+"""
     action_to_value(vs::LearnedHeuristic{SR, R, VariableOutput}, action::Int64, state::AbstractArray, model::CPModel)
 
 Mapping action taken to corresponding value when handling VariableOutput type of ActionOutput.
