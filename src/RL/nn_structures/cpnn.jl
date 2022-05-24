@@ -35,28 +35,22 @@ function (nn::CPNN)(states::BatchedDefaultTrajectoryState)
     # chain working on the graph(s)
     fg = nn.graphChain(states.fg)
     nodeFeatures = fg.nf
-    println("nodeFeatures: ", size(nodeFeatures,1), ", ", size(nodeFeatures,2), ", ", size(nodeFeatures,3))
     globalFeatures = fg.gf
-    println("globalFeatures: ", size(globalFeatures,1), ", ", size(globalFeatures,2), ", ", size(globalFeatures,3))
-    display(globalFeatures)
-
+    
     # extract the feature(s) of the variable(s) we're working on
     indices = nothing
     Zygote.ignore() do
         indices = CartesianIndex.(zip(variableIdx, 1:batchSize))
     end
     variableFeatures = nodeFeatures[:, indices]
-    println("variableFeatures: ", size(variableFeatures,1), ", ", size(variableFeatures,2), ", ", size(variableFeatures,3))
-
+    
     # chain working on the node(s) feature(s)
     chainNodeOutput = nn.nodeChain(variableFeatures)
-    println("variableFeatures after nodeChain: ", size(chainNodeOutput,1), ", ", size(chainNodeOutput,2), ", ", size(chainNodeOutput,3))
-
+    
     if isempty(globalFeatures)
         # output layers
         output = nn.outputChain(chainNodeOutput)    
-        println("output: ", size(output,1), ", ", size(output,2), ", ", size(output,3))
-
+        
         return output
     else
         # chain working on the global features
