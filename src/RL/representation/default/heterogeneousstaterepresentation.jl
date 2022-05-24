@@ -132,7 +132,7 @@ function featurize(sr::HeterogeneousStateRepresentation{DefaultFeaturization,TS}
                 variableFeatures[sr.chosenFeatures["variable_is_bound"][2], i - ncon] = isbound(cp_vertex.variable)
             end
             if sr.chosenFeatures["variable_is_branchable"][1]
-                variableFeatures[sr.chosenFeatures["variable_is_branchable"][2], i - ncon] = Int(haskey(sr.cplayergraph.cpmodel.branchable,cp_vertex.variable.id))
+                variableFeatures[sr.chosenFeatures["variable_is_branchable"][2], i - ncon] = Int(haskey(sr.cplayergraph.cpmodel.branchable,cp_vertex.variable.id) && sr.cplayergraph.cpmodel.branchable[cp_vertex.variable.id]==1)
             end
             if sr.chosenFeatures["variable_is_objective"][1]
                 variableFeatures[sr.chosenFeatures["variable_is_objective"][2], i - ncon] = sr.cplayergraph.cpmodel.objective == cp_vertex.variable

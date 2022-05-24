@@ -183,7 +183,7 @@ function featurize(sr::DefaultStateRepresentation{DefaultFeaturization,TS}; chos
                 features[sr.chosenFeatures["variable_is_bound"][2], i] = isbound(cp_vertex.variable)
             end
             if sr.chosenFeatures["variable_is_branchable"][1]
-                features[sr.chosenFeatures["variable_is_branchable"][2], i] = Int(haskey(sr.cplayergraph.cpmodel.branchable,cp_vertex.variable.id))
+                features[sr.chosenFeatures["variable_is_branchable"][2], i] = Int(haskey(sr.cplayergraph.cpmodel.branchable,cp_vertex.variable.id) && sr.cplayergraph.cpmodel.branchable[cp_vertex.variable.id]==1)
             end
             if sr.chosenFeatures["variable_is_objective"][1]
                 features[sr.chosenFeatures["variable_is_objective"][2], i] = sr.cplayergraph.cpmodel.objective == cp_vertex.variable
