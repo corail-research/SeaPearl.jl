@@ -173,6 +173,26 @@
         @test hsr.variableIdx == 2
     end
 
+    @testset "HeterogeneousSR from CPModel with chosen_features 3" begin
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+
+        x = SeaPearl.IntVar(3, 3, "x", trailer)
+        y = SeaPearl.IntVar(1, 3, "y", trailer)
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y; branchable=false)
+        SeaPearl.addObjective!(model, x)
+        chosen_features = Dict(
+            "variable_is_branchable" => true,
+            "variable_is_objective" => true
+        )
+
+        hsr = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}(model; chosen_features=chosen_features)
+        SeaPearl.update_representation!(hsr, model, x)
+
+        @test hsr.variableNodeFeatures == Float32[1.0 0.0; 1.0 0.0]
+    end
+
 
     @testset "HeterogeneousTrajectoryState constructor" begin
         trailer = SeaPearl.Trailer()
@@ -319,5 +339,7 @@
         @test hsr.constraintNodeFeatures == [0 1 1 0 0 1 1 1; 1 2 2 1 1 2 2 2; 1 1 1 1 0 0 0 0; 0 0 0 0 1 1 1 1]
         @test hsr.valueNodeFeatures == [0 0 0 1; 0 1 0 0; 0 0 1 0; 1 0 0 0]
     end
+
+    
 
 end
