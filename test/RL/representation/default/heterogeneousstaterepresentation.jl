@@ -191,6 +191,63 @@
         SeaPearl.update_representation!(hsr, model, x)
 
         @test hsr.variableNodeFeatures == Float32[1.0 0.0; 1.0 0.0]
+
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+
+        x = SeaPearl.IntVar(3, 3, "x", trailer)
+        y = SeaPearl.IntVar(1, 3, "y", trailer)
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y)
+        SeaPearl.addObjective!(model, x)
+        chosen_features = Dict(
+            "variable_is_branchable" => true,
+            "variable_is_objective" => true
+        )
+
+        hsr = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}(model; chosen_features=chosen_features)
+        SeaPearl.update_representation!(hsr, model, x)
+
+        @test hsr.variableNodeFeatures == Float32[1.0 0.0; 1.0 1.0]
+
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+
+        x = SeaPearl.IntVar(3, 3, "x", trailer)
+        y = SeaPearl.IntVar(1, 3, "y", trailer)
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y)
+        SeaPearl.addObjective!(model, y)
+        chosen_features = Dict(
+            "variable_is_branchable" => true,
+            "variable_is_objective" => true
+        )
+
+        hsr = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}(model; chosen_features=chosen_features)
+        SeaPearl.update_representation!(hsr, model, x)
+
+        @test hsr.variableNodeFeatures == Float32[0.0 1.0; 1.0 1.0]
+
+        #Swapping variable order 
+
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+
+        x = SeaPearl.IntVar(3, 3, "x", trailer)
+        y = SeaPearl.IntVar(1, 3, "y", trailer)
+        SeaPearl.addVariable!(model, y)
+        SeaPearl.addVariable!(model, x)
+
+        SeaPearl.addObjective!(model, y)
+        chosen_features = Dict(
+            "variable_is_branchable" => true,
+            "variable_is_objective" => true
+        )
+
+        hsr = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}(model; chosen_features=chosen_features)
+        SeaPearl.update_representation!(hsr, model, x)
+
+        @test hsr.variableNodeFeatures == Float32[0.0 1.0; 1.0 1.0] #Dict are not ordered
     end
 
 
