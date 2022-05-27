@@ -20,10 +20,8 @@ Flux.@functor GraphConv
 
 function (g::GraphConv)(fgs::BatchedFeaturedGraph{Float32}) 
     A, X = fgs.graph, fgs.nf
-    Zygote.ignore() do
-        if isa(g.pool,meanPooling)
-            A = A./reshape(mapslices(x->sum(eachrow(x)) ,A, dims=[1,2]), 1, :,  size(A,3))
-        end
+    if isa(g.pool,meanPooling)
+        A = A./reshape(mapslices(x->sum(eachrow(x)) ,A, dims=[1,2]), 1, :,  size(A,3))
     end
     return BatchedFeaturedGraph{Float32}(
         fgs.graph;
@@ -35,10 +33,8 @@ end
 
 function (g::GraphConv)(fg::FeaturedGraph)
     A, X = fg.graph, fg.nf
-    Zygote.ignore() do
     if isa(g.pool,meanPooling)
         A = A./reshape(sum(eachrow(A)), 1, :)
-        end
     end
     return FeaturedGraph(
         fg.graph,
