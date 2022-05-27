@@ -29,41 +29,41 @@ function (g::HeterogeneousGraphConv)(fgs::BatchedHeterogeneousFeaturedGraph{Floa
     X1, X2, X3 = original_fgs.varnf, original_fgs.connf, original_fgs.valnf
     Zygote.ignore() do
         if isa(g.pool,meanPooling)
-            contovar = contovar./reshape(mapslices(x->sum(eachrow(x)) , contovar, dims=[1,2]), 1, :,  size(contovar,3))
-            contoval = contoval./reshape(mapslices(x->sum(eachrow(x)) , contoval, dims=[1,2]), 1, :,  size(contoval,3))
-            vartocon = vartocon./reshape(mapslices(x->sum(eachrow(x)) , vartocon, dims=[1,2]), 1, :,  size(vartocon,3))
-            vartoval = vartoval./reshape(mapslices(x->sum(eachrow(x)) , vartoval, dims=[1,2]), 1, :,  size(vartoval,3))
+            contovarN = contovar./reshape(mapslices(x->sum(eachrow(x)) , contovar, dims=[1,2]), 1, :,  size(contovar,3))
+            valtovarN = valtovar./reshape(mapslices(x->sum(eachrow(x)) , valtovar, dims=[1,2]), 1, :,  size(valtovar,3))
+            vartoconN = vartocon./reshape(mapslices(x->sum(eachrow(x)) , vartocon, dims=[1,2]), 1, :,  size(vartocon,3))
+            vartovalN = vartoval./reshape(mapslices(x->sum(eachrow(x)) , vartoval, dims=[1,2]), 1, :,  size(vartoval,3))
             end
         end
     return BatchedHeterogeneousFeaturedGraph{Float32}(
         contovar,
         valtovar,
-        g.σ.(g.weightsvar ⊠ vcat(X1, H1, H2 ⊠ contovar, H3 ⊠ valtovar) .+ g.biasvar),
-        g.σ.(g.weightscon ⊠ vcat(X2, H2, H1 ⊠ vartocon) .+ g.biascon),
-        g.σ.(g.weightsval ⊠ vcat(X3, H3, H1 ⊠ vartoval) .+ g.biasval),
+        g.σ.(g.weightsvar ⊠ vcat(X1, H1, H2 ⊠ contovarN, H3 ⊠ valtovarN) .+ g.biasvar),
+        g.σ.(g.weightscon ⊠ vcat(X2, H2, H1 ⊠ vartoconN) .+ g.biascon),
+        g.σ.(g.weightsval ⊠ vcat(X3, H3, H1 ⊠ vartovalN) .+ g.biasval),
         fgs.gf
     )
 end
 
 function (g::HeterogeneousGraphConv)(fg::HeterogeneousFeaturedGraph, original_fg::HeterogeneousFeaturedGraph)
     contovar, valtovar = fg.contovar, fg.valtovar
-    vartocon, vartoval = transpose(contovar), transpose(valtovar)
+    vartocon, vartoval = transpose  (contovar), transpose(valtovar)
     H1, H2, H3 = fg.varnf, fg.connf, fg.valnf
     X1, X2, X3 = original_fg.varnf, original_fg.connf, original_fg.valnf
     Zygote.ignore() do
         if isa(g.pool,meanPooling)
-            contovar = contovar./reshape(sum(eachrow(contovar)), 1, :)
-            valtovar = valtovar./reshape(sum(eachrow(contovar)), 1, :)
-            vartocon = vartocon./reshape(sum(eachrow(vartocon)), 1, :)
-            vartoval = vartoval./reshape(sum(eachrow(vartoval)), 1, :)
+            contovarN = contovar./reshape(sum(eachrow(contovar)), 1, :)
+            valtovarN = valtovar./reshape(sum(eachrow(contovar)), 1, :)
+            vartoconN = vartocon./reshape(sum(eachrow(vartocon)), 1, :)
+            vartovalN = vartoval./reshape(sum(eachrow(vartoval)), 1, :)
             end
         end
     return HeterogeneousFeaturedGraph(
         contovar,
         valtovar,
-        g.σ.(g.weightsvar * vcat(X1, H1, H2 * contovar, H3 * valtovar) .+ g.biasvar),
-        g.σ.(g.weightscon * vcat(X2, H2, H1 * vartocon) .+ g.biascon),
-        g.σ.(g.weightsval * vcat(X3, H3, H1 * vartoval) .+ g.biasval),
+        g.σ.(g.weightsvar * vcat(X1, H1, H2 * contovarN, H3 * valtovarN) .+ g.biasvar),
+        g.σ.(g.weightscon * vcat(X2, H2, H1 * vartoconN) .+ g.biascon),
+        g.σ.(g.weightsval * vcat(X3, H3, H1 * vartovalN) .+ g.biasval),
         fg.gf
     )
 end
