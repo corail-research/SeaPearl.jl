@@ -47,7 +47,7 @@ end
 
 function (g::HeterogeneousGraphConv)(fg::HeterogeneousFeaturedGraph, original_fg::HeterogeneousFeaturedGraph)
     contovar, valtovar = fg.contovar, fg.valtovar
-    vartocon, vartoval = transpose  (contovar), transpose(valtovar)
+    vartocon, vartoval = transpose(contovar), transpose(valtovar)
     H1, H2, H3 = fg.varnf, fg.connf, fg.valnf
     X1, X2, X3 = original_fg.varnf, original_fg.connf, original_fg.valnf
     Zygote.ignore() do
