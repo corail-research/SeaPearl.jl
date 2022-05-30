@@ -32,7 +32,7 @@ function (g::HeterogeneousGraphConv)(fgs::BatchedHeterogeneousFeaturedGraph{Floa
         valtovarN = valtovar./reshape(mapslices(x->sum(eachrow(x)) , valtovar, dims=[1,2]), 1, :,  size(valtovar,3))
         vartoconN = vartocon./reshape(mapslices(x->sum(eachrow(x)) , vartocon, dims=[1,2]), 1, :,  size(vartocon,3))
         vartovalN = vartoval./reshape(mapslices(x->sum(eachrow(x)) , vartoval, dims=[1,2]), 1, :,  size(vartoval,3))
-    else if isa(g.pool,sumPooling)
+    elseif isa(g.pool,sumPooling)
         contovarN, valtovarN, vartoconN, vartovalN = contovar, valtovar, vartocon, vartoval  
     end
 
@@ -56,7 +56,7 @@ function (g::HeterogeneousGraphConv)(fg::HeterogeneousFeaturedGraph, original_fg
         valtovarN = valtovar./reshape(sum(eachrow(contovar)), 1, :)
         vartoconN = vartocon./reshape(sum(eachrow(vartocon)), 1, :)
         vartovalN = vartoval./reshape(sum(eachrow(vartoval)), 1, :)
-    else if isa(g.pool,sumPooling)
+    elseif isa(g.pool,sumPooling)
         contovarN, valtovarN, vartoconN, vartovalN = contovar, valtovar, vartocon, vartoval  
     end
 
