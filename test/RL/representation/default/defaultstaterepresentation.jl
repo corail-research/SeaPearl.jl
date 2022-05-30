@@ -247,6 +247,7 @@ adj = [0 1 0 1;
             "variable_initial_domain_size" => true,
             "variable_domain_size" => false,
             "variable_is_bound" => false,
+            "variable_assigned_value" => true,
             "nb_involved_constraint_propagation" => true,
             "nb_not_bounded_variable" => false
         )
