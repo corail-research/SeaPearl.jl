@@ -123,7 +123,7 @@ function featurize(sr::HeterogeneousStateRepresentation{DefaultFeaturization,TS}
         cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
         if isa(cp_vertex, VariableVertex)
             if sr.chosenFeatures["node_number_of_neighbors"][1]
-                variableFeatures[sr.chosenFeatures["node_number_of_neighbors"][2], i] = length(outneighbors(g, i))
+                variableFeatures[sr.chosenFeatures["node_number_of_neighbors"][2], i - ncon] = length(outneighbors(g, i))
             end
             if sr.chosenFeatures["variable_initial_domain_size"][1]
                 variableFeatures[sr.chosenFeatures["variable_initial_domain_size"][2], i - ncon] = length(cp_vertex.variable.domain)
@@ -141,7 +141,7 @@ function featurize(sr::HeterogeneousStateRepresentation{DefaultFeaturization,TS}
                 variableFeatures[sr.chosenFeatures["variable_is_objective"][2], i - ncon] = sr.cplayergraph.cpmodel.objective == cp_vertex.variable
             end
             if sr.chosenFeatures["variable_assigned_value"][1]
-                variableFeatures[sr.chosenFeatures["variable_assigned_value"][2], i] = isbound(cp_vertex.variable) ? assignedValue(cp_vertex.variable) : 0
+                variableFeatures[sr.chosenFeatures["variable_assigned_value"][2], i - ncon] = isbound(cp_vertex.variable) ? assignedValue(cp_vertex.variable) : 0
             end
         end
         if isa(cp_vertex, ConstraintVertex)
@@ -181,7 +181,7 @@ function featurize(sr::HeterogeneousStateRepresentation{DefaultFeaturization,TS}
         end
         if isa(cp_vertex, ValueVertex)
             if sr.chosenFeatures["node_number_of_neighbors"][1]
-                valueFeatures[sr.chosenFeatures["node_number_of_neighbors"][2], i] = length(outneighbors(g, i))
+                valueFeatures[sr.chosenFeatures["node_number_of_neighbors"][2], i - ncon - nvar] = length(outneighbors(g, i))
             end
             if sr.chosenFeatures["values_raw"][1]
                 valueFeatures[sr.chosenFeatures["values_raw"][2], i - ncon - nvar] = cp_vertex.value
@@ -266,7 +266,7 @@ function initChosenFeatures!(sr::HeterogeneousStateRepresentation{DefaultFeaturi
         end
 
         if haskey(chosen_features, "variable_assigned_value") && chosen_features["variable_assigned_value"]
-            sr.chosenFeatures["variable_assigned_value"] = (true, counter)
+            sr.chosenFeatures["variable_assigned_value"] = (true, variable_counter)
             variable_counter += 1
         end
 
@@ -332,11 +332,11 @@ function update_features!(sr::HeterogeneousStateRepresentation{DefaultFeaturizat
             end
 
             if sr.chosenFeatures["node_number_of_neighbors"][1]
-                sr.variableNodeFeatures[sr.chosenFeatures["node_number_of_neighbors"][2], i] = length(outneighbors(g, i))
+                sr.variableNodeFeatures[sr.chosenFeatures["node_number_of_neighbors"][2], i - ncon] = length(outneighbors(g, i))
             end
 
             if sr.chosenFeatures["variable_assigned_value"][1]
-                sr.variableNodeFeatures[sr.chosenFeatures["variable_assigned_value"][2], i] = isbound(cp_vertex.variable) ? assignedValue(cp_vertex.variable) : 0
+                sr.variableNodeFeatures[sr.chosenFeatures["variable_assigned_value"][2], i - ncon] = isbound(cp_vertex.variable) ? assignedValue(cp_vertex.variable) : 0
             end
         end
         if isa(cp_vertex, ConstraintVertex)
@@ -372,7 +372,7 @@ function update_features!(sr::HeterogeneousStateRepresentation{DefaultFeaturizat
             end
 
             if sr.chosenFeatures["node_number_of_neighbors"][1]
-                sr.valueNodeFeatures[sr.chosenFeatures["node_number_of_neighbors"][2], i] = length(outneighbors(g, i))
+                sr.valueNodeFeatures[sr.chosenFeatures["node_number_of_neighbors"][2], i - ncon - nvar] = length(outneighbors(g, i))
             end
         end
     end
