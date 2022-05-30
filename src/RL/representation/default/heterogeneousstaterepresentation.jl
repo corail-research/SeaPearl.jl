@@ -140,6 +140,9 @@ function featurize(sr::HeterogeneousStateRepresentation{DefaultFeaturization,TS}
             if sr.chosenFeatures["variable_is_objective"][1]
                 variableFeatures[sr.chosenFeatures["variable_is_objective"][2], i - ncon] = sr.cplayergraph.cpmodel.objective == cp_vertex.variable
             end
+            if sr.chosenFeatures["variable_assigned_value"][1]
+                variableFeatures[sr.chosenFeatures["variable_assigned_value"][2], i] = isbound(cp_vertex.variable) ? assignedValue(cp_vertex.variable) : 0
+            end
         end
         if isa(cp_vertex, ConstraintVertex)
             if sr.chosenFeatures["node_number_of_neighbors"][1]
@@ -333,7 +336,7 @@ function update_features!(sr::HeterogeneousStateRepresentation{DefaultFeaturizat
             end
 
             if sr.chosenFeatures["variable_assigned_value"][1]
-                sr.variableNodeFeatures[sr.chosenFeatures["variable_assigned_value"][2], i] = isbound(cp_vertex.variable) ? cp_vertex.variable.value : 0
+                sr.variableNodeFeatures[sr.chosenFeatures["variable_assigned_value"][2], i] = isbound(cp_vertex.variable) ? assignedValue(cp_vertex.variable) : 0
             end
         end
         if isa(cp_vertex, ConstraintVertex)
