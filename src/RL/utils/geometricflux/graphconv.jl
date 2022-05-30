@@ -8,7 +8,7 @@ struct GraphConv{A<:AbstractMatrix,B,G<:pool}
     pool::G
 end
 
-function GraphConv(ch::Pair{Int,Int}, σ=Flux.leakyrelu; init=Flux.glorot_uniform, bias::Bool=true, T::DataType=Float32, pool::pool=meanPooling())
+function GraphConv(ch::Pair{Int,Int}, σ=Flux.leakyrelu; init=Flux.glorot_uniform, bias::Bool=true, T::DataType=Float32, pool::pool=sumPooling())
     in, out = ch
     W1 = init(out, in)
     W2 = init(out, in)
@@ -20,7 +20,7 @@ Flux.@functor GraphConv
 
 function (g::GraphConv{<:AbstractMatrix,<:Any,sumPooling})(fgs::BatchedFeaturedGraph{Float32})
     A, X = fgs.graph, fgs.nf
-
+    
     return BatchedFeaturedGraph{Float32}(
         fgs.graph;
         nf=g.σ.(g.weight1 ⊠ X .+ g.weight2 ⊠ X ⊠ A .+ g.bias),

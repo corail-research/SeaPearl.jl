@@ -9,7 +9,7 @@ struct HeterogeneousGraphConv{A<:AbstractMatrix,B,G<:pool}
     pool::G
 end
 
-function HeterogeneousGraphConv(ch::Pair{Int,Int}, original_dimensions::Array{Int}, σ=Flux.leakyrelu; init=Flux.glorot_uniform, bias::Bool=true, T::DataType=Float32, pool::pool=meanPooling())
+function HeterogeneousGraphConv(ch::Pair{Int,Int}, original_dimensions::Array{Int}, σ=Flux.leakyrelu; init=Flux.glorot_uniform, bias::Bool=true, T::DataType=Float32, pool::pool=sumPooling())
     in, out = ch
     weightsvar = init(out, 3 * in + original_dimensions[1])
     biasvar = bias ? T.(init(out)) : zeros(T, out)
