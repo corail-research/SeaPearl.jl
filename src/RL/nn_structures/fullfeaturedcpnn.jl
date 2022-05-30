@@ -15,9 +15,9 @@ This pipeline is made of 4 networks:
 - `globalChain`: FCNN. It takes the global features of the graph as an input,
 - `outputChain`: FCNN. It takes the concatenation of the outputs of `nodeChain` and `globalChain` as an input.
 
-Like the `CPNN` pipeline, the `FullFeaturedCPNN` pipeline uses the features of the variable branched on (`variableFeatures`) 
+Like the `CPNN` pipeline, the `FullFeaturedCPNN` pipeline uses the features (`variableFeatures`) of the variable branched on 
 and, if specified, the global features of the graph (`globalFeatures`).
-Contrary to `CPNN`, it also uses the features (`valueFeatures`) of the possible values that the variable can be assigned to.
+But contrary to `CPNN`, it also uses the features (`valueFeatures`) of the possible values that the variable can be assigned to.
 
 `FullFeaturedCPNN` generates a Q-table containing the Q-value of all the values, both the possible and impossible ones. 
 A mask then selects the possible values.
@@ -41,7 +41,8 @@ function (nn::FullFeaturedCPNN)(states::BatchedDefaultTrajectoryState)
     allValuesIdx = states.allValuesIdx
     possibleValuesIdx = states.possibleValuesIdx
     actionSpaceSize = size(allValuesIdx, 1)
-    mask = device(states) == Val(:gpu) ? CUDA.zeros(Float32, 1, actionSpaceSize, batchSize) : zeros(Float32, 1, actionSpaceSize, batchSize) # this mask will replace `reapeat` using broadcasted `+`
+    mask = device(states) == Val(:gpu) ? CUDA.zeros(Float32, 1, actionSpaceSize, batchSize) : zeros(Float32, 1, actionSpaceSize, batchSize) # this mask will replace `repeat` using broadcasted `+`
+    # F'x1xB .+ 1xAxB = F'xAxB
 
     # chain working on the graph(s) with the GNNs
     featuredGraph = nn.graphChain(states.fg)
