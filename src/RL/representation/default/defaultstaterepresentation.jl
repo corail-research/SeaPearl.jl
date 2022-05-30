@@ -191,7 +191,7 @@ function featurize(sr::DefaultStateRepresentation{DefaultFeaturization,TS}; chos
                 features[sr.chosenFeatures["variable_is_objective"][2], i] = sr.cplayergraph.cpmodel.objective == cp_vertex.variable
             end
             if sr.chosenFeatures["variable_assigned_value"][1]
-                features[sr.chosenFeatures["variable_assigned_value"][2], i] = isbound(cp_vertex.variable) ? cp_vertex.variable.value : 0
+                features[sr.chosenFeatures["variable_assigned_value"][2], i] = isbound(cp_vertex.variable) ? assignedValue(cp_vertex.variable) : 0
             end
         end
         if isa(cp_vertex, ValueVertex)
@@ -359,7 +359,7 @@ function update_features!(sr::DefaultStateRepresentation{DefaultFeaturization,TS
             end
 
             if sr.chosenFeatures["variable_assigned_value"][1]
-                sr.nodeFeatures[sr.chosenFeatures["variable_assigned_value"][2], i] = isbound(cp_vertex.variable) ? cp_vertex.variable.value : 0
+                sr.nodeFeatures[sr.chosenFeatures["variable_assigned_value"][2], i] = isbound(cp_vertex.variable) ? assignedValue(cp_vertex.variable) : 0
             end
         end
         if isa(cp_vertex, ValueVertex) # Probably useless, check before removing
