@@ -58,9 +58,9 @@ end
 function (s::SoftmaxTDecayExplorer)(values)
     T = get_T(s, s.step)
     s.is_training && (s.step += 1)
-    exp_T = exp.(legal_q_values./T)
+    exp_T = exp.(values./T)
     sum_exp_T = sum(exp_T)
     prob_distrib = ProbabilityWeights(exp_T./sum_exp_T)
-    sampled_idx = sample(s.rng, 1:length(legal_q_values), prob_distrib)
+    sampled_idx = sample(s.rng, 1:length(values), prob_distrib)
     return sampled_idx
 end
