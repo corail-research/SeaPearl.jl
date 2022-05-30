@@ -32,5 +32,11 @@ end
 
 # Forward unbatched
 function (g::HeterogeneousGraphTransformer)(fg::HeterogeneousFeaturedGraph)
-    
+    contovar, valtovar = fg.contovar, fg.valtovar
+    vartocon, vartoval = transpose(contovar), transpose(valtovar)
+    H1, H2, H3 = fg.varnf, fg.connf, fg.valnf
+    k_var = self.k_lin_var(H1)
+    k_con = self.k_lin_con(H2)
+    k_val = self.k_lin_val(H3)
+    att_heads = 
 end
