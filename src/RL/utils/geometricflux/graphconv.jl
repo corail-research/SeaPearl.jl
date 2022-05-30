@@ -8,7 +8,7 @@ struct GraphConv{A <: AbstractMatrix, B, G <: pool}
     pool::G
 end
 
-function GraphConv(ch::Pair{Int, Int}, σ=identity; init=Flux.glorot_uniform, bias::Bool=true, T::DataType=Float32, pool::pool=meanPooling())
+function GraphConv(ch::Pair{Int, Int}, σ=Flux.leakyrelu; init=Flux.glorot_uniform, bias::Bool=true, T::DataType=Float32, pool::pool=meanPooling())
     in, out = ch
     W1 = init(out, in)
     W2 = init(out, in)
