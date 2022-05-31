@@ -15,8 +15,6 @@ struct HeterogeneousGraphTransformer{A:AbstractMatrix}
     a_lin_var::Vector{Flux.Dense} = Vector{Flux.Dense}(Flux.Dense(in_channels,out_channels,identity),heads)
     a_lin_con::Vector{Flux.Dense} = Vector{Flux.Dense}(Flux.Dense(in_channels,out_channels,identity),heads)
     a_lin_val::Vector{Flux.Dense} = Vector{Flux.Dense}(Flux.Dense(in_channels,out_channels,identity),heads)
-    w_att::Vector{Flux.Dense} = Vector{Flux.Dense}(Flux.Dense(out_channels//heads,out_channels//heads,identity),heads)
-    w_mess::::Vector{Flux.Dense} = Vector{Flux.Dense}(Flux.Dense(out_channels//heads,out_channels//heads,identity),heads)
     dim::Int = out_channels//heads
     σ
     W_MSG_contovar::A
