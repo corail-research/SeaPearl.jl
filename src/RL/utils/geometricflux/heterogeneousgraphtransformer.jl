@@ -1,29 +1,29 @@
-struct HeterogeneousGraphTransformer{A:AbstractMatrix}
+struct HeterogeneousGraphTransformer
     n_channels:: Int
     heads:: Int
     aggr:: String
     dim::Int
-    k_lin_var::A
-    k_lin_con::A
-    k_lin_val::A
-    q_lin_var::A
-    q_lin_con::A
-    q_lin_val::A
-    m_lin_var::A
-    m_lin_con::A
-    m_lin_val::A
-    a_lin_var::A
-    a_lin_con::A
-    a_lin_val::A
+    k_lin_var::AbstractArray
+    k_lin_con::AbstractArray
+    k_lin_val::AbstractArray
+    q_lin_var::AbstractArray
+    q_lin_con::AbstractArray
+    q_lin_val::AbstractArray
+    m_lin_var::AbstractArray
+    m_lin_con::AbstractArray
+    m_lin_val::AbstractArray
+    a_lin_var::AbstractArray
+    a_lin_con::AbstractArray
+    a_lin_val::AbstractArray
     σ
-    W_MSG_contovar::A
-    W_MSG_vartocon::A
-    W_MSG_valtovar::A
-    W_MSG_vartoval::A
-    W_ATT_contovar::A
-    W_ATT_vartocon::A
-    W_ATT_valtovar::A
-    W_ATT_vartoval::A
+    W_MSG_contovar::AbstractArray
+    W_MSG_vartocon::AbstractArray
+    W_MSG_valtovar::AbstractArray
+    W_MSG_vartoval::AbstractArray
+    W_ATT_contovar::AbstractArray
+    W_ATT_vartocon::AbstractArray
+    W_ATT_valtovar::AbstractArray
+    W_ATT_vartoval::AbstractArray
     mu_contovar
     mu_vartocon
     mu_valtovar
@@ -32,19 +32,19 @@ end
 # Constructor
 function HeterogeneousGraphTransformer(n_channels::Int, heads::Int; init=Flux.glorot_uniform, aggr="sum", σ=Flux.leakyrelu)
     @assert n_channels%heads==0
-    dim = n_channels//heads
-    k_lin_var = init(heads,n_channels,dim)
-    k_lin_con = init(heads,n_channels,dim)
-    k_lin_val = init(heads,n_channels,dim)
-    q_lin_var = init(heads,n_channels,dim)
-    q_lin_con = init(heads,n_channels,dim)
-    q_lin_val = init(heads,n_channels,dim)
-    m_lin_var = init(heads,n_channels,dim)
-    m_lin_con = init(heads,n_channels,dim)
-    m_lin_val = init(heads,n_channels,dim)
-    a_lin_var = init(heads,n_channels,n_channels)
-    a_lin_con = init(heads,n_channels,n_channels)
-    a_lin_val = init(heads,n_channels,n_channels)
+    dim = Int(n_channels//heads)
+    k_lin_var = init(n_channels,dim,heads)
+    k_lin_con = init(n_channels,dim,heads)
+    k_lin_val = init(n_channels,dim,heads)
+    q_lin_var = init(n_channels,dim,heads)
+    q_lin_con = init(n_channels,dim,heads)
+    q_lin_val = init(n_channels,dim,heads)
+    m_lin_var = init(n_channels,dim,heads)
+    m_lin_con = init(n_channels,dim,heads)
+    m_lin_val = init(n_channels,dim,heads)
+    a_lin_var = init(n_channels,n_channels,heads)
+    a_lin_con = init(n_channels,n_channels,heads)
+    a_lin_val = init(n_channels,n_channels,heads)
     W_MSG_contovar = init(dim,dim)
     W_MSG_vartocon = init(dim,dim)
     W_MSG_valtovar = init(dim,dim)
@@ -71,44 +71,46 @@ end
 function (g::HeterogeneousGraphTransformer)(fg::HeterogeneousFeaturedGraph)
     contovar, valtovar = fg.contovar, fg.valtovar
     vartocon, vartoval = transpose(contovar), transpose(valtovar)
-    H1, H2, H3 = fg.varnf, fg.connf, fg.valnf
-    d = self.dim
+    H1, H2, H3 = transpose(fg.varnf), transpose(fg.connf), transpose(fg.valnf)
+    d = g.dim
 
     # Heterogeneous Mutual Attention
-    k_var = self.k_lin_var.*H1 # heads x nvar x dim
-    k_con = self.k_lin_con.*H2 # heads x ncon x dim
-    k_val = self.k_lin_val.*H3 # heads x nval x dim
-    q_var = self.q_lin_var.*H1 # heads x nvar x dim
-    q_con = self.q_lin_con.*H2 # heads x ncon x dim
-    q_val = self.q_lin_val.*H3 # heads x nval x dim
+    k_var = H1 ⊠ g.k_lin_var # nvar x dim x heads
+    k_con = H2 ⊠ g.k_lin_con # ncon x dim x heads
+    k_val = H3 ⊠ g.k_lin_val # nval x dim x heads
+    q_var = H1 ⊠ g.k_lin_var # nvar x dim x heads
+    q_con = H2 ⊠ g.k_lin_con # ncon x dim x heads
+    q_val = H3 ⊠ g.k_lin_val # nval x dim x heads
 
     # We compute these coefficients on each node pair
-    ATT_head_contovar = (k_con .* self.W_ATT_contovar .* permutedims(q_var, [1,3,2])) .* (self.mu_contovar/sqrt(d)) # heads x ncon x nvar
-    ATT_head_vartocon = (k_var .* self.W_ATT_vartocon .* permutedims(q_con, [1,3,2])) .* (self.mu_vartocon/sqrt(d)) # heads x nvar x ncon
-    ATT_head_valtovar = (k_val .* self.W_ATT_valtovar .* permutedims(q_var, [1,3,2])) .* (self.mu_valtovar/sqrt(d)) # heads x nval x nvar
-    ATT_head_vartoval = (k_var .* self.W_ATT_vartoval .* permutedims(q_val, [1,3,2])) .* (self.mu_vartoval/sqrt(d)) # heads x nvar x nval
+    ATT_head_contovar = (k_con ⊠ g.W_ATT_contovar ⊠ permutedims(q_var, [2,1,3])) .* (g.mu_contovar/sqrt(d)) # ncon x nvar x heads
+    ATT_head_vartocon = (k_var ⊠ g.W_ATT_vartocon ⊠ permutedims(q_con, [2,1,3])) .* (g.mu_vartocon/sqrt(d)) # nvar x ncon x heads
+    ATT_head_valtovar = (k_val ⊠ g.W_ATT_valtovar ⊠ permutedims(q_var, [2,1,3])) .* (g.mu_valtovar/sqrt(d)) # nval x nvar x heads
+    ATT_head_vartoval = (k_var ⊠ g.W_ATT_vartoval ⊠ permutedims(q_val, [2,1,3])) .* (g.mu_vartoval/sqrt(d)) # nvar x nval x heads
 
     # We apply softmax only on neighbors
-    @assert prod(ATT_head_contovar)!=0
-    @assert prod(ATT_head_vartocon)!=0
-    @assert prod(ATT_head_valtovar)!=0
-    @assert prod(ATT_head_vartoval)!=0
-    attention_contovar = softmax(replace((contovar .+ zeros(heads)) .*  ATT_head_contovar, 0.0 => -Inf); dims=3) # heads x ncon x nvar
-    attention_vartocon = softmax(replace((vartocon .+ zeros(heads)) .*  ATT_head_vartocon, 0.0 => -Inf); dims=3) # heads x nvar x ncon
-    attention_valtovar = softmax(replace((valtovar .+ zeros(heads)) .*  ATT_head_valtovar, 0.0 => -Inf); dims=3) # heads x nval x nvar
-    attention_vartoval = softmax(replace((vartoval .+ zeros(heads)) .*  ATT_head_vartoval, 0.0 => -Inf); dims=3) # heads x nvar x nval
-
-    # Heterogeneous Message Passing
-    message_contovar = self.m_lin_con(H2) .* self.W_MSG_contovar # heads x ncon x dim
-    message_vartocon = self.m_lin_var(H1) .* self.W_MSG_vartocon # heads x nvar x dim
-    message_valtovar = self.m_lin_val(H3) .* self.W_MSG_valtovar # heads x nval x dim
-    message_vartoval = self.m_lin_var(H1) .* self.W_MSG_vartoval # heads x nvar x dim
-
+    #=@assert prod(ATT_head_contovar.*100)!=0
+    @assert prod(ATT_head_vartocon.*100)!=0
+    @assert prod(ATT_head_valtovar.*100)!=0
+    @assert prod(ATT_head_vartoval.*100)!=0=#
+    heads = size(ATT_head_contovar)[3]
     nvar = size(contovar)[2]
     ncon = size(contovar)[1]
     nval = size(valtovar)[1]
-    # Target-Specific Aggregation
-    if self.aggr=="sum"
+    attention_contovar = softmax(replace((contovar .+ zeros(ncon, nvar, heads)) .*  ATT_head_contovar, 0.0 => -Inf); dims=2) # ncon x nvar x heads
+    attention_vartocon = softmax(replace((vartocon .+ zeros(nvar, ncon, heads)) .*  ATT_head_vartocon, 0.0 => -Inf); dims=2) # nvar x ncon x heads
+    attention_valtovar = softmax(replace((valtovar .+ zeros(nval, nvar, heads)) .*  ATT_head_valtovar, 0.0 => -Inf); dims=2) # nval x nvar x heads
+    attention_vartoval = softmax(replace((vartoval .+ zeros(nvar, nval, heads)) .*  ATT_head_vartoval, 0.0 => -Inf); dims=2) # nvar x nval x heads
+
+    # Heterogeneous Message Passing
+    message_contovar = H2 ⊠ g.m_lin_con ⊠ g.W_MSG_contovar # ncon x dim x heads
+    message_vartocon = H1 ⊠ g.m_lin_var ⊠ g.W_MSG_vartocon # nvar x dim x heads
+    message_valtovar = H3 ⊠ g.m_lin_val ⊠ g.W_MSG_valtovar # nval x dim x heads
+    message_vartoval = H1 ⊠ g.m_lin_var ⊠ g.W_MSG_vartoval # nvar x dim x heads
+
+    
+    # Target-Specific Aggregation TODO: start debugging from here
+    if g.aggr=="sum"
         H_tilde_1 = reshape(permutedims(permutedims(attention_contovar, [1,3,2]) .* message_contovar,[2,3,1]),(nvar,n_channels)) .+ reshape(permutedims(permutedims(attention_valtovar, [1,3,2]) .* message_valtovar,[2,3,1]),(nvar,n_channels)) # nvar x n
         H_tilde_2 = reshape(permutedims(permutedims(attention_vartocon, [1,3,2]) .* message_vartocon,[2,3,1]),(ncon,n_channels))  # ncon x n
         H_tilde_3 = reshape(permutedims(permutedims(attention_vartoval, [1,3,2]) .* message_vartoval,[2,3,1]),(nval,n_channels)) # nval x n
