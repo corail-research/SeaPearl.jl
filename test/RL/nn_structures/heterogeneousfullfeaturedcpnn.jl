@@ -40,11 +40,16 @@
         
         SeaPearl.update_with_cpmodel!(lh, model, chosen_features=chosen_features)
 
-        state1 = deepcopy(SeaPearl.get_observation!(lh, model, x).state)
+        state1 = SeaPearl.get_observation!(lh, model, x).state
         SeaPearl.assign!(x, 2)
         state2 = SeaPearl.get_observation!(lh, model, y).state
         states = [state1,state2] |> cpu      #create BatchedDefaultTrajectoryState with two samples
         #The GNN is the identity function
+
+        @test state1.fg.valtovar != state2.fg.valtovar  
+        @test state1.fg.contovar == state2.fg.contovar  
+        @test state1.fg.varnf != state2.fg.varnf  
+
         nn = SeaPearl.HeterogeneousFullFeaturedCPNN(Flux.Chain(),Flux.Chain(),Flux.Chain(),Flux.Dense(6, 1, Flux.leakyrelu))
 
         @test  SeaPearl.wears_mask(nn) == true
