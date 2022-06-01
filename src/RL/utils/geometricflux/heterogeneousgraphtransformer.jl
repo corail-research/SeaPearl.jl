@@ -64,7 +64,7 @@ Flux.@functor HeterogeneousGraphTransformer
 
 # Forward batched
 function (g::HeterogeneousGraphTransformer)(fgs::BatchedHeterogeneousFeaturedGraph{Float32})
-    
+    println("coucou")    
 end
 
 # Forward unbatched
@@ -92,10 +92,20 @@ function (g::HeterogeneousGraphTransformer)(fg::HeterogeneousFeaturedGraph)
     nvar = size(contovar)[2]
     ncon = size(contovar)[1]
     nval = size(valtovar)[1]
-    attention_contovar = softmax(replace((contovar .+ zeros(ncon, nvar, g.heads)) .*  ATT_head_contovar, 0.0 => -Inf); dims=2) # ncon x nvar x heads
-    attention_vartocon = softmax(replace((vartocon .+ zeros(nvar, ncon, g.heads)) .*  ATT_head_vartocon, 0.0 => -Inf); dims=2) # nvar x ncon x heads
-    attention_valtovar = softmax(replace((valtovar .+ zeros(nval, nvar, g.heads)) .*  ATT_head_valtovar, 0.0 => -Inf); dims=2) # nval x nvar x heads
-    attention_vartoval = softmax(replace((vartoval .+ zeros(nvar, nval, g.heads)) .*  ATT_head_vartoval, 0.0 => -Inf); dims=2) # nvar x nval x heads
+    temp_attention_contovar = (contovar .+ zeros(ncon, nvar, g.heads)) .*  ATT_head_contovar
+    temp_attention_vartocon = (vartocon .+ zeros(nvar, ncon, g.heads)) .*  ATT_head_vartocon
+    temp_attention_valtovar = (valtovar .+ zeros(nval, nvar, g.heads)) .*  ATT_head_valtovar
+    temp_attention_vartoval = (vartoval .+ zeros(nvar, nval, g.heads)) .*  ATT_head_vartoval
+    Zygote.ignore() do
+        temp_attention_contovar = replace(temp_attention_contovar, 0.0 => -Inf)
+        temp_attention_vartocon = replace(temp_attention_vartocon, 0.0 => -Inf)
+        temp_attention_valtovar = replace(temp_attention_valtovar, 0.0 => -Inf)
+        temp_attention_vartoval = replace(temp_attention_vartoval, 0.0 => -Inf)
+    end
+    attention_contovar = softmax(temp_attention_contovar; dims=2) # ncon x nvar x heads
+    attention_vartocon = softmax(temp_attention_vartocon; dims=2) # nvar x ncon x heads
+    attention_valtovar = softmax(temp_attention_valtovar; dims=2) # nval x nvar x heads
+    attention_vartoval = softmax(temp_attention_vartoval; dims=2) # nvar x nval x heads
 
     # Heterogeneous Message Passing
     message_contovar = H2 ⊠ g.m_lin_con ⊠ g.W_MSG_contovar # ncon x dim x heads
