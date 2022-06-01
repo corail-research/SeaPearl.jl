@@ -64,7 +64,74 @@ Flux.@functor HeterogeneousGraphTransformer
 
 # Forward batched
 function (g::HeterogeneousGraphTransformer)(fgs::BatchedHeterogeneousFeaturedGraph{Float32})
-    println("coucou")    
+    contovar, valtovar = fgs.contovar, fgs.valtovar # ncon x nvar x batch , nval x nvar x batch
+    vartocon, vartoval = permutedims(contovar, [2, 1, 3]), permutedims(valtovar, [2, 1, 3]) # nvar x ncon x batch , nvar x nval x batch
+    H1, H2, H3 = permutedims(fgs.varnf, [2,1,3]), permutedims(fgs.connf, [2,1,3]), permutedims(fgs.valnf, [2,1,3]) # nvar x n x batch, ncon x n x batch, nval x n x batch
+    d = g.dim
+    batch_size = size(contovar)[3]
+
+    # Heterogeneous Mutual Attention
+    k_var = cat([H1[:,:,i] ⊠ g.k_lin_var for i in 1:batch_size]..., dims=4) # nvar x dim x heads x batch
+    k_con = cat([H2[:,:,i] ⊠ g.k_lin_con for i in 1:batch_size]..., dims=4) # ncon x dim x heads x batch
+    k_val = cat([H3[:,:,i] ⊠ g.k_lin_val for i in 1:batch_size]..., dims=4) # nval x dim x heads x batch
+    q_var = cat([H1[:,:,i] ⊠ g.k_lin_var for i in 1:batch_size]..., dims=4) # nvar x dim x heads x batch
+    q_con = cat([H2[:,:,i] ⊠ g.k_lin_con for i in 1:batch_size]..., dims=4) # ncon x dim x heads x batch
+    q_val = cat([H3[:,:,i] ⊠ g.k_lin_val for i in 1:batch_size]..., dims=4) # nval x dim x heads x batch
+    
+    # We compute these coefficients on each node pair
+    ATT_head_contovar = cat([(k_con[:,:,:,i] ⊠ g.W_ATT_contovar ⊠ permutedims(q_var[:,:,:,i], [2,1,3])) .* (g.mu_contovar/sqrt(d)) for i in 1:batch_size]..., dims=4) # ncon x nvar x heads x batch
+    ATT_head_vartocon = cat([(k_var[:,:,:,i] ⊠ g.W_ATT_vartocon ⊠ permutedims(q_con[:,:,:,i], [2,1,3])) .* (g.mu_vartocon/sqrt(d)) for i in 1:batch_size]..., dims=4) # nvar x ncon x heads x batch
+    ATT_head_valtovar = cat([(k_val[:,:,:,i] ⊠ g.W_ATT_valtovar ⊠ permutedims(q_var[:,:,:,i], [2,1,3])) .* (g.mu_valtovar/sqrt(d)) for i in 1:batch_size]..., dims=4) # nval x nvar x heads x batch
+    ATT_head_vartoval = cat([(k_var[:,:,:,i] ⊠ g.W_ATT_vartoval ⊠ permutedims(q_val[:,:,:,i], [2,1,3])) .* (g.mu_vartoval/sqrt(d)) for i in 1:batch_size]..., dims=4) # nvar x nval x heads x batch
+
+    # We apply softmax only on neighbors
+    nvar = size(contovar)[2]
+    ncon = size(contovar)[1]
+    nval = size(valtovar)[1]
+    temp_attention_contovar = cat([(contovar[:,:,i] .+ zeros(ncon, nvar, g.heads)) .*  ATT_head_contovar[:,:,:,i] for i in 1:batch_size]..., dims=4) 
+    temp_attention_vartocon = cat([(vartocon[:,:,i] .+ zeros(nvar, ncon, g.heads)) .*  ATT_head_vartocon[:,:,:,i] for i in 1:batch_size]..., dims=4)
+    temp_attention_valtovar = cat([(valtovar[:,:,i] .+ zeros(nval, nvar, g.heads)) .*  ATT_head_valtovar[:,:,:,i] for i in 1:batch_size]..., dims=4)
+    temp_attention_vartoval = cat([(vartoval[:,:,i] .+ zeros(nvar, nval, g.heads)) .*  ATT_head_vartoval[:,:,:,i] for i in 1:batch_size]..., dims=4)
+    Zygote.ignore() do
+        temp_attention_contovar = replace(temp_attention_contovar, 0.0 => -Inf)
+        temp_attention_vartocon = replace(temp_attention_vartocon, 0.0 => -Inf)
+        temp_attention_valtovar = replace(temp_attention_valtovar, 0.0 => -Inf)
+        temp_attention_vartoval = replace(temp_attention_vartoval, 0.0 => -Inf)
+    end
+    attention_contovar = softmax(temp_attention_contovar; dims=2) # ncon x nvar x heads x batch
+    attention_vartocon = softmax(temp_attention_vartocon; dims=2) # nvar x ncon x heads x batch
+    attention_valtovar = softmax(temp_attention_valtovar; dims=2) # nval x nvar x heads x batch
+    attention_vartoval = softmax(temp_attention_vartoval; dims=2) # nvar x nval x heads x batch
+
+    # Heterogeneous Message Passing
+    message_contovar = cat([H2[:,:,i] ⊠ g.m_lin_con ⊠ g.W_MSG_contovar for i in 1:batch_size]..., dims=4) # ncon x dim x heads x batch
+    message_vartocon = cat([H1[:,:,i] ⊠ g.m_lin_var ⊠ g.W_MSG_vartocon for i in 1:batch_size]..., dims=4) # nvar x dim x heads x batch
+    message_valtovar = cat([H3[:,:,i] ⊠ g.m_lin_val ⊠ g.W_MSG_valtovar for i in 1:batch_size]..., dims=4) # nval x dim x heads x batch
+    message_vartoval = cat([H1[:,:,i] ⊠ g.m_lin_var ⊠ g.W_MSG_vartoval for i in 1:batch_size]..., dims=4) # nvar x dim x heads x batch
+
+    # Target-Specific Aggregation TODO: start debugging from here
+    if g.aggr=="sum"
+        H_tilde_1 = cat([reshape(permutedims(attention_contovar[:,:,:,i], [2,1,3]) ⊠ message_contovar[:,:,:,i],(nvar,g.n_channels)) .+ 
+                    reshape(permutedims(attention_valtovar[:,:,:,i], [2,1,3]) ⊠ message_valtovar[:,:,:,i],(nvar,g.n_channels)) for i in 1:batch_size]..., dims=3) # nvar x n x batch
+        H_tilde_2 = cat([reshape(permutedims(attention_vartocon[:,:,:,i], [2,1,3]) ⊠ message_vartocon[:,:,:,i],(ncon,g.n_channels)) for i in 1:batch_size]..., dims=3) # ncon x n x batch
+        H_tilde_3 = cat([reshape(permutedims(attention_vartoval[:,:,:,i], [2,1,3]) ⊠ message_vartoval[:,:,:,i],(nval,g.n_channels)) for i in 1:batch_size]..., dims=3) # nval x n x batch
+    else
+        error("Aggregation not implemented!")
+    end
+
+    new_H1 = permutedims(σ.(H_tilde_1) ⊠ g.a_lin_var + H1,[2,1,3]) # n x nvar x batch
+    new_H2 = permutedims(σ.(H_tilde_2) ⊠ g.a_lin_con + H2,[2,1,3]) # n x ncon x batch
+    new_H3 = permutedims(σ.(H_tilde_3) ⊠ g.a_lin_val + H3,[2,1,3]) # n x nval x batch
+    Zygote.ignore() do
+        return BatchedHeterogeneousFeaturedGraph{Float32}(
+                contovar,
+                valtovar,
+                new_H1,
+                new_H2,
+                new_H3,
+                fgs.gf
+            )
+    end
 end
 
 # Forward unbatched
