@@ -42,9 +42,9 @@ function HeterogeneousGraphTransformer(n_channels::Int, heads::Int; init=Flux.gl
     m_lin_var = init(n_channels,dim,heads)
     m_lin_con = init(n_channels,dim,heads)
     m_lin_val = init(n_channels,dim,heads)
-    a_lin_var = init(n_channels,n_channels,heads)
-    a_lin_con = init(n_channels,n_channels,heads)
-    a_lin_val = init(n_channels,n_channels,heads)
+    a_lin_var = init(n_channels,n_channels)
+    a_lin_con = init(n_channels,n_channels)
+    a_lin_val = init(n_channels,n_channels)
     W_MSG_contovar = init(dim,dim)
     W_MSG_vartocon = init(dim,dim)
     W_MSG_valtovar = init(dim,dim)
@@ -89,18 +89,13 @@ function (g::HeterogeneousGraphTransformer)(fg::HeterogeneousFeaturedGraph)
     ATT_head_vartoval = (k_var ⊠ g.W_ATT_vartoval ⊠ permutedims(q_val, [2,1,3])) .* (g.mu_vartoval/sqrt(d)) # nvar x nval x heads
 
     # We apply softmax only on neighbors
-    #=@assert prod(ATT_head_contovar.*100)!=0
-    @assert prod(ATT_head_vartocon.*100)!=0
-    @assert prod(ATT_head_valtovar.*100)!=0
-    @assert prod(ATT_head_vartoval.*100)!=0=#
-    heads = size(ATT_head_contovar)[3]
     nvar = size(contovar)[2]
     ncon = size(contovar)[1]
     nval = size(valtovar)[1]
-    attention_contovar = softmax(replace((contovar .+ zeros(ncon, nvar, heads)) .*  ATT_head_contovar, 0.0 => -Inf); dims=2) # ncon x nvar x heads
-    attention_vartocon = softmax(replace((vartocon .+ zeros(nvar, ncon, heads)) .*  ATT_head_vartocon, 0.0 => -Inf); dims=2) # nvar x ncon x heads
-    attention_valtovar = softmax(replace((valtovar .+ zeros(nval, nvar, heads)) .*  ATT_head_valtovar, 0.0 => -Inf); dims=2) # nval x nvar x heads
-    attention_vartoval = softmax(replace((vartoval .+ zeros(nvar, nval, heads)) .*  ATT_head_vartoval, 0.0 => -Inf); dims=2) # nvar x nval x heads
+    attention_contovar = softmax(replace((contovar .+ zeros(ncon, nvar, g.heads)) .*  ATT_head_contovar, 0.0 => -Inf); dims=2) # ncon x nvar x heads
+    attention_vartocon = softmax(replace((vartocon .+ zeros(nvar, ncon, g.heads)) .*  ATT_head_vartocon, 0.0 => -Inf); dims=2) # nvar x ncon x heads
+    attention_valtovar = softmax(replace((valtovar .+ zeros(nval, nvar, g.heads)) .*  ATT_head_valtovar, 0.0 => -Inf); dims=2) # nval x nvar x heads
+    attention_vartoval = softmax(replace((vartoval .+ zeros(nvar, nval, g.heads)) .*  ATT_head_vartoval, 0.0 => -Inf); dims=2) # nvar x nval x heads
 
     # Heterogeneous Message Passing
     message_contovar = H2 ⊠ g.m_lin_con ⊠ g.W_MSG_contovar # ncon x dim x heads
@@ -108,21 +103,22 @@ function (g::HeterogeneousGraphTransformer)(fg::HeterogeneousFeaturedGraph)
     message_valtovar = H3 ⊠ g.m_lin_val ⊠ g.W_MSG_valtovar # nval x dim x heads
     message_vartoval = H1 ⊠ g.m_lin_var ⊠ g.W_MSG_vartoval # nvar x dim x heads
 
-    
     # Target-Specific Aggregation TODO: start debugging from here
     if g.aggr=="sum"
-        H_tilde_1 = reshape(permutedims(permutedims(attention_contovar, [1,3,2]) .* message_contovar,[2,3,1]),(nvar,n_channels)) .+ reshape(permutedims(permutedims(attention_valtovar, [1,3,2]) .* message_valtovar,[2,3,1]),(nvar,n_channels)) # nvar x n
-        H_tilde_2 = reshape(permutedims(permutedims(attention_vartocon, [1,3,2]) .* message_vartocon,[2,3,1]),(ncon,n_channels))  # ncon x n
-        H_tilde_3 = reshape(permutedims(permutedims(attention_vartoval, [1,3,2]) .* message_vartoval,[2,3,1]),(nval,n_channels)) # nval x n
+        H_tilde_1 = reshape(permutedims(attention_contovar, [2,1,3]) ⊠ message_contovar,(nvar,g.n_channels)) .+ 
+                    reshape(permutedims(attention_valtovar, [2,1,3]) ⊠ message_valtovar,(nvar,g.n_channels)) # nvar x n
+        H_tilde_2 = reshape(permutedims(attention_vartocon, [2,1,3]) ⊠ message_vartocon,(ncon,g.n_channels)) # ncon x n
+        H_tilde_3 = reshape(permutedims(attention_vartoval, [2,1,3]) ⊠ message_vartoval,(nval,g.n_channels)) # nval x n
     else
         error("Aggregation not implemented!")
     end
+
     return HeterogeneousFeaturedGraph(
             contovar,
             valtovar,
-            a_lin_var.*σ(H_tilde_1) + H1, # nvar x n
-            a_lin_con.*σ(H_tilde_2) + H2, # ncon x n
-            a_lin_val.*σ(H_tilde_3) + H3, # nval x n
+            transpose(σ.(H_tilde_1) * g.a_lin_var + H1), # n x nvar
+            transpose(σ.(H_tilde_2) * g.a_lin_con + H2), # n x ncon
+            transpose(σ.(H_tilde_3) * g.a_lin_val + H3), # n x nval
             fg.gf
         )
 end
