@@ -18,7 +18,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::MaximumIndependentSetGenera
 
     # edge constraints
     for e in Graphs.edges(graph)
-        SeaPearl.addConstraint!(cpmodel, SeaPearl.NotEqual(vars[e.src], vars[e.dst], cpmodel.trailer))
+        SeaPearl.addConstraint!(cpmodel, SeaPearl.SumLessThan([vars[e.src], vars[e.dst]], 1, cpmodel.trailer))
     end
 
     ### Objective ### minimize: -sum(x[i])
