@@ -147,7 +147,7 @@ struct CPLayerGraph <: LightGraphs.AbstractGraph{Int}
             varArray = variablesArray(constraint)
             for x in varArray
                 if x.id != "SEAPEARL_one"
-                    add_edge!(fixedEdgesGraph, id, nodeToId[VariableVertex(x)])
+                    LightGraphs.add_edge!(fixedEdgesGraph, id, nodeToId[VariableVertex(x)])
                 end
             end
         end

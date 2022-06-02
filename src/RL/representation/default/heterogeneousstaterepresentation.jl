@@ -119,7 +119,7 @@ function featurize(sr::HeterogeneousStateRepresentation{DefaultFeaturization,TS}
     valueFeatures = zeros(Float32, sr.nbValueFeatures, g.numberOfValues)
     ncon = sr.cplayergraph.numberOfConstraints
     nvar = sr.cplayergraph.numberOfVariables
-    for i in 1:nv(g)
+    for i in 1:LightGraphs.nv(g)
         cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
         if isa(cp_vertex, VariableVertex)
             if sr.chosenFeatures["node_number_of_neighbors"][1]
@@ -320,7 +320,7 @@ function update_features!(sr::HeterogeneousStateRepresentation{DefaultFeaturizat
     g = sr.cplayergraph
     ncon = sr.cplayergraph.numberOfConstraints
     nvar = sr.cplayergraph.numberOfVariables
-    for i in 1:nv(g)
+    for i in 1:LightGraphs.nv(g)
         cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
         if isa(cp_vertex, VariableVertex)
             if sr.chosenFeatures["variable_domain_size"][1]
