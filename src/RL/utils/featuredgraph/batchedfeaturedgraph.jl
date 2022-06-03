@@ -32,7 +32,7 @@ BatchedFeaturedGraph(graph, nf, ef, gf) = BatchedFeaturedGraph{Float32}(graph, n
 
 function BatchedFeaturedGraph{T}(fgs::Vector{FG}) where {T <: Real, FG <: FeaturedGraph}
     ngraphs = length(fgs)
-    maxNodes = Base.maximum(nv, fgs)
+    maxNodes = Base.maximum(LightGraphs.nv, fgs)
     nfLength = size(fgs[1].nf, 1)
     efLength = size(fgs[1].ef, 1)
     gfLength = size(fgs[1].gf, 1)
@@ -43,9 +43,9 @@ function BatchedFeaturedGraph{T}(fgs::Vector{FG}) where {T <: Real, FG <: Featur
     gf = zeros(T, gfLength, ngraphs)
 
     for (i, fg) in enumerate(fgs)
-        graph[1:nv(fg),1:nv(fg),i] = fg.graph
-        nf[:, 1:nv(fg), i] = fg.nf
-        ef[:, 1:nv(fg), 1:nv(fg), i] = fg.ef
+        graph[1:LightGraphs.nv(fg),1:LightGraphs.nv(fg),i] = fg.graph
+        nf[:, 1:LightGraphs.nv(fg), i] = fg.nf
+        ef[:, 1:LightGraphs.nv(fg), 1:LightGraphs.nv(fg), i] = fg.ef
         gf[:, i] = fg.gf
     end
 
@@ -108,7 +108,7 @@ has_global_feature(fgs::BatchedFeaturedGraph) = !isempty(fgs.gf)
 
 # ========== LightGraphs compatibility ==========
 
-LightGraphs.nv(fgs::BatchedFeaturedGraph) = nv(graph(fgs))
+LightGraphs.nv(fgs::BatchedFeaturedGraph) = LightGraphs.nv(graph(fgs))
 LightGraphs.nv(g::AbstractArray{T, 3}) where T<:Real = size(g,1)
 
 Flux.@functor BatchedFeaturedGraph

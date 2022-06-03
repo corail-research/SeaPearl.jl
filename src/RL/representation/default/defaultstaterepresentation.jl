@@ -98,7 +98,7 @@ function DefaultTrajectoryState(sr::DefaultStateRepresentation{F,DefaultTrajecto
     if isnothing(sr.variableIdx)
         throw(ErrorException("Unable to build a DefaultTrajectoryState, when the branching variable is nothing."))
     end
-    adj = Matrix(adjacency_matrix(sr.cplayergraph))
+    adj = Matrix(LightGraphs.adjacency_matrix(sr.cplayergraph))
     fg = isnothing(sr.globalFeatures) ?
          FeaturedGraph(adj; nf=sr.nodeFeatures) : FeaturedGraph(adj; nf=sr.nodeFeatures, gf=sr.globalFeatures)
     return DefaultTrajectoryState(fg, sr.variableIdx, sr.allValuesIdx, sr.possibleValuesIdx)
@@ -134,11 +134,11 @@ It is only necessary to specify the options you wish to activate.
 function featurize(sr::DefaultStateRepresentation{DefaultFeaturization,TS}; chosen_features::Union{Nothing,Dict{String,Bool}}=nothing) where {TS}
     initChosenFeatures!(sr, chosen_features)
     g = sr.cplayergraph
-    features = zeros(Float32, sr.nbFeatures, nv(g))
-    for i in 1:nv(g)
+    features = zeros(Float32, sr.nbFeatures, LightGraphs.nv(g))
+    for i in 1:LightGraphs.nv(g)
         cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
         if sr.chosenFeatures["node_number_of_neighbors"][1]
-            features[sr.chosenFeatures["node_number_of_neighbors"][2], i] = length(outneighbors(g, i))
+            features[sr.chosenFeatures["node_number_of_neighbors"][2], i] = length(LightGraphs.outneighbors(g, i))
         end
         if isa(cp_vertex, ConstraintVertex)
             features[1, i] = 1.0f0
@@ -326,10 +326,10 @@ Use the `sr.chosenFeatures` dictionary to find out which features are used and t
 """
 function update_features!(sr::DefaultStateRepresentation{DefaultFeaturization,TS}, ::CPModel) where {TS}
     g = sr.cplayergraph
-    for i in 1:nv(g)
+    for i in 1:LightGraphs.nv(g)
         cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
         if sr.chosenFeatures["node_number_of_neighbors"][1]
-            sr.nodeFeatures[sr.chosenFeatures["node_number_of_neighbors"][2], i] = length(outneighbors(g, i))
+            sr.nodeFeatures[sr.chosenFeatures["node_number_of_neighbors"][2], i] = length(LightGraphs.outneighbors(g, i))
         end
         if isa(cp_vertex, ConstraintVertex)
             if sr.chosenFeatures["constraint_activity"][1]

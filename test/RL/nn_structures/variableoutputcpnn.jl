@@ -15,7 +15,7 @@
             )
         )
 
-        graphs = Matrix.(adjacency_matrix.([random_regular_graph(10, 4) for i = 1:4]))
+        graphs = Matrix.(LightGraphs.adjacency_matrix.([LightGraphs.random_regular_graph(10, 4) for i = 1:4]))
         nodeFeatures = [rand(3, 10) for i = 1:4]
         featuredGraphs = [SeaPearl.FeaturedGraph(g; nf=nf) for (g, nf) in zip(graphs, nodeFeatures)]
 

@@ -81,10 +81,10 @@ has_global_feature(fg::FeaturedGraph) = !isempty(fg.gf)
 
 # ========== LightGraphs compatibility ==========
 
-LightGraphs.nv(fg::FeaturedGraph) = nv(graph(fg))
+LightGraphs.nv(fg::FeaturedGraph) = LightGraphs.nv(graph(fg))
 LightGraphs.nv(g::AbstractMatrix) = size(g,1)
-LightGraphs.ne(fg::FeaturedGraph) = ne(graph(fg))
-LightGraphs.ne(g::AbstractMatrix) = ne(Graph(g))
+LightGraphs.ne(fg::FeaturedGraph) = LightGraphs.ne(graph(fg))
+LightGraphs.ne(g::AbstractMatrix) = LightGraphs.ne(LightGraphs.Graph(g))
 LightGraphs.degree(fg::FeaturedGraph) = degree(graph(fg))
 
 Flux.@functor FeaturedGraph

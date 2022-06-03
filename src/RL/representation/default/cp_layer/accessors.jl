@@ -96,7 +96,7 @@ function LightGraphs.inneighbors(g::CPLayerGraph, id::Int)
     cpVertex = cpVertexFromIndex(g, id)
     LightGraphs.inneighbors(g, cpVertex)
 end
-LightGraphs.outneighbors(g::CPLayerGraph, id::Int) = inneighbors(g, id)
+LightGraphs.outneighbors(g::CPLayerGraph, id::Int) = LightGraphs.inneighbors(g, id)
 
 LightGraphs.inneighbors(g::CPLayerGraph, v::ConstraintVertex) = LightGraphs.inneighbors(g.fixedEdgesGraph, g.nodeToId[v])
 function LightGraphs.inneighbors(g::CPLayerGraph, vertex::VariableVertex)
@@ -137,20 +137,20 @@ Base.zero(::Type{CPLayerGraph}) = CPLayerGraph()
 Base.reverse(g::CPLayerGraph) = g
 
 function LightGraphs.SimpleGraph(cplayergraph::CPLayerGraph)
-    graph = Graph(LightGraphs.edges(cplayergraph))
+    graph = LightGraphs.Graph(LightGraphs.edges(cplayergraph))
     n = LightGraphs.nv(cplayergraph)
     if LightGraphs.nv(graph) < n
-        add_vertices!(graph, n - LightGraphs.nv(graph))
+        LightGraphs.add_vertices!(graph, n - LightGraphs.nv(graph))
     end
     return graph
 end
 
 function LightGraphs.adjacency_matrix(cplayergraph::CPLayerGraph)
-    return adjacency_matrix(Graph(cplayergraph))
+    return LightGraphs.adjacency_matrix(Graph(cplayergraph))
 end
 
 function adjacency_matrices(cplayergraph::CPLayerGraph)
-    g = Graph(cplayergraph) # Update the graph with the new information
+    g = LightGraphs.Graph(cplayergraph) # Update the graph with the new information
     nvar = cplayergraph.numberOfVariables
     ncon = cplayergraph.numberOfConstraints
     nval = cplayergraph.numberOfValues
