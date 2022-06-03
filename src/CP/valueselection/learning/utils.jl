@@ -192,12 +192,16 @@ Used to work in `supervisedLeanedHeuristic.jl` to retrieve an action (which is t
 and in `variableoutputcpnn.jl`. 
 
 """
-function from_id_to_order(state::Union{DefaultTrajectoryState, BatchedDefaultTrajectoryState, TsptwTrajectoryState}, value_id::Int64; which_list="possibleValuesIdx", idx_in_batch=1)
+function from_id_to_order(state::Union{DefaultTrajectoryState, BatchedDefaultTrajectoryState, HeterogeneousTrajectoryState, BatchedHeterogeneousTrajectoryState}, value_id::Int64; which_list="possibleValuesIdx", idx_in_batch=1)
     @assert !isnothing(state.possibleValuesIdx)
     if which_list == "possibleValuesIdx"
         return findfirst(x->x == value_id, state.possibleValuesIdx)
     elseif which_list == "allValuesIdx"
-        return findfirst(x->x == value_id, state.allValuesIdx[:,idx_in_batch])
+        if typeof(state) == HeterogeneousTrajectoryState
+            return findfirst(x->x == value_id, state.allValuesIdx)
+        else
+            return findfirst(x->x == value_id, state.allValuesIdx[:,idx_in_batch])
+        end
     else
         throw(DomainError(which_list, "which_list should be either 'possibleValuesIdx' or 'allValuesIdx'"))
     end
