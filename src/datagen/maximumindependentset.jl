@@ -7,7 +7,6 @@ end
 
 function fill_with_generator!(cpmodel::CPModel, gen::MaximumIndependentSetGenerator;  rng::AbstractRNG = MersenneTwister())
     graph = Graphs.SimpleGraphs.barabasi_albert(gen.n, gen.k, seed=rand(rng, typemin(Int64):typemax(Int64)))
-    @assert Graphs.is_connected(graph)
 
     # create variables
     vars = SeaPearl.IntVar[]
