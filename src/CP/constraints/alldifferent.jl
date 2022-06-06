@@ -147,7 +147,7 @@ end
 
 Return all the edges visited by a BFS on `digraph` encoded in `parents`.
 """
-function getAllEdges(digraph::DiGraph{Int}, parents::Vector{Int})::Set{Edge{Int}}
+function getAllEdges(digraph::LightGraphs.DiGraph{Int}, parents::Vector{Int})::Set{Edge{Int}}
     edgeSet = Set{Edge{Int}}()
     for i = 1:LightGraphs.nv(digraph)
         if parents[i] > 0 && parents[i] != i
