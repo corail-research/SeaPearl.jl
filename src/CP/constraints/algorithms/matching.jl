@@ -32,7 +32,7 @@ The graph must be bipartite with variables in 1:lastfirst and values in
 (lastfirst + 1):nv(digraph). A variable is assigned to a value if the directed
 edge (Var => Val) exists.
 """
-function matchingFromDigraph(digraph::DiGraph{Int}, lastfirst::Int)::Matching{Int}
+function matchingFromDigraph(digraph::LightGraphs.DiGraph{Int}, lastfirst::Int)::Matching{Int}
     matches = Vector{Pair{Int, Int}}()
     for i = 1:lastfirst
         nodesPossible = LightGraphs.outneighbors(digraph, i)
