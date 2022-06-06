@@ -27,12 +27,13 @@
 
         @test model.statistics.numberOfSolutions >= 1
         
+        solutions = model.statistics.solutions[model.statistics.solutions.!=nothing]
         solution_found = Int[]
         for i in 1:4
-            push!(solution_found, unique!(model.statistics.solutions)[end]["node_"*string(i)])
+            push!(solution_found, solutions[end]["node_"*string(i)])
         end
         
         @test solution_found == [1, 1, 1, 0]
-        @test unique!(model.statistics.solutions)[end]["objective"] == -3
+        @test solutions[end]["objective"] == -3
     end
 end
