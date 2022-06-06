@@ -146,7 +146,7 @@ function LightGraphs.SimpleGraph(cplayergraph::CPLayerGraph)
 end
 
 function LightGraphs.adjacency_matrix(cplayergraph::CPLayerGraph)
-    return LightGraphs.adjacency_matrix(Graph(cplayergraph))
+    return LightGraphs.adjacency_matrix(LightGraphs.Graph(cplayergraph))
 end
 
 function adjacency_matrices(cplayergraph::CPLayerGraph)

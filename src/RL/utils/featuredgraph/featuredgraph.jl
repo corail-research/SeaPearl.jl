@@ -22,7 +22,7 @@ function FeaturedGraph(graph::AbstractMatrix; directed::Symbol=:auto, n=size(gra
     return FeaturedGraph(graph, nf, ef, gf, dir)
 end
 
-function FeaturedGraph(graph::AbstractGraph; kwargs...)
+function FeaturedGraph(graph::LightGraphs.AbstractGraph; kwargs...)
     return FeaturedGraph(Matrix(adjacency_matrix(graph)); kwargs...)
 end
 

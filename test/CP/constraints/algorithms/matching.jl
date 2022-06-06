@@ -10,7 +10,7 @@
         @test matching.size == 5
         @test length(intersect(edgeset, LightGraphs.edges(bipartite))) == 5
     end
-    @testset "matchingFromDigraph(::DiGraph{Int}, ::Int)::Matching{Int}" begin
+    @testset "matchingFromDigraph(::LightGraphs.DiGraph{Int}, ::Int)::Matching{Int}" begin
         bipartite = LightGraphs.DiGraph(6)
         LightGraphs.add_edge!(bipartite, 1, 4)
         LightGraphs.add_edge!(bipartite, 5, 1)
@@ -23,7 +23,7 @@
         @test Pair(1, 4) in matching.matches
         @test Pair(2, 5) in matching.matches
     end
-    @testset "augmentMatching!(::DiGraph, ::Int, ::Vector{Int})" begin
+    @testset "augmentMatching!(::LightGraphs.DiGraph, ::Int, ::Vector{Int})" begin
         bipartite = LightGraphs.DiGraph(6)
         LightGraphs.add_edge!(bipartite, 1, 4)
         LightGraphs.add_edge!(bipartite, 5, 1)
@@ -36,7 +36,7 @@
         @test !isnothing(res)
         @test res == Pair(3, 6)
     end
-    @testset "buildDigraph!(::DiGraph{Int}, ::Graph{Int}, ::Matching{Int})" begin
+    @testset "buildDigraph!(::LightGraphs.DiGraph{Int}, ::Graph{Int}, ::Matching{Int})" begin
         graph = LightGraphs.Graph(7)
         digraph = LightGraphs.DiGraph(7)
         LightGraphs.add_edge!(graph, 1, 4)
@@ -57,7 +57,7 @@
         @test LightGraphs.Edge(6, 3) in LightGraphs.edges(digraph)
         @test LightGraphs.Edge(7, 3) in LightGraphs.edges(digraph)
     end
-    @testset "maximizeMatching!(::Graph, ::DiGraph, ::Int)::Matching" begin
+    @testset "maximizeMatching!(::LightGraphs.Graph, ::LightGraphs.DiGraph, ::Int)::Matching" begin
     #Replays the example from the paper
         graph = LightGraphs.Graph(12)
         digraph = LightGraphs.DiGraph(12)
@@ -81,7 +81,7 @@
         @test all([e in LightGraphs.edges(digraph) for e in target])
         @test all([LightGraphs.outdegree(digraph, v) == 1 for v in 1:6])
     end
-    @testset "maximumMatching!(::Graph{Int}, ::DiGraph{Int}, ::Int)::Matching{Int}" begin
+    @testset "maximumMatching!(::LightGraphs.Graph{Int}, ::LightGraphs.DiGraph{Int}, ::Int)::Matching{Int}" begin
     # This function and all its dependencies have been tested with an external library
     # Thus the code written at that time is certified to work based on 3000 randomly generated
     # matching cases with optimal matching detection.

@@ -24,7 +24,7 @@ using Test
         @test SeaPearl.orderEdge(LightGraphs.Edge(1, 2)) == LightGraphs.Edge(1, 2)
         @test SeaPearl.orderEdge(LightGraphs.Edge(2, 1)) == LightGraphs.Edge(1, 2)
     end
-    @testset "initializeGraphs!(::AllDifferent)::Pair{Graph{Int}, DiGraph{Int}}" begin
+    @testset "initializeGraphs!(::AllDifferent)::Pair{LightGraphs.Graph{Int}, LightGraphs.DiGraph{Int}}" begin
         trailer = SeaPearl.Trailer()
         x = SeaPearl.IntVar(1, 3, "x", trailer)
         y = SeaPearl.IntVar(2, 3, "y", trailer)
@@ -45,7 +45,7 @@ using Test
         @test LightGraphs.Edge(3, 6) in LightGraphs.edges(graph)
         @test LightGraphs.ne(graph) == 6
     end
-    @testset "getAllEdges(::DiGraph, ::Vector{Int})" begin
+    @testset "getAllEdges(::LightGraphs.DiGraph, ::Vector{Int})" begin
         bipartite = LightGraphs.DiGraph(7)
         LightGraphs.add_edge!(bipartite, 4, 1)
         LightGraphs.add_edge!(bipartite, 5, 1)
@@ -63,7 +63,7 @@ using Test
         @test LightGraphs.Edge(2, 6) in edgeset
         @test LightGraphs.Edge(1, 5) in edgeset
     end
-    @testset "removeEdges!(::AllDifferent, ::Vector{Vector{Int}}, ::Graph, ::DiGraph)" begin
+    @testset "removeEdges!(::AllDifferent, ::Vector{Vector{Int}}, ::Graph, ::LightGraphs.DiGraph)" begin
 
         trailer = SeaPearl.Trailer()
         x = SeaPearl.IntVar(1, 2, "x", trailer)

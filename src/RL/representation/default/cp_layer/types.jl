@@ -47,7 +47,7 @@ end
 
 
 """
-    struct CPLayerGraph <: AbstractGraph{Int}
+    struct CPLayerGraph <: LightGraphs.AbstractGraph{Int}
 
 Graph representing the current status of the CPModel.
 It is a tripartite graph, linking 3 types of nodes: constraints, variables and values.
@@ -141,7 +141,7 @@ struct CPLayerGraph <: LightGraphs.AbstractGraph{Int}
         end
 
         
-        fixedEdgesGraph = Graph(numberOfConstraints + numberOfVariables)
+        fixedEdgesGraph = LightGraphs.Graph(numberOfConstraints + numberOfVariables)
         for id in 1:numberOfConstraints
             constraint = idToNode[id].constraint
             varArray = variablesArray(constraint)
@@ -161,7 +161,7 @@ struct CPLayerGraph <: LightGraphs.AbstractGraph{Int}
     Create an empty graph, needed to implement the `zero` function for the LightGraphs.jl interface.
     """
     function CPLayerGraph()
-        return new(nothing, CPLayerVertex[], Dict{CPLayerVertex, Int}(), Graph(0), 0, 0, 0, 0)
+        return new(nothing, CPLayerVertex[], Dict{CPLayerVertex, Int}(), LightGraphs.Graph(0), 0, 0, 0, 0)
     end
 end
 
