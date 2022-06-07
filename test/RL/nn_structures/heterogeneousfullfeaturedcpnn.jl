@@ -79,10 +79,10 @@
         @test relevantVariableFeatures ==  reshape([3.0 3.0 2.0 2.0],2,1,2)
         # Extract the features corresponding to the values
         relevantValueFeatures = reshape(nn.valChain(RL.flatten_batch(valueFeatures)), :, actionSpaceSize, batchSize) # F'xAxB
-        @test relevantValueFeatures == reshape([0.0  0.0  1.0  0.0  0.0  0.0  1.0  0.0
-                                                0.0  0.0  0.0  1.0  0.0  0.0  0.0  1.0
+        @test relevantValueFeatures == reshape([1.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0
                                                 0.0  1.0  0.0  0.0  0.0  1.0  0.0  0.0
-                                                1.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0],:,4,2)
+                                                0.0  0.0  1.0  0.0  0.0  0.0  1.0  0.0
+                                                0.0  0.0  0.0  1.0  0.0  0.0  0.0  1.0],:,4,2)
 
         finalFeatures = nothing
         if sizeof(globalFeatures) != 0
@@ -109,10 +109,10 @@
         # output layer
         @test finalFeatures  ==   [3.0  3.0  3.0  3.0  2.0  2.0  2.0  2.0
                                    3.0  3.0  3.0  3.0  2.0  2.0  2.0  2.0
-                                   0.0  0.0  1.0  0.0  0.0  0.0  1.0  0.0
-                                   0.0  0.0  0.0  1.0  0.0  0.0  0.0  1.0
+                                   1.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0
                                    0.0  1.0  0.0  0.0  0.0  1.0  0.0  0.0
-                                   1.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0]
+                                   0.0  0.0  1.0  0.0  0.0  0.0  1.0  0.0
+                                   0.0  0.0  0.0  1.0  0.0  0.0  0.0  1.0]
 
         predictions = nn.outputChain(finalFeatures) # Ox(1xB)
         output = reshape(predictions, actionSpaceSize, batchSize) # OxB
