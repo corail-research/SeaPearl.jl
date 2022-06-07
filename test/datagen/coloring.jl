@@ -15,7 +15,7 @@
         @test length(keys(model.variables)) == nb_nodes + 1
         if VERSION == v"1.6.0"
            @test length(model.constraints) == 22
-        else if VERSION >= v"1.7.0"
+        elseif VERSION >= v"1.7.0"
            @test length(model.constraints) == 23
         end
         
