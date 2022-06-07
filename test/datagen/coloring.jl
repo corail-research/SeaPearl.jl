@@ -13,7 +13,11 @@
         SeaPearl.fill_with_generator!(model, generator; rng = rng)
 
         @test length(keys(model.variables)) == nb_nodes + 1
-        @test length(model.constraints) == 22 || length(model.constraints) == 23
+        if VERSION == v"1.6.0"
+           @test length(model.constraints) == 22
+        else if VERSION >= v"1.7.0"
+           @test length(model.constraints) == 23
+        end
         
 
         model1 = SeaPearl.CPModel(trailer)
