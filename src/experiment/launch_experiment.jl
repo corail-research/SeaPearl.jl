@@ -76,7 +76,7 @@ function launch_experiment!(
             reset_model!(model)
         
             if isa(valueSelectionArray[j], LearnedHeuristic)
-                verbose && print("Visited nodes with learnedHeuristic : " )
+                verbose && print("Visited nodes with learnedHeuristic ",j," : " )
             
                 dt = @elapsed for k in 1:restartPerInstances
                     restart_search!(model)
