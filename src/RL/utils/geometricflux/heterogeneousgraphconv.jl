@@ -100,7 +100,6 @@ function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any,meanPooling})(fg::Het
         sumvartocon = replace(sumvartocon, 0=>1)
         sumvartoval = replace(sumvartoval, 0=>1)
     end
-
     contovarN = contovar ./ sumcontovar
     valtovarN = valtovar ./ sumvaltovar
     vartoconN = vartocon ./ sumvartocon
