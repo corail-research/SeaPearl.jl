@@ -91,14 +91,14 @@ function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any,meanPooling})(fg::Het
     X1, X2, X3 = original_fg.varnf, original_fg.connf, original_fg.valnf
 
     sumcontovar = reshape(sum(eachrow(contovar)), 1, :)
-    sumvaltovar = reshape(sum(eachrow(contovar)), 1, :)
+    sumvaltovar = reshape(sum(eachrow(valtovar)), 1, :)
     sumvartocon = reshape(sum(eachrow(vartocon)), 1, :)
     sumvartoval = reshape(sum(eachrow(vartoval)), 1, :)
     Zygote.ignore() do
-        sumcontovar = replace(reshape(sum(eachrow(contovar)), 1, :), 0=>1)
-        sumvaltovar = replace(reshape(sum(eachrow(contovar)), 1, :), 0=>1)
-        sumvartocon = replace(reshape(sum(eachrow(vartocon)), 1, :), 0=>1)
-        sumvartoval = replace(reshape(sum(eachrow(vartoval)), 1, :), 0=>1)
+        sumcontovar = replace(sumcontovar, 0=>1)
+        sumvaltovar = replace(sumvaltovar, 0=>1)
+        sumvartocon = replace(sumvartocon, 0=>1)
+        sumvartoval = replace(sumvartoval, 0=>1)
     end
 
     contovarN = contovar ./ sumcontovar
