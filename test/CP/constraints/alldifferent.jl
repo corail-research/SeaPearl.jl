@@ -21,10 +21,10 @@ using Test
         @test constraint in z.onDomainChange
     end
     @testset "orderEdge(::Edge)::Edge" begin
-        @test SeaPearl.orderEdge(Edge(1, 2)) == Edge(1, 2)
-        @test SeaPearl.orderEdge(Edge(2, 1)) == Edge(1, 2)
+        @test SeaPearl.orderEdge(LightGraphs.Edge(1, 2)) == LightGraphs.Edge(1, 2)
+        @test SeaPearl.orderEdge(LightGraphs.Edge(2, 1)) == LightGraphs.Edge(1, 2)
     end
-    @testset "initializeGraphs!(::AllDifferent)::Pair{Graph{Int}, DiGraph{Int}}" begin
+    @testset "initializeGraphs!(::AllDifferent)::Pair{LightGraphs.Graph{Int}, LightGraphs.DiGraph{Int}}" begin
         trailer = SeaPearl.Trailer()
         x = SeaPearl.IntVar(1, 3, "x", trailer)
         y = SeaPearl.IntVar(2, 3, "y", trailer)
@@ -33,37 +33,37 @@ using Test
 
         constraint = SeaPearl.AllDifferent(vec, trailer)
         removed = BitVector(undef, constraint.numberOfEdges) .= false
-        removed[constraint.edgeToIndex[Edge(1, 6)]] = true
+        removed[constraint.edgeToIndex[LightGraphs.Edge(1, 6)]] = true
         SeaPearl.updateremaining!(constraint, removed)
         graph, digraph = SeaPearl.initializeGraphs!(constraint)
 
-        @test Edge(1, 4) in edges(graph)
-        @test Edge(1, 5) in edges(graph)
-        @test Edge(2, 5) in edges(graph)
-        @test Edge(2, 6) in edges(graph)
-        @test Edge(3, 5) in edges(graph)
-        @test Edge(3, 6) in edges(graph)
-        @test ne(graph) == 6
+        @test LightGraphs.Edge(1, 4) in LightGraphs.edges(graph)
+        @test LightGraphs.Edge(1, 5) in LightGraphs.edges(graph)
+        @test LightGraphs.Edge(2, 5) in LightGraphs.edges(graph)
+        @test LightGraphs.Edge(2, 6) in LightGraphs.edges(graph)
+        @test LightGraphs.Edge(3, 5) in LightGraphs.edges(graph)
+        @test LightGraphs.Edge(3, 6) in LightGraphs.edges(graph)
+        @test LightGraphs.ne(graph) == 6
     end
-    @testset "getAllEdges(::DiGraph, ::Vector{Int})" begin
-        bipartite = DiGraph(7)
-        add_edge!(bipartite, 4, 1)
-        add_edge!(bipartite, 5, 1)
-        add_edge!(bipartite, 1, 6)
-        add_edge!(bipartite, 2, 5)
-        add_edge!(bipartite, 6, 2)
-        add_edge!(bipartite, 3, 7)
-        parents = bfs_parents(bipartite, 4; dir=:out)
+    @testset "getAllEdges(::LightGraphs.DiGraph, ::Vector{Int})" begin
+        bipartite = LightGraphs.DiGraph(7)
+        LightGraphs.add_edge!(bipartite, 4, 1)
+        LightGraphs.add_edge!(bipartite, 5, 1)
+        LightGraphs.add_edge!(bipartite, 1, 6)
+        LightGraphs.add_edge!(bipartite, 2, 5)
+        LightGraphs.add_edge!(bipartite, 6, 2)
+        LightGraphs.add_edge!(bipartite, 3, 7)
+        parents = LightGraphs.bfs_parents(bipartite, 4; dir=:out)
         edgeset = SeaPearl.getAllEdges(bipartite, parents)
 
         @test length(edgeset) == 5
-        @test Edge(1, 4) in edgeset
-        @test Edge(1, 6) in edgeset
-        @test Edge(2, 5) in edgeset
-        @test Edge(2, 6) in edgeset
-        @test Edge(1, 5) in edgeset
+        @test LightGraphs.Edge(1, 4) in edgeset
+        @test LightGraphs.Edge(1, 6) in edgeset
+        @test LightGraphs.Edge(2, 5) in edgeset
+        @test LightGraphs.Edge(2, 6) in edgeset
+        @test LightGraphs.Edge(1, 5) in edgeset
     end
-    @testset "removeEdges!(::AllDifferent, ::Vector{Vector{Int}}, ::Graph, ::DiGraph)" begin
+    @testset "removeEdges!(::AllDifferent, ::Vector{Vector{Int}}, ::Graph, ::LightGraphs.DiGraph)" begin
 
         trailer = SeaPearl.Trailer()
         x = SeaPearl.IntVar(1, 2, "x", trailer)
@@ -97,13 +97,13 @@ using Test
         @test Set(prunedValues[5]) == Set([3, 4])
         @test isempty(prunedValues[6])
 
-        @test !(Edge(8, 4) in edges(digraph))
-        @test !(Edge(9, 5) in edges(digraph))
-        @test !(Edge(10, 5) in edges(digraph))
+        @test !(LightGraphs.Edge(8, 4) in LightGraphs.edges(digraph))
+        @test !(LightGraphs.Edge(9, 5) in LightGraphs.edges(digraph))
+        @test !(LightGraphs.Edge(10, 5) in LightGraphs.edges(digraph))
 
-        @test !(Edge(8, 4) in edges(graph))
-        @test !(Edge(9, 5) in edges(graph))
-        @test !(Edge(10, 5) in edges(graph))
+        @test !(LightGraphs.Edge(8, 4) in LightGraphs.edges(graph))
+        @test !(LightGraphs.Edge(9, 5) in LightGraphs.edges(graph))
+        @test !(LightGraphs.Edge(10, 5) in LightGraphs.edges(graph))
     end
     @testset "propagate!(::AllDifferent, ::Set{Constraint}, ::CPModification)" begin
         trailer = SeaPearl.Trailer()

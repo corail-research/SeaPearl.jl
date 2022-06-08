@@ -68,7 +68,7 @@ agent = RL.Agent(
 @testset "defaulttrajectorystate.jl" begin
     
     @testset "DefaultTrajectoryState" begin
-        graph = Matrix(adjacency_matrix(random_regular_graph(6,3)))
+        graph = Matrix(LightGraphs.adjacency_matrix(LightGraphs.random_regular_graph(6,3)))
         ts1 = SeaPearl.DefaultTrajectoryState(
             SeaPearl.FeaturedGraph(graph; nf=rand(3,6)),
             2,
@@ -96,7 +96,7 @@ agent = RL.Agent(
     end
 
     @testset "BatchedFeaturedGraph" begin
-        graph = cat(Matrix.(adjacency_matrix.([random_regular_graph(6,3) for i =1:3]))...; dims=3)
+        graph = cat(Matrix.(LightGraphs.adjacency_matrix.([LightGraphs.random_regular_graph(6,3) for i =1:3]))...; dims=3)
         nf = rand(4, 6, 3)
         ef = rand(2, 6, 6, 3)
         gf = rand(2, 3)
@@ -114,7 +114,7 @@ agent = RL.Agent(
     end
 
     @testset "BatchedDefaultTrajectoryState" begin
-        graph = cat(Matrix.(adjacency_matrix.([random_regular_graph(6, i) for i = 2:4]))...; dims=3)
+        graph = cat(Matrix.(LightGraphs.adjacency_matrix.([LightGraphs.random_regular_graph(6, i) for i = 2:4]))...; dims=3)
         bfg = SeaPearl.BatchedFeaturedGraph{Float32}(graph)
         var = collect(1:3)
         val = rand(1:6, 2, 3)
@@ -130,7 +130,7 @@ agent = RL.Agent(
 
     # TODO test Flux.functor(::Type{Vector{DefaultTrajectoryState}}, v)
     @testset "Flux.functor(::Type{Vector{DefaultTrajectoryState}}, v)" begin
-        graph= Matrix(adjacency_matrix(random_regular_graph(6,3)))
+        graph= Matrix(LightGraphs.adjacency_matrix(LightGraphs.random_regular_graph(6,3)))
         ts1 = SeaPearl.DefaultTrajectoryState(
             SeaPearl.FeaturedGraph(graph; nf=rand(3,6)),
             2,
@@ -151,7 +151,7 @@ agent = RL.Agent(
     end
 
     @testset "Flux.functor(::Type{BatchedDefaultTrajectoryState{T}}, ts)" begin
-        graph = Matrix(adjacency_matrix(random_regular_graph(6,3)))
+        graph = Matrix(LightGraphs.adjacency_matrix(LightGraphs.random_regular_graph(6,3)))
         ts1 = SeaPearl.DefaultTrajectoryState(
             SeaPearl.FeaturedGraph(graph; nf=rand(3,6)),
             2,
