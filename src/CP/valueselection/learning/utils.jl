@@ -197,7 +197,7 @@ function from_id_to_order(state::Union{DefaultTrajectoryState, BatchedDefaultTra
     if which_list == "possibleValuesIdx"
         return findfirst(x->x == value_id, state.possibleValuesIdx)
     elseif which_list == "allValuesIdx"
-        if typeof(state) == HeterogeneousTrajectoryState
+        if isa(state,HeterogeneousTrajectoryState)
             return findfirst(x->x == value_id, state.allValuesIdx)
         else
             return findfirst(x->x == value_id, state.allValuesIdx[:,idx_in_batch])
