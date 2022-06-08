@@ -247,7 +247,6 @@ function Base.isempty(model::CPModel)::Bool
         && isnothing(model.limit.numberOfSolutions)
         && isnothing(model.limit.searchingTime)
         && isnothing(model.knownObjective)
-        && isnothing(model.adhocInfo)
     )
 end
 
@@ -284,7 +283,6 @@ function Base.empty!(model::CPModel)
     model.limit.searchingTime = nothing
     model.knownObjective = nothing
     model.adhocInfo = nothing
-    model
 end
 
 """
