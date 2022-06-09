@@ -9,7 +9,7 @@ adj = [0 1 0 1;
         g = SeaPearl.CPLayerGraph()
         nodeFeatures = [1.0f0 1.0f0; 2.0f0 2.0f0]
         variableIdx = 1
-        dsr = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}(g, nodeFeatures, nothing, variableIdx, nothing, nothing, nothing, nothing, 3)
+        dsr = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}(g, nodeFeatures, nothing, variableIdx, nothing, nothing, nothing, nothing, nothing, 3)
 
         @test dsr.cplayergraph == g
         @test dsr.nodeFeatures == nodeFeatures
@@ -152,7 +152,7 @@ adj = [0 1 0 1;
         @test size(batchedDts.variableIdx,1) == 2
     end
 
-    @testset "DefaultFeaturization with chose_features without ordered values" begin
+    @testset "DefaultFeaturization with chosen_features without ordered values" begin
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
 
@@ -169,7 +169,7 @@ adj = [0 1 0 1;
         SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x[4], x[1], model.trailer))
         # Objective
         numberOfColors = SeaPearl.IntVar(1, 4, "numberOfColors", model.trailer)
-        SeaPearl.addVariable!(model, numberOfColors)
+        SeaPearl.addVariable!(model, numberOfColors; branchable=false)
         for var in x
             SeaPearl.addConstraint!(model, SeaPearl.LessOrEqual(var, numberOfColors, model.trailer))
         end
@@ -184,19 +184,26 @@ adj = [0 1 0 1;
             "variable_initial_domain_size" => true,
             "variable_domain_size" => false,
             "variable_is_bound" => false,
+            "variable_is_branchable" => true,
+            "variable_is_objective" => true,
+            "variable_assigned_value" => true,
+            "node_number_of_neighbors" => true,
             "nb_involved_constraint_propagation" => true,
             "nb_not_bounded_variable" => false
         )
         sr = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}(model; action_space = 1:4, chosen_features=chosen_features)
         
         # Testing the initialization of the node features
-        # TODO: improve the tests here
-        @test sr.nodeFeatures[1:3,:] == Float32[1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0 1.0 0.0 0.0 0.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0]
-        @test sr.nodeFeatures[4,:] == Float32[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        @test sr.nodeFeatures[5,:] == Float32[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        @test sr.nodeFeatures[6,:] == Float32[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 4.0, 4.0, 4.0, 4.0, 0.0, 0.0, 0.0, 0.0]
-        @test sum(sr.nodeFeatures[7:8,:],dims=1) == Float32[1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0]
-        @test sr.nodeFeatures[9:12,:] == Float32[0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0]
+        @test sr.nodeFeatures[1:3,:] == Float32[1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0 1.0 0.0 0.0 0.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0] # One hot encoding of node type
+        @test sr.nodeFeatures[4,:] == Float32[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] # Constraint activity
+        @test sr.nodeFeatures[5,:] == Float32[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] # nb_involved_constraint_propagation
+        @test sr.nodeFeatures[6,:] == Float32[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 4.0, 4.0, 4.0, 4.0, 0.0, 0.0, 0.0, 0.0] # variable_initial_domain_size
+        @test sr.nodeFeatures[7,:] == Float32[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0] # variable_is_branchable
+        @test sr.nodeFeatures[8,:] == Float32[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0] # variable_is_objective
+        @test sr.nodeFeatures[9,:] == Float32[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] # variable_assigned_value
+        @test sr.nodeFeatures[10,:] == Float32[2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 7.0, 7.0, 7.0, 7.0, 4.0, 4.0, 4.0, 4.0, 4.0] # node_number_of_neighbors
+        @test sum(sr.nodeFeatures[11:12,:],dims=1) == Float32[1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0] # Constraint type
+        @test sr.nodeFeatures[13:16,:] == Float32[0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0] # value_one_hot
 
         
         # assign color 1 to x[1]
@@ -205,17 +212,20 @@ adj = [0 1 0 1;
         feasible, pruned = SeaPearl.fixPoint!(model, nothing, prunedDomains)
         SeaPearl.update_features!(sr, model)
 
-        # TODO: improve the tests here
         @test sr.nodeFeatures[1:3,:] == Float32[1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0 1.0 0.0 0.0 0.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0]
-        @test sr.nodeFeatures[4,:] == Float32[0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        @test all(sr.nodeFeatures[5,1:8] .> Float32[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-        @test sr.nodeFeatures[6,:] == Float32[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 4.0, 4.0, 4.0, 4.0, 0.0, 0.0, 0.0, 0.0]
-        @test sum(sr.nodeFeatures[7:8,:],dims=1) == Float32[1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0]
-        @test sr.nodeFeatures[9:12,:] == Float32[0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0]
+        @test sr.nodeFeatures[4,:] == Float32[0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] # Constraint activity
+        @test all(sr.nodeFeatures[5,1:8] .> Float32[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) # nb_involved_constraint_propagation
+        @test sr.nodeFeatures[6,:] == Float32[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 4.0, 4.0, 4.0, 4.0, 0.0, 0.0, 0.0, 0.0] # variable_initial_domain_size
+        @test sr.nodeFeatures[7,:] == Float32[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0] # variable_is_branchable
+        @test sr.nodeFeatures[8,:] == Float32[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0] # variable_is_objective
+        @test sr.nodeFeatures[9,:] == Float32[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] # variable_assigned_value
+        @test sr.nodeFeatures[10,:] == Float32[2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 4.0, 6.0, 7.0, 6.0, 4.0, 2.0, 3.0, 3.0, 3.0] # node_number_of_neighbors
+        @test sum(sr.nodeFeatures[11:12,:],dims=1) == Float32[1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0] # Constraint type
+        @test sr.nodeFeatures[13:16,:] == Float32[0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0]
         
     end
 
-    @testset "DefaultFeaturization with chose_features with value ordering" begin
+    @testset "DefaultFeaturization with chosen_features with value ordering" begin
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
 

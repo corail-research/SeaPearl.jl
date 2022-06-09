@@ -81,7 +81,7 @@ function addVariable!(model::CPModel, x::AbstractVar; branchable=true)
     if branchable
         model.branchable_variables[x.id] = x
     end
-
+    
 end
 
 """
@@ -257,6 +257,8 @@ Empty the CPModel.
 """
 function Base.empty!(model::CPModel)
     empty!(model.variables)
+    empty!(model.branchable_variables)
+    empty!(model.branchable)
     empty!(model.constraints)
     empty!(model.trailer.prior)
     empty!(model.trailer.current)
@@ -280,8 +282,7 @@ function Base.empty!(model::CPModel)
     model.limit.numberOfSolutions = nothing
     model.limit.searchingTime = nothing
     model.knownObjective = nothing
-
-    model
+    model.adhocInfo = nothing
 end
 
 """
@@ -364,17 +365,26 @@ end
 """
     global_domain_cardinality(model::CPModel)
 
-Return the number of variable-value edges in the tripartite graph 
-(or equivalently the sum of domain cardinalities of the variables), excluding the objective variable.
+Returns the sum of the cardinalities of the variable domains.
 """
 function global_domain_cardinality(model::CPModel)
     cardinality = 0
     for (id, x) in model.variables
-        if x != model.objective && !isa(x, IntVarView) && !isa(x, BoolVarView)
-            if isa(x.domain,BoolDomain)
-                cardinality += length(x.domain.inner.values)
-            else
-                cardinality += length(x.domain.values)
+        if isa(x.domain,BoolDomain)
+            cardinality += length(x.domain.inner.values)
+            if !isempty(x.children)
+                for child in x.children
+                    cardinality += length(child.domain.inner.values)
+                end
+            end
+        elseif isa(x.domain,IntSetDomain)
+            cardinality += length(x.domain)
+        else
+            cardinality += length(x.domain)
+            if !isempty(x.children)
+                for child in x.children
+                    cardinality += length(child.domain)
+                end
             end
         end
     end

@@ -47,7 +47,7 @@ end
 
 
 """
-    struct CPLayerGraph <: AbstractGraph{Int}
+    struct CPLayerGraph <: LightGraphs.AbstractGraph{Int}
 
 Graph representing the current status of the CPModel.
 It is a tripartite graph, linking 3 types of nodes: constraints, variables and values.
@@ -81,37 +81,36 @@ struct CPLayerGraph <: LightGraphs.AbstractGraph{Int}
     """
     function CPLayerGraph(cpmodel::CPModel)
         variables = Set{AbstractVar}(values(cpmodel.variables))
-        valuesOfVariables = branchable_values(cpmodel)
+        valuesOfVariables = sort(branchable_values(cpmodel))
         numberOfConstraints = length(cpmodel.constraints)
         numberOfValues = length(valuesOfVariables)
 
         variableConnections = Tuple{AbstractVar, AbstractVar}[]
 
         # Take into account IntVarViews that are only declared in constraints
+        # Array listing constraints representing view relations between variables
+        viewConstraints = []
         for constraint in cpmodel.constraints
             for constraintVar in variablesArray(constraint)
                 while typeof(constraintVar) <: Union{IntVarView, BoolVarView}
                     push!(variables, constraintVar)
 
-                    # Storing variable connections
-                    push!(variableConnections, (constraintVar, constraintVar.x))
-
+                    # Creating a new constraint and storing constraint-variable connections
+                    viewcon = ViewConstraint(constraintVar.x, constraintVar)
+                    push!(viewConstraints, viewcon)
 
                     constraintVar = constraintVar.x
                 end
             end
         end
-
-
         variables = collect((variables))
-
+        
         # We sort the variables by their id to get a consistent order
         sort!(variables; by=(x) -> x.id)
-
+        
         numberOfVariables = length(variables)
+        totalLength = numberOfConstraints + length(viewConstraints) + numberOfVariables + numberOfValues
 
-
-        totalLength = numberOfConstraints + numberOfVariables + numberOfValues
         nodeToId = Dict{CPLayerVertex, Int}()
         idToNode = Array{CPLayerVertex}(undef, totalLength)
 
@@ -121,6 +120,14 @@ struct CPLayerGraph <: LightGraphs.AbstractGraph{Int}
             nodeToId[ConstraintVertex(cpmodel.constraints[i])] = i
         end
 
+        # Filling view constraints
+        for i in 1:length(viewConstraints)
+            idToNode[numberOfConstraints + i] = ConstraintVertex(viewConstraints[i])
+            nodeToId[ConstraintVertex(viewConstraints[i])] = numberOfConstraints + i
+        end
+
+        numberOfConstraints += length(viewConstraints)
+        
         # Filling variables
         for i in 1:numberOfVariables
             idToNode[numberOfConstraints + i] = VariableVertex(variables[i])
@@ -134,20 +141,15 @@ struct CPLayerGraph <: LightGraphs.AbstractGraph{Int}
         end
 
         
-        fixedEdgesGraph = Graph(numberOfConstraints + numberOfVariables)
+        fixedEdgesGraph = LightGraphs.Graph(numberOfConstraints + numberOfVariables)
         for id in 1:numberOfConstraints
             constraint = idToNode[id].constraint
             varArray = variablesArray(constraint)
             for x in varArray
                 if x.id != "SEAPEARL_one"
-                    add_edge!(fixedEdgesGraph, id, nodeToId[VariableVertex(x)])
+                    LightGraphs.add_edge!(fixedEdgesGraph, id, nodeToId[VariableVertex(x)])
                 end
             end
-        end
-
-        for (x1, x2) in variableConnections
-            v1, v2 = VariableVertex(x1), VariableVertex(x2)
-            add_edge!(fixedEdgesGraph, nodeToId[v1], nodeToId[v2])
         end
 
         return new(cpmodel, idToNode, nodeToId, fixedEdgesGraph, numberOfConstraints, numberOfVariables, numberOfValues, totalLength)
@@ -159,7 +161,7 @@ struct CPLayerGraph <: LightGraphs.AbstractGraph{Int}
     Create an empty graph, needed to implement the `zero` function for the LightGraphs.jl interface.
     """
     function CPLayerGraph()
-        return new(nothing, CPLayerVertex[], Dict{CPLayerVertex, Int}(), Graph(0), 0, 0, 0, 0)
+        return new(nothing, CPLayerVertex[], Dict{CPLayerVertex, Int}(), LightGraphs.Graph(0), 0, 0, 0, 0)
     end
 end
 

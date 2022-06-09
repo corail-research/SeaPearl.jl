@@ -360,15 +360,15 @@
 
     using Random
     numInFeatures = 3
-    approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
-    target_approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
+    approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu, pool = SeaPearl.sumPooling())
+    target_approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu, pool = SeaPearl.sumPooling())
     gnnlayers = 10
     seed = 123
     rng = MersenneTwister(seed)
     
     actor_approximator = SeaPearl.CPNN(
         graphChain = Flux.Chain(
-            SeaPearl.GraphConv(numInFeatures => 64, Flux.leakyrelu),
+            SeaPearl.GraphConv(numInFeatures => 64, Flux.leakyrelu, pool = SeaPearl.sumPooling()),
             [approximator_GNN for i = 1:gnnlayers]...
         ),
         nodeChain = Flux.Chain(
@@ -380,7 +380,7 @@
     ) 
     critic_approximator = SeaPearl.CPNN(
         graphChain = Flux.Chain(
-            SeaPearl.GraphConv(numInFeatures => 64, Flux.leakyrelu),
+            SeaPearl.GraphConv(numInFeatures => 64, Flux.leakyrelu, pool = SeaPearl.sumPooling()),
             [target_approximator_GNN for i = 1:gnnlayers]...
         ),
         nodeChain = Flux.Chain(
@@ -469,15 +469,15 @@
    
         using Random
         numInFeatures = 3
-        approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
-        target_approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
+        approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu, pool = SeaPearl.sumPooling())
+        target_approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu, pool = SeaPearl.sumPooling())
         gnnlayers = 10
         seed = 123
         rng = MersenneTwister(seed)
         
         actor_approximator = SeaPearl.CPNN(
             graphChain = Flux.Chain(
-                SeaPearl.GraphConv(numInFeatures => 64, Flux.leakyrelu),
+                SeaPearl.GraphConv(numInFeatures => 64, Flux.leakyrelu, pool = SeaPearl.sumPooling()),
                 [approximator_GNN for i = 1:gnnlayers]...
             ),
             nodeChain = Flux.Chain(
@@ -489,7 +489,7 @@
         ) 
         critic_approximator = SeaPearl.CPNN(
             graphChain = Flux.Chain(
-                SeaPearl.GraphConv(numInFeatures => 64, Flux.leakyrelu),
+                SeaPearl.GraphConv(numInFeatures => 64, Flux.leakyrelu, pool = SeaPearl.sumPooling()),
                 [target_approximator_GNN for i = 1:gnnlayers]...
             ),
             nodeChain = Flux.Chain(

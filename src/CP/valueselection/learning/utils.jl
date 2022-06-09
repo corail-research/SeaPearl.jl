@@ -68,6 +68,33 @@ function update_with_cpmodel!(lh::LearnedHeuristic{SR, R, A}, model::CPModel; ch
 end
 
 """
+    update_with_cpmodel!(lh::LearnedHeuristic{SR, R, A}, model::CPModel; chosen_features::Dict{String, Bool})
+
+This function initializes the fields of a LearnedHeuristic which are useful to do reinforcement learning 
+and which depend on the CPModel considered. It is called at the beginning of the `search!` function (in the 
+InitializingPhase).
+"""
+function update_with_cpmodel!(lh::LearnedHeuristic{SR, R, A}, model::CPModel; chosen_features::Union{Nothing, Dict{String, Bool}}=nothing) where {
+    SR <: HeterogeneousStateRepresentation,
+    R <: AbstractReward, 
+    A <: ActionOutput
+}
+
+    # construct the action_space
+    valuesOfVariables = sort(branchable_values(model))
+
+    lh.action_space = valuesOfVariables
+    # state rep construction
+    lh.current_state = SR(model; action_space=lh.action_space, chosen_features=chosen_features)
+    # create and initialize the reward
+    lh.reward = R(model)
+
+    lh.search_metrics = SearchMetrics(model)
+
+    lh
+end
+
+"""
     sync!(lh::LearnedHeuristic, model::CPModel, x::AbstractIntVar)
 
 Synchronize the environment part of the LearnedHeuristic with the CPModel.
@@ -112,7 +139,7 @@ function get_observation!(lh::LearnedHeuristic, model::CPModel, x::AbstractIntVa
 
     # synchronize state: 
     sync_state!(lh, model, x)
-    state = trajectoryState(lh.current_state)
+    state = deepcopy(trajectoryState(lh.current_state))
 
     if !wears_mask(lh)
         return unmaskedCPEnv(reward, done, state, action_space_index)
@@ -145,17 +172,46 @@ end
 Return the ids of the valid indexes from the Array representation of the AbstractStateRepresentation. Used to be able to work with 
 ActionOutput of variable size (VariableOutput).
 """
-function from_order_to_id(state::AbstractTrajectoryState, value_order::Int64, SR::Type{<:AbstractStateRepresentation})
+function from_order_to_id(state::Union{HeterogeneousTrajectoryState, BatchedHeterogeneousTrajectoryState}, value_order::Int64, SR::Type{<:AbstractStateRepresentation})
+    @assert !isnothing(state.possibleValuesIdx)
+    return state.possibleValuesIdx[value_order] + size(state.fg.varnf)[2] + size(state.fg.connf)[2]
+end
+
+function from_order_to_id(state::Union{DefaultTrajectoryState, BatchedDefaultTrajectoryState, TsptwTrajectoryState}, value_order::Int64, SR::Type{<:AbstractStateRepresentation})
     @assert !isnothing(state.possibleValuesIdx)
     return state.possibleValuesIdx[value_order]
 end
 
 """
+    from_id_to_order(state::Union{DefaultTrajectoryState, BatchedDefaultTrajectoryState, TsptwTrajectoryState}, value_id::Int64)
+
+Returns the index of the given `value_id` (sometimes named `vertex_id`) in either one of `state.possibleValuesIdx` or `state.allValuesIdx`
+according to the argument `which_list`. It can be either 'possibleValuesIdx' or 'allValuesIdx'.
+
+Used to work in `supervisedLeanedHeuristic.jl` to retrieve an action (which is the index in `state.possibleValuesIdx`) from a value, 
+and in `variableoutputcpnn.jl`. 
+
+"""
+function from_id_to_order(state::Union{DefaultTrajectoryState, BatchedDefaultTrajectoryState, HeterogeneousTrajectoryState, BatchedHeterogeneousTrajectoryState}, value_id::Int64; which_list="possibleValuesIdx", idx_in_batch=1)
+    @assert !isnothing(state.possibleValuesIdx)
+    if which_list == "possibleValuesIdx"
+        return findfirst(x->x == value_id, state.possibleValuesIdx)
+    elseif which_list == "allValuesIdx"
+        if isa(state,HeterogeneousTrajectoryState)
+            return findfirst(x->x == value_id, state.allValuesIdx)
+        else
+            return findfirst(x->x == value_id, state.allValuesIdx[:,idx_in_batch])
+        end
+    else
+        throw(DomainError(which_list, "which_list should be either 'possibleValuesIdx' or 'allValuesIdx'"))
+    end
+end
+"""
     action_to_value(vs::LearnedHeuristic{SR, R, VariableOutput}, action::Int64, state::AbstractArray, model::CPModel)
 
 Mapping action taken to corresponding value when handling VariableOutput type of ActionOutput.
 """
-function action_to_value(vs::LearnedHeuristic{SR, R, VariableOutput}, action::Int64, state::AbstractTrajectoryState, model::CPModel) where {SR <: DefaultStateRepresentation, R}
+function action_to_value(vs::LearnedHeuristic{SR, R, VariableOutput}, action::Int64, state::AbstractTrajectoryState, model::CPModel) where {SR <: Union{DefaultStateRepresentation, HeterogeneousStateRepresentation}, R}
     value_id = from_order_to_id(state, action, SR)
     cp_vertex = cpVertexFromIndex(vs.current_state.cplayergraph, value_id)
     @assert isa(cp_vertex, ValueVertex)

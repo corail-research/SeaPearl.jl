@@ -18,7 +18,7 @@ function GeneralReward(model::CPModel)
     if !isnothing(model.objective)
         return GeneralReward(0, model.objective.domain.min.value, model.objective.domain.max.value, nothing, 2.0, 2.0)
     else
-        return GeneralReward(0, nothing, nothing, nothing, 1.0, 1.0)
+        return GeneralReward(0, nothing, nothing, nothing, 1.0, 2.0)
     end
 end
 
