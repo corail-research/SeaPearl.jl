@@ -349,7 +349,11 @@ function update_features!(sr::HeterogeneousStateRepresentation{DefaultFeaturizat
             end
 
             if sr.chosenFeatures["nb_involved_constraint_propagation"][1]
-                sr.constraintNodeFeatures[sr.chosenFeatures["nb_involved_constraint_propagation"][2], i] = sr.cplayergraph.cpmodel.statistics.numberOfTimesInvolvedInPropagation[cp_vertex.constraint]
+                if isa(cp_vertex.constraint, ViewConstraint)
+                    sr.constraintNodeFeatures[sr.chosenFeatures["nb_involved_constraint_propagation"][2], i] = 0
+                else
+                    sr.constraintNodeFeatures[sr.chosenFeatures["nb_involved_constraint_propagation"][2], i] = sr.cplayergraph.cpmodel.statistics.numberOfTimesInvolvedInPropagation[cp_vertex.constraint]
+                end
             end
 
             if sr.chosenFeatures["nb_not_bounded_variable"][1]

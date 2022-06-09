@@ -341,7 +341,11 @@ function update_features!(sr::DefaultStateRepresentation{DefaultFeaturization,TS
             end
 
             if sr.chosenFeatures["nb_involved_constraint_propagation"][1]
-                sr.nodeFeatures[sr.chosenFeatures["nb_involved_constraint_propagation"][2], i] = sr.cplayergraph.cpmodel.statistics.numberOfTimesInvolvedInPropagation[cp_vertex.constraint]
+                if isa(cp_vertex.constraint, ViewConstraint)
+                    sr.nodeFeatures[sr.chosenFeatures["nb_involved_constraint_propagation"][2], i] = 0
+                else
+                    sr.nodeFeatures[sr.chosenFeatures["nb_involved_constraint_propagation"][2], i] = sr.cplayergraph.cpmodel.statistics.numberOfTimesInvolvedInPropagation[cp_vertex.constraint]
+                end
             end
 
             if sr.chosenFeatures["nb_not_bounded_variable"][1]
