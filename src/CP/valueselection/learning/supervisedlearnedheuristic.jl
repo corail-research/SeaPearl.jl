@@ -17,6 +17,7 @@ mutable struct SupervisedLearnedHeuristic{SR<:AbstractStateRepresentation,R<:Abs
     search_metrics::Union{Nothing,SearchMetrics}
     firstActionTaken::Bool
     trainMode::Bool
+    chosen_features::Union{Nothing,Dict{String,Bool}}    
     helpVariableHeuristic::AbstractVariableSelection
     helpValueHeuristic::ValueSelection
     helpSolution::Union{Nothing,Solution}
@@ -29,6 +30,7 @@ mutable struct SupervisedLearnedHeuristic{SR<:AbstractStateRepresentation,R<:Abs
     
     function SupervisedLearnedHeuristic{SR,R,A}(
         agent::RL.Agent;
+        chosen_features=nothing,
         helpVariableHeuristic::AbstractVariableSelection=MinDomainVariableSelection(),
         helpValueHeuristic::ValueSelection=BasicHeuristic(),
         eta_init::Float64=0.5,
@@ -37,7 +39,7 @@ mutable struct SupervisedLearnedHeuristic{SR<:AbstractStateRepresentation,R<:Abs
         decay_steps::Int64=0,
         rng::AbstractRNG=MersenneTwister()
     ) where {SR,R,A}
-        new{SR,R,A}(agent, nothing, nothing, nothing, nothing, nothing, nothing, false, true, helpVariableHeuristic, helpValueHeuristic, nothing, eta_init, eta_stable, warmup_steps, decay_steps, 0, rng)
+        new{SR,R,A}(agent, nothing, nothing, nothing, nothing, nothing, nothing, false, true, chosen_features, helpVariableHeuristic, helpValueHeuristic, nothing, eta_init, eta_stable, warmup_steps, decay_steps, 0, rng)
     end
 end
 
@@ -51,7 +53,7 @@ Finally, makes the agent call the process of the RL pre_episode_stage (basically
 function (valueSelection::SupervisedLearnedHeuristic)(::Type{InitializingPhase}, model::CPModel)
     # create the environment
     valueSelection.firstActionTaken = false
-    update_with_cpmodel!(valueSelection, model)
+    update_with_cpmodel!(valueSelection, model; chosen_features=valueSelection.chosen_features)
     # FIXME get rid of this => prone to bugs
     false_x = first(values(branchable_variables(model)))
     env = get_observation!(valueSelection, model, false_x)
@@ -104,10 +106,28 @@ function (valueSelection::SupervisedLearnedHeuristic)(PHASE::Type{DecisionPhase}
     end
 
     # If a solution is available, we choose the value of the variable in the solution.
+    # helpSolution contains the values (and not the actions, that refer to the value 
+    # order in the Q-table). We thus extract the value and then find the corresponding action.
     if valueSelection.trainMode && !isnothing(valueSelection.helpSolution) 
-        action = valueSelection.helpSolution[x.id]
+        #println("helpsolution: ", valueSelection.helpSolution)
+        #println("x.id: ", x.id)
+        value = valueSelection.helpSolution[x.id]
+        #println("possibleValuesIdx: ", state(env).possibleValuesIdx)
+        #println("value: ", value)
+        #find the vertex corresponding to the value
+        vertex_id = valueSelection.current_state.cplayergraph.nodeToId[ValueVertex(value)] 
+        
+        #find the corresponding action
+        action = from_id_to_order(state(env), vertex_id)
+        @assert action <= length(state(env).possibleValuesIdx)
+        @assert state(env).possibleValuesIdx[action] == vertex_id
+        #println("vertex_id: ", vertex_id)
+        #println("action: ", action)
+        
     else # Else we choose the action provided by the agent
         action = valueSelection.agent(env) # Choose action
+        #println("simple action: ", action)
+        value = action_to_value(valueSelection, action, state(env), model)
     end
     
     if valueSelection.trainMode
@@ -115,8 +135,8 @@ function (valueSelection::SupervisedLearnedHeuristic)(PHASE::Type{DecisionPhase}
         #@async valueSelection.agent(RL.PRE_ACT_STAGE, env, action) # Store state and action
         valueSelection.agent(RL.PRE_ACT_STAGE, env, action)
     end
-
-    return action_to_value(valueSelection, action, state(env), model)
+    
+    return value
 end
 
 """

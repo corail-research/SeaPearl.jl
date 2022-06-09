@@ -107,16 +107,16 @@ end
 
     SeaPearl.assign!(x, 2)
 
-    @test !has_edge(g, 1, 2)
-    @test !has_edge(g, 2, 1)
-    @test !has_edge(g, 3, 4)
+    @test !LightGraphs.has_edge(g, 1, 2)
+    @test !LightGraphs.has_edge(g, 2, 1)
+    @test !LightGraphs.has_edge(g, 3, 4)
 
-    @test has_edge(g, 1, 3)
+    @test LightGraphs.has_edge(g, 1, 3)
 
-    @test has_edge(g, 3, 5)
-    @test !has_edge(g, 3, 6)
-    @test has_edge(g, 4, 6)
-    @test has_edge(g, 4, 5)
+    @test LightGraphs.has_edge(g, 3, 5)
+    @test !LightGraphs.has_edge(g, 3, 6)
+    @test LightGraphs.has_edge(g, 4, 6)
+    @test LightGraphs.has_edge(g, 4, 5)
 end
 
 @testset "edges() & ne() & nv()" begin
@@ -185,19 +185,19 @@ end
     SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x, y, trailer))
 
     g = SeaPearl.CPLayerGraph(model)
-    sg = SimpleGraph(g)
+    sg = LightGraphs.SimpleGraph(g)
 
-    @test nv(sg) == 6
-    @test ne(sg) == 8
+    @test LightGraphs.nv(sg) == 6
+    @test LightGraphs.ne(sg) == 8
 
     z = SeaPearl.IntVar(2, 3, "Z", trailer)
     SeaPearl.addVariable!(model, z)   #add an isolated variable
 
     g = SeaPearl.CPLayerGraph(model)
-    sg = SimpleGraph(g)
+    sg = LightGraphs.SimpleGraph(g)
 
-    @test nv(sg) == 7  
-    @test ne(sg) == 10
+    @test LightGraphs.nv(sg) == 7  
+    @test LightGraphs.ne(sg) == 10
 
-    @test adjacency_matrix(g)==adjacency_matrix(sg)
+    @test LightGraphs.adjacency_matrix(g)== LightGraphs.adjacency_matrix(sg)
 end
