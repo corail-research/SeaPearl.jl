@@ -11,7 +11,7 @@ It is a modified version of `HeterogeneousFullFeaturedCPNN``.
 This pipeline works in the following way : 
 
 1) We apply a GNN (`graphChain`) on the input featured graph.
-2) We extract the features of the branching variable, the possible values, i.e. the values that are in the domain of the variable.
+2) We extract the features of the branching variable and of the possible values, i.e. the values that are in the domain of the variable.
 3) Optional: We extract the global features of the graph and pass it through `globalChain``.
 3) We extract the respective poolings of the features of all the variables, all the values and all the constraints.
 4) We concatenate vertically the previous results and pass it trought `outputChain`` to generate the output Q-vector.
@@ -39,8 +39,8 @@ function (nn::HeterogeneousFFCPNNv2)(states::BatchedHeterogeneousTrajectoryState
     # chain working on the graph(s) with the GNNs
     featuredGraph = nn.graphChain(states.fg)
     variableFeatures = featuredGraph.varnf # FxNxB
-    constraintFeatures = featuredGraph.connf 
-    valueFeatures = featuredGraph.valnf
+    constraintFeatures = featuredGraph.connf # FxN'xB
+    valueFeatures = featuredGraph.valnf # FxN''xB
     globalFeatures = featuredGraph.gf # GxB
 
     # Extract the features corresponding to the variables
@@ -56,11 +56,7 @@ function (nn::HeterogeneousFFCPNNv2)(states::BatchedHeterogeneousTrajectoryState
         pooledConstraintFeatures = reshape(mapslices(x -> sum(eachcol(x)), constraintFeatures, dims=[1,2]), :, 1, batchSize)
         pooledValueFeatures = reshape(mapslices(x -> sum(eachcol(x)), valueFeatures, dims=[1,2]), :, 1, batchSize)
     end
-    #relevantVariableFeatures = reshape(nn.varChain(RL.flatten_batch(branchingVariableFeatures)), :, 1, batchSize) # F'x1xB
-
-    # Extract the features corresponding to the values
-    #relevantValueFeatures = reshape(nn.valChain(RL.flatten_batch(valueFeatures)), :, actionSpaceSize, batchSize) # F'xAxB
-
+    
     finalFeatures = nothing
     if sizeof(globalFeatures) != 0
 
@@ -102,10 +98,10 @@ function (nn::HeterogeneousFFCPNNv2)(states::HeterogeneousTrajectoryState)
 
     # chain working on the graph(s) with the GNNs
     featuredGraph = nn.graphChain(states.fg)
-    variableFeatures = featuredGraph.varnf # FxNxB
-    constraintFeatures = featuredGraph.connf # FxN'xB
-    valueFeatures = featuredGraph.valnf #FxN''xB
-    globalFeatures = featuredGraph.gf # GxB
+    variableFeatures = featuredGraph.varnf # FxN
+    constraintFeatures = featuredGraph.connf # FxN'
+    valueFeatures = featuredGraph.valnf #FxN''
+    globalFeatures = featuredGraph.gf # G
     
     # Extract the features corresponding to the varibales
     branchingVariableFeatures = variableFeatures[:, variableIdx] # Fx1
@@ -145,5 +141,3 @@ function (nn::HeterogeneousFFCPNNv2)(states::HeterogeneousTrajectoryState)
 
     return predictions
 end
-
-
