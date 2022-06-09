@@ -1,7 +1,7 @@
 @testset "environment.jl" begin
     
     @testset "CPEnv{TS}" begin
-        graph = Matrix(adjacency_matrix(random_regular_graph(6, 3)))
+        graph = Matrix(LightGraphs.adjacency_matrix(LightGraphs.random_regular_graph(6, 3)))
         ts = SeaPearl.DefaultTrajectoryState(SeaPearl.FeaturedGraph(graph; nf=rand(3, 6)), 1, collect(1:4), [1, 4])
         env = SeaPearl.CPEnv{SeaPearl.DefaultTrajectoryState}(
             .0, 

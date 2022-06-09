@@ -282,8 +282,7 @@ function Base.empty!(model::CPModel)
     model.limit.numberOfSolutions = nothing
     model.limit.searchingTime = nothing
     model.knownObjective = nothing
-
-    model
+    model.adhocInfo = nothing
 end
 
 """

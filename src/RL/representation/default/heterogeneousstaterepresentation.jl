@@ -119,11 +119,11 @@ function featurize(sr::HeterogeneousStateRepresentation{DefaultFeaturization,TS}
     valueFeatures = zeros(Float32, sr.nbValueFeatures, g.numberOfValues)
     ncon = sr.cplayergraph.numberOfConstraints
     nvar = sr.cplayergraph.numberOfVariables
-    for i in 1:nv(g)
+    for i in 1:LightGraphs.nv(g)
         cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
         if isa(cp_vertex, VariableVertex)
             if sr.chosenFeatures["node_number_of_neighbors"][1]
-                variableFeatures[sr.chosenFeatures["node_number_of_neighbors"][2], i - ncon] = length(outneighbors(g, i))
+                variableFeatures[sr.chosenFeatures["node_number_of_neighbors"][2], i - ncon] = length(LightGraphs.outneighbors(g, i))
             end
             if sr.chosenFeatures["variable_initial_domain_size"][1]
                 variableFeatures[sr.chosenFeatures["variable_initial_domain_size"][2], i - ncon] = length(cp_vertex.variable.domain)
@@ -146,7 +146,7 @@ function featurize(sr::HeterogeneousStateRepresentation{DefaultFeaturization,TS}
         end
         if isa(cp_vertex, ConstraintVertex)
             if sr.chosenFeatures["node_number_of_neighbors"][1]
-                constraintFeatures[sr.chosenFeatures["node_number_of_neighbors"][2], i] = length(outneighbors(g, i))
+                constraintFeatures[sr.chosenFeatures["node_number_of_neighbors"][2], i] = length(LightGraphs.outneighbors(g, i))
             end
             if sr.chosenFeatures["constraint_activity"][1]
                 if isa(cp_vertex.constraint, ViewConstraint)
@@ -181,7 +181,7 @@ function featurize(sr::HeterogeneousStateRepresentation{DefaultFeaturization,TS}
         end
         if isa(cp_vertex, ValueVertex)
             if sr.chosenFeatures["node_number_of_neighbors"][1]
-                valueFeatures[sr.chosenFeatures["node_number_of_neighbors"][2], i - ncon - nvar] = length(outneighbors(g, i))
+                valueFeatures[sr.chosenFeatures["node_number_of_neighbors"][2], i - ncon - nvar] = length(LightGraphs.outneighbors(g, i))
             end
             if sr.chosenFeatures["values_raw"][1]
                 valueFeatures[sr.chosenFeatures["values_raw"][2], i - ncon - nvar] = cp_vertex.value
@@ -320,7 +320,7 @@ function update_features!(sr::HeterogeneousStateRepresentation{DefaultFeaturizat
     g = sr.cplayergraph
     ncon = sr.cplayergraph.numberOfConstraints
     nvar = sr.cplayergraph.numberOfVariables
-    for i in 1:nv(g)
+    for i in 1:LightGraphs.nv(g)
         cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
         if isa(cp_vertex, VariableVertex)
             if sr.chosenFeatures["variable_domain_size"][1]
@@ -332,7 +332,7 @@ function update_features!(sr::HeterogeneousStateRepresentation{DefaultFeaturizat
             end
 
             if sr.chosenFeatures["node_number_of_neighbors"][1]
-                sr.variableNodeFeatures[sr.chosenFeatures["node_number_of_neighbors"][2], i - ncon] = length(outneighbors(g, i))
+                sr.variableNodeFeatures[sr.chosenFeatures["node_number_of_neighbors"][2], i - ncon] = length(LightGraphs.outneighbors(g, i))
             end
 
             if sr.chosenFeatures["variable_assigned_value"][1]
@@ -349,7 +349,11 @@ function update_features!(sr::HeterogeneousStateRepresentation{DefaultFeaturizat
             end
 
             if sr.chosenFeatures["nb_involved_constraint_propagation"][1]
-                sr.constraintNodeFeatures[sr.chosenFeatures["nb_involved_constraint_propagation"][2], i] = sr.cplayergraph.cpmodel.statistics.numberOfTimesInvolvedInPropagation[cp_vertex.constraint]
+                if isa(cp_vertex.constraint, ViewConstraint)
+                    sr.constraintNodeFeatures[sr.chosenFeatures["nb_involved_constraint_propagation"][2], i] = 0
+                else
+                    sr.constraintNodeFeatures[sr.chosenFeatures["nb_involved_constraint_propagation"][2], i] = sr.cplayergraph.cpmodel.statistics.numberOfTimesInvolvedInPropagation[cp_vertex.constraint]
+                end
             end
 
             if sr.chosenFeatures["nb_not_bounded_variable"][1]
@@ -358,7 +362,7 @@ function update_features!(sr::HeterogeneousStateRepresentation{DefaultFeaturizat
             end
 
             if sr.chosenFeatures["node_number_of_neighbors"][1]
-                sr.constraintNodeFeatures[sr.chosenFeatures["node_number_of_neighbors"][2], i] = length(outneighbors(g, i))
+                sr.constraintNodeFeatures[sr.chosenFeatures["node_number_of_neighbors"][2], i] = length(LightGraphs.outneighbors(g, i))
             end
         end
         if isa(cp_vertex, ValueVertex) # Probably useless, check before removing
@@ -372,7 +376,7 @@ function update_features!(sr::HeterogeneousStateRepresentation{DefaultFeaturizat
             end
 
             if sr.chosenFeatures["node_number_of_neighbors"][1]
-                sr.valueNodeFeatures[sr.chosenFeatures["node_number_of_neighbors"][2], i - ncon - nvar] = length(outneighbors(g, i))
+                sr.valueNodeFeatures[sr.chosenFeatures["node_number_of_neighbors"][2], i - ncon - nvar] = length(LightGraphs.outneighbors(g, i))
             end
         end
     end

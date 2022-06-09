@@ -43,6 +43,41 @@ end
 function (g::GraphConv{<:AbstractMatrix,<:Any,meanPooling})(fgs::BatchedFeaturedGraph{Float32})
     A, X = fgs.graph, fgs.nf
 
+    sum = nothing
+    Zygote.ignore() do
+        sum = replace(reshape(mapslices(x -> sum(eachrow(x)), A, dims=[1, 2]), 1, :, size(A, 3)), 0=>1)    
+    end
+    A = A ./ sum
+
+    return BatchedFeaturedGraph{Float32}(
+        fgs.graph;
+        nf=g.σ.(g.weight1 ⊠ X .+ g.weight2 ⊠ X ⊠ A .+ g.bias),
+        ef=fgs.ef,
+        gf=fgs.gf
+    )
+end
+
+function (g::GraphConv{<:AbstractMatrix,<:Any,meanPooling})(fg::FeaturedGraph)
+    A, X = fg.graph, fg.nf
+    
+    sum = reshape(sum(eachrow(A)), 1, :)
+    Zygote.ignore() do
+        replace(sum, 0=>1)
+    end
+    A = A ./ sum
+    
+    return FeaturedGraph(
+        fg.graph,
+        g.σ.(g.weight1 * X .+ g.weight2 * X * A .+ g.bias),
+        fg.ef,
+        fg.gf,
+        fg.directed
+    )
+end
+
+function (g::GraphConv{<:AbstractMatrix,<:Any,meanPooling})(fgs::BatchedFeaturedGraph{Float32})
+    A, X = fgs.graph, fgs.nf
+
     Zygote.ignore() do
         A = A ./ reshape(mapslices(x -> sum(eachrow(x)), A, dims=[1, 2]), 1, :, size(A, 3))
 
