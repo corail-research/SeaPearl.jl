@@ -7,7 +7,7 @@ mutable struct GeneralReward <: AbstractReward
     value::Float32
     initMin::Union{Nothing,Int}
     initMax::Union{Nothing,Int}
-    initialNumberOfVariableValueLinks::Int
+    initialNumberOfVariableValueLinks::Union{Nothing,Int}
     gamma::Float32 # Gamma balances the "variable" and the "objective" part of the reward
     beta::Float32 # Beta governs the convexity of the "variable" part of the reward given at the DecisionPhase
 end
@@ -16,9 +16,9 @@ function GeneralReward(model::CPModel)
     # Beta and gamma should be changed here.
     # Beta should be larger than one to ensure convexity of the "variable" part of the reward given at the DecisionPhase
     if !isnothing(model.objective)
-        return GeneralReward(0, model.objective.domain.min.value, model.objective.domain.max.value, global_domain_cardinality(model), 2.0, 2.0)
+        return GeneralReward(0, model.objective.domain.min.value, model.objective.domain.max.value, nothing, 2.0, 2.0)
     else
-        return GeneralReward(0, nothing, nothing, global_domain_cardinality(model), 2.0, 2.0)
+        return GeneralReward(0, nothing, nothing, nothing, 1.0, 1.0)
     end
 end
 
@@ -46,6 +46,7 @@ function set_reward!(::Type{DecisionPhase}, lh::LearnedHeuristic{SR, GeneralRewa
 }
     if !lh.firstActionTaken
         lh.reward.value = 0
+        lh.reward.initialNumberOfVariableValueLinks = global_domain_cardinality(model)
     else
         # The "variable" part of the reward fosters the agent to perform assignments which prune the search space as fast as possible
         lh.reward.value = lh.reward.gamma*(model.statistics.lastPruning/(lh.reward.initialNumberOfVariableValueLinks - length(branchable_variables(model))))^lh.reward.beta
@@ -69,9 +70,9 @@ function set_reward!(::Type{EndingPhase}, lh::LearnedHeuristic{SR, GeneralReward
 }
     # The rewards given in the EndingPhase ensure that any found feasible solution always gets a higher reward than any infeasible solution
     if symbol == :FoundSolution
-        lh.reward.value = 0
+        lh.reward.value += 0
     else
-        lh.reward.value = -lh.reward.gamma
+        lh.reward.value += -lh.reward.gamma
         if !isnothing(model.objective)
             lh.reward.value += -1
         end
