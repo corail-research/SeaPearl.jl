@@ -44,9 +44,11 @@ function set_reward!(::Type{DecisionPhase}, lh::LearnedHeuristic{SR, GeneralRewa
     SR <: AbstractStateRepresentation,
     A <: ActionOutput
 }
+    if isnothing(lh.reward.initialNumberOfVariableValueLinks)
+        lh.reward.initialNumberOfVariableValueLinks = global_domain_cardinality(model)
+    end
     if !lh.firstActionTaken
         lh.reward.value = 0
-        lh.reward.initialNumberOfVariableValueLinks = global_domain_cardinality(model)
     else
         # The "variable" part of the reward fosters the agent to perform assignments which prune the search space as fast as possible
         lh.reward.value = lh.reward.gamma*(model.statistics.lastPruning/(lh.reward.initialNumberOfVariableValueLinks - length(branchable_variables(model))))^lh.reward.beta
