@@ -20,9 +20,11 @@ Base.@kwdef struct HeterogeneousFFCPNNv3 <: NNStructure
     graphChain
     globalChain::Flux.Chain = Flux.Chain()
     outputChain::Union{Flux.Dense, Flux.Chain} = Flux.Chain()
+    pooling::String = "sum"
 
-    function HeterogeneousFFCPNNv3(graphChain, globalChain::Flux.Chain = Flux.Chain(), outputChain::Union{Flux.Dense, Flux.Chain} = Flux.Chain())
-        return new(graphChain, globalChain, outputChain)
+    function HeterogeneousFFCPNNv3(graphChain, globalChain::Flux.Chain=Flux.Chain(), outputChain::Union{Flux.Dense, Flux.Chain}=Flux.Chain(); pooling="sum")
+        @assert pooling in ["sum", "max", "mean"] "Argument 'pooling' must be in {'sum', 'max', 'mean'}."
+        return new(graphChain, globalChain, outputChain, pooling)
     end
 end
 
@@ -56,9 +58,19 @@ function (nn::HeterogeneousFFCPNNv3)(states::BatchedHeterogeneousTrajectoryState
     
     pooledVariableFeatures, pooledValueFeatures, pooledConstraintFeatures = nothing, nothing, nothing
     Zygote.ignore() do
-        pooledVariableFeatures = reshape(mapslices(x -> sum(eachcol(x)), variableFeatures, dims=[1,2]), :, 1, batchSize)
-        pooledConstraintFeatures = reshape(mapslices(x -> sum(eachcol(x)), constraintFeatures, dims=[1,2]), :, 1, batchSize)
-        pooledValueFeatures = reshape(mapslices(x -> sum(eachcol(x)), valueFeatures, dims=[1,2]), :, 1, batchSize)
+        if nn.pooling == "sum"
+            pooledVariableFeatures = reshape(mapslices(x -> sum(eachcol(x)), variableFeatures, dims=[1,2]), :, 1, batchSize)
+            pooledConstraintFeatures = reshape(mapslices(x -> sum(eachcol(x)), constraintFeatures, dims=[1,2]), :, 1, batchSize)
+            pooledValueFeatures = reshape(mapslices(x -> sum(eachcol(x)), valueFeatures, dims=[1,2]), :, 1, batchSize)
+        elseif nn.pooling == "mean"
+            pooledVariableFeatures = reshape(mapslices(x -> sum(eachcol(x)), variableFeatures, dims=[1,2]), :, 1, batchSize) / size(variableFeatures, 2)
+            pooledConstraintFeatures = reshape(mapslices(x -> sum(eachcol(x)), constraintFeatures, dims=[1,2]), :, 1, batchSize) / size(variableFeatures, 2)
+            pooledValueFeatures = reshape(mapslices(x -> sum(eachcol(x)), valueFeatures, dims=[1,2]), :, 1, batchSize) / size(variableFeatures, 2)
+        elseif nn.pooling == "max"
+            pooledVariableFeatures = reshape(mapslices(x -> maximum(x), variableFeatures, dims=2), :, 1, batchSize) 
+            pooledConstraintFeatures = reshape(mapslices(x -> maximum(x), constraintFeatures, dims=2), :, 1, batchSize) 
+            pooledValueFeatures = reshape(mapslices(x -> maximum(x), valueFeatures, dims=2), :, 1, batchSize) 
+        end
     end
     #println("pooledVariableFeatures: ", size(pooledVariableFeatures))
     #println("pooledConstraintFeatures: ", size(pooledConstraintFeatures))
@@ -125,9 +137,19 @@ function (nn::HeterogeneousFFCPNNv3)(states::HeterogeneousTrajectoryState)
     
     pooledVariableFeatures, pooledValueFeatures, pooledConstraintFeatures = nothing, nothing, nothing
     Zygote.ignore() do
-        pooledVariableFeatures = mapslices(x -> sum(eachcol(x)), variableFeatures, dims=[1,2])
-        pooledConstraintFeatures = mapslices(x -> sum(eachcol(x)), constraintFeatures, dims=[1,2])
-        pooledValueFeatures = mapslices(x -> sum(eachcol(x)), valueFeatures, dims=[1,2])
+        if nn.pooling == "sum"
+            pooledVariableFeatures = sum(eachcol(variableFeatures))
+            pooledConstraintFeatures = sum(eachcol(constraintFeatures))
+            pooledValueFeatures = sum(eachcol(valueFeatures))
+        elseif nn.pooling == "mean"
+            pooledVariableFeatures = sum(eachcol(variableFeatures)) / size(variableFeatures, 2)
+            pooledConstraintFeatures = sum(eachcol(constraintFeatures)) / size(variableFeatures, 2)
+            pooledValueFeatures = sum(eachcol(valueFeatures)) / size(variableFeatures, 2)
+        elseif nn.pooling == "max"
+            pooledVariableFeatures = reshape(mapslices(x -> maximum(x), variableFeatures, dims=2), :, 1, batchSize) 
+            pooledConstraintFeatures = reshape(mapslices(x -> maximum(x), constraintFeatures, dims=2), :, 1, batchSize) 
+            pooledValueFeatures = reshape(mapslices(x -> maximum(x), valueFeatures, dims=2), :, 1, batchSize) 
+        end
     end
     #println("pooledVariableFeatures: ", size(pooledVariableFeatures))
     #println("pooledConstraintFeatures: ", size(pooledConstraintFeatures))
