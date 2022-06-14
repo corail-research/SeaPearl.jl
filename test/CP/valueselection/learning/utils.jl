@@ -13,7 +13,7 @@
         SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
         SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x, y, trailer))
 
-        lh = SeaPearl.LearnedHeuristic(agent)
+        lh = SeaPearl.SimpleLearnedHeuristic(agent)
 
         SeaPearl.update_with_cpmodel!(lh, model)
 
@@ -35,7 +35,7 @@
         SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
         SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x, y, trailer))
 
-        lh = SeaPearl.LearnedHeuristic(agent)
+        lh = SeaPearl.SimpleLearnedHeuristic(agent)
         SeaPearl.update_with_cpmodel!(lh, model)
 
         SeaPearl.sync_state!(lh, model, x)
@@ -81,7 +81,7 @@
         SeaPearl.addConstraint!(model, SeaPearl.Equal(x, y, trailer))
         SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x, y, trailer))
 
-        lh = SeaPearl.LearnedHeuristic(agent)
+        lh = SeaPearl.SimpleLearnedHeuristic(agent)
         SeaPearl.update_with_cpmodel!(lh, model)
 
         obs = SeaPearl.get_observation!(lh, model, x)
@@ -123,7 +123,7 @@
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
 
-        lh = SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}, SeaPearl.DefaultReward, SeaPearl.FixedOutput}(agent)
+        lh = SeaPearl.SimpleLearnedHeuristic{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}, SeaPearl.DefaultReward, SeaPearl.FixedOutput}(agent)
         SeaPearl.update_with_cpmodel!(lh, model)
 
         obs = SeaPearl.get_observation!(lh, model, x)
@@ -132,9 +132,7 @@
         @test SeaPearl.action_to_value(lh, 2, obs.state, model) == 3
         @test_throws BoundsError SeaPearl.action_to_value(lh, 3, obs.state, model)
     end
-
-    #TODO repair TSPTW testset
-    """
+    
     @testset "action_to_value(::VariableOutput)" begin
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
@@ -144,21 +142,19 @@
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
 
-        lh = SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}, SeaPearl.DefaultReward, SeaPearl.VariableOutput}(agent)
+        lh = SeaPearl.SimpleLearnedHeuristic{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}, SeaPearl.DefaultReward, SeaPearl.VariableOutput}(agent)
         SeaPearl.update_with_cpmodel!(lh, model)
 
         obs = SeaPearl.get_observation!(lh, model, y)
-        @test SeaPearl.action_to_value(lh, 1, obs.state, model) == 4
-        @test SeaPearl.action_to_value(lh, 2, obs.state, model) == 2
-        @test SeaPearl.action_to_value(lh, 3, obs.state, model) == 3
+        @test SeaPearl.action_to_value(lh, 1, obs.state, model) == 2
+        @test SeaPearl.action_to_value(lh, 2, obs.state, model) == 3
         @test_throws BoundsError SeaPearl.action_to_value(lh, 4, obs.state, model)
         
         SeaPearl.remove!(y.domain, 3)
         SeaPearl.update_with_cpmodel!(lh, model)
 
         obs = SeaPearl.get_observation!(lh, model, y)
-        @test SeaPearl.action_to_value(lh, 1, obs.state, model) == 4
-        @test SeaPearl.action_to_value(lh, 2, obs.state, model) == 2
+        @test SeaPearl.action_to_value(lh, 1, obs.state, model) == 2
         @test_throws BoundsError SeaPearl.action_to_value(lh, 3, obs.state, model)
 
         obs = SeaPearl.get_observation!(lh, model, x)
@@ -166,7 +162,7 @@
         @test SeaPearl.action_to_value(lh, 2, obs.state, model) == 3
         @test_throws BoundsError SeaPearl.action_to_value(lh, 4, obs.state, model)
     end
-    """
+    
     
     @testset "branchable_values()" begin
         trailer = SeaPearl.Trailer()

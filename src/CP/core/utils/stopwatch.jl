@@ -7,6 +7,7 @@ Start a timer.
 function tic()
     t0 = time_ns()
     task_local_storage(:TIMERS, (t0, get(task_local_storage(), :TIMERS, ())))
+    nothing
 end
 
 """

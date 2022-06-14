@@ -37,58 +37,66 @@ function launch_experiment!(
         metrics::Union{Nothing, AbstractMetrics}=nothing,
         evaluator::Union{Nothing, AbstractEvaluator}=SameInstancesEvaluator(valueSelectionArray,generator),
         restartPerInstances::Int64,
+        rngTraining::AbstractRNG,
     ) where{T <: ValueSelection, S1,S2 <: SearchStrategy}
+
 
     nbHeuristics = length(valueSelectionArray)
 
-     #get the type of CPmodel ( does it contains an objective )
+    #get the type of CPmodel ( does it contains an objective )
     trailer = Trailer()
     model = CPModel(trailer)
-    fill_with_generator!(model, generator) 
-    metricsArray=AbstractMetrics[]
+    fill_with_generator!(model, generator)
+    metricsArray = AbstractMetrics[]
     for j in 1:nbHeuristics
         if !isnothing(metrics)
-            push!(metricsArray,metrics(model,valueSelectionArray[j]))
+            push!(metricsArray, metrics(model, valueSelectionArray[j]))
         else
-            push!(metricsArray,BasicMetrics(model,valueSelectionArray[j]))
+            push!(metricsArray, BasicMetrics(model, valueSelectionArray[j]))
         end
-    end 
+    end
+
+    empty!(model)
+    fill_with_generator!(model, generator)
+    #false evaluation used to compile the evaluate function that was previously compiled during first "true" evaluation virtually distorting 1st eval computing time
+    if !isnothing(evaluator) 
+        evaluate(evaluator, variableHeuristic, eval_strategy; verbose = verbose)
+        empty!(evaluator)
+    end
 
     iter = ProgressBar(1:nbEpisodes)
     for i in iter
-    #for i in 1:nbEpisodes
+        #for i in 1:nbEpisodes
         verbose && println(" --- EPISODE: ", i)
 
         empty!(model)
-
-        fill_with_generator!(model, generator)
-
+        fill_with_generator!(model, generator; rng = rngTraining)
+        
         for j in 1:nbHeuristics
             reset_model!(model)
+        
             if isa(valueSelectionArray[j], LearnedHeuristic)
-                verbose && print("Visited nodes with learnedHeuristic : " )
-            else
-                verbose && print("Visited nodes with basic Heuristic n°$(j-1) : ")
+                verbose && print("Visited nodes with learnedHeuristic ",j," : " )
+            
+                dt = @elapsed for k in 1:restartPerInstances
+                    restart_search!(model)
+                    search!(model, strategy, variableHeuristic, valueSelectionArray[j], out_solver=out_solver)
+                    verbose && print(model.statistics.numberOfNodesBeforeRestart, ": ",model.statistics.numberOfSolutions, "(",model.statistics.AccumulatedRewardBeforeRestart,") / ")
+                end 
+                metricsArray[j](model,dt)  #adding results in the metrics data structure
+                verbose && println()
             end
-            dt = @elapsed for k in 1:restartPerInstances
-                restart_search!(model)
-                search!(model, strategy, variableHeuristic, valueSelectionArray[j], out_solver=out_solver)
-
-                verbose && print(model.statistics.numberOfNodesBeforeRestart, ", ")    
-            end
-            metricsArray[j](model,dt)  #adding results in the metrics data structure
-            verbose && println()
         end
 
-        if !isnothing(evaluator) && (i % evaluator.evalFreq == 0)
+        if !isnothing(evaluator) && (i % evaluator.evalFreq == 1)
             evaluate(evaluator, variableHeuristic, eval_strategy; verbose = verbose)
         end
         verbose && println()
     end
-    
+
     if !isnothing(evaluator)
         return metricsArray, evaluator.metrics
-
     end
-    return metricsArray,[]
+    
+    return metricsArray, []
 end

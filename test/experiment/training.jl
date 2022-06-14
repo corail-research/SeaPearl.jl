@@ -74,7 +74,7 @@
         )
     )
 
-    learnedHeuristic = SeaPearl.LearnedHeuristic(agent)
+    learnedHeuristic = SeaPearl.SimpleLearnedHeuristic(agent)
 
     initial_params = deepcopy(params(learnedHeuristic.agent.policy.learner.approximator.model))
 
@@ -174,7 +174,7 @@ end
         )
     )
 
-    learnedHeuristic = SeaPearl.LearnedHeuristic(agent)
+    learnedHeuristic = SeaPearl.SimpleLearnedHeuristic(agent)
     initial_params = deepcopy(params(learnedHeuristic.agent.policy.learner.approximator.model))
 
     metrics,evalmetrics = SeaPearl.train!(

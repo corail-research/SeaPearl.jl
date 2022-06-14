@@ -2,6 +2,10 @@
 const Solution = Dict{String, Union{Int, Bool, Set{Int}}}
 
 #TODO add documentation for BeforeRestart
+# lastPruning: number of deleted variable-value edges
+# objectiveDownPruning: min(model.objective.domain)(current) - min(model.objective.domain)(past state)
+# objectiveUpPruning: max(model.objective.domain)(current) - max(model.objective.domain)(past state)
+
 mutable struct Statistics
     infeasibleStatusPerVariable             ::Dict{String, Int}
     numberOfNodes                           ::Int
@@ -10,11 +14,14 @@ mutable struct Statistics
     numberOfSolutionsBeforeRestart          ::Int
     numberOfInfeasibleSolutionsBeforeRestart::Int
     numberOfNodesBeforeRestart              ::Int
-    AccumulatedRewardBeforeReset            ::Float32
+    AccumulatedRewardBeforeReset            ::Float32 # =last_episode_total_reward(lh.agent.trajectory)
+    AccumulatedRewardBeforeRestart          ::Float32
     solutions                               ::Vector{Union{Nothing,Solution}}
     nodevisitedpersolution                  ::Vector{Int}
     objectives                              ::Union{Nothing, Vector{Union{Nothing,Int}}}
     lastPruning                             ::Union{Nothing, Int}
+    objectiveDownPruning                    ::Union{Nothing, Float32}
+    objectiveUpPruning                      ::Union{Nothing, Float32}
     lastVar                                 ::Union{Nothing, AbstractIntVar} #last var on which we branched
     numberOfTimesInvolvedInPropagation      ::Union{Nothing, Dict{Constraint,Int}}
 end
@@ -40,6 +47,7 @@ or filled by an `AbstractModelGenerator`.
 mutable struct CPModel
     variables               ::Dict{String, AbstractVar}
     branchable              ::Dict{String, Bool}
+    branchable_variables    ::Dict{String, AbstractVar}
     constraints             ::Array{Constraint}
     trailer                 ::Trailer
     objective               ::Union{Nothing, AbstractIntVar}
@@ -48,7 +56,9 @@ mutable struct CPModel
     limit                   ::Limit
     knownObjective          ::Union{Nothing,Int64}
     adhocInfo               ::Any
-    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Constraint[], trailer, nothing, nothing, Statistics(Dict{String, Int}(), 0,0, 0, 0, 0, 0, 0, Solution[],Int[], nothing, nothing, nothing, Dict{Constraint, Int}()), Limit(nothing, nothing, nothing), nothing)
+
+
+    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Dict{String, AbstractVar}(), Constraint[], trailer, nothing, nothing, Statistics(Dict{String, Int}(), 0, 0, 0, 0, 0, 0, 0, 0, Solution[],Int[], nothing, nothing, nothing, nothing, nothing, Dict{Constraint, Int}()), Limit(nothing, nothing, nothing), nothing)
 end
 
 CPModel() = CPModel(Trailer())
@@ -68,6 +78,10 @@ function addVariable!(model::CPModel, x::AbstractVar; branchable=true)
     model.statistics.infeasibleStatusPerVariable[id(x)]=0
     model.branchable[x.id] = branchable
     model.variables[x.id] = x
+    if branchable
+        model.branchable_variables[x.id] = x
+    end
+    
 end
 
 """
@@ -165,12 +179,15 @@ this function increments by one the statistic infeasibleStatusPerVariable for ea
 keeps in track for each variable the number of times the variable was involved in a constraint that led to an infeasible state during a fixpoint. This statistic
 is used by the failure-based variable selection heuristic.
 """
-function triggerInfeasible!(constraint::Constraint, model::CPModel)
-    for var in variablesArray(constraint)
-        if haskey(model.branchable, id(var))
-            model.statistics.infeasibleStatusPerVariable[id(var)]+=1
+function triggerInfeasible!(constraint::Constraint, model::CPModel; isFailureBased::Bool=false)
+    if isFailureBased
+        for var in variablesArray(constraint)
+            if haskey(model.branchable, id(var))
+                model.statistics.infeasibleStatusPerVariable[id(var)]+=1
+            end
         end
     end
+
     push!(model.statistics.solutions, nothing)
     push!(model.statistics.nodevisitedpersolution,model.statistics.numberOfNodes)
 
@@ -225,6 +242,7 @@ function Base.isempty(model::CPModel)::Bool
         && model.statistics.numberOfSolutionsBeforeRestart == 0
         && model.statistics.numberOfNodesBeforeRestart == 0
         && model.statistics.AccumulatedRewardBeforeReset == 0
+        && model.statistics.AccumulatedRewardBeforeRestart == 0
         && isnothing(model.limit.numberOfNodes)
         && isnothing(model.limit.numberOfSolutions)
         && isnothing(model.limit.searchingTime)
@@ -239,6 +257,8 @@ Empty the CPModel.
 """
 function Base.empty!(model::CPModel)
     empty!(model.variables)
+    empty!(model.branchable_variables)
+    empty!(model.branchable)
     empty!(model.constraints)
     empty!(model.trailer.prior)
     empty!(model.trailer.current)
@@ -257,12 +277,12 @@ function Base.empty!(model::CPModel)
     model.statistics.numberOfSolutionsBeforeRestart = 0
     model.statistics.numberOfNodesBeforeRestart = 0
     model.statistics.AccumulatedRewardBeforeReset = 0
+    model.statistics.AccumulatedRewardBeforeRestart = 0
     model.limit.numberOfNodes = nothing
     model.limit.numberOfSolutions = nothing
     model.limit.searchingTime = nothing
     model.knownObjective = nothing
-
-    model
+    model.adhocInfo = nothing
 end
 
 """
@@ -293,9 +313,8 @@ function reset_model!(model::CPModel)
     model.statistics.numberOfSolutionsBeforeRestart = 0
     model.statistics.numberOfNodesBeforeRestart = 0
     model.statistics.AccumulatedRewardBeforeReset = 0
-
+    model.statistics.AccumulatedRewardBeforeRestart = 0  
 end
-
 """
 restart_search!(model::CPModel)
 
@@ -309,6 +328,8 @@ function restart_search!(model::CPModel)
     model.statistics.numberOfInfeasibleSolutionsBeforeRestart = 0
     model.statistics.numberOfSolutionsBeforeRestart = 0
     model.statistics.numberOfNodesBeforeRestart = 0
+    model.statistics.AccumulatedRewardBeforeRestart = 0
+
 end
 
 """
@@ -339,4 +360,68 @@ function nb_boundvariables(model::CPModel)
         nb += isbound(x) * 1
     end
     return nb
+end
+
+"""
+    global_domain_cardinality(model::CPModel)
+
+Returns the sum of the cardinalities of the variable domains.
+"""
+function global_domain_cardinality(model::CPModel)
+    cardinality = 0
+    for (id, x) in model.variables
+        if isa(x.domain,BoolDomain)
+            cardinality += length(x.domain.inner.values)
+            if !isempty(x.children)
+                for child in x.children
+                    cardinality += length(child.domain.inner.values)
+                end
+            end
+        elseif isa(x.domain,IntSetDomain)
+            cardinality += length(x.domain)
+        else
+            cardinality += length(x.domain)
+            if !isempty(x.children)
+                for child in x.children
+                    cardinality += length(child.domain)
+                end
+            end
+        end
+    end
+    return cardinality
+end
+
+
+
+"""
+    updateStatistics!(model::CPModel, pruned)
+
+Called in DFS to update the appropriate statistics used in GeneralReward
+"""
+
+function updateStatistics!(model::CPModel, pruned)
+    model.statistics.lastPruning = sum(map(x-> length(x[2]),collect(pruned)))
+    if !isnothing(model.objective)
+        if haskey(pruned,model.objective.id)
+            model.statistics.objectiveDownPruning = 0
+            model.statistics.objectiveUpPruning = 0
+            orderedPrunedValues = sort(pruned[model.objective.id])
+            # Last pruning takes all variables except the objective value into consideration
+            model.statistics.lastPruning -= length(orderedPrunedValues)
+            for val in orderedPrunedValues
+                if val <= model.objective.domain.min.value
+                    model.statistics.objectiveDownPruning += 1
+                elseif val >= model.objective.domain.max.value
+                    model.statistics.objectiveUpPruning += 1
+                else
+                    # Pruning from the middle of the domain of the objective variable
+                    model.statistics.objectiveDownPruning += (model.objective.domain.max.value - val)/(model.objective.domain.max.value-model.objective.domain.min.value)
+                    model.statistics.objectiveUpPruning += (val - model.objective.domain.min.value)/(model.objective.domain.max.value-model.objective.domain.min.value)
+                end
+            end
+        else
+            model.statistics.objectiveDownPruning = 0
+            model.statistics.objectiveUpPruning = 0
+        end
+    end
 end

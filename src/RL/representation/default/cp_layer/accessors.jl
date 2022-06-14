@@ -55,7 +55,7 @@ function LightGraphs.edges(g::CPLayerGraph)
     if isnothing(g.cpmodel)
         return []
     end
-    edgesSet = Set{edgetype(g::CPLayerGraph)}()
+    edgesSet = Set{LightGraphs.edgetype(g::CPLayerGraph)}()
 
     for id in (g.numberOfConstraints + 1):(g.numberOfConstraints + g.numberOfVariables)
         xVertex = cpVertexFromIndex(g, id)
@@ -63,11 +63,11 @@ function LightGraphs.edges(g::CPLayerGraph)
         x = xVertex.variable
         # TODO: investigate this condition
         if is_branchable(g.cpmodel, x)
-            union!(edgesSet, map(v -> edgetype(g::CPLayerGraph)(id, g.nodeToId[ValueVertex(v)]), x.domain))
+            union!(edgesSet, map(v -> LightGraphs.edgetype(g::CPLayerGraph)(id, g.nodeToId[ValueVertex(v)]), x.domain))
         end
     end
 
-    union!(edgesSet, edges(g.fixedEdgesGraph))
+    union!(edgesSet, LightGraphs.edges(g.fixedEdgesGraph))
 
     return collect(edgesSet)
 end
@@ -96,7 +96,7 @@ function LightGraphs.inneighbors(g::CPLayerGraph, id::Int)
     cpVertex = cpVertexFromIndex(g, id)
     LightGraphs.inneighbors(g, cpVertex)
 end
-LightGraphs.outneighbors(g::CPLayerGraph, id::Int) = inneighbors(g, id)
+LightGraphs.outneighbors(g::CPLayerGraph, id::Int) = LightGraphs.inneighbors(g, id)
 
 LightGraphs.inneighbors(g::CPLayerGraph, v::ConstraintVertex) = LightGraphs.inneighbors(g.fixedEdgesGraph, g.nodeToId[v])
 function LightGraphs.inneighbors(g::CPLayerGraph, vertex::VariableVertex)
@@ -137,14 +137,37 @@ Base.zero(::Type{CPLayerGraph}) = CPLayerGraph()
 Base.reverse(g::CPLayerGraph) = g
 
 function LightGraphs.SimpleGraph(cplayergraph::CPLayerGraph)
-    graph = Graph(edges(cplayergraph))
-    n = nv(cplayergraph)
-    if nv(graph) < n
-        add_vertices!(graph, n - nv(graph))
+    graph = LightGraphs.Graph(LightGraphs.edges(cplayergraph))
+    n = LightGraphs.nv(cplayergraph)
+    if LightGraphs.nv(graph) < n
+        LightGraphs.add_vertices!(graph, n - LightGraphs.nv(graph))
     end
     return graph
 end
 
 function LightGraphs.adjacency_matrix(cplayergraph::CPLayerGraph)
-    return adjacency_matrix(Graph(cplayergraph))
+    return LightGraphs.adjacency_matrix(LightGraphs.Graph(cplayergraph))
+end
+
+function adjacency_matrices(cplayergraph::CPLayerGraph)
+    g = LightGraphs.Graph(cplayergraph) # Update the graph with the new information
+    nvar = cplayergraph.numberOfVariables
+    ncon = cplayergraph.numberOfConstraints
+    nval = cplayergraph.numberOfValues
+    contovar = zeros(ncon, nvar)
+    valtovar = zeros(nval, nvar)
+    for (i, node) in enumerate(cplayergraph.idToNode)
+        if isa(node, ConstraintVertex)
+            neighbors = LightGraphs.outneighbors(g, i)
+            for neighbor in neighbors
+                contovar[i, neighbor - ncon] = 1
+            end
+        elseif isa(node, ValueVertex)
+            neighbors = LightGraphs.outneighbors(g, i)
+            for neighbor in neighbors
+                valtovar[i - ncon - nvar, neighbor - ncon] = 1
+            end
+        end
+    end
+    return contovar, valtovar
 end

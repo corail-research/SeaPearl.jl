@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> master
 struct GraphConv{A<:AbstractMatrix,B,G<:pool}
     weight1::A
     weight2::A

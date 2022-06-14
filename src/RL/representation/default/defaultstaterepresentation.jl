@@ -1,5 +1,3 @@
-include("cp_layer/cp_layer.jl")
-
 """
     DefaultStateRepresentation{F, TS}
 
@@ -38,13 +36,12 @@ mutable struct DefaultStateRepresentation{F,TS} <: FeaturizedStateRepresentation
     globalFeatures::Union{Nothing,AbstractVector{Float32}}
     variableIdx::Union{Nothing,Int64}
     allValuesIdx::Union{Nothing,Vector{Int64}}
+    possibleValuesIdx::Union{Nothing, Vector{Int64}}
     valueToPos::Union{Nothing,Dict{Int64,Int64}}
     chosenFeatures::Union{Nothing,Dict{String,Tuple{Bool,Int64}}}
     constraintTypeToId::Union{Nothing,Dict{Type,Int}}
     nbFeatures::Int64
 end
-
-struct DefaultFeaturization <: AbstractFeaturization end
 
 """
     feature_length(sr::DefaultStateRepresentation{F,TS}) where {F,TS}
@@ -77,6 +74,8 @@ function DefaultStateRepresentation{F,TS}(model::CPModel; action_space=nothing, 
     g = CPLayerGraph(model)
     allValuesIdx = nothing
     valueToPos = nothing
+    possibleValuesIdx = nothing
+
     if !isnothing(action_space)
         allValuesIdx = indexFromCpVertex.([g], ValueVertex.(action_space))
         valueToPos = Dict{Int64,Int64}()
@@ -85,7 +84,7 @@ function DefaultStateRepresentation{F,TS}(model::CPModel; action_space=nothing, 
         end
     end
 
-    sr = DefaultStateRepresentation{F,TS}(g, nothing, nothing, nothing, allValuesIdx, valueToPos, nothing, nothing, 0)
+    sr = DefaultStateRepresentation{F,TS}(g, nothing, nothing, nothing, allValuesIdx, nothing, valueToPos, nothing, nothing, 0)
     if isnothing(chosen_features)
         sr.nodeFeatures = featurize(sr) # custom featurize function doesn't necessarily support chosen_features
     else
@@ -99,10 +98,10 @@ function DefaultTrajectoryState(sr::DefaultStateRepresentation{F,DefaultTrajecto
     if isnothing(sr.variableIdx)
         throw(ErrorException("Unable to build a DefaultTrajectoryState, when the branching variable is nothing."))
     end
-    adj = Matrix(adjacency_matrix(sr.cplayergraph))
+    adj = Matrix(LightGraphs.adjacency_matrix(sr.cplayergraph))
     fg = isnothing(sr.globalFeatures) ?
          FeaturedGraph(adj; nf=sr.nodeFeatures) : FeaturedGraph(adj; nf=sr.nodeFeatures, gf=sr.globalFeatures)
-    return DefaultTrajectoryState(fg, sr.variableIdx, sr.allValuesIdx)
+    return DefaultTrajectoryState(fg, sr.variableIdx, sr.allValuesIdx, sr.possibleValuesIdx)
 end
 
 """
@@ -112,7 +111,11 @@ Update the StateRepesentation according to its Type and Featurization.
 """
 function update_representation!(sr::DefaultStateRepresentation, model::CPModel, x::AbstractIntVar)
     update_features!(sr, model)
+    ncon = sr.cplayergraph.numberOfConstraints
+    nvar = sr.cplayergraph.numberOfVariables
+    sr.possibleValuesIdx = map(v -> indexFromCpVertex(sr.cplayergraph, ValueVertex(v)), collect(x.domain))
     sr.variableIdx = indexFromCpVertex(sr.cplayergraph, VariableVertex(x))
+
     return sr
 end
 
@@ -124,21 +127,27 @@ Create features for every node of the graph. Can be overwritten for a completely
 Default behavior consists in a 3D One-hot vector that encodes whether the node represents a Constraint, a Variable or a Value.
 
 It is also possible to pass a `chosen_features` dictionary allowing to choose among some non mandatory features. 
-It will be used in `initChosenFeatures` to initialize `sr.chosenFeatures`. 
+It will be used in `initChosenFeatures!` to initialize `sr.chosenFeatures`. 
 See `DefaultStateRepresentation` for a list of possible options.
 It is only necessary to specify the options you wish to activate.
 """
 function featurize(sr::DefaultStateRepresentation{DefaultFeaturization,TS}; chosen_features::Union{Nothing,Dict{String,Bool}}=nothing) where {TS}
-    initChosenFeatures(sr, chosen_features)
-
+    initChosenFeatures!(sr, chosen_features)
     g = sr.cplayergraph
-    features = zeros(Float32, sr.nbFeatures, nv(g))
-    for i in 1:nv(g)
+    features = zeros(Float32, sr.nbFeatures, LightGraphs.nv(g))
+    for i in 1:LightGraphs.nv(g)
         cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
+        if sr.chosenFeatures["node_number_of_neighbors"][1]
+            features[sr.chosenFeatures["node_number_of_neighbors"][2], i] = length(LightGraphs.outneighbors(g, i))
+        end
         if isa(cp_vertex, ConstraintVertex)
             features[1, i] = 1.0f0
             if sr.chosenFeatures["constraint_activity"][1]
-                features[sr.chosenFeatures["constraint_activity"][2], i] = cp_vertex.constraint.active.value
+                if isa(cp_vertex.constraint, ViewConstraint)
+                    features[sr.chosenFeatures["constraint_activity"][2], i] = isbound(cp_vertex.constraint.parent)
+                else
+                    features[sr.chosenFeatures["constraint_activity"][2], i] = cp_vertex.constraint.active.value
+                end
             end
             if sr.chosenFeatures["nb_involved_constraint_propagation"][1]
                 features[sr.chosenFeatures["nb_involved_constraint_propagation"][2], i] = 0
@@ -149,6 +158,19 @@ function featurize(sr::DefaultStateRepresentation{DefaultFeaturization,TS}; chos
             end
             if sr.chosenFeatures["constraint_type"][1]
                 features[sr.constraintTypeToId[typeof(cp_vertex.constraint)], i] = 1
+                if isa(cp_vertex.constraint, ViewConstraint)
+                    if isa(cp_vertex.constraint.child, IntVarViewMul)
+                        features[sr.constraintTypeToId[typeof(cp_vertex.constraint)] + 1, i] = cp_vertex.constraint.child.a
+                    elseif isa(cp_vertex.constraint.child, IntVarViewOffset)
+                        features[sr.constraintTypeToId[typeof(cp_vertex.constraint)] + 2, i] = cp_vertex.constraint.child.c
+                    elseif isa(cp_vertex.constraint.child, IntVarViewOpposite)
+                        features[sr.constraintTypeToId[typeof(cp_vertex.constraint)] + 1, i] = -1
+                    elseif isa(cp_vertex.constraint.child, BoolVarViewNot)
+                        features[sr.constraintTypeToId[typeof(cp_vertex.constraint)] + 3, i] = 1
+                    else
+                        error("WARNING: Unknwon VarViewType: please implement DefaultFeaturization for this type!")
+                    end
+                end
             end
         end
         if isa(cp_vertex, VariableVertex)
@@ -161,6 +183,15 @@ function featurize(sr::DefaultStateRepresentation{DefaultFeaturization,TS}; chos
             end
             if sr.chosenFeatures["variable_is_bound"][1]
                 features[sr.chosenFeatures["variable_is_bound"][2], i] = isbound(cp_vertex.variable)
+            end
+            if sr.chosenFeatures["variable_is_branchable"][1]
+                features[sr.chosenFeatures["variable_is_branchable"][2], i] = Int(haskey(sr.cplayergraph.cpmodel.branchable,cp_vertex.variable.id) && sr.cplayergraph.cpmodel.branchable[cp_vertex.variable.id]==1)
+            end
+            if sr.chosenFeatures["variable_is_objective"][1]
+                features[sr.chosenFeatures["variable_is_objective"][2], i] = sr.cplayergraph.cpmodel.objective == cp_vertex.variable
+            end
+            if sr.chosenFeatures["variable_assigned_value"][1]
+                features[sr.chosenFeatures["variable_assigned_value"][2], i] = isbound(cp_vertex.variable) ? assignedValue(cp_vertex.variable) : 0
             end
         end
         if isa(cp_vertex, ValueVertex)
@@ -179,20 +210,24 @@ function featurize(sr::DefaultStateRepresentation{DefaultFeaturization,TS}; chos
 end
 
 """
-    initChosenFeatures(sr::DefaultStateRepresentation{DefaultFeaturization,TS}, chosen_features::Dict{String,Bool})
+    initChosenFeatures!(sr::DefaultStateRepresentation{DefaultFeaturization,TS}, chosen_features::Dict{String,Bool})
 
 Builds the `sr.chosenFeatures` dictionary  and sets `sr.nbFeatures`.
 """
-function initChosenFeatures(sr::DefaultStateRepresentation{DefaultFeaturization,TS}, chosen_features::Union{Nothing,Dict{String,Bool}}) where {TS}
+function initChosenFeatures!(sr::DefaultStateRepresentation{DefaultFeaturization,TS}, chosen_features::Union{Nothing,Dict{String,Bool}}) where {TS}
     # Initialize chosenFeatures with all positions at -1 and presence to false
     sr.chosenFeatures = Dict{String,Tuple{Bool,Int64}}(
         "constraint_activity" => (false, -1),
         "constraint_type" => (false, -1),
         "nb_involved_constraint_propagation" => (false, -1),
         "nb_not_bounded_variable" => (false, -1),
+        "node_number_of_neighbors" => (false, -1),
         "variable_domain_size" => (false, -1),
         "variable_initial_domain_size" => (false, -1),
         "variable_is_bound" => (false, -1),
+        "variable_is_branchable" => (false, -1),
+        "variable_is_objective" => (false, -1),
+        "variable_assigned_value" => (false, -1),
         "values_onehot" => (false, -1),
         "values_raw" => (false, -1),
     )
@@ -224,6 +259,26 @@ function initChosenFeatures(sr::DefaultStateRepresentation{DefaultFeaturization,
             counter += 1
         end
 
+        if haskey(chosen_features, "variable_is_branchable") && chosen_features["variable_is_branchable"]
+            sr.chosenFeatures["variable_is_branchable"] = (true, counter)
+            counter += 1
+        end
+
+        if haskey(chosen_features, "variable_is_objective") && chosen_features["variable_is_objective"]
+            sr.chosenFeatures["variable_is_objective"] = (true, counter)
+            counter += 1
+        end
+
+        if haskey(chosen_features, "variable_assigned_value") && chosen_features["variable_assigned_value"]
+            sr.chosenFeatures["variable_assigned_value"] = (true, counter)
+            counter += 1
+        end
+
+        if haskey(chosen_features, "node_number_of_neighbors") && chosen_features["node_number_of_neighbors"]
+            sr.chosenFeatures["node_number_of_neighbors"] = (true, counter)
+            counter += 1
+        end
+
         if haskey(chosen_features, "nb_not_bounded_variable") && chosen_features["nb_not_bounded_variable"]
             sr.chosenFeatures["nb_not_bounded_variable"] = (true, counter)
             counter += 1
@@ -233,11 +288,16 @@ function initChosenFeatures(sr::DefaultStateRepresentation{DefaultFeaturization,
         if haskey(chosen_features, "constraint_type") && chosen_features["constraint_type"]
             sr.chosenFeatures["constraint_type"] = (true, counter)
             constraintTypeToId = Dict{Type,Int}()
-            constraintsList = keys(sr.cplayergraph.cpmodel.statistics.numberOfTimesInvolvedInPropagation)
-            for constraint in constraintsList
-                if !haskey(constraintTypeToId, typeof(constraint))
-                    constraintTypeToId[typeof(constraint)] = counter
-                    counter += 1
+            nbcon = sr.cplayergraph.numberOfConstraints
+            constraintsVertexList = sr.cplayergraph.idToNode[1:nbcon]
+            for vertex in constraintsVertexList
+                if !haskey(constraintTypeToId, typeof(vertex.constraint))
+                    constraintTypeToId[typeof(vertex.constraint)] = counter
+                    if isa(vertex.constraint,ViewConstraint)
+                        counter += 4 
+                    else
+                        counter += 1
+                    end
                 end
             end
             sr.constraintTypeToId = constraintTypeToId
@@ -266,15 +326,26 @@ Use the `sr.chosenFeatures` dictionary to find out which features are used and t
 """
 function update_features!(sr::DefaultStateRepresentation{DefaultFeaturization,TS}, ::CPModel) where {TS}
     g = sr.cplayergraph
-    for i in 1:nv(g)
+    for i in 1:LightGraphs.nv(g)
         cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
+        if sr.chosenFeatures["node_number_of_neighbors"][1]
+            sr.nodeFeatures[sr.chosenFeatures["node_number_of_neighbors"][2], i] = length(LightGraphs.outneighbors(g, i))
+        end
         if isa(cp_vertex, ConstraintVertex)
             if sr.chosenFeatures["constraint_activity"][1]
-                sr.nodeFeatures[sr.chosenFeatures["constraint_activity"][2], i] = cp_vertex.constraint.active.value
+                if isa(cp_vertex.constraint, ViewConstraint)
+                    sr.nodeFeatures[sr.chosenFeatures["constraint_activity"][2], i] = isbound(cp_vertex.constraint.parent)
+                else
+                    sr.nodeFeatures[sr.chosenFeatures["constraint_activity"][2], i] = cp_vertex.constraint.active.value
+                end
             end
 
             if sr.chosenFeatures["nb_involved_constraint_propagation"][1]
-                sr.nodeFeatures[sr.chosenFeatures["nb_involved_constraint_propagation"][2], i] = sr.cplayergraph.cpmodel.statistics.numberOfTimesInvolvedInPropagation[cp_vertex.constraint]
+                if isa(cp_vertex.constraint, ViewConstraint)
+                    sr.nodeFeatures[sr.chosenFeatures["nb_involved_constraint_propagation"][2], i] = 0
+                else
+                    sr.nodeFeatures[sr.chosenFeatures["nb_involved_constraint_propagation"][2], i] = sr.cplayergraph.cpmodel.statistics.numberOfTimesInvolvedInPropagation[cp_vertex.constraint]
+                end
             end
 
             if sr.chosenFeatures["nb_not_bounded_variable"][1]
@@ -289,6 +360,10 @@ function update_features!(sr::DefaultStateRepresentation{DefaultFeaturization,TS
 
             if sr.chosenFeatures["variable_is_bound"][1]
                 sr.nodeFeatures[sr.chosenFeatures["variable_is_bound"][2], i] = isbound(cp_vertex.variable)
+            end
+
+            if sr.chosenFeatures["variable_assigned_value"][1]
+                sr.nodeFeatures[sr.chosenFeatures["variable_assigned_value"][2], i] = isbound(cp_vertex.variable) ? assignedValue(cp_vertex.variable) : 0
             end
         end
         if isa(cp_vertex, ValueVertex) # Probably useless, check before removing

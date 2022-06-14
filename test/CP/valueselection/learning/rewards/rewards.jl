@@ -36,6 +36,7 @@ end
 @testset "rewards.jl" begin 
 
     include("defaultreward.jl")
+    include("generalreward.jl")
     include("tsptwreward.jl")
 
     @testset "Custom reward" begin
@@ -43,7 +44,7 @@ end
             trailer = SeaPearl.Trailer()
             model = SeaPearl.CPModel(trailer)
     
-            lh = SeaPearl.LearnedHeuristic(agent)
+            lh = SeaPearl.SimpleLearnedHeuristic(agent)
             SeaPearl.update_with_cpmodel!(lh, model)
     
             lh.reward.value = 0 
@@ -69,7 +70,7 @@ end
             trailer = SeaPearl.Trailer()
             model = SeaPearl.CPModel(trailer)
 
-            lh = SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}, TestReward, SeaPearl.FixedOutput}(agent)
+            lh = SeaPearl.SimpleLearnedHeuristic{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}, TestReward, SeaPearl.FixedOutput}(agent)
             SeaPearl.update_with_cpmodel!(lh, model)
 
             lh.reward.value = 0
@@ -81,7 +82,7 @@ end
             trailer = SeaPearl.Trailer()
             model = SeaPearl.CPModel(trailer)
 
-            lh = SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}, TestReward, SeaPearl.FixedOutput}(agent)
+            lh = SeaPearl.SimpleLearnedHeuristic{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}, TestReward, SeaPearl.FixedOutput}(agent)
             SeaPearl.update_with_cpmodel!(lh, model)
 
             lh.reward.value = 0
@@ -93,7 +94,7 @@ end
             trailer = SeaPearl.Trailer()
             model = SeaPearl.CPModel(trailer)
 
-            lh = SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}, TestReward, SeaPearl.FixedOutput}(agent)
+            lh = SeaPearl.SimpleLearnedHeuristic{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}, TestReward, SeaPearl.FixedOutput}(agent)
             SeaPearl.update_with_cpmodel!(lh, model)
 
             lh.reward.value = 0
@@ -105,7 +106,7 @@ end
             trailer = SeaPearl.Trailer()
             model = SeaPearl.CPModel(trailer)
 
-            lh = SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}, TestReward, SeaPearl.FixedOutput}(agent)
+            lh = SeaPearl.SimpleLearnedHeuristic{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}, TestReward, SeaPearl.FixedOutput}(agent)
             SeaPearl.update_with_cpmodel!(lh, model)
 
             lh.reward.value = 6

@@ -102,6 +102,11 @@ function update_features!(::FeaturizedStateRepresentation, ::CPModel) end
 feature_length(sr::Type{<:FeaturizedStateRepresentation}) = throw(ErrorException("missing function feature_length(::$(sr))."))
 global_feature_length(sr::Type{<:FeaturizedStateRepresentation}) = 0
 
+struct DefaultFeaturization <: AbstractFeaturization end
+
+include("default/cp_layer/cp_layer.jl")
 include("default/defaulttrajectorystate.jl")
 include("default/defaultstaterepresentation.jl")
+include("default/heterogeneoustrajectorystate.jl")
+include("default/heterogeneousstaterepresentation.jl")
 include("tsptw/tsptwstaterepresentation.jl")

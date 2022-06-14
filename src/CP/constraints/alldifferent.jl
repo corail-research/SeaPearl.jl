@@ -23,8 +23,8 @@ struct AllDifferent <: Constraint
     initialized::StateObject{Bool}
     matching::Vector{StateObject{Tuple{Int, Int, Bool}}}
     remainingEdges::RSparseBitSet{UInt64}
-    edgeToIndex::Dict{Edge{Int}, Int}
-    indexToEdge::Vector{Edge{Int}}
+    edgeToIndex::Dict{LightGraphs.Edge{Int}, Int}
+    indexToEdge::Vector{LightGraphs.Edge{Int}}
     nodesMin::Int
     numberOfVars::Int
     numberOfVals::Int
@@ -43,8 +43,8 @@ struct AllDifferent <: Constraint
             matching[i] = StateObject{Tuple{Int, Int, Bool}}((0, 0, false), trailer)
         end
         remainingEdges = RSparseBitSet{UInt64}(numberOfEdges, trailer)
-        edgeToIndex = Dict{Edge{Int}, Int}()
-        indexToEdge = Vector{Edge{Int}}(undef, numberOfEdges)
+        edgeToIndex = Dict{LightGraphs.Edge{Int}, Int}()
+        indexToEdge = Vector{LightGraphs.Edge{Int}}(undef, numberOfEdges)
         constraint = new(x,
             active,
             initialized,
@@ -62,8 +62,8 @@ struct AllDifferent <: Constraint
             addOnDomainChange!(var, constraint)
             for val in var.domain
                 dst = numberOfVars + val - min + 1
-                constraint.edgeToIndex[Edge(idx, dst)] = counter
-                constraint.indexToEdge[counter] = Edge(idx, dst)
+                constraint.edgeToIndex[LightGraphs.Edge(idx, dst)] = counter
+                constraint.indexToEdge[counter] = LightGraphs.Edge(idx, dst)
                 counter += 1
             end
         end
@@ -90,13 +90,13 @@ function nodeToVal(con::AllDifferent, node::Int)
 end
 
 """
-    orderEdge(edge)::Edge
+    orderEdge(edge)::LightGraphs.Edge
 
 Return the ordered version of an edge, i.e. with e.src ≤ e.dst.
 """
-function orderEdge(e::Edge{Int})::Edge{Int}
+function orderEdge(e::LightGraphs.Edge{Int})::LightGraphs.Edge{Int}
     src, dst = e.src < e.dst ? (e.src, e.dst) : (e.dst, e.src)
-    return Edge(src, dst)
+    return LightGraphs.Edge(src, dst)
 end
 
 function updateremaining!(constraint::AllDifferent, removed::BitVector)
@@ -108,7 +108,7 @@ end
 
 function updatevital!(constraint::AllDifferent, vital::BitVector)
     for match in constraint.matching
-        e = Edge(match.value[1], match.value[2])
+        e = LightGraphs.Edge(match.value[1], match.value[2])
         idx = constraint.edgeToIndex[e]
         setValue!(match, (e.src, e.dst, vital[idx]))
     end
@@ -118,7 +118,7 @@ function getvital(constraint)
     vital = BitVector(undef, constraint.numberOfEdges) .= false
     for match in constraint.matching
         if match.value[3]
-            vital[constraint.edgeToIndex[Edge(match.value[1], match.value[2])]] = true
+            vital[constraint.edgeToIndex[LightGraphs.Edge(match.value[1], match.value[2])]] = true
         end
     end
     return vital
@@ -130,36 +130,36 @@ end
 
 Return the graph and the empty directed graph of a variable-value problem.
 """
-function initializeGraphs!(con::AllDifferent)::Pair{Graph{Int}, DiGraph{Int}}
+function initializeGraphs!(con::AllDifferent)::Pair{LightGraphs.Graph{Int}, LightGraphs.DiGraph{Int}}
     numberOfNodes = con.numberOfVars + con.numberOfVals
     edgeFilter = BitVector(con.remainingEdges)[1:con.numberOfEdges]
     allEdges = con.indexToEdge[edgeFilter]
-    graph = Graph(allEdges)
-    digraph = DiGraph(nv(graph))
-    if nv(graph) < numberOfNodes
-        add_vertices!(graph, numberOfNodes - nv(graph))
+    graph = LightGraphs.Graph(allEdges)
+    digraph = LightGraphs.DiGraph(LightGraphs.nv(graph))
+    if LightGraphs.nv(graph) < numberOfNodes
+        LightGraphs.add_vertices!(graph, numberOfNodes - LightGraphs.nv(graph))
     end
     return Pair(graph, digraph)
 end
 
 """
-    getAllEdges(digraph, parents)::Set{Edge}
+    getAllEdges(digraph, parents)::Set{LightGraphs.Edge}
 
 Return all the edges visited by a BFS on `digraph` encoded in `parents`.
 """
-function getAllEdges(digraph::DiGraph{Int}, parents::Vector{Int})::Set{Edge{Int}}
-    edgeSet = Set{Edge{Int}}()
-    for i = 1:nv(digraph)
+function getAllEdges(digraph::LightGraphs.DiGraph{Int}, parents::Vector{Int})::Set{LightGraphs.Edge{Int}}
+    edgeSet = Set{LightGraphs.Edge{Int}}()
+    for i = 1:LightGraphs.nv(digraph)
         if parents[i] > 0 && parents[i] != i
-            validneighbors = filter(v -> parents[v] > 0, inneighbors(digraph, i))
-            validedges = map(v -> orderEdge(Edge(v, i)), validneighbors)
+            validneighbors = filter(v -> parents[v] > 0, LightGraphs.inneighbors(digraph, i))
+            validedges = map(v -> orderEdge(LightGraphs.Edge(v, i)), validneighbors)
             union!(edgeSet, validedges)
         end
     end
     return edgeSet
 end
 
-remapedge(edge::Edge{Int}, component::Vector{Int}) = Edge(component[edge.src], component[edge.dst])
+remapedge(edge::LightGraphs.Edge{Int}, component::Vector{Int}) = LightGraphs.Edge(component[edge.src], component[edge.dst])
 
 """
     removeEdges!(constraint, prunedValue, graph, digraph)
@@ -171,20 +171,20 @@ edges from `graph` and `digraph` and push the removed values in `prunedValue`.
 Following exactly the procedure in the function with the same name in the original
 paper.
 """
-function removeEdges!(constraint::AllDifferent, prunedValues::Vector{Vector{Int}}, graph::Graph{Int}, digraph::DiGraph{Int})
+function removeEdges!(constraint::AllDifferent, prunedValues::Vector{Vector{Int}}, graph::LightGraphs.Graph{Int}, digraph::LightGraphs.DiGraph{Int})
 
     unused = BitVector(constraint.remainingEdges)[1:constraint.numberOfEdges]
     vital = BitVector(undef, constraint.numberOfEdges) .= false
     removed = BitVector(undef, constraint.numberOfEdges) .= .~ unused
     used = BitVector(undef, constraint.numberOfEdges) .= false
 
-    allValues = constraint.numberOfVars+1:nv(digraph)
-    freeValues = filter(v -> indegree(digraph,v) == 0, allValues)
+    allValues = constraint.numberOfVars+1:LightGraphs.nv(digraph)
+    freeValues = filter(v -> LightGraphs.indegree(digraph,v) == 0, allValues)
 
     seen = fill(false, constraint.numberOfVals)
-    components = filter(comp -> length(comp)>1, strongly_connected_components(digraph))
+    components = filter(comp -> length(comp)>1, LightGraphs.strongly_connected_components(digraph))
     for component in components
-        edgeSet = orderEdge.(remapedge.(edges(digraph[component]), [component]))
+        edgeSet = orderEdge.(remapedge.(LightGraphs.edges(digraph[component]), [component]))
         edgeIndices = getindex.([constraint.edgeToIndex], edgeSet)
         used[edgeIndices] .= true
         unused[edgeIndices] .= false
@@ -194,7 +194,7 @@ function removeEdges!(constraint::AllDifferent, prunedValues::Vector{Vector{Int}
         if seen[node - constraint.numberOfVars]
             continue
         end
-        parents = bfs_parents(digraph, node; dir=:out)
+        parents = LightGraphs.bfs_parents(digraph, node; dir=:out)
         edgeSet = getAllEdges(digraph, parents)
         edgeIndices = getindex.([constraint.edgeToIndex], edgeSet)
         used[edgeIndices] .= true
@@ -205,16 +205,16 @@ function removeEdges!(constraint::AllDifferent, prunedValues::Vector{Vector{Int}
 
     edgeIndices = map(constraint.matching) do pair
         var, val = pair.value
-        e = Edge(var, val)
+        e = LightGraphs.Edge(var, val)
         return constraint.edgeToIndex[e]
     end
     vital[edgeIndices] .= true .& unused[edgeIndices]
     unused[edgeIndices] .= false
 
     rest = constraint.indexToEdge[unused]
-    reversedRest = map(e -> Edge(e.dst, e.src), rest)
-    rem_edge!.([graph], rest)
-    rem_edge!.([digraph], reversedRest)
+    reversedRest = map(e -> LightGraphs.Edge(e.dst, e.src), rest)
+    LightGraphs.rem_edge!.([graph], rest)
+    LightGraphs.rem_edge!.([digraph], reversedRest)
     removed[unused] .= true
     foreach(rest) do e
         var, val = e.src, e.dst
@@ -226,15 +226,15 @@ function removeEdges!(constraint::AllDifferent, prunedValues::Vector{Vector{Int}
 end
 
 """
-    updateEdgesState!(constraint)::Set{Edge}
+    updateEdgesState!(constraint)::Set{LightGraphs.Edge}
 
 Return all the pruned values not already encoded in the constraint state.
 """
 function updateEdgesState!(constraint::AllDifferent, prunedDomains::CPModification)
-    modif = Set{Edge}()
+    modif = Set{LightGraphs.Edge}()
     for (idx, var) in enumerate(constraint.x)
         if haskey(prunedDomains, var.id)
-            union!(modif, Edge.([idx], valToNode.([constraint], prunedDomains[var.id])))
+            union!(modif, LightGraphs.Edge.([idx], valToNode.([constraint], prunedDomains[var.id])))
         end
     end
     return modif
@@ -279,18 +279,18 @@ function propagate!(constraint::AllDifferent, toPropagate::Set{Constraint}, prun
     vital = getvital(constraint)
     needrematching = false
     for e in modifications
-        rev_e = Edge(e.dst, e.src)
+        rev_e = LightGraphs.Edge(e.dst, e.src)
         idx = constraint.edgeToIndex[e]
-        if e in edges(graph)
+        if e in LightGraphs.edges(graph)
             if vital[idx]
                 return false
-            elseif e in edges(digraph)
+            elseif e in LightGraphs.edges(digraph)
                 needrematching = true
-                rem_edge!(digraph, e)
+                LightGraphs.rem_edge!(digraph, e)
             else
-                rem_edge!(digraph, rev_e)
+                LightGraphs.rem_edge!(digraph, rev_e)
             end
-            rem_edge!(graph, e)
+            LightGraphs.rem_edge!(graph, e)
             # TODO get rid of edgesState
             removed[idx] = true
         end

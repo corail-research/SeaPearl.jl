@@ -334,7 +334,7 @@
         @test model.statistics.infeasibleStatusPerVariable["z"] == 1
 
         constraint = model.constraints[1]
-        SeaPearl.triggerInfeasible!(constraint, model)
+        SeaPearl.triggerInfeasible!(constraint, model; isFailureBased=true)
         @test model.statistics.infeasibleStatusPerVariable["x"] == 2
         @test model.statistics.infeasibleStatusPerVariable["y"] == 3
 
