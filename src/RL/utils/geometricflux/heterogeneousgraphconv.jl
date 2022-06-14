@@ -115,6 +115,13 @@ function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any,meanPooling})(fg::Het
     )
 end
 
+"""
+function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any, maxPooling})(fg::HeterogeneousFeaturedGraph, original_fg::HeterogeneousFeaturedGraph)
+
+This function operates the coordinate-wise max-Pooling technique along the neightbors of every node of the batched input BatchedHeterogeneousFeaturedGraph.
+    
+For more details about the operations, please look at function (g::GraphConv{<:AbstractMatrix,<:Any, maxPooling})(fg::FeaturedGraph) in graphConv.jl. The same operations are done 4 times considering type-specific embeddings and adjacency matrix. 
+"""
 function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any, maxPooling})(fgs::BatchedHeterogeneousFeaturedGraph{Float32}, original_fgs::BatchedHeterogeneousFeaturedGraph{Float32})
     contovar, valtovar = fgs.contovar, fgs.valtovar
     vartocon, vartoval = permutedims(contovar, [2, 1, 3]), permutedims(valtovar, [2, 1, 3])
@@ -159,6 +166,13 @@ function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any, maxPooling})(fgs::Ba
     )
 end
 
+"""
+function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any, maxPooling})(fg::HeterogeneousFeaturedGraph, original_fg::HeterogeneousFeaturedGraph)
+
+This function operates the coordinate-wise max-Pooling technique along the neightbors of every node of the non-batched input HeterogeneousFeaturedGraph.
+
+For more details about the operations, please look at function (g::GraphConv{<:AbstractMatrix,<:Any, maxPooling})(fg::FeaturedGraph) in graphConv.jl. The same operations are done 4 times considering type-specific embeddings and adjacency matrix. 
+"""
 function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any, maxPooling})(fg::HeterogeneousFeaturedGraph, original_fg::HeterogeneousFeaturedGraph)
     contovar, valtovar = fg.contovar, fg.valtovar
     vartocon, vartoval = transpose(contovar), transpose(valtovar)
