@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-=======
-
-
->>>>>>> master
 struct GraphConv{A<:AbstractMatrix,B,G<:pool}
     weight1::A
     weight2::A
@@ -83,18 +78,18 @@ function (g::GraphConv{<:AbstractMatrix,<:Any,maxPooling})(fgs::BatchedFeaturedG
 
     Zygote.ignore() do
         B = repeat(collect(1:size(A,2)),1,size(A,2)).*A
-        B = collect.(zip(B,cat(repeat([1],3,3),repeat([2],3,3),dims= 3)))
+        B = collect.(zip(B,cat(repeat([1],size(A)[1:2]...),repeat([2], size(A)[1:2]...),dims= 3)))
         filteredcol = mapslices( x -> map(z-> filter(y -> y[1]!=0,z),eachcol(x)),B,dims=[1,2])
         filteredemb = mapslices(x->map(y-> maximum(mapreduce(z->X[:,z...], hcat, y), dims =2),  x), filteredcol, dims = [2])
         filteredemb = reshape(reduce(hcat ,filteredemb), size(X))
-
+    end
         return BatchedFeaturedGraph{Float32}(
             fgs.graph;
             nf=g.σ.(g.weight1 ⊠ X .+ g.weight2 ⊠ filteredemb .+ g.bias),
             ef=fgs.ef,
             gf=fgs.gf
         )
-    end
+    
 end
 
 function (g::GraphConv{<:AbstractMatrix,<:Any, maxPooling})(fg::FeaturedGraph)
@@ -102,14 +97,14 @@ function (g::GraphConv{<:AbstractMatrix,<:Any, maxPooling})(fg::FeaturedGraph)
     Zygote.ignore() do
         B = repeat(collect(1:size(A,2)),1,size(A,2)).*A
         filteredcol = map(x-> filter(y -> y!=0,x),eachcol(B))
-        filteredemb = mapreduce(x->maximum(X[:,x],dims = 2), hcat,filteredcol)
+        filteredemb = mapreduce(x->maximum(X[:,x], dims = 2), hcat,filteredcol)
 
-
+    end
         return BatchedFeaturedGraph{Float32}(
             fgs.graph;
             nf=g.σ.(g.weight1 ⊠ X .+ g.weight2 ⊠ filteredemb .+ g.bias),
             ef=fgs.ef,
             gf=fgs.gf
         )
-    end
+
 end
