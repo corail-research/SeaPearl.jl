@@ -145,10 +145,10 @@ function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any, maxPooling})(fgs::Ba
         filteredcolvartocon = mapslices( x -> map(z-> filter(y -> y[1]!=0, z), eachcol(x)), vartoconIdx, dims=[1,2])
         filteredcolvartoval = mapslices( x -> map(z-> filter(y -> y[1]!=0, z), eachcol(x)), vartovalIdx, dims=[1,2])
 
-        filteredembcontovar = mapslices(x->map(y-> maximum(mapreduce(z->H2[:,z...], hcat, y), dims =2),  x), filteredcolcontovar, dims = [2])
-        filteredembvaltovar = mapslices(x->map(y-> maximum(mapreduce(z->H3[:,z...], hcat, y), dims =2),  x), filteredcolvaltovar, dims = [2])
-        filteredembvartocon = mapslices(x->map(y-> maximum(mapreduce(z->H1[:,z...], hcat, y), dims =2),  x), filteredcolvartocon, dims = [2])
-        filteredembvartoval  = mapslices(x->map(y-> maximum(mapreduce(z->H1[:,z...], hcat, y), dims =2),  x), filteredcolvartoval , dims = [2])
+        filteredembcontovar = mapslices(x->map(y-> maximum(mapreduce(z->H2[:,z...], hcat, y), dims =2),  x), filteredcolcontovar, dims = [1,3])
+        filteredembvaltovar = mapslices(x->map(y-> maximum(mapreduce(z->H3[:,z...], hcat, y), dims =2),  x), filteredcolvaltovar, dims = [1,3])
+        filteredembvartocon = mapslices(x->map(y-> maximum(mapreduce(z->H1[:,z...], hcat, y), dims =2),  x), filteredcolvartocon, dims = [1,3])
+        filteredembvartoval  = mapslices(x->map(y-> maximum(mapreduce(z->H1[:,z...], hcat, y), dims =2),  x), filteredcolvartoval , dims = [1,3])
 
         filteredembcontovar = reshape(reduce(hcat ,filteredembcontovar), size(H2))
         filteredembvaltovar = reshape(reduce(hcat ,filteredembvaltovar), size(H3))

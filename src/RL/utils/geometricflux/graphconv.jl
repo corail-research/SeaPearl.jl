@@ -83,8 +83,8 @@ function (g::GraphConv{<:AbstractMatrix,<:Any,maxPooling})(fgs::BatchedFeaturedG
     Zygote.ignore() do
         B = repeat(collect(1:size(A,2)),1,size(A,2)).*A
         B = collect.(zip(B,cat(repeat([1],size(A)[1:2]...),repeat([2], size(A)[1:2]...),dims= 3)))
-        filteredcol = mapslices( x -> map(z-> filter(y -> y[1]!=0,z),eachcol(x)),B,dims=[1,2])
-        filteredemb = mapslices(x->map(y-> maximum(mapreduce(z->X[:,z...], hcat, y), dims =2),  x), filteredcol, dims = [2])
+        filteredcol = mapslices( x -> map(z-> filter(y -> y[1]!=0,z),eachcol(x)), B, dims= [1,2])
+        filteredemb = mapslices(x->map(y-> maximum(mapreduce(z->X[:,z...], hcat, y), dims =2),  x), filteredcol, dims = [1,3])
         filteredemb = reshape(reduce(hcat ,filteredemb), size(X))
     end
         return BatchedFeaturedGraph{Float32}(
@@ -107,7 +107,7 @@ This function operates the coordinate-wise max-Pooling technique along the neigh
     filteredemb contains for everynode the pooled embedding of its neightbors using the coordinate-wise maximum. filteredemb[i, j] = maximum( X[i, filteredcol[j]])
 
     Here is a little example : 
-    
+
     X = [ 1 2 3       A = [ 1 0 0      B = [ 1 0 0      filteredcol = [[1, 2 3]       filteredemb = [3 2 3   
           5 1 2             1 1 1            2 2 2                     [2]                           5 1 2   
           3 1 4             1 0 1 ]          3 0 3 ]                   [2, 3]]                       4 1 4 
