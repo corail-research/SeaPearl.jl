@@ -114,3 +114,93 @@ function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any,meanPooling})(fg::Het
         fg.gf
     )
 end
+
+"""
+function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any, maxPooling})(fg::HeterogeneousFeaturedGraph, original_fg::HeterogeneousFeaturedGraph)
+
+This function operates the coordinate-wise max-Pooling technique along the neightbors of every node of the batched input BatchedHeterogeneousFeaturedGraph.
+    
+For more details about the operations, please look at function (g::GraphConv{<:AbstractMatrix,<:Any, maxPooling})(fg::FeaturedGraph) in graphConv.jl. The same operations are done 4 times considering type-specific embeddings and adjacency matrix. 
+"""
+function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any, maxPooling})(fgs::BatchedHeterogeneousFeaturedGraph{Float32}, original_fgs::BatchedHeterogeneousFeaturedGraph{Float32})
+    contovar, valtovar = fgs.contovar, fgs.valtovar
+    vartocon, vartoval = permutedims(contovar, [2, 1, 3]), permutedims(valtovar, [2, 1, 3])
+    H1, H2, H3 = fgs.varnf, fgs.connf, fgs.valnf
+    X1, X2, X3 = original_fgs.varnf, original_fgs.connf, original_fgs.valnf
+    contovarN, valtovarN, vartoconN, vartovalN = contovar, valtovar, vartocon, vartoval
+
+    Zygote.ignore() do
+        contovarIdx = repeat(collect(1:size(contovar,1)),1,size(contovar,2)).*contovar
+        valtovarIdx = repeat(collect(1:size(valtovar,1)),1,size(valtovar,2)).*valtovar
+        vartoconIdx = repeat(collect(1:size(vartocon,1)),1,size(vartocon,2)).*vartocon
+        vartovalIdx = repeat(collect(1:size(vartoval,1)),1,size(vartoval,2)).*vartoval
+
+        contovarIdx = collect.(zip(contovarIdx,cat(repeat([1],size(contovar)[1:2]...),repeat([2], size(contovar)[1:2]...), dims= 3)))
+        valtovarIdx = collect.(zip(valtovarIdx,cat(repeat([1],size(vartoval)[1:2]...),repeat([2], size(valtovar)[1:2]...), dims= 3)))
+        vartoconIdx = collect.(zip(vartoconIdx,cat(repeat([1],size(vartocon)[1:2]...),repeat([2], size(vartocon)[1:2]...), dims= 3)))
+        vartovalIdx = collect.(zip(vartovalIdx,cat(repeat([1],size(vartoval)[1:2]...),repeat([2], size(vartoval)[1:2]...), dims= 3)))
+
+        filteredcolcontovar = mapslices( x -> map(z-> filter(y -> y[1]!=0, z), eachcol(x)), contovarIdx, dims=[1,2])
+        filteredcolvaltovar = mapslices( x -> map(z-> filter(y -> y[1]!=0, z), eachcol(x)), valtovarIdx, dims=[1,2])
+        filteredcolvartocon = mapslices( x -> map(z-> filter(y -> y[1]!=0, z), eachcol(x)), vartoconIdx, dims=[1,2])
+        filteredcolvartoval = mapslices( x -> map(z-> filter(y -> y[1]!=0, z), eachcol(x)), vartovalIdx, dims=[1,2])
+
+        filteredembcontovar = mapslices(x->map(y-> maximum(mapreduce(z->H2[:,z...], hcat, y), dims =2),  x), filteredcolcontovar, dims = [2])
+        filteredembvaltovar = mapslices(x->map(y-> maximum(mapreduce(z->H3[:,z...], hcat, y), dims =2),  x), filteredcolvaltovar, dims = [2])
+        filteredembvartocon = mapslices(x->map(y-> maximum(mapreduce(z->H1[:,z...], hcat, y), dims =2),  x), filteredcolvartocon, dims = [2])
+        filteredembvartoval  = mapslices(x->map(y-> maximum(mapreduce(z->H1[:,z...], hcat, y), dims =2),  x), filteredcolvartoval , dims = [2])
+
+        filteredembcontovar = reshape(reduce(hcat ,filteredembcontovar), size(H2))
+        filteredembvaltovar = reshape(reduce(hcat ,filteredembvaltovar), size(H3))
+        filteredembvartocon = reshape(reduce(hcat ,filteredembvartocon), size(H1))
+        filteredembvartoval = reshape(reduce(hcat ,filteredembvartoval), size(H1))
+    end
+
+    return BatchedHeterogeneousFeaturedGraph{Float32}(
+        contovar,
+        valtovar,
+        g.σ.(g.weightsvar ⊠ vcat(X1, H1, filteredembcontovar, filteredembvaltovar) .+ g.biasvar),
+        g.σ.(g.weightscon ⊠ vcat(X2, H2, filteredembvartocon) .+ g.biascon),
+        g.σ.(g.weightsval ⊠ vcat(X3, H3, filteredembvartoval) .+ g.biasval),
+        fgs.gf
+    )
+end
+
+"""
+function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any, maxPooling})(fg::HeterogeneousFeaturedGraph, original_fg::HeterogeneousFeaturedGraph)
+
+This function operates the coordinate-wise max-Pooling technique along the neightbors of every node of the non-batched input HeterogeneousFeaturedGraph.
+
+For more details about the operations, please look at function (g::GraphConv{<:AbstractMatrix,<:Any, maxPooling})(fg::FeaturedGraph) in graphConv.jl. The same operations are done 4 times considering type-specific embeddings and adjacency matrix. 
+"""
+function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any, maxPooling})(fg::HeterogeneousFeaturedGraph, original_fg::HeterogeneousFeaturedGraph)
+    contovar, valtovar = fg.contovar, fg.valtovar
+    vartocon, vartoval = transpose(contovar), transpose(valtovar)
+    
+    H1, H2, H3 = fg.varnf, fg.connf, fg.valnf
+    X1, X2, X3 = original_fg.varnf, original_fg.connf, original_fg.valnf
+    Zygote.ignore() do      
+        contovarIdx = repeat(collect(1:size(contovar,1)),1,size(contovar,2)).*contovar
+        valtovarIdx = repeat(collect(1:size(valtovar,1)),1,size(valtovar,2)).*valtovar
+        vartoconIdx = repeat(collect(1:size(vartocon,1)),1,size(vartocon,2)).*vartocon
+        vartovalIdx = repeat(collect(1:size(vartoval,1)),1,size(vartoval,2)).*vartoval
+
+        filteredcolcontovar = map(x-> filter(y -> y!=0,x),eachcol(contovarIdx))
+        filteredcolvaltovar = map(x-> filter(y -> y!=0,x),eachcol(valtovarIdx))
+        filteredcolvartocon = map(x-> filter(y -> y!=0,x),eachcol(vartoconIdx))
+        filteredcolvartoval = map(x-> filter(y -> y!=0,x),eachcol(vartovalIdx))
+
+        filteredembcontovar = mapreduce(x->maximum(H2[:,x],dims = 2), hcat,filteredcolcontovar)
+        filteredembvaltovar = mapreduce(x->maximum(H3[:,x],dims = 2), hcat,filteredcolvaltovar)
+        filteredembvartocon = mapreduce(x->maximum(H1[:,x],dims = 2), hcat,filteredcolvartocon)
+        filteredembvartoval = mapreduce(x->maximum(H1[:,x],dims = 2), hcat,filteredcolvartoval)
+    end
+    return HeterogeneousFeaturedGraph(
+        contovar,
+        valtovar,
+        g.σ.(g.weightsvar * vcat(X1, H1, filteredembcontovar, filteredcolvaltovar) .+ g.biasvar),
+        g.σ.(g.weightscon * vcat(X2, H2, filteredembvartocon) .+ g.biascon),
+        g.σ.(g.weightsval * vcat(X3, H3, filteredembvartoval) .+ g.biasval),
+        fg.gf
+    )
+end
