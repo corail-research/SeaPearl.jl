@@ -3,7 +3,7 @@
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
 
-        N = 50
+        N = 20
         p = 0.3
         generator = SeaPearl.LatinGenerator(N, p)
 
@@ -11,7 +11,7 @@
         SeaPearl.fill_with_generator!(model, generator; rng=rng)
 
         @test length(keys(model.variables)) == N^2 
-        @test length(model.constraints) == 2*N + 49 #row/col constraints + initially fixed variables 
+        @test length(model.constraints) == 2*N + 280 #row/col constraints + initially fixed variables 
 
 
         variableheuristic = SeaPearl.RandomVariableSelection()
@@ -22,7 +22,7 @@
         @test model.statistics.numberOfSolutions >= 1
         
         solutions = model.statistics.solutions[model.statistics.solutions.!=nothing]
-        @test solution_found == [1, 1, 1, 0]
+        @test length(solutions)==1 
 
     end 
 end 
