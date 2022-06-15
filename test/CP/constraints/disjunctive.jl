@@ -237,7 +237,7 @@
         processing_time = [p1, p2, p3]
         SeaPearl.addConstraint!(model,SeaPearl.Disjunctive(tasks, processing_time, trailer))
 
-        variableSelection = SeaPearl.MinDomainVariableSelection{false}()
+        variableSelection = SeaPearl.MinDomainVariableSelection{true}()
         status = SeaPearl.solve!(model; variableHeuristic=variableSelection)
 
         @test status == :Infeasible
@@ -262,7 +262,7 @@
         SeaPearl.addVariable!(model, task2)
         SeaPearl.addVariable!(model, task3)
 
-        variableSelection = SeaPearl.MinDomainVariableSelection{false}()
+        variableSelection = SeaPearl.MinDomainVariableSelection{true}()
         status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection)
 
         @test status == :Infeasible
@@ -346,7 +346,7 @@
         processing_time = [p1, p2, p3]
         SeaPearl.addConstraint!(model,SeaPearl.Disjunctive(tasks, processing_time, trailer))
 
-        variableSelection = SeaPearl.MinDomainVariableSelection{false}()
+        variableSelection = SeaPearl.MinDomainVariableSelection{true}()
         status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection)
 
         @test status == :Optimal
@@ -378,7 +378,7 @@
         processing_time = [p1, p2, p3]
         SeaPearl.addConstraint!(model,SeaPearl.Disjunctive(tasks, processing_time, trailer))
 
-        variableSelection = SeaPearl.MinDomainVariableSelection{false}()
+        variableSelection = SeaPearl.MinDomainVariableSelection{true}()
         status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection)
 
         @test status == :Optimal
@@ -427,7 +427,7 @@
         end
 
         SeaPearl.addObjective!(model, objectif)
-        variableSelection = SeaPearl.MinDomainVariableSelection{false}()
+        variableSelection = SeaPearl.MinDomainVariableSelection{true}()
         status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection,)
 
         @test status == :Optimal
@@ -487,7 +487,7 @@
         processing_time = [p1, p2, p3]
         push!(model.constraints,SeaPearl.Disjunctive(tasks, processing_time, trailer, [SeaPearl.algoDetectablePrecedence]))
 
-        variableSelection = SeaPearl.MinDomainVariableSelection{false}()
+        variableSelection = SeaPearl.MinDomainVariableSelection{true}()
         status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection)
 
         @test status == :Optimal
@@ -535,7 +535,7 @@
         end
 
         SeaPearl.addObjective!(model, objectif)
-        variableSelection = SeaPearl.MinDomainVariableSelection{false}()
+        variableSelection = SeaPearl.MinDomainVariableSelection{true}()
         status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection,)
 
         @test status == :Optimal

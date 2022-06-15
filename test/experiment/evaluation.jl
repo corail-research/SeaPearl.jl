@@ -31,7 +31,7 @@
         Random.seed!(rng, 1)
         evaluator = SeaPearl.SameInstancesEvaluator(valueSelectionArray, generator; rng=rng, evalFreq=50, nbInstances=2)
 
-        variableheuristic = SeaPearl.MinDomainVariableSelection{false}()
+        variableheuristic = SeaPearl.MinDomainVariableSelection{true}()
 
         SeaPearl.evaluate(evaluator, variableheuristic, SeaPearl.DFSearch())
         @test evaluator.metrics[1, 1].nodeVisited[1] == [12, 22, 23]
@@ -48,7 +48,7 @@
         Random.seed!(rng, 1)
         evaluator = SeaPearl.SameInstancesEvaluator(valueSelectionArray, generator; rng=rng, evalFreq=50, nbInstances=1)
 
-        variableheuristic = SeaPearl.MinDomainVariableSelection{false}()
+        variableheuristic = SeaPearl.MinDomainVariableSelection{true}()
 
         SeaPearl.evaluate(evaluator, variableheuristic, SeaPearl.DFSearch())
         @test evaluator.metrics[1, 1].nbEpisodes == 1
