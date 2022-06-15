@@ -98,7 +98,7 @@ function DefaultTrajectoryState(sr::DefaultStateRepresentation{F,DefaultTrajecto
     if isnothing(sr.variableIdx)
         throw(ErrorException("Unable to build a DefaultTrajectoryState, when the branching variable is nothing."))
     end
-    adj = Matrix(adjacency_matrix(sr.cplayergraph))
+    adj = Matrix(LightGraphs.adjacency_matrix(sr.cplayergraph))
     fg = isnothing(sr.globalFeatures) ?
          FeaturedGraph(adj; nf=sr.nodeFeatures) : FeaturedGraph(adj; nf=sr.nodeFeatures, gf=sr.globalFeatures)
     return DefaultTrajectoryState(fg, sr.variableIdx, sr.allValuesIdx, sr.possibleValuesIdx)
@@ -133,11 +133,13 @@ It is only necessary to specify the options you wish to activate.
 """
 function featurize(sr::DefaultStateRepresentation{DefaultFeaturization,TS}; chosen_features::Union{Nothing,Dict{String,Bool}}=nothing) where {TS}
     initChosenFeatures!(sr, chosen_features)
-
     g = sr.cplayergraph
-    features = zeros(Float32, sr.nbFeatures, nv(g))
-    for i in 1:nv(g)
+    features = zeros(Float32, sr.nbFeatures, LightGraphs.nv(g))
+    for i in 1:LightGraphs.nv(g)
         cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
+        if sr.chosenFeatures["node_number_of_neighbors"][1]
+            features[sr.chosenFeatures["node_number_of_neighbors"][2], i] = length(LightGraphs.outneighbors(g, i))
+        end
         if isa(cp_vertex, ConstraintVertex)
             features[1, i] = 1.0f0
             if sr.chosenFeatures["constraint_activity"][1]
@@ -188,6 +190,9 @@ function featurize(sr::DefaultStateRepresentation{DefaultFeaturization,TS}; chos
             if sr.chosenFeatures["variable_is_objective"][1]
                 features[sr.chosenFeatures["variable_is_objective"][2], i] = sr.cplayergraph.cpmodel.objective == cp_vertex.variable
             end
+            if sr.chosenFeatures["variable_assigned_value"][1]
+                features[sr.chosenFeatures["variable_assigned_value"][2], i] = isbound(cp_vertex.variable) ? assignedValue(cp_vertex.variable) : 0
+            end
         end
         if isa(cp_vertex, ValueVertex)
             features[3, i] = 1.0f0
@@ -216,11 +221,13 @@ function initChosenFeatures!(sr::DefaultStateRepresentation{DefaultFeaturization
         "constraint_type" => (false, -1),
         "nb_involved_constraint_propagation" => (false, -1),
         "nb_not_bounded_variable" => (false, -1),
+        "node_number_of_neighbors" => (false, -1),
         "variable_domain_size" => (false, -1),
         "variable_initial_domain_size" => (false, -1),
         "variable_is_bound" => (false, -1),
         "variable_is_branchable" => (false, -1),
         "variable_is_objective" => (false, -1),
+        "variable_assigned_value" => (false, -1),
         "values_onehot" => (false, -1),
         "values_raw" => (false, -1),
     )
@@ -259,6 +266,16 @@ function initChosenFeatures!(sr::DefaultStateRepresentation{DefaultFeaturization
 
         if haskey(chosen_features, "variable_is_objective") && chosen_features["variable_is_objective"]
             sr.chosenFeatures["variable_is_objective"] = (true, counter)
+            counter += 1
+        end
+
+        if haskey(chosen_features, "variable_assigned_value") && chosen_features["variable_assigned_value"]
+            sr.chosenFeatures["variable_assigned_value"] = (true, counter)
+            counter += 1
+        end
+
+        if haskey(chosen_features, "node_number_of_neighbors") && chosen_features["node_number_of_neighbors"]
+            sr.chosenFeatures["node_number_of_neighbors"] = (true, counter)
             counter += 1
         end
 
@@ -309,8 +326,11 @@ Use the `sr.chosenFeatures` dictionary to find out which features are used and t
 """
 function update_features!(sr::DefaultStateRepresentation{DefaultFeaturization,TS}, ::CPModel) where {TS}
     g = sr.cplayergraph
-    for i in 1:nv(g)
+    for i in 1:LightGraphs.nv(g)
         cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
+        if sr.chosenFeatures["node_number_of_neighbors"][1]
+            sr.nodeFeatures[sr.chosenFeatures["node_number_of_neighbors"][2], i] = length(LightGraphs.outneighbors(g, i))
+        end
         if isa(cp_vertex, ConstraintVertex)
             if sr.chosenFeatures["constraint_activity"][1]
                 if isa(cp_vertex.constraint, ViewConstraint)
@@ -321,7 +341,11 @@ function update_features!(sr::DefaultStateRepresentation{DefaultFeaturization,TS
             end
 
             if sr.chosenFeatures["nb_involved_constraint_propagation"][1]
-                sr.nodeFeatures[sr.chosenFeatures["nb_involved_constraint_propagation"][2], i] = sr.cplayergraph.cpmodel.statistics.numberOfTimesInvolvedInPropagation[cp_vertex.constraint]
+                if isa(cp_vertex.constraint, ViewConstraint)
+                    sr.nodeFeatures[sr.chosenFeatures["nb_involved_constraint_propagation"][2], i] = 0
+                else
+                    sr.nodeFeatures[sr.chosenFeatures["nb_involved_constraint_propagation"][2], i] = sr.cplayergraph.cpmodel.statistics.numberOfTimesInvolvedInPropagation[cp_vertex.constraint]
+                end
             end
 
             if sr.chosenFeatures["nb_not_bounded_variable"][1]
@@ -336,6 +360,10 @@ function update_features!(sr::DefaultStateRepresentation{DefaultFeaturization,TS
 
             if sr.chosenFeatures["variable_is_bound"][1]
                 sr.nodeFeatures[sr.chosenFeatures["variable_is_bound"][2], i] = isbound(cp_vertex.variable)
+            end
+
+            if sr.chosenFeatures["variable_assigned_value"][1]
+                sr.nodeFeatures[sr.chosenFeatures["variable_assigned_value"][2], i] = isbound(cp_vertex.variable) ? assignedValue(cp_vertex.variable) : 0
             end
         end
         if isa(cp_vertex, ValueVertex) # Probably useless, check before removing

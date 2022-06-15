@@ -183,6 +183,30 @@ function from_order_to_id(state::Union{DefaultTrajectoryState, BatchedDefaultTra
 end
 
 """
+    from_id_to_order(state::Union{DefaultTrajectoryState, BatchedDefaultTrajectoryState, TsptwTrajectoryState}, value_id::Int64)
+
+Returns the index of the given `value_id` (sometimes named `vertex_id`) in either one of `state.possibleValuesIdx` or `state.allValuesIdx`
+according to the argument `which_list`. It can be either 'possibleValuesIdx' or 'allValuesIdx'.
+
+Used to work in `supervisedLeanedHeuristic.jl` to retrieve an action (which is the index in `state.possibleValuesIdx`) from a value, 
+and in `variableoutputcpnn.jl`. 
+
+"""
+function from_id_to_order(state::Union{DefaultTrajectoryState, BatchedDefaultTrajectoryState, HeterogeneousTrajectoryState, BatchedHeterogeneousTrajectoryState}, value_id::Int64; which_list="possibleValuesIdx", idx_in_batch=1)
+    @assert !isnothing(state.possibleValuesIdx)
+    if which_list == "possibleValuesIdx"
+        return findfirst(x->x == value_id, state.possibleValuesIdx)
+    elseif which_list == "allValuesIdx"
+        if isa(state,HeterogeneousTrajectoryState)
+            return findfirst(x->x == value_id, state.allValuesIdx)
+        else
+            return findfirst(x->x == value_id, state.allValuesIdx[:,idx_in_batch])
+        end
+    else
+        throw(DomainError(which_list, "which_list should be either 'possibleValuesIdx' or 'allValuesIdx'"))
+    end
+end
+"""
     action_to_value(vs::LearnedHeuristic{SR, R, VariableOutput}, action::Int64, state::AbstractArray, model::CPModel)
 
 Mapping action taken to corresponding value when handling VariableOutput type of ActionOutput.

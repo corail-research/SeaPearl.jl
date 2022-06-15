@@ -21,7 +21,7 @@ function parseInput(raw_input)
 
     for i in 1:numberOfEdges
         edgeArray = split(lines[i+1], ' ')
-        edge = Edge(parse(Int, edgeArray[1])+1, parse(Int, edgeArray[2])+1)
+        edge = LightGraphs.Edge(parse(Int, edgeArray[1])+1, parse(Int, edgeArray[2])+1)
         edges[i] = edge
     end
 
