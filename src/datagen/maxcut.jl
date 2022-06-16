@@ -30,7 +30,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::MaxCutGenerator;  rng::Abst
     end
 
     ### Objective ### minimize: -sum(edge_vars[i])
-    objective = SeaPearl.IntVar(-Graphs.nv(graph), 0, "objective", cpmodel.trailer)
+    objective = SeaPearl.IntVar(-Graphs.ne(graph), 0, "objective", cpmodel.trailer)
     SeaPearl.addVariable!(cpmodel, objective;branchable=false)
     push!(edge_vars, objective)
 

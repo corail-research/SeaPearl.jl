@@ -32,7 +32,6 @@ function (::RandomVariableSelection{true})(cpmodel::CPModel; rng=nothing)
             push!(acceptable_ids, id)
         end
     end
-    
     if !isnothing(rng)
         return cpmodel.variables[acceptable_ids[rand(rng, 1:length(acceptable_ids))]]
     end

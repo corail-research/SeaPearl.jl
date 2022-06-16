@@ -19,6 +19,8 @@
 
         @test length(keys(model.variables)) == n + 1 # the number of nodes + the objective
         @test length(model.constraints) == 3 + 1 # the number of edges + the objective constraint
+        @test minimum(model.objective.domain) == -4 
+        @test maximum(model.objective.domain) == 0
 
         variableheuristic = SeaPearl.RandomVariableSelection()
         valueheuristic = SeaPearl.RandomHeuristic()

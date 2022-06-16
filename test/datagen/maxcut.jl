@@ -19,8 +19,10 @@
 
         @test length(keys(model.variables)) == n + 3 + 1 # 1 var per node + 1 var per edge + the contraint var
         @test length(model.constraints) == 2 * 3 + 1 # 2 constraint per edge + the objective constraint
+        @test minimum(model.objective.domain) == -3 
+        @test maximum(model.objective.domain) == 0
 
-        variableheuristic = SeaPearl.RandomVariableSelection()
+        variableheuristic = SeaPearl.RandomVariableSelection(; take_objective=false)
         valueheuristic = SeaPearl.RandomHeuristic()
 
         SeaPearl.search!(model, SeaPearl.DFSearch(), variableheuristic, valueheuristic)
