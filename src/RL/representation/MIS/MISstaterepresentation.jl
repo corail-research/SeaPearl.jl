@@ -8,8 +8,8 @@ This is a standard MIS representation using the graph of the problem with nodes 
 mutable struct MISStateRepresentation{F, TS} <: FeaturizedStateRepresentation{F, TS}
     graph::LightGraphs.Graph
     nodeFeatures::Union{Nothing, AbstractMatrix{Float32}}
-    variableToId::Union{Nothing, Dict{Variable,Int}}
-    idToVariable::Union{Nothing, Vector{Variable}}
+    variableToId::Union{Nothing, Dict{AbstractVar,Int}}
+    idToVariable::Union{Nothing, Vector{AbstractVar}}
     variableIdx::Union{Nothing, Int64}
     possibleValuesIdx::Union{Nothing, AbstractVector{Int64}}
 end
@@ -26,27 +26,27 @@ MISRepresentation(model::CPModel) = MISStateRepresentation{MISFeaturization, MIS
 function DefaultTrajectoryState(sr::MISStateRepresentation{F, DefaultTrajectoryState}) where F
     # TODO change this once the InitializingPhase is fixed
     if isnothing(sr.variableIdx)
-        sr.variableIdx = 1
+        throw(ErrorException("Unable to build a DefaultTrajectoryState, when the branching variable is nothing."))
     end
     if isnothing(sr.possibleValuesIdx)
         throw(ErrorException("Unable to build a MISTrajectoryState, when the possible values vector is nothing."))
     end
 
-    n = nv(sr.graph)
-    adj = adjacency_matrix(sr.graph)
+    n = LightGraphs.nv(sr.graph)
+    adj = LightGraphs.adjacency_matrix(sr.graph)
     fg = FeaturedGraph(adj; nf=sr.nodeFeatures)
 
     actionSpace = collect(1:n)
 
-    return DefaultTrajectoryState(fg, sr.variableIdx, actionSpace)
+    return DefaultTrajectoryState(fg, sr.variableIdx, actionSpace, nothing)
 end
 
 function get_MIS_graph(model::CPModel)
-    graph = LightGraphs.Graph(model.numberOfVariables-1)
-    variableToId = Dict{Variable, Id}()
-    idToVariable = Vector{Variable}()
+    graph = LightGraphs.Graph(length(model.branchable_variables)-1)
+    variableToId = Dict{AbstractVar, Int}()
+    idToVariable = Vector{AbstractVar}()
     id = 1
-    for variable in model.variables
+    for variable in values(model.branchable_variables)
         if variable != model.objective
             variableToId[variable] = id
             push!(idToVariable, variable)
@@ -64,6 +64,7 @@ end
 
 function update_representation!(sr::MISStateRepresentation, model::CPModel, x::AbstractIntVar)
     sr.possibleValuesIdx = collect(x.domain)
+    sr.variableIdx = sr.variableToId[x]
     update_features!(sr, model)
     return sr
 end
@@ -74,7 +75,7 @@ end
 Create nodeFeatures for every node of the graph (current color of the node or -1 if the color has not been determined yet)
 """
 function featurize(sr::FeaturizedStateRepresentation{MISFeaturization, TS}) where TS
-    n = nv(sr.graph)
+    n = LightGraphs.nv(sr.graph)
     nodeFeatures = zeros(Float32, 1, n)
     for i in 1:n
         nodeFeatures[1,i] = 0
@@ -84,9 +85,9 @@ function featurize(sr::FeaturizedStateRepresentation{MISFeaturization, TS}) wher
 end
 
 function update_features!(sr::FeaturizedStateRepresentation{MISFeaturization, TS}, model::CPModel) where TS
-    for i in 1:nv(sr.graph)
-        if isbound(idToVariable[i])
-            nodeFeatures[1,i] = assignedValue(idToVariable[i])
+    for i in 1:LightGraphs.nv(sr.graph)
+        if isbound(sr.idToVariable[i])
+            sr.nodeFeatures[1,i] = assignedValue(sr.idToVariable[i])
         end
     end
     return 
