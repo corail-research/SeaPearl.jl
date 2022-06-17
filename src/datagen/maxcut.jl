@@ -9,28 +9,18 @@ function fill_with_generator!(cpmodel::CPModel, gen::MaxCutGenerator;  rng::Abst
     graph = Graphs.SimpleGraphs.barabasi_albert(gen.n, gen.k, seed=rand(rng, typemin(Int64):typemax(Int64)))
 
     # create node variables
-    node_vars = SeaPearl.IntVar[]
-    opposite_node_vars = SeaPearl.IntVarViewOpposite[]
+    node_vars = SeaPearl.BoolVar[]
     for v in Graphs.vertices(graph)
-        push!(node_vars, SeaPearl.IntVar(0, 1, "node_" * string(v), cpmodel.trailer))
-        push!(opposite_node_vars, SeaPearl.IntVarViewOpposite(last(node_vars), "-node_" * string(v)))
+        push!(node_vars, SeaPearl.BoolVar("node_" * string(v), cpmodel.trailer))
         SeaPearl.addVariable!(cpmodel, last(node_vars))
     end
 
     # create edge variable and constraints
-    edge_vars = SeaPearl.IntVar[]
-    opposite_edge_vars = SeaPearl.IntVarViewOpposite[]
+    edge_vars = SeaPearl.AbstractIntVar[]
     for e in Graphs.edges(graph)
-        push!(edge_vars, SeaPearl.IntVar(0, 1, "edge_" * string(e.src) * "->" * string(e.dst), cpmodel.trailer))
-        push!(opposite_edge_vars, SeaPearl.IntVarViewOpposite(last(edge_vars), "-edge_" * string(e.src) * "->" * string(e.dst)))
+        push!(edge_vars, SeaPearl.BoolVar("edge_" * string(e.src) * "->" * string(e.dst), cpmodel.trailer))
         SeaPearl.addVariable!(cpmodel, last(edge_vars); branchable=false)
-        # We want e = (e.src != e.dst)
-        # Since we can't write it like that in SeaPearl, we use the equivalence
-        # e = (e.src != e.dst) <=> (-1 <= e - e.src - e.dst <= 0 && 1 <= e + e.src + e.dst <= 2
-        SeaPearl.addConstraint!(cpmodel, SeaPearl.SumLessThan([last(edge_vars), opposite_node_vars[e.src], opposite_node_vars[e.dst]], 0, cpmodel.trailer))
-        SeaPearl.addConstraint!(cpmodel, SeaPearl.SumLessThan([last(opposite_edge_vars), node_vars[e.src], node_vars[e.dst]], 1, cpmodel.trailer))
-        SeaPearl.addConstraint!(cpmodel, SeaPearl.SumLessThan([last(edge_vars), node_vars[e.src], node_vars[e.dst]], 2, cpmodel.trailer))
-        SeaPearl.addConstraint!(cpmodel, SeaPearl.SumLessThan([last(opposite_edge_vars), opposite_node_vars[e.src], opposite_node_vars[e.dst]], -1, cpmodel.trailer))
+        SeaPearl.addConstraint!(cpmodel, SeaPearl.isBinaryXor(last(edge_vars), node_vars[e.src], node_vars[e.dst], cpmodel.trailer))
     end
 
     ### Objective ### minimize: -sum(edge_vars[i])

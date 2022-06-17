@@ -18,7 +18,7 @@
         # Therefore, the best solution is {4} and {1, 2, 3}
 
         @test length(keys(model.variables)) == n + 3 + 1 # 1 var per node + 1 var per edge + the contraint var
-        @test length(model.constraints) == 2 * 3 + 1 # 2 constraint per edge + the objective constraint
+        @test length(model.constraints) == 3 + 1 # 1 constraint per edge + the objective constraint
         @test minimum(model.objective.domain) == -3 
         @test maximum(model.objective.domain) == 0
 
