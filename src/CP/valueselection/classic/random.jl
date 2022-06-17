@@ -14,7 +14,7 @@ function select_random_value(x::SeaPearl.IntVar, rng::Union{Nothing,AbstractRNG}
 end
 
 """
-    select_random_value(x::SeaPearl.IntVar, rng::Union{Nothing,AbstractRNG})
+    select_random_value(x::SeaPearl.BoolVar, rng::Union{Nothing,AbstractRNG})
 
 Selects a random value of the domain of `x`.
 
