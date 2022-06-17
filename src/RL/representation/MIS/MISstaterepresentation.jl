@@ -42,7 +42,7 @@ function DefaultTrajectoryState(sr::MISStateRepresentation{F, DefaultTrajectoryS
 end
 
 function get_MIS_graph(model::CPModel)
-    graph = LightGraphs.Graph(length(model.branchable_variables)-1)
+    graph = LightGraphs.Graph(length(model.branchable_variables))
     variableToId = Dict{AbstractVar, Int}()
     idToVariable = Vector{AbstractVar}()
     id = 1
