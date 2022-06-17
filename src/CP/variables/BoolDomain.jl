@@ -53,7 +53,6 @@ function Base.in(value::Bool, dom::BoolDomain)
     return Base.in(intValue, dom.inner)
 end
 
-
 """
     remove!(dom::BoolDomain, value::Bool)
 
