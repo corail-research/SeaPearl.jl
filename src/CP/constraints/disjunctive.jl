@@ -64,7 +64,7 @@ struct Disjunctive <: Constraint
     active::StateObject{Bool}
     filteringAlgorithm::Array{filteringAlgorithmTypes}
 
-    function Disjunctive(earliestStartingTime::Array{AbstractIntVar}, 
+    function Disjunctive(earliestStartingTime::Array{<:AbstractIntVar}, 
                         processingTime::Array{Int}, trailer, filteringAlgorithm::Array{filteringAlgorithmTypes} = [algoTimeTabling])::Disjunctive
 
         tasks = []
