@@ -1,4 +1,4 @@
-abstract type AbstractBoolDomain <: AbstractDomain end
+abstract type AbstractBoolDomain <: AbstractIntDomain end
 
 """
     struct BoolDomain <: AbstractDomain
@@ -55,7 +55,7 @@ end
 
 
 """
-    remove!(dom::BoolDomain, value::Int)
+    remove!(dom::BoolDomain, value::Bool)
 
 Remove `value` from `dom`. Done in constant time.
 """
@@ -71,15 +71,36 @@ function remove!(dom::BoolDomain, value::Bool)
 end
 
 """
+    remove!(dom::BoolDomain, value::Int)
+
+Remove `value` from `dom`. Done in constant time.
+"""
+remove!(dom::BoolDomain, value::Int) = convert.(Bool, remove!(dom.inner, value))
+
+"""
     removeAll!(dom::BoolDomain)
 
 Remove every value from `dom`. Return the removed values. Done in constant time.
 """
 removeAll!(dom::BoolDomain) = convert.(Bool, removeAll!(dom.inner))
 
+"""
+    removeAbove!(dom::IntDomain, value::Int)
+
+Remove every integer of `dom` that is *strictly* above `value`. Done in *linear* time.
+"""
+removeAbove!(dom::BoolDomain, value::Int) = convert.(Bool, removeAbove!(dom.inner, value))
 
 """
-    assign!(dom::BoolDomain, value::Int)
+    removeBelow!(dom::IntDomain, value::Int)
+
+Remove every integer of `dom` that is *strictly* below `value`. Return the pruned values.
+Done in *linear* time.
+"""
+removeBelow!(dom::BoolDomain, value::Int) = convert.(Bool, removeBelow!(dom.inner, value))
+
+"""
+    assign!(dom::BoolDomain, value::Bool)
 
 Remove everything from the domain but `value`. Return the removed values. Return the pruned values.
 Done in *constant* time.
@@ -90,6 +111,13 @@ function assign!(dom::BoolDomain, value::Bool)
     return convert.(Bool, assign!(dom.inner, convert(Int, value)))
 end
 
+"""
+    assign!(dom::BoolDomain, value::Int)
+
+Remove everything from the domain but `value`. Return the removed values. Return the pruned values.
+Done in *constant* time.
+"""
+assign!(dom::BoolDomain, value::Int) = convert.(Bool, assign!(dom.inner, convert(Int, value)))
 
 """
     Base.iterate(dom::BoolDomain, state=1)
@@ -106,3 +134,19 @@ function Base.iterate(dom::BoolDomain, state=1)
     value, newState = returned
     return convert(Bool, value), newState
 end
+
+"""
+    minimum(dom::BoolDomain)
+
+Return the minimum value of `dom`.
+Done in *constant* time.
+"""
+minimum(dom::BoolDomain) = minimum(dom.inner)
+
+"""
+    maximum(dom::BoolDomain)
+
+Return the maximum value of `dom`.
+Done in *constant* time.
+"""
+maximum(dom::BoolDomain) = maximum(dom.inner)

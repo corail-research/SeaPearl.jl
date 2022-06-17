@@ -38,8 +38,6 @@ Check whether x has an assigned value.
 """
 isbound(x::AbstractBoolVar) = length(x.domain) == 1
 
-
-
 """
     assign!(x::BoolVar, value::Bool)
 
