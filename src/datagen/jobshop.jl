@@ -6,15 +6,15 @@ struct JobShopGenerator  <: AbstractModelGenerator
     job_order          :: Matrix{Int}
 
     function JobShopGenerator(numberOfMachines::Int,numberOfJobs::Int,maxTime:: Int)
-        job_times  =  fill(1,numberOfJobs,numberOfMachines)
+        job_times  =  fill(1,numberOfJobs,numberOfMachines) #each task needs to be run at least for 1 unit of time on each machine
         for i in 1:numberOfJobs
-            totalTimePerTask = Int(floor(maxTime/2))
+            totalTimePerTask = Int(floor(maxTime/2)) 
             for j in 1:totalTimePerTask-numberOfMachines
                 job_times[i,rand(1:j) % numberOfMachines + 1] += 1
             end
         end
     
-        job_order = mapreduce(permutedims, vcat, [randperm(numberOfMachines) for i in 1:numberOfJobs])
+        job_order = mapreduce(permutedims, vcat, [randperm(numberOfMachines) for i in 1:numberOfJobs])    #job_order for each task generated using random row-wise permutation.
         return new(numberOfMachines, numberOfJobs, maxTime, job_times, job_order)
     end
 end
@@ -39,7 +39,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::JobShopGenerator;  rng::Abs
     for i in 1:gen.numberOfJobs
         for j in 1:gen.numberOfMachines
             job_start[i,j] = SeaPearl.IntVar(1, gen.maxTime, "job_start_"*string(i)*"_"*string(j), cpmodel.trailer)
-            SeaPearl.addVariable!(cpmodel, job_start[i,j]; branchable=true)
+            SeaPearl.addVariable!(cpmodel, job_start[i,j]; branchable=true)  #TODO : double-check this 
             job_end[i,j] = SeaPearl.IntVarViewOffset(job_start[i,j], gen.job_times[i,j], "job_end_"*string(i)*"_"*string(j))
             SeaPearl.addVariable!(cpmodel, job_end[i,j]; branchable=false)
             # Set maxTime as upper bound to each job_end
@@ -74,7 +74,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::JobShopGenerator;  rng::Abs
         end
     end
 
-    TotalTime = SeaPearl.IntVar(gen.numberOfMachines, gen.maxTime, "TotalTime", cpmodel.trailer)
+    TotalTime = SeaPearl.IntVar(gen.numberOfMachines, gen.maxTime, "TotalTime", cpmodel.trailer) #THe total time is at least numberOfMachines unit of time considering the way job_times is generated
     SeaPearl.addVariable!(cpmodel, TotalTime; branchable=true)
     for i in 1:gen.numberOfJobs
         for j in 1:gen.numberOfMachines
@@ -86,12 +86,3 @@ function fill_with_generator!(cpmodel::CPModel, gen::JobShopGenerator;  rng::Abs
 
     return cpmodel
 end
-
-
-"""
-gen = SeaPearl.JobShopGenerator(20,5,50)
-model = SeaPearl.CPModel(SeaPearl.Trailer())
-model.limit.numberOfSolutions = 1
-model.limit.searchingTime = 60
-SeaPearl.fill_with_generator!(model,gen)
-SeaPearl.solve!(model; variableHeuristic=SeaPearl.MinDomainVariableSelection{true}(), valueSelection=SeaPearl.BasicHeuristic(my_heuristic))"""
