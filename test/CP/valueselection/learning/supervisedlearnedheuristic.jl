@@ -201,7 +201,7 @@
         SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x2, x3, trailer))
         SeaPearl.addConstraint!(model, SeaPearl.NotEqual(x3, x4, trailer))
 
-        variableHeuristic = SeaPearl.MinDomainVariableSelection{false}()
+        variableHeuristic = SeaPearl.MinDomainVariableSelection{true}()
         x = variableHeuristic(model)
 
         lh = SeaPearl.SupervisedLearnedHeuristic(agent)

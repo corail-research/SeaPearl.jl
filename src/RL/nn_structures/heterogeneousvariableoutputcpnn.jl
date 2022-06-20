@@ -17,6 +17,7 @@ end
 # Enable the `|> gpu` syntax from Flux
 Flux.@functor HeterogeneousVariableOutputCPNN
 
+
 wears_mask(s::HeterogeneousVariableOutputCPNN) = true
 
 function (nn::HeterogeneousVariableOutputCPNN)(state::HeterogeneousTrajectoryState)

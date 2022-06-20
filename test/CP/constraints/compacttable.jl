@@ -172,7 +172,7 @@
         SeaPearl.addConstraint!(model, constraint1)
         SeaPearl.addConstraint!(model, constraint2)
 
-        variableSelection = SeaPearl.MinDomainVariableSelection{false}()
+        variableSelection = SeaPearl.MinDomainVariableSelection{true}()
         SeaPearl.solve!(model; variableHeuristic=variableSelection)
         
         @test length(model.statistics.solutions) == 6
