@@ -41,7 +41,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::JobShopGenerator;  rng::Abs
             job_start[i,j] = SeaPearl.IntVar(1, gen.maxTime, "job_start_"*string(i)*"_"*string(j), cpmodel.trailer)
             SeaPearl.addVariable!(cpmodel, job_start[i,j]; branchable=true)  #TODO : double-check this 
             job_end[i,j] = SeaPearl.IntVarViewOffset(job_start[i,j], gen.job_times[i,j], "job_end_"*string(i)*"_"*string(j))
-            SeaPearl.addVariable!(cpmodel, job_end[i,j]; branchable=false)
+            # SeaPearl.addVariable!(cpmodel, job_end[i,j]; branchable=false)
             # Set maxTime as upper bound to each job_end
             SeaPearl.addConstraint!(cpmodel, SeaPearl.LessOrEqualConstant(job_end[i,j] , gen.maxTime,  cpmodel.trailer))
         end
