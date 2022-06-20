@@ -243,3 +243,17 @@ function detectablePrecedence!(constraint::Disjunctive, toPropagate::Set{Constra
 end
 
 variablesArray(constraint::Disjunctive) = [task.earliestStartingTime for task in constraint.tasks]
+
+function variablesArray(constraint::Disjunctive) 
+    variables = [task.earliestStartingTime for task in constraint.tasks]
+    varviews = []
+    for var in variables
+        for varview in var.children
+            if isa(varview, IntVarViewOffset)
+                push!(variables,varview)
+            end
+        end
+    end
+    append!(variables,varviews)
+    return variables
+end
