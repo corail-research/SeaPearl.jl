@@ -37,7 +37,6 @@
             0 0 0 1 0 0 0
             0 0 0 1 0 0 0
             0 0 1 1 0 0 0]
-
         # Because chosen_features is not specified, there is no feature
         @test size(hsr.variableNodeFeatures) == (0, 2)
         @test size(hsr.constraintNodeFeatures) == (0, 2)
