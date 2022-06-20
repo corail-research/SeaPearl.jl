@@ -38,7 +38,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::JobShopGenerator;  rng::Abs
     # add variables
     for i in 1:gen.numberOfJobs
         for j in 1:gen.numberOfMachines
-            job_start[i,j] = SeaPearl.IntVar(0, gen.maxTime, "job_start_"*string(i)*"_"*string(j), cpmodel.trailer)
+            job_start[i,j] = SeaPearl.IntVar(1, gen.maxTime, "job_start_"*string(i)*"_"*string(j), cpmodel.trailer)
             SeaPearl.addVariable!(cpmodel, job_start[i,j]; branchable=true)
             job_end[i,j] = SeaPearl.IntVarViewOffset(job_start[i,j], gen.job_times[i,j], "job_end_"*string(i)*"_"*string(j))
             SeaPearl.addVariable!(cpmodel, job_end[i,j]; branchable=false)
@@ -74,7 +74,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::JobShopGenerator;  rng::Abs
         end
     end
 
-    TotalTime = SeaPearl.IntVar(1, gen.maxTime, "TotalTime", cpmodel.trailer)
+    TotalTime = SeaPearl.IntVar(gen.numberOfMachines, gen.maxTime, "TotalTime", cpmodel.trailer)
     SeaPearl.addVariable!(cpmodel, TotalTime; branchable=true)
     for i in 1:gen.numberOfJobs
         for j in 1:gen.numberOfMachines
