@@ -1,5 +1,5 @@
 @testset "mindomain.jl VariableSelection" begin
-    @testset "MinDomainVariableSelection{TakeObjective=true}" begin
+    @testset "MinDomainVariableSelection{TakeObjective=false}" begin
         trailer = SeaPearl.Trailer()
         cpmodel = SeaPearl.CPModel(trailer)
         x1 = SeaPearl.IntVar(1, 4, "x1", trailer)
@@ -11,7 +11,7 @@
         SeaPearl.addVariable!(cpmodel, y)
         SeaPearl.addObjective!(cpmodel,y)
 
-        variableselection = SeaPearl.MinDomainVariableSelection{true}()
+        variableselection = SeaPearl.MinDomainVariableSelection{false}()
 
         @test variableselection(cpmodel) == x1
 
@@ -34,7 +34,7 @@
         SeaPearl.addObjective!(cpmodel,y)
 
 
-        variableselection = SeaPearl.MinDomainVariableSelection{true}()
+        variableselection = SeaPearl.MinDomainVariableSelection{false}()
 
         @test variableselection(cpmodel) == x1
 
@@ -44,7 +44,7 @@
         SeaPearl.removeAbove!(y.domain, 2)
         @test variableselection(cpmodel) == y
     end
-    @testset "MinDomainVariableSelection{TakeObjective=false}" begin
+    @testset "MinDomainVariableSelection{TakeObjective=true}" begin
         trailer = SeaPearl.Trailer()
         cpmodel = SeaPearl.CPModel(trailer)
         x1 = SeaPearl.IntVar(1, 4, "x1", trailer)
@@ -57,7 +57,7 @@
         SeaPearl.addObjective!(cpmodel,y)
 
 
-        variableselection = SeaPearl.MinDomainVariableSelection{false}()
+        variableselection = SeaPearl.MinDomainVariableSelection{true}()
 
         @test variableselection(cpmodel) == x1
 
@@ -80,7 +80,7 @@
         SeaPearl.addObjective!(cpmodel,y)
 
 
-        variableselection = SeaPearl.MinDomainVariableSelection{false}()
+        variableselection = SeaPearl.MinDomainVariableSelection{true}()
 
         @test variableselection(cpmodel) == x2
 

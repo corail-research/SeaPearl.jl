@@ -45,7 +45,12 @@ function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
         return :Infeasible
     end
     if solutionFound(model)
-        triggerFoundSolution!(model)
+        act = triggerFoundSolution!(model)
+        if act == :tightenObjective
+            if isa(valueSelection, LearnedHeuristic) && !valueSelection.trainMode || isa(valueSelection, BasicHeuristic)
+                tightenObjective!(model)
+            end
+        end
         return :FoundSolution
     end
 

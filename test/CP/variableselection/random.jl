@@ -1,5 +1,5 @@
 @testset "random.jl VariableSelection" begin
-    @testset "RandomVariableSelection{TakeObjective=true}" begin
+    @testset "RandomVariableSelection{TakeObjective=false}" begin
         trailer = SeaPearl.Trailer()
         cpmodel = SeaPearl.CPModel(trailer)
         x = SeaPearl.IntVar(1, 2, "x", trailer)
@@ -11,7 +11,7 @@
 
         rng = MersenneTwister(10)
 
-        variableselection = SeaPearl.RandomVariableSelection{true}()
+        variableselection = SeaPearl.RandomVariableSelection{false}()
 
         # This condition is there because of the way random are generated can change from one version to another
         if VERSION >= v"1.6.0"
@@ -32,7 +32,7 @@
 
         rng = MersenneTwister(10)
 
-        variableselection = SeaPearl.RandomVariableSelection{true}()
+        variableselection = SeaPearl.RandomVariableSelection{false}()
 
         # This condition is there because of the way random are generated can change from one version to another
         if VERSION >= v"1.6.0"
@@ -41,7 +41,7 @@
             @test variableselection(cpmodel; rng=rng) == x
         end
     end
-    @testset "RandomVariableSelection{TakeObjective=false}" begin
+    @testset "RandomVariableSelection{TakeObjective=true}" begin
         trailer = SeaPearl.Trailer()
         cpmodel = SeaPearl.CPModel(trailer)
         x = SeaPearl.IntVar(1, 2, "x", trailer)
@@ -55,7 +55,7 @@
 
         rng = MersenneTwister(10)
 
-        variableselection = SeaPearl.RandomVariableSelection{false}()
+        variableselection = SeaPearl.RandomVariableSelection{true}()
 
         # This condition is there because of the way random are generated can change from one version to another
         if VERSION >= v"1.6.0"
