@@ -67,7 +67,7 @@ function (valueSelection::LearnedHeuristic)(PHASE::Type{EndingPhase}, model::CPM
         valueSelection.agent(RL.POST_EPISODE_STAGE, env)  # let the agent see the last observation
     end
 
-    if CUDA.has_cuda()
-        CUDA.reclaim()
-    end
+    #if CUDA.has_cuda()
+    #    CUDA.reclaim()
+    #end
 end
