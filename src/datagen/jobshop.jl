@@ -12,12 +12,12 @@ creating temporary files for efficiency purpose.
 function fill_with_generator!(cpmodel::CPModel, gen::JobShopGenerator;  rng::AbstractRNG = MersenneTwister())
     job_times  =  fill(1, gen.numberOfJobs, gen.numberOfMachines) #each task needs to be run at least for 1 unit of time on each machine
     for i in 1:gen.numberOfJobs
-        totalTimePerTask = Int(floor(gen.maxTime/2)) 
+        totalTimePerTask = Int(floor(gen.maxTime*(gen.numberOfMachines/gen.numberOfJobs)*0.4))
         for j in 1:totalTimePerTask-gen.numberOfMachines
             job_times[i,rand(rng, 1:j) % gen.numberOfMachines + 1] += 1
         end
     end
-
+    
     job_order = mapreduce(permutedims, vcat, [randperm(rng, gen.numberOfMachines) for i in 1:gen.numberOfJobs])    #job_order for each task generated using random row-wise permutation.
     cpmodel.adhocInfo = Dict("numberOfMachines" => gen.numberOfMachines, "numberOfJobs" => gen.numberOfJobs, "job_times" => job_times, "job_order" => job_order)
 
@@ -74,7 +74,6 @@ function fill_with_generator!(cpmodel::CPModel, gen::JobShopGenerator;  rng::Abs
         end
     end
     SeaPearl.addObjective!(cpmodel,TotalTime)
-
 
     return cpmodel
 end
