@@ -67,9 +67,9 @@ function (nn::HeterogeneousFFCPNNv3)(states::BatchedHeterogeneousTrajectoryState
             pooledConstraintFeatures = reshape(mapslices(x -> sum(eachcol(x)), constraintFeatures, dims=[1,2]), :, 1, batchSize) / size(variableFeatures, 2)
             pooledValueFeatures = reshape(mapslices(x -> sum(eachcol(x)), valueFeatures, dims=[1,2]), :, 1, batchSize) / size(variableFeatures, 2)
         elseif nn.pooling == "max"
-            pooledVariableFeatures = reshape(mapslices(x -> maximum(x), variableFeatures, dims=2), :, 1, batchSize) 
-            pooledConstraintFeatures = reshape(mapslices(x -> maximum(x), constraintFeatures, dims=2), :, 1, batchSize) 
-            pooledValueFeatures = reshape(mapslices(x -> maximum(x), valueFeatures, dims=2), :, 1, batchSize) 
+            pooledVariableFeatures = reshape(mapslices(x -> Base.maximum(x), variableFeatures, dims=2), :, 1, batchSize) 
+            pooledConstraintFeatures = reshape(mapslices(x -> Base.maximum(x), constraintFeatures, dims=2), :, 1, batchSize) 
+            pooledValueFeatures = reshape(mapslices(x -> Base.maximum(x), valueFeatures, dims=2), :, 1, batchSize) 
         end
     end
     #println("pooledVariableFeatures: ", size(pooledVariableFeatures))
@@ -90,18 +90,18 @@ function (nn::HeterogeneousFFCPNNv3)(states::BatchedHeterogeneousTrajectoryState
             pooledVariableFeatures, 
             pooledConstraintFeatures,
             pooledValueFeatures
-        ) # (F'+G'+F')xAxB
+        ) # F'x(A+5)xB
 
         #finalFeatures = RL.flatten_batch(finalFeatures) # (F'+G'+F')x(A*B)
     else
         # Prepare the input of the outputChain
         finalFeatures = hcat(
-            branchingVariableFeatures, # F'xAxB
+            branchingVariableFeatures, # F'x1xB
             valueFeatures, # F'xAxB
             pooledVariableFeatures, 
             pooledConstraintFeatures,
             pooledValueFeatures,
-        ) # (F'+F')xAxB
+        ) # F'x(A+4)xB
         #finalFeatures = RL.flatten_batch(finalFeatures) # (F'+F')x(A*B)
     end
     #println("finalFeatures: ", size(finalFeatures))
@@ -143,12 +143,12 @@ function (nn::HeterogeneousFFCPNNv3)(states::HeterogeneousTrajectoryState)
             pooledValueFeatures = sum(eachcol(valueFeatures))
         elseif nn.pooling == "mean"
             pooledVariableFeatures = sum(eachcol(variableFeatures)) / size(variableFeatures, 2)
-            pooledConstraintFeatures = sum(eachcol(constraintFeatures)) / size(variableFeatures, 2)
-            pooledValueFeatures = sum(eachcol(valueFeatures)) / size(variableFeatures, 2)
+            pooledConstraintFeatures = sum(eachcol(constraintFeatures)) / size(constraintFeatures, 2)
+            pooledValueFeatures = sum(eachcol(valueFeatures)) / size(valueFeatures, 2)
         elseif nn.pooling == "max"
-            pooledVariableFeatures = reshape(mapslices(x -> maximum(x), variableFeatures, dims=2), :, 1, batchSize) 
-            pooledConstraintFeatures = reshape(mapslices(x -> maximum(x), constraintFeatures, dims=2), :, 1, batchSize) 
-            pooledValueFeatures = reshape(mapslices(x -> maximum(x), valueFeatures, dims=2), :, 1, batchSize) 
+            pooledVariableFeatures = mapslices(x -> Base.maximum(x), variableFeatures, dims=2)
+            pooledConstraintFeatures = mapslices(x -> Base.maximum(x), constraintFeatures, dims=2) 
+            pooledValueFeatures = mapslices(x -> Base.maximum(x), valueFeatures, dims=2) 
         end
     end
     #println("pooledVariableFeatures: ", size(pooledVariableFeatures))
@@ -181,7 +181,8 @@ function (nn::HeterogeneousFFCPNNv3)(states::HeterogeneousTrajectoryState)
     
     # output layer
     predictions = nn.outputChain(finalFeatures)[:, 1:actionSpaceSize] # OxA
-    #println("predictions: ", size(predictions))
+    #println("predictions: ")
+    #display(predictions)
 
     return predictions
 end
