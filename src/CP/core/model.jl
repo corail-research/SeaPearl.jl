@@ -168,9 +168,10 @@ function triggerFoundSolution!(model::CPModel)
         if !isnothing(model.objective)
             @assert !isnothing(model.statistics.objectives)   "did you used SeaPearl.addObjective! to declare your objective function ? "
             push!(model.statistics.objectives, assignedValue(model.objective))
-            tightenObjective!(model)
+            return :tightenObjective
         end
     end
+    return :doNothing
 end
 """
     triggerInfeasible!(constraint::Constraint, model::CPModel)
@@ -323,7 +324,7 @@ the restart criteria.
 """
 function restart_search!(model::CPModel)
     restoreInitialState!(model.trailer)
-    model.statistics.lastPruning = nothing
+    model.statistics.lastPruning = 0
     model.statistics.lastVar = nothing
     model.statistics.numberOfInfeasibleSolutionsBeforeRestart = 0
     model.statistics.numberOfSolutionsBeforeRestart = 0
