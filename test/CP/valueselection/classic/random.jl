@@ -30,7 +30,6 @@
         heuristic = SeaPearl.RandomHeuristic(rng)
 
         x = SeaPearl.IntVar(2, 6, "x", trailer)
-
         @test heuristic.selectValue(x) == 5
         @test heuristic.selectValue(x) == 3
         @test heuristic.selectValue(x) == 5
@@ -41,5 +40,17 @@
         @test heuristic.selectValue(x) == 6
         @test heuristic.selectValue(x) == 6
         @test heuristic.selectValue(x) == 3
+
+        x = SeaPearl.BoolVar("x", trailer)
+        @test heuristic.selectValue(x) == true
+        @test heuristic.selectValue(x) == true
+        @test heuristic.selectValue(x) == true
+        @test heuristic.selectValue(x) == true
+        @test heuristic.selectValue(x) == false
+        @test heuristic.selectValue(x) == true
+        @test heuristic.selectValue(x) == false
+        @test heuristic.selectValue(x) == false
+        @test heuristic.selectValue(x) == false
+        @test heuristic.selectValue(x) == true
     end
 end

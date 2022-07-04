@@ -15,7 +15,7 @@ abstract type AbstractIntVar <: AbstractVar end
 
 Abstract type for all boolean variables.
 """
-abstract type AbstractBoolVar <: AbstractVar end
+abstract type AbstractBoolVar <: AbstractIntVar end
 
 """
     function id(x::AbstractVar)
