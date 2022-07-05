@@ -9,7 +9,13 @@ struct MaximumConstraint <: Constraint
     active              :: StateObject{Bool}
     function MaximumConstraint(x::Array{<:AbstractIntVar},y::AbstractIntVar, trailer)
         @assert !isempty(x)
-        return new(x, y, StateObject(true,trailer))
+        
+        constraint = new(x, y, StateObject(true,trailer))
+        for i in 1:length(x)
+            addOnDomainChange!(x[i], constraint)
+        end
+        addOnDomainChange!(y, constraint)
+        return constraint
     end
 end
 
@@ -19,7 +25,6 @@ end
 `MaximumConstraint` propagation function.
 """
 function propagate!(constraint::MaximumConstraint, toPropagate::Set{Constraint}, prunedDomains::CPModification)
-    println("maximum propagation")
     max = typemin(Int)
     min = typemin(Int)
     nSupport = 0
