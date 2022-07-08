@@ -42,12 +42,11 @@ end
 
 function (g::GraphConv{<:AbstractMatrix,<:Any,meanPooling})(fgs::BatchedFeaturedGraph{Float32})
     A, X = fgs.graph, fgs.nf
-
-    sum = nothing
+    sumVal = nothing
     Zygote.ignore() do
-        sum = replace(reshape(mapslices(x -> sum(eachrow(x)), A, dims=[1, 2]), 1, :, size(A, 3)), 0=>1)    
+        sumVal = replace(reshape(mapslices(x -> sum(eachrow(x)), A, dims=[1, 2]), 1, :, size(A, 3)), 0=>1)    
     end
-    A = A ./ sum
+    A = A ./ sumVal
 
     return BatchedFeaturedGraph{Float32}(
         fgs.graph;
