@@ -192,7 +192,7 @@ adj = [0 1 0 1;
             "nb_not_bounded_variable" => false
         )
         sr = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}(model; action_space = 1:4, chosen_features=chosen_features)
-        
+
         # Testing the initialization of the node features
         @test sr.nodeFeatures[1:3,:] == Float32[1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0 1.0 0.0 0.0 0.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0] # One hot encoding of node type
         @test sr.nodeFeatures[4,:] == Float32[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] # Constraint activity
