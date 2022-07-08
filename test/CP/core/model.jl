@@ -122,7 +122,10 @@
         SeaPearl.addVariable!(model, y)
         SeaPearl.addObjective!(model, y)
 
-        SeaPearl.triggerFoundSolution!(model)
+        act = SeaPearl.triggerFoundSolution!(model)
+        if act == :tightenObjective
+            SeaPearl.tightenObjective!(model)
+        end
 
         @test length(model.statistics.solutions) == 1
         @test model.statistics.solutions[1] == Dict("x" => 2,"y" => 3)
@@ -268,7 +271,10 @@
 
         SeaPearl.assign!(x, 3)
         SeaPearl.fixPoint!(model)
-        SeaPearl.triggerFoundSolution!(model)
+        act = SeaPearl.triggerFoundSolution!(model)
+        if act == :tightenObjective
+            SeaPearl.tightenObjective!(model)
+        end
 
         @test SeaPearl.length(x.domain) == 1
         @test model.objectiveBound == 2
@@ -276,6 +282,7 @@
         @test SeaPearl.length(x.domain) == 4
         @test isnothing(model.objectiveBound)
     end
+
     @testset "restart_search" begin
 
         trailer = SeaPearl.Trailer()

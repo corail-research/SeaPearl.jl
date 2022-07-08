@@ -1,4 +1,6 @@
-@testset "training.jl inside the solver (with backtracking)" begin
+# The following test was deleted as we no longer do training with backtracking
+
+#=@testset "training.jl inside the solver (with backtracking)" begin
     
     println("Training inside the solver -------- ")
 
@@ -93,7 +95,7 @@
 
     @test final_params != initial_params
 
-end
+end=#
 
 @testset "training.jl outside the solver (without backtracking)" begin
 
