@@ -28,6 +28,7 @@ include("heterogeneousfullfeaturedcpnn.jl")
 include("heterogeneousfullfeaturedcpnnv2.jl")
 include("heterogeneousfullfeaturedcpnnv3.jl")
 include("heterogeneousfullfeaturedcpnnv4.jl")
+include("heterogeneousfullfeaturedcpnnv5.jl")
 include("fullfeaturedcpnn.jl")
 include("variableoutputcpnn.jl")
 
