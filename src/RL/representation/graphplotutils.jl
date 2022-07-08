@@ -28,7 +28,7 @@ function plottripartite(sr::Union{DefaultStateRepresentation, HeterogeneousState
             push!(label,typeof(v.constraint))
         end
     end
-    draw(PDF("test.pdf", 16cm, 16cm), gplot(Graphs.Graph(am); nodefillc=nodefillc, nodelabel=label))
+    draw(PDF("plot.pdf", 16cm, 16cm), gplot(Graphs.Graph(am); nodefillc=nodefillc, nodelabel=label))
     error("Your plot is ready")
 end
 
