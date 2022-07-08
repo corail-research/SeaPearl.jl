@@ -91,13 +91,13 @@ creating temporary files for efficiency purpose.
 """
 function fill_with_generator!(cpmodel::CPModel, gen::JobShopSoftDeadlinesGenerator;  rng::AbstractRNG = MersenneTwister())
     job_times  =  fill(1, gen.numberOfJobs, gen.numberOfMachines) #each task needs to be run at least for 1 unit of time on each machine
+    totalTimePerTask = Int(floor(gen.maxTime*(gen.numberOfMachines/gen.numberOfJobs)*0.45))
     for i in 1:gen.numberOfJobs
-        totalTimePerTask = Int(floor(gen.maxTime*(gen.numberOfMachines/gen.numberOfJobs)*0.5))
         for j in 1:totalTimePerTask-gen.numberOfMachines
             job_times[i,rand(rng, 1:j) % gen.numberOfMachines + 1] += 1
         end
     end
-    jobSoftDeadlines = [rand(rng, Int(round(gen.maxTime*0.5)):gen.maxTime) for i in 1:gen.numberOfJobs]
+    jobSoftDeadlines = [rand(rng, totalTimePerTask:gen.maxTime) for i in 1:gen.numberOfJobs]
     job_order = mapreduce(permutedims, vcat, [randperm(rng, gen.numberOfMachines) for i in 1:gen.numberOfJobs])    #job_order for each task generated using random row-wise permutation.
     cpmodel.adhocInfo = Dict("numberOfMachines" => gen.numberOfMachines, "numberOfJobs" => gen.numberOfJobs, "job_times" => job_times, "job_order" => job_order)
 
@@ -127,19 +127,19 @@ function fill_with_generator!(cpmodel::CPModel, gen::JobShopSoftDeadlinesGenerat
         SeaPearl.addConstraint!(cpmodel, SeaPearl.MaximumConstraint(job_end[i,:], job_ending_time[i], cpmodel.trailer))
     end
     
-    zero_constant = SeaPearl.IntVar(0, 0, "zero", cpmodel.trailer)
-    SeaPearl.addVariable!(cpmodel, zero_constant; branchable=false)
     job_penalties = Vector{SeaPearl.AbstractIntVar}(undef, gen.numberOfJobs)
     possible_job_penalties = Vector{SeaPearl.AbstractIntVar}(undef, gen.numberOfJobs)
     for i in 1:gen.numberOfJobs
         job_penalties[i] = SeaPearl.IntVar(0, gen.maxTime, "job_penalty_"*string(i), cpmodel.trailer)
+        zero_constant = SeaPearl.IntVar(0, 0, "zero_"*string(i), cpmodel.trailer)
+        SeaPearl.addVariable!(cpmodel, zero_constant; branchable=false)
         SeaPearl.addVariable!(cpmodel, job_penalties[i]; branchable=false)
         possible_job_penalties[i] = SeaPearl.IntVarViewOffset(job_ending_time[i], -jobSoftDeadlines[i], "possible_job_penalties"*string(i))
         SeaPearl.addConstraint!(cpmodel, SeaPearl.BinaryMaximumBC(job_penalties[i],possible_job_penalties[i],zero_constant,cpmodel.trailer))
     end
 
     # Add objective
-    objective = SeaPearl.IntVar(0, gen.numberOfJobs*Int(round(gen.maxTime/2)), "objective", cpmodel.trailer)
+    objective = SeaPearl.IntVar(0, gen.numberOfJobs*(gen.maxTime-totalTimePerTask), "objective", cpmodel.trailer)
     SeaPearl.addVariable!(cpmodel, objective, branchable=false)
     objectiveArray = AbstractIntVar[]
     append!(objectiveArray, job_penalties)
