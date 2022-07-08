@@ -80,7 +80,7 @@ function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any,meanPooling})(fgs::Ba
     end
     XX1 = g.σ.(g.weightsvar ⊠ MatVar .+ g.biasvar)
     XX2 = g.σ.(g.weightscon ⊠ MatCon .+ g.biascon)
-    XX3 = g.σ.(g.weightsval ⊠ MatVal.+ g.biasval)
+    XX3 = g.σ.(g.weightsval ⊠ MatVal .+ g.biasval)
 
     Zygote.ignore() do
         return BatchedHeterogeneousFeaturedGraph{Float32}(
@@ -121,8 +121,8 @@ function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any,meanPooling})(fg::Het
         MatVal =  vcat(X3, H3, H1 * vartovalN) 
     end
 
-    XX1 = g.σ.(g.weightsvar * MatVar .+ g.biasvar),
-    XX2 = g.σ.(g.weightscon * MatCon .+ g.biascon),
+    XX1 = g.σ.(g.weightsvar * MatVar .+ g.biasvar)
+    XX2 = g.σ.(g.weightscon * MatCon .+ g.biascon)
     XX3 = g.σ.(g.weightsval * MatVal.+ g.biasval)
     Zygote.ignore() do
     return HeterogeneousFeaturedGraph(
