@@ -82,7 +82,7 @@ function expandRbs!(toCall::Stack{Function}, model::CPModel, nodeLimit::Int64, c
 
     # Fix-point algorithm
     feasible, pruned = fixPoint!(model, newConstraints, prunedDomains; isFailureBased=isa(variableHeuristic, FailureBasedVariableSelection))
-    model.statistics.lastPruning=sum(map(x-> length(x[2]),collect(pruned)))
+    updateStatistics!(model,pruned)
     
     if !feasible
         model.statistics.numberOfInfeasibleSolutions += 1
@@ -90,7 +90,12 @@ function expandRbs!(toCall::Stack{Function}, model::CPModel, nodeLimit::Int64, c
         return :Infeasible
     end
     if solutionFound(model)
-        triggerFoundSolution!(model)
+        act = triggerFoundSolution!(model)
+        if act == :tightenObjective
+            if isa(valueSelection, LearnedHeuristic) && !valueSelection.trainMode  || isa(valueSelection, BasicHeuristic)
+                tightenObjective!(model)
+            end
+        end
         return :FoundSolution
     end
 

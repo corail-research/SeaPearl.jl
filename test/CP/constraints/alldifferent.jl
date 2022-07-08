@@ -215,7 +215,7 @@ using Test
         SeaPearl.addConstraint!(model, SeaPearl.AllDifferent(rows_plus, trailer))
         SeaPearl.addConstraint!(model, SeaPearl.AllDifferent(rows_minus, trailer))
 
-        variableSelection = SeaPearl.MinDomainVariableSelection{false}()
+        variableSelection = SeaPearl.MinDomainVariableSelection{true}()
         status = SeaPearl.solve!(model; variableHeuristic=variableSelection)
 
         @test status == :Optimal
@@ -248,7 +248,7 @@ using Test
         SeaPearl.addConstraint!(model, SeaPearl.AllDifferent(rows_plus, trailer))
         SeaPearl.addConstraint!(model, SeaPearl.AllDifferent(rows_minus, trailer))
 
-        variableSelection = SeaPearl.MinDomainVariableSelection{false}()
+        variableSelection = SeaPearl.MinDomainVariableSelection{true}()
         status = SeaPearl.solve!(model; variableHeuristic=variableSelection)
 
         @test status == :Optimal

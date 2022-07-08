@@ -119,8 +119,9 @@ function (g::GraphConv{<:AbstractMatrix,<:Any, maxPooling})(fg::FeaturedGraph)
         B = repeat(collect(1:size(A,2)),1,size(A,2)).*A
         filteredcol = map(x-> filter(y -> y!=0,x),eachcol(B))
         filteredemb = mapreduce(x->maximum(X[:,x], dims = 2), hcat,filteredcol)
+
     end
-        return FeaturedGraph{Float32}(
+        return BatchedFeaturedGraph{Float32}(
             fgs.graph;
             nf=g.σ.(g.weight1 ⊠ X .+ g.weight2 ⊠ filteredemb .+ g.bias),
             ef=fgs.ef,

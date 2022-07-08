@@ -128,6 +128,10 @@ function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any, maxPooling})(fgs::Ba
     H1, H2, H3 = fgs.varnf, fgs.connf, fgs.valnf
     X1, X2, X3 = original_fgs.varnf, original_fgs.connf, original_fgs.valnf
     contovarN, valtovarN, vartoconN, vartovalN = contovar, valtovar, vartocon, vartoval
+    filteredembcontovar = nothing
+    filteredembvartocon = nothing
+    filteredembvaltovar = nothing
+    filteredembvartoval = nothing
 
     Zygote.ignore() do
         contovarIdx = repeat(collect(1:size(contovar,1)),1,size(contovar,2)).*contovar
@@ -153,7 +157,7 @@ function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any, maxPooling})(fgs::Ba
         filteredembvaltovar = reshape(reduce(hcat ,filteredembvaltovar), :,size(H1)[2:3]...)
         filteredembvartocon = reshape(reduce(hcat ,filteredembvartocon), :,size(H2)[2:3]...)
         filteredembvartoval = reshape(reduce(hcat ,filteredembvartoval), :,size(H3)[2:3]...)
-
+    end
     return BatchedHeterogeneousFeaturedGraph{Float32}(
         contovar,
         valtovar,
@@ -162,7 +166,6 @@ function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any, maxPooling})(fgs::Ba
         g.σ.(g.weightsval ⊠ vcat(X3, H3, filteredembvartoval) .+ g.biasval),
         fgs.gf
     )
-    end
 end
 """
 function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any, maxPooling})(fg::HeterogeneousFeaturedGraph, original_fg::HeterogeneousFeaturedGraph)
@@ -177,6 +180,10 @@ function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any, maxPooling})(fg::Het
     
     H1, H2, H3 = fg.varnf, fg.connf, fg.valnf
     X1, X2, X3 = original_fg.varnf, original_fg.connf, original_fg.valnf
+    filteredembcontovar = nothing
+    filteredembvaltovar = nothing
+    filteredembvartocon = nothing
+    filteredembvartoval = nothing
     Zygote.ignore() do      
         contovarIdx = repeat(collect(1:size(contovar,1)),1,size(contovar,2)).*contovar
         valtovarIdx = repeat(collect(1:size(valtovar,1)),1,size(valtovar,2)).*valtovar
@@ -192,7 +199,7 @@ function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any, maxPooling})(fg::Het
         filteredembvaltovar = mapreduce(x->!isempty(x) ? Base.maximum(H3[:,x], dims = 2) : zeros(Float32,size(H3,1)), hcat, filteredcolvaltovar)
         filteredembvartocon = mapreduce(x->!isempty(x) ? Base.maximum(H1[:,x], dims = 2) : zeros(Float32,size(H1,1)), hcat, filteredcolvartocon)
         filteredembvartoval = mapreduce(x->!isempty(x) ? Base.maximum(H1[:,x], dims = 2) : zeros(Float32,size(H1,1)), hcat, filteredcolvartoval)
-    
+    end
     return HeterogeneousFeaturedGraph(
         contovar,
         valtovar,
@@ -201,5 +208,5 @@ function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any, maxPooling})(fg::Het
         g.σ.(g.weightsval * vcat(X3, H3, filteredembvartoval) .+ g.biasval),
         fg.gf
     )
-    end
+    
 end
