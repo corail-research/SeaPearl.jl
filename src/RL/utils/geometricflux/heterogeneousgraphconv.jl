@@ -62,26 +62,36 @@ function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any,meanPooling})(fgs::Ba
     H1, H2, H3 = fgs.varnf, fgs.connf, fgs.valnf
     X1, X2, X3 = original_fgs.varnf, original_fgs.connf, original_fgs.valnf
 
-    sumcontovar, sumvaltovar, sumvartocon, sumvartoval = nothing, nothing, nothing, nothing
+    MatVar, MatCon, MatVal = nothing,nothing,nothing
     Zygote.ignore() do
         sumcontovar = replace(reshape(mapslices(x -> sum(eachrow(x)), contovar, dims=[1, 2]), 1, :, size(contovar, 3)), 0=>1)
         sumvaltovar = replace(reshape(mapslices(x -> sum(eachrow(x)), valtovar, dims=[1, 2]), 1, :, size(valtovar, 3)), 0=>1)
         sumvartocon = replace(reshape(mapslices(x -> sum(eachrow(x)), vartocon, dims=[1, 2]), 1, :, size(vartocon, 3)), 0=>1)
         sumvartoval = replace(reshape(mapslices(x -> sum(eachrow(x)), vartoval, dims=[1, 2]), 1, :, size(vartoval, 3)), 0=>1)
-    end
+    
     contovarN = contovar ./ sumcontovar
     valtovarN = valtovar ./ sumvaltovar
     vartoconN = vartocon ./ sumvartocon
     vartovalN = vartoval ./ sumvartoval
 
-    return BatchedHeterogeneousFeaturedGraph{Float32}(
+    MatVar =  vcat(X1, H1, H2 ⊠ contovarN, H3 ⊠ valtovarN)
+    MatCon = vcat(X2, H2, H1 ⊠ vartoconN)
+    MatVal =  vcat(X3, H3, H1 ⊠ vartovalN) 
+    end
+    XX1 = g.σ.(g.weightsvar ⊠ MatVar .+ g.biasvar)
+    XX2 = g.σ.(g.weightscon ⊠ MatCon .+ g.biascon)
+    XX3 = g.σ.(g.weightsval ⊠ MatVal.+ g.biasval)
+
+    Zygote.ignore() do
+        return BatchedHeterogeneousFeaturedGraph{Float32}(
         contovar,
         valtovar,
-        g.σ.(g.weightsvar ⊠ vcat(X1, H1, H2 ⊠ contovarN, H3 ⊠ valtovarN) .+ g.biasvar),
-        g.σ.(g.weightscon ⊠ vcat(X2, H2, H1 ⊠ vartoconN) .+ g.biascon),
-        g.σ.(g.weightsval ⊠ vcat(X3, H3, H1 ⊠ vartovalN) .+ g.biasval),
+        XX1,
+        XX2,
+        XX3,
         fgs.gf
     )
+    end
 end
 
 function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any,meanPooling})(fg::HeterogeneousFeaturedGraph, original_fg::HeterogeneousFeaturedGraph)
@@ -94,25 +104,36 @@ function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any,meanPooling})(fg::Het
     sumvaltovar = reshape(sum(eachrow(valtovar)), 1, :)
     sumvartocon = reshape(sum(eachrow(vartocon)), 1, :)
     sumvartoval = reshape(sum(eachrow(vartoval)), 1, :)
+    MatVar, MatCon, MatVal = nothing,nothing,nothing
     Zygote.ignore() do
         sumcontovar = replace(sumcontovar, 0=>1)
         sumvaltovar = replace(sumvaltovar, 0=>1)
         sumvartocon = replace(sumvartocon, 0=>1)
         sumvartoval = replace(sumvartoval, 0=>1)
-    end
-    contovarN = contovar ./ sumcontovar
-    valtovarN = valtovar ./ sumvaltovar
-    vartoconN = vartocon ./ sumvartocon
-    vartovalN = vartoval ./ sumvartoval
 
+        contovarN = contovar ./ sumcontovar
+        valtovarN = valtovar ./ sumvaltovar
+        vartoconN = vartocon ./ sumvartocon
+        vartovalN = vartoval ./ sumvartoval
+
+        MatVar = vcat(X1, H1, H2 * contovarN, H3 * valtovarN)
+        MatCon = vcat(X2, H2, H1 * vartoconN)
+        MatVal =  vcat(X3, H3, H1 * vartovalN) 
+    end
+
+    XX1 = g.σ.(g.weightsvar * MatVar .+ g.biasvar),
+    XX2 = g.σ.(g.weightscon * MatCon .+ g.biascon),
+    XX3 = g.σ.(g.weightsval * MatVal.+ g.biasval)
+    Zygote.ignore() do
     return HeterogeneousFeaturedGraph(
         contovar,
         valtovar,
-        g.σ.(g.weightsvar * vcat(X1, H1, H2 * contovarN, H3 * valtovarN) .+ g.biasvar),
-        g.σ.(g.weightscon * vcat(X2, H2, H1 * vartoconN) .+ g.biascon),
-        g.σ.(g.weightsval * vcat(X3, H3, H1 * vartovalN) .+ g.biasval),
+        XX1,
+        XX2,
+        XX3,
         fg.gf
     )
+    end
 end
 
 """
