@@ -51,11 +51,12 @@ function fill_with_generator!(cpmodel::CPModel, gen::LegacyGraphColoringGenerato
 
     ### Objective ###
     numberOfColors = SeaPearl.IntVar(1, nb_nodes, "numberOfColors", cpmodel.trailer)
-    SeaPearl.addVariable!(cpmodel, numberOfColors)
+    SeaPearl.addVariable!(cpmodel, numberOfColors, branchable=false)
     for var in x
         SeaPearl.addConstraint!(cpmodel, SeaPearl.LessOrEqual(var, numberOfColors, cpmodel.trailer))
     end
-    SeaPearl.addObjective!(cpmodel,numberOfColors)
+    SeaPearl.addConstraint!(cpmodel, SeaPearl.MaximumConstraint(x, numberOfColors, cpmodel.trailer))
+    SeaPearl.addObjective!(cpmodel, numberOfColors)
 
     nothing
 end
@@ -104,11 +105,12 @@ function fill_with_generator!(cpmodel::CPModel, gen::HomogenousGraphColoringGene
 
     ### Objective ###
     numberOfColors = SeaPearl.IntVar(1, n, "numberOfColors", cpmodel.trailer)
-    SeaPearl.addVariable!(cpmodel, numberOfColors)
+    SeaPearl.addVariable!(cpmodel, numberOfColors, branchable=false)
     for var in x
         SeaPearl.addConstraint!(cpmodel, SeaPearl.LessOrEqual(var, numberOfColors, cpmodel.trailer))
     end
-    SeaPearl.addObjective!(cpmodel,numberOfColors)
+    SeaPearl.addConstraint!(cpmodel, SeaPearl.MaximumConstraint(x, numberOfColors, cpmodel.trailer))
+    SeaPearl.addObjective!(cpmodel, numberOfColors)
     nothing
 end
 
