@@ -1,5 +1,3 @@
-using Graphs
-
 struct MaximumIndependentSetGenerator <: AbstractModelGenerator
     n::Int
     k::Int
