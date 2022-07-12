@@ -181,3 +181,118 @@ function fill_with_generator!(cpmodel::CPModel, gen::ClusterizedGraphColoringGen
     cpmodel.knownObjective = k 
     nothing
 end
+
+"""
+    struct BarabasiAlbertGraphGenerator <: AbstractModelGenerator
+
+    Generator of Graph Coloring instances : 
+    - n is the number of nodes
+    - k is the number of color
+"""
+struct BarabasiAlbertGraphGenerator <: AbstractModelGenerator
+    n::Int64
+    k::Int64
+end
+
+"""
+    fill_with_generator!(cpmodel::CPModel, gen::BarabasiAlbertGraphGenerator)::CPModel    
+"""
+function fill_with_generator!(cpmodel::CPModel, gen::BarabasiAlbertGraphGenerator; rng::AbstractRNG = MersenneTwister())
+    graph = Graphs.SimpleGraphs.barabasi_albert(gen.n, gen.k, seed=rand(rng, typemin(Int64):typemax(Int64)))
+
+    # create variables
+    vars = SeaPearl.IntVar[]
+    for v in Graphs.vertices(graph)
+        push!(vars, SeaPearl.IntVar(1, gen.n, "node_" * string(v), cpmodel.trailer))
+        addVariable!(cpmodel, last(vars))
+    end
+    # edge constraints
+    for e in Graphs.edges(graph)
+        SeaPearl.addConstraint!(cpmodel, SeaPearl.NotEqual(vars[e.src], vars[e.dst], cpmodel.trailer))
+    end
+
+    ### Objective ###
+    numberOfColors = SeaPearl.IntVar(1, gen.n, "numberOfColors", cpmodel.trailer)
+    SeaPearl.addVariable!(cpmodel, numberOfColors)
+    for var in vars
+        SeaPearl.addConstraint!(cpmodel, SeaPearl.LessOrEqual(var, numberOfColors, cpmodel.trailer))
+    end
+    SeaPearl.addObjective!(cpmodel,numberOfColors)
+
+    nothing
+end
+
+"""
+    struct ErdosRenyiGraphGenerator <: AbstractModelGenerator
+
+    Generator of Graph Coloring instances : 
+    - n is the number of nodes
+    - k is the number of color
+"""
+struct ErdosRenyiGraphGenerator <: AbstractModelGenerator
+    n::Int64
+    p::Float64
+end
+
+"""
+    fill_with_generator!(cpmodel::CPModel, gen::ErdosRenyiGraphGenerator)::CPModel    
+"""
+function fill_with_generator!(cpmodel::CPModel, gen::ErdosRenyiGraphGenerator; rng::AbstractRNG = MersenneTwister())
+    graph = Graphs.SimpleGraphs.erdos_renyi(gen.n, gen.p, seed=rand(rng, typemin(Int64):typemax(Int64)))
+
+    # create variables
+    vars = SeaPearl.IntVar[]
+    for v in Graphs.vertices(graph)
+        push!(vars, SeaPearl.IntVar(1, gen.n, "node_" * string(v), cpmodel.trailer))
+        addVariable!(cpmodel, last(vars))
+    end
+    # edge constraints
+    for e in Graphs.edges(graph)
+        SeaPearl.addConstraint!(cpmodel, SeaPearl.NotEqual(vars[e.src], vars[e.dst], cpmodel.trailer))
+    end
+
+    ### Objective ###
+    numberOfColors = SeaPearl.IntVar(1, gen.n, "numberOfColors", cpmodel.trailer)
+    SeaPearl.addVariable!(cpmodel, numberOfColors)
+    for var in vars
+        SeaPearl.addConstraint!(cpmodel, SeaPearl.LessOrEqual(var, numberOfColors, cpmodel.trailer))
+    end
+    SeaPearl.addObjective!(cpmodel,numberOfColors)
+
+    nothing
+end
+
+
+struct WattsStrogatzGraphGenerator <: AbstractModelGenerator
+    n::Int64
+    k::Int64
+    beta::Float32
+end
+
+"""
+    fill_with_generator!(cpmodel::CPModel, gen::WattsStrogatzGraphGenerator)::CPModel    
+"""
+function fill_with_generator!(cpmodel::CPModel, gen::WattsStrogatzGraphGenerator; rng::AbstractRNG = MersenneTwister())
+    graph = Graphs.SimpleGraphs.watts_strogatz(gen.n, gen.k, gen.beta, seed=rand(rng, typemin(Int64):typemax(Int64)))
+
+    # create variables
+    vars = SeaPearl.IntVar[]
+    for v in Graphs.vertices(graph)
+        push!(vars, SeaPearl.IntVar(1, gen.n, "node_" * string(v), cpmodel.trailer))
+        addVariable!(cpmodel, last(vars))
+    end
+    # edge constraints
+    for e in Graphs.edges(graph)
+        SeaPearl.addConstraint!(cpmodel, SeaPearl.NotEqual(vars[e.src], vars[e.dst], cpmodel.trailer))
+    end
+
+    ### Objective ###
+    numberOfColors = SeaPearl.IntVar(1, gen.n, "numberOfColors", cpmodel.trailer)
+    SeaPearl.addVariable!(cpmodel, numberOfColors)
+    for var in vars
+        SeaPearl.addConstraint!(cpmodel, SeaPearl.LessOrEqual(var, numberOfColors, cpmodel.trailer))
+    end
+    SeaPearl.addObjective!(cpmodel,numberOfColors)
+
+    nothing
+end

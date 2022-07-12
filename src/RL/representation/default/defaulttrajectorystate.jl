@@ -98,10 +98,12 @@ function Flux.functor(::Type{Vector{DefaultTrajectoryState}}, v)
             end
         end
     end
+    if all(isnothing.(possibleValuesIdx))
+        possibleValuesIdx = nothing
+    end
 
     fg = BatchedFeaturedGraph([state.fg for state in v], 
     )
-    
 
     return (fg,), ls -> BatchedDefaultTrajectoryState{Float32}(
         fg = ls[1],

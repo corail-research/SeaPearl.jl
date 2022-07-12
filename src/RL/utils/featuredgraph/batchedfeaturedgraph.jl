@@ -7,7 +7,7 @@ A batched representation of the FeaturedGraph, to enable parallel computation.
 It is deliberately more restrictive to prevent incorrect usage.
 """
 struct BatchedFeaturedGraph{T <: Real} <: AbstractFeaturedGraph
-    graph::AbstractArray{T, 3}
+    graph::AbstractArray{Int64, 3}
     nf::AbstractArray{T, 3}
     ef::AbstractArray{T, 4}
     gf::AbstractMatrix{T}
@@ -37,7 +37,7 @@ function BatchedFeaturedGraph{T}(fgs::Vector{FG}) where {T <: Real, FG <: Featur
     efLength = size(fgs[1].ef, 1)
     gfLength = size(fgs[1].gf, 1)
 
-    graph = zeros(T, maxNodes, maxNodes, ngraphs)
+    graph = zeros(Int64, maxNodes, maxNodes, ngraphs)
     nf = zeros(T, nfLength, maxNodes, ngraphs)
     ef = zeros(T, efLength, maxNodes, maxNodes, ngraphs)
     gf = zeros(T, gfLength, ngraphs)

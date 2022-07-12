@@ -1,3 +1,5 @@
 include("totalreward.jl")
+include("softmaxexplorer.jl")
+include("ucbexplorer.jl")
 include("featuredgraph/fg.jl")
 include("geometricflux/geometricflux.jl")
