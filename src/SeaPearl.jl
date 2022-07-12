@@ -2,6 +2,7 @@ module SeaPearl
 
 using Random
 using ReinforcementLearning
+using Graphs
 const RL = ReinforcementLearning
 
 include("abstract_types.jl")
