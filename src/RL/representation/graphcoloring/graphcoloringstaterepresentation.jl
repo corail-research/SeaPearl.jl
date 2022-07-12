@@ -6,7 +6,7 @@ struct GraphColoringFeaturization <: AbstractFeaturization end
 This is a standard graphcoloring representation using the graph of the problem with nodes having their assigned value as label.
 """
 mutable struct GraphColoringStateRepresentation{F, TS} <: FeaturizedStateRepresentation{F, TS}
-    graph::LightGraphs.Graph
+    graph::Graphs.Graph
     nodeFeatures::Union{Nothing, AbstractMatrix{Float32}}
     variableToId::Union{Nothing, Dict{AbstractVar,Int}}
     idToVariable::Union{Nothing, Vector{AbstractVar}}
@@ -29,8 +29,8 @@ function DefaultTrajectoryState(sr::GraphColoringStateRepresentation{F, DefaultT
         throw(ErrorException("Unable to build a DefaultTrajectoryState, when the branching variable is nothing."))
     end
 
-    n = LightGraphs.nv(sr.graph)
-    adj = LightGraphs.adjacency_matrix(sr.graph)
+    n = Graphs.nv(sr.graph)
+    adj = Graphs.adjacency_matrix(sr.graph)
     fg = FeaturedGraph(adj; nf=sr.nodeFeatures)
 
     actionSpace = collect(1:n)
@@ -39,7 +39,7 @@ function DefaultTrajectoryState(sr::GraphColoringStateRepresentation{F, DefaultT
 end
 
 function get_graphcoloring_graph(model::CPModel)
-    graph = LightGraphs.Graph(length(model.branchable_variables))
+    graph = Graphs.Graph(length(model.branchable_variables))
     variableToId = Dict{AbstractVar, Int}()
     idToVariable = Vector{AbstractVar}()
     id = 1
@@ -53,11 +53,11 @@ function get_graphcoloring_graph(model::CPModel)
     variableToId[model.objective] = id
     push!(idToVariable, model.objective)
     for i in 1:length(model.branchable_variables)-1
-        LightGraphs.add_edge!(graph,i,length(model.branchable_variables))
+        Graphs.add_edge!(graph,i,length(model.branchable_variables))
     end
     for constraint in model.constraints
         if isa(constraint, NotEqual)
-            LightGraphs.add_edge!(graph,variableToId[constraint.x],variableToId[constraint.y])
+            Graphs.add_edge!(graph,variableToId[constraint.x],variableToId[constraint.y])
         end
     end
     return graph, variableToId, idToVariable
@@ -76,20 +76,22 @@ end
 Create nodeFeatures for every node of the graph (current color of the node or -1 if the color has not been determined yet)
 """
 function featurize(sr::FeaturizedStateRepresentation{GraphColoringFeaturization, TS}) where TS
-    n = LightGraphs.nv(sr.graph)
+    n = Graphs.nv(sr.graph)
     nodeFeatures = zeros(Float32, 2, n)
+    # First dimension is assigned color id, or -1 if no color has still be assigned
+    # Second dimension is an indicator of whether the variable is the objective function
     for i in 1:n-1
         nodeFeatures[1,i] = -1
         nodeFeatures[2,i] = 0
     end
-    nodeFeatures[1,n] = 0
+    nodeFeatures[1,n] = -1
     nodeFeatures[2,n] = 1
 
     return nodeFeatures
 end
 
 function update_features!(sr::FeaturizedStateRepresentation{GraphColoringFeaturization, TS}, model::CPModel) where TS
-    for i in 1:LightGraphs.nv(sr.graph)-1
+    for i in 1:Graphs.nv(sr.graph)-1
         if isbound(sr.idToVariable[i])
             sr.nodeFeatures[1,i] = assignedValue(sr.idToVariable[i])
         end

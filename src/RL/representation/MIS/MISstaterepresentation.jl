@@ -6,7 +6,7 @@ struct MISFeaturization <: AbstractFeaturization end
 This is a standard MIS representation using the graph of the problem with nodes having their assigned value as label.
 """
 mutable struct MISStateRepresentation{F, TS} <: FeaturizedStateRepresentation{F, TS}
-    graph::LightGraphs.Graph
+    graph::Graphs.Graph
     nodeFeatures::Union{Nothing, AbstractMatrix{Float32}}
     variableToId::Union{Nothing, Dict{AbstractVar,Int}}
     idToVariable::Union{Nothing, Vector{AbstractVar}}
@@ -32,8 +32,8 @@ function DefaultTrajectoryState(sr::MISStateRepresentation{F, DefaultTrajectoryS
         throw(ErrorException("Unable to build a MISTrajectoryState, when the possible values vector is nothing."))
     end
 
-    n = LightGraphs.nv(sr.graph)
-    adj = LightGraphs.adjacency_matrix(sr.graph)
+    n = Graphs.nv(sr.graph)
+    adj = Graphs.adjacency_matrix(sr.graph)
     fg = FeaturedGraph(adj; nf=sr.nodeFeatures)
 
     actionSpace = collect(1:n)
@@ -42,7 +42,7 @@ function DefaultTrajectoryState(sr::MISStateRepresentation{F, DefaultTrajectoryS
 end
 
 function get_MIS_graph(model::CPModel)
-    graph = LightGraphs.Graph(length(model.branchable_variables))
+    graph = Graphs.Graph(length(model.branchable_variables))
     variableToId = Dict{AbstractVar, Int}()
     idToVariable = Vector{AbstractVar}()
     id = 1
@@ -56,7 +56,7 @@ function get_MIS_graph(model::CPModel)
    
     for constraint in model.constraints
         if isa(constraint, SumLessThan)
-            LightGraphs.add_edge!(graph,variableToId[constraint.x[1]],variableToId[constraint.x[2]])
+            Graphs.add_edge!(graph,variableToId[constraint.x[1]],variableToId[constraint.x[2]])
         end
     end
     return graph, variableToId, idToVariable
@@ -75,7 +75,7 @@ end
 Create nodeFeatures for every node of the graph (current color of the node or -1 if the color has not been determined yet)
 """
 function featurize(sr::FeaturizedStateRepresentation{MISFeaturization, TS}) where TS
-    n = LightGraphs.nv(sr.graph)
+    n = Graphs.nv(sr.graph)
     nodeFeatures = zeros(Float32, 1, n)
     for i in 1:n
         nodeFeatures[1,i] = 0
@@ -85,7 +85,7 @@ function featurize(sr::FeaturizedStateRepresentation{MISFeaturization, TS}) wher
 end
 
 function update_features!(sr::FeaturizedStateRepresentation{MISFeaturization, TS}, model::CPModel) where TS
-    for i in 1:LightGraphs.nv(sr.graph)
+    for i in 1:Graphs.nv(sr.graph)
         if isbound(sr.idToVariable[i])
             sr.nodeFeatures[1,i] = assignedValue(sr.idToVariable[i])
         end
