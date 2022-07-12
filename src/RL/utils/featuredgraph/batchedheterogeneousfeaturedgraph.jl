@@ -6,8 +6,8 @@ A batched representation of the HeterogeneousFeaturedGraph, to enable parallel c
 It is deliberately more restrictive to prevent incorrect usage.
 """
 struct BatchedHeterogeneousFeaturedGraph{T <: Real} <: AbstractFeaturedGraph
-    contovar::AbstractArray{T, 3}
-    valtovar::AbstractArray{T, 3}
+    contovar::AbstractArray{Int64, 3}
+    valtovar::AbstractArray{Int64, 3}
     varnf::AbstractArray{T, 3}
     connf::AbstractArray{T, 3}
     valnf::AbstractArray{T, 3}
@@ -31,8 +31,8 @@ function BatchedHeterogeneousFeaturedGraph{T}(fgs::Vector{FG}) where {T <: Real,
     valnfLength = size(fgs[1].valnf, 1) # size of the feature vector for the value nodes.
     gfLength = size(fgs[1].gf, 1) # size of the feature vector for the graph.
 
-    contovar = zeros(T, maxNumberOfConstraintNodes, maxNumberOfVariableNodes, ngraphs)
-    valtovar = zeros(T, maxNumberOfValueNodes, maxNumberOfVariableNodes, ngraphs)
+    contovar = zeros(Int64, maxNumberOfConstraintNodes, maxNumberOfVariableNodes, ngraphs)
+    valtovar = zeros(Int64, maxNumberOfValueNodes, maxNumberOfVariableNodes, ngraphs)
     varnf = zeros(T, varnfLength, maxNumberOfVariableNodes, ngraphs)
     connf = zeros(T, connfLength, maxNumberOfConstraintNodes, ngraphs)
     valnf = zeros(T, valnfLength, maxNumberOfValueNodes, ngraphs)

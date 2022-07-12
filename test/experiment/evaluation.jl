@@ -34,7 +34,7 @@
         variableheuristic = SeaPearl.MinDomainVariableSelection{true}()
 
         SeaPearl.evaluate(evaluator, variableheuristic, SeaPearl.DFSearch())
-        @test evaluator.metrics[1, 1].nodeVisited[1] == [12, 22, 23]
+        @test evaluator.metrics[1, 1].nodeVisited[1] == [11, 19, 20, 22, 23]
     end
 
     @testset "empty!(eval::SameInstancesEvaluator)" begin

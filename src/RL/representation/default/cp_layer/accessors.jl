@@ -154,8 +154,8 @@ function adjacency_matrices(cplayergraph::CPLayerGraph)
     nvar = cplayergraph.numberOfVariables
     ncon = cplayergraph.numberOfConstraints
     nval = cplayergraph.numberOfValues
-    contovar = zeros(ncon, nvar)
-    valtovar = zeros(nval, nvar)
+    contovar = zeros(Int64, ncon, nvar)
+    valtovar = zeros(Int64, nval, nvar)
     for (i, node) in enumerate(cplayergraph.idToNode)
         if isa(node, ConstraintVertex)
             neighbors = LightGraphs.outneighbors(g, i)
