@@ -43,6 +43,20 @@ function SameInstancesEvaluator(valueSelectionArray::Array{H, 1}, generator::Abs
     SameInstancesEvaluator(instances, metrics, max(1,evalFreq), nbInstances, size(valueSelectionArray,1))
 end
 
+
+function setNodesBudget!(evaluator::SameInstancesEvaluator, budget::Int)
+    for instance in evaluator.instances
+        instance.limit.numberOfNodes = budget
+    end
+end
+
+function resetNodesBudget!(evaluator::SameInstancesEvaluator)
+    for instance in evaluator.instances
+        instance.limit.numberOfNodes = nothing
+    end
+end
+
+
 function Base.empty!(eval::SameInstancesEvaluator)
     for i in 1:eval.nbInstances
         for j in 1:eval.nbHeuristics
