@@ -97,7 +97,8 @@ function fill_with_generator!(cpmodel::CPModel, gen::JobShopSoftDeadlinesGenerat
             job_times[i,rand(rng, 1:j) % gen.numberOfMachines + 1] += 1
         end
     end
-    jobSoftDeadlines = [rand(rng, totalTimePerTask:gen.maxTime) for i in 1:gen.numberOfJobs]
+    #jobSoftDeadlines = [rand(rng, totalTimePerTask:Int(round(gen.maxTime/2))) for i in 1:gen.numberOfJobs]
+    jobSoftDeadlines = [sample(rng, [totalTimePerTask,Int(round(0.8*gen.maxTime))], ProbabilityWeights([0.5, 0.5])) for i in 1:gen.numberOfJobs]
     job_order = mapreduce(permutedims, vcat, [randperm(rng, gen.numberOfMachines) for i in 1:gen.numberOfJobs])    #job_order for each task generated using random row-wise permutation.
     cpmodel.adhocInfo = Dict("numberOfMachines" => gen.numberOfMachines, "numberOfJobs" => gen.numberOfJobs, "job_times" => job_times, "job_order" => job_order)
 
