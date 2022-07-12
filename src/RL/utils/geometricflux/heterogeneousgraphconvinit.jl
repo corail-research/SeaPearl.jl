@@ -1,4 +1,4 @@
-struct HeterogeneousGraphConvInit{A <: AbstractMatrix, B}
+struct HeterogeneousGraphConvInit{A <: AbstractMatrix, B,G<:pool}
     weightsvar::A
     weightscon::A
     weightsval::A
@@ -6,21 +6,23 @@ struct HeterogeneousGraphConvInit{A <: AbstractMatrix, B}
     biascon::B
     biasval::B
     σ
+    pool::G
+
 end
 
-function HeterogeneousGraphConvInit(in::Array{Int}, out::Int, σ=identity; init=Flux.glorot_uniform, bias::Bool=true, T::DataType=Float32)
+function HeterogeneousGraphConvInit(in::Array{Int}, out::Int, σ=identity; init=Flux.glorot_uniform, bias::Bool=true, T::DataType=Float32, pool::pool=meanPooling())
     weightsvar = init(out, in[1])
     biasvar = bias ? T.(init(out)) : zeros(T, out)
     weightscon = init(out, in[2])
     biascon = bias ? T.(init(out)) : zeros(T, out)
     weightsval = init(out, in[3])
     biasval = bias ? T.(init(out)) : zeros(T, out)
-    return HeterogeneousGraphConvInit(weightsvar, weightscon, weightsval, biasvar, biascon, biasval, σ)
+    return HeterogeneousGraphConvInit(weightsvar, weightscon, weightsval, biasvar, biascon, biasval, σm pool)
 end
 
 Flux.@functor HeterogeneousGraphConvInit
 
-function (g::HeterogeneousGraphConvInit)(fgs::BatchedHeterogeneousFeaturedGraph{Float32}) 
+function (g::HeterogeneousGraphConvInit{<:AbstractMatrix,<:Any,sumPooling})(fgs::BatchedHeterogeneousFeaturedGraph{Float32}) 
     return BatchedHeterogeneousFeaturedGraph{Float32}(
         fgs.contovar,
         fgs.valtovar,
@@ -31,7 +33,7 @@ function (g::HeterogeneousGraphConvInit)(fgs::BatchedHeterogeneousFeaturedGraph{
     )
 end
 
-function (g::HeterogeneousGraphConvInit)(fg::HeterogeneousFeaturedGraph)
+function (g::HeterogeneousGraphConvInit{<:AbstractMatrix,<:Any,sumPooling})(fg::HeterogeneousFeaturedGraph)
     return HeterogeneousFeaturedGraph(
         fg.contovar,
         fg.valtovar,
