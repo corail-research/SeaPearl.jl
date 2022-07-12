@@ -57,7 +57,7 @@
         if VERSION == v"1.6.0"
             @test length(model.constraints) == 55
         elseif VERSION >= v"1.7.0"
-            @test length(model.constraints) == 35
+            @test length(model.constraints) == 34 
         end
         
         model1 = SeaPearl.CPModel(trailer)
@@ -96,7 +96,7 @@
 
         # This condition is there because of the way random are generated can change from one version to another
         if VERSION >= v"1.6.0"
-            @test length(model.constraints) == 24
+            @test length(model.constraints) == 23
         end
             
         model1 = SeaPearl.CPModel(trailer)
