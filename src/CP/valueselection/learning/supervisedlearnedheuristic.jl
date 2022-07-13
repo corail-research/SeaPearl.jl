@@ -109,24 +109,20 @@ function (valueSelection::SupervisedLearnedHeuristic)(PHASE::Type{DecisionPhase}
     # helpSolution contains the values (and not the actions, that refer to the value 
     # order in the Q-table). We thus extract the value and then find the corresponding action.
     if valueSelection.trainMode && !isnothing(valueSelection.helpSolution) 
-        #println("helpsolution: ", valueSelection.helpSolution)
-        #println("x.id: ", x.id)
         value = valueSelection.helpSolution[x.id]
-        #println("possibleValuesIdx: ", state(env).possibleValuesIdx)
-        #println("value: ", value)
         #find the vertex corresponding to the value
-        vertex_id = valueSelection.current_state.cplayergraph.nodeToId[ValueVertex(value)] 
-        
+        st = state(env)
+        vertex_id = valueSelection.current_state.cplayergraph.nodeToId[ValueVertex(value)]
+        if isa(st, HeterogeneousTrajectoryState)
+            vertex_id -= n_constraint_node(st.fg) + n_variable_node(st.fg)
+        end
         #find the corresponding action
         action = from_id_to_order(state(env), vertex_id)
         @assert action <= length(state(env).possibleValuesIdx)
         @assert state(env).possibleValuesIdx[action] == vertex_id
-        #println("vertex_id: ", vertex_id)
-        #println("action: ", action)
         
     else # Else we choose the action provided by the agent
         action = valueSelection.agent(env) # Choose action
-        #println("simple action: ", action)
         value = action_to_value(valueSelection, action, state(env), model)
     end
     
