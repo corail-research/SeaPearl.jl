@@ -6,6 +6,7 @@ be explored at a certain node ).
 abstract type SearchStrategy end
 
 struct DFSearch <: SearchStrategy end
+struct DFWBSearch <: SearchStrategy end
  
 """
 struct LNSearch <: SearchStrategy
