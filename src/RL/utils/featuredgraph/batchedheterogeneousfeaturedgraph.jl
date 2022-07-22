@@ -97,3 +97,5 @@ n_value_node(fg::BatchedHeterogeneousFeaturedGraph{T}) where {T} = map(v -> size
 Return the global feature vector of the batch of graph.
 """
 global_feature(fg::BatchedHeterogeneousFeaturedGraph{T}) where {T}  = fg.gf
+
+Flux.@functor BatchedHeterogeneousFeaturedGraph

@@ -1,3 +1,5 @@
+using KernelAbstractions, CUDA
+
 struct HeterogeneousGraphConv{A<:AbstractMatrix,B,G<:pool}
     weightsvar::A
     weightscon::A
@@ -96,7 +98,7 @@ end
 
 function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any,meanPooling})(fg::HeterogeneousFeaturedGraph, original_fg::HeterogeneousFeaturedGraph)
     contovar, valtovar = fg.contovar, fg.valtovar
-    vartocon, vartoval = transpose(contovar), transpose(valtovar)
+    vartocon, vartoval = permutedims(contovar, [2, 1]), permutedims(valtovar, [2, 1])
     H1, H2, H3 = fg.varnf, fg.connf, fg.valnf
     X1, X2, X3 = original_fg.varnf, original_fg.connf, original_fg.valnf
 
