@@ -32,13 +32,17 @@ end
 # Enable the `|> gpu` syntax from Flux
 Flux.@functor HeterogeneousFullFeaturedCPNN
 
+Zygote.@adjoint CUDA.zeros(x...) = CUDA.zeros(x...), _ -> map(_ -> nothing, x)
+
 # TODO make it possible to use global features
 function (nn::HeterogeneousFullFeaturedCPNN)(states::BatchedHeterogeneousTrajectoryState)
     variableIdx = states.variableIdx
     batchSize = length(variableIdx)
     actionSpaceSize = size(states.fg.valnf, 2)
-    mask = device(states) == Val(:gpu) ? CUDA.zeros(Float32, 1, actionSpaceSize, batchSize) : zeros(Float32, 1, actionSpaceSize, batchSize) # this mask will replace `reapeat` using broadcasted `+`
-
+    mask = nothing
+    Zygote.ignore() do
+        mask = device(states) in devices() ? CUDA.zeros(Float32, 1, actionSpaceSize, batchSize) : zeros(Float32, 1, actionSpaceSize, batchSize) # this mask will replace `reapeat` using broadcasted `+`
+    end
     # chain working on the graph(s) with the GNNs
     featuredGraph = nn.graphChain(states.fg)
     variableFeatures = featuredGraph.varnf # FxNxB
@@ -89,6 +93,7 @@ function (nn::HeterogeneousFullFeaturedCPNN)(states::HeterogeneousTrajectoryStat
     variableIdx = states.variableIdx
     actionSpaceSize = size(states.fg.valnf,2)
     mask = device(states) == Val(:gpu) ? CUDA.zeros(Float32, 1, actionSpaceSize) : zeros(Float32, 1, actionSpaceSize) # this mask will replace `reapeat` using broadcasted `+`
+    #mask = device(states) == device() ? CUDA.zeros(Float32, 1, actionSpaceSize) : zeros(Float32, 1, actionSpaceSize) # this mask will replace `reapeat` using broadcasted `+`
 
     # chain working on the graph(s) with the GNNs
     featuredGraph = nn.graphChain(states.fg)
@@ -102,7 +107,6 @@ function (nn::HeterogeneousFullFeaturedCPNN)(states::HeterogeneousTrajectoryStat
 
     # Extract the features corresponding to the values
     relevantValueFeatures = nn.valChain(valueFeatures) # F'xA
-
     finalFeatures = nothing
     if sizeof(globalFeatures) != 0
 
