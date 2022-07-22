@@ -95,6 +95,8 @@ function launch_experiment!(
     end
 
     if !isnothing(evaluator)
+        evaluate(evaluator, variableHeuristic, eval_strategy; verbose = verbose)
+
         return metricsArray, evaluator.metrics
     end
     
