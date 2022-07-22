@@ -59,21 +59,21 @@ function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
     # Value selection
     v = valueSelection(DecisionPhase, model, x)
 
-    push!(toCall, (model) -> (restoreState!(model.trailer); :BackTracking))
-    push!(toCall, (model) -> (
+    push!(toCall, (model, currentStatus) -> (restoreState!(model.trailer); :BackTracking))
+    push!(toCall, (model, currentStatus) -> (
         prunedDomains = CPModification();
         addToPrunedDomains!(prunedDomains, x, remove!(x.domain, v));
         expandDfs!(toCall, model, variableHeuristic, valueSelection, getOnDomainChange(x); prunedDomains=prunedDomains)
     ))
-    push!(toCall, (model) -> (saveState!(model.trailer); :SavingState))
+    push!(toCall, (model, currentStatus) -> (saveState!(model.trailer); :SavingState))
 
-    push!(toCall, (model) -> (restoreState!(model.trailer); :BackTracking))
-    push!(toCall, (model) -> (
+    push!(toCall, (model, currentStatus) -> (restoreState!(model.trailer); :BackTracking))
+    push!(toCall, (model, currentStatus) -> (
         prunedDomains = CPModification();
         addToPrunedDomains!(prunedDomains, x, assign!(x, v));
         expandDfs!(toCall, model, variableHeuristic, valueSelection, getOnDomainChange(x); prunedDomains=prunedDomains)
     ))
-    push!(toCall, (model) -> (saveState!(model.trailer); :SavingState))
+    push!(toCall, (model, currentStatus) -> (saveState!(model.trailer); :SavingState))
 
     return :Feasible
 end

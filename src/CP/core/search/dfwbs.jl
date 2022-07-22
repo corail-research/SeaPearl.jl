@@ -66,7 +66,7 @@ function expandDfwbs!(toCall::Stack{Function}, model::CPModel, variableHeuristic
     push!(toCall, (model, currentStatus) -> (
         prunedDomains = CPModification();
         addToPrunedDomains!(prunedDomains, x, remove!(x.domain, v));
-        expandDfwbs!(toCall, model, variableHeuristic, valueSelection, getOnDomainChange(x); prunedDomains=prunedDomains,direction = :Right)
+        expandDfwbs!(toCall, model, variableHeuristic, valueSelection, getOnDomainChange(x); prunedDomains=prunedDomains, direction = :Right)
         ))
     push!(toCall, (model, currentStatus) -> (saveState!(model.trailer); :SavingState))
     push!(toCall, (model, currentStatus) -> (restoreState!(model.trailer); :BackTracking))
