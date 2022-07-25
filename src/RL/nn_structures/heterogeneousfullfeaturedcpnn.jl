@@ -106,7 +106,7 @@ function (nn::HeterogeneousFullFeaturedCPNN)(states::HeterogeneousTrajectoryStat
     variableFeatures = featuredGraph.varnf # FxNxB
     valueFeatures = featuredGraph.valnf
     globalFeatures = featuredGraph.gf # GxB
-    Mask = device(states) == device() ? CUDA.zeros(Float32, 1,size(states.fg.varnf,2), actionSpaceSize) : zeros(Float32, 1,size(states.fg.varnf,2), actionSpaceSize) # this Mask will replace `reapeat` using broadcasted `+`
+    Mask = device(states) == Val{:gpu}() ? CUDA.zeros(Float32, 1,size(states.fg.varnf,2), actionSpaceSize) : zeros(Float32, 1,size(states.fg.varnf,2), actionSpaceSize) # this Mask will replace `reapeat` using broadcasted `+`
 
     # Extract the features corresponding to the varibales
     relevantVariableFeatures = nn.varChain(variableFeatures) # F'x1
