@@ -24,8 +24,11 @@ Base.@kwdef struct HeterogeneousFullFeaturedCPNN <: NNStructure
     globalChain::Flux.Chain = Flux.Chain()
     outputChain::Union{Flux.Dense, Flux.Chain} = Flux.Chain()
 
+    function HeterogeneousFullFeaturedCPNN(graphChain, varChain::Flux.Chain, valChain::Flux.Chain, globalChain::Flux.Chain, outputChain::Union{Flux.Dense, Flux.Chain})
+        return new(graphChain, varChain, valChain, globalChain, outputChain)
+    end
     function HeterogeneousFullFeaturedCPNN(graphChain, nodeChain::Flux.Chain = Flux.Chain(), globalChain::Flux.Chain = Flux.Chain(), outputChain::Union{Flux.Dense, Flux.Chain} = Flux.Chain())
-        return new(graphChain, nodeChain, deepcopy(nodeChain),globalChain, outputChain)
+        return new(graphChain, nodeChain, deepcopy(nodeChain), globalChain, outputChain)
     end
 end
 
@@ -35,97 +38,102 @@ Flux.@functor HeterogeneousFullFeaturedCPNN
 Zygote.@adjoint CUDA.zeros(x...) = CUDA.zeros(x...), _ -> map(_ -> nothing, x)
 
 # TODO make it possible to use global features
+
 function (nn::HeterogeneousFullFeaturedCPNN)(states::BatchedHeterogeneousTrajectoryState)
     variableIdx = states.variableIdx
     batchSize = length(variableIdx)
     actionSpaceSize = size(states.fg.valnf, 2)
-    mask = nothing
+    Mask = nothing
     Zygote.ignore() do
-        mask = device(states) in devices() ? CUDA.zeros(Float32, 1, actionSpaceSize, batchSize) : zeros(Float32, 1, actionSpaceSize, batchSize) # this mask will replace `reapeat` using broadcasted `+`
+        Mask = device(states) in devices() ? CUDA.zeros(Float32, 1, size(states.fg.varnf,2), actionSpaceSize, batchSize) : zeros(Float32, 1, size(states.fg.varnf,2), actionSpaceSize, batchSize) # this Mask will replace `reapeat` using broadcasted `+`
     end
     # chain working on the graph(s) with the GNNs
     featuredGraph = nn.graphChain(states.fg)
     variableFeatures = featuredGraph.varnf # FxNxB
     valueFeatures = featuredGraph.valnf
-    globalFeatures = featuredGraph.gf # GxB
+    globalFeatures = featuredGraph.gf # GxBstat
 
     # Extract the features corresponding to the varibales
     variableIndices = nothing
     Zygote.ignore() do
         variableIndices = Flux.unsqueeze(CartesianIndex.(variableIdx, 1:batchSize), 1)
     end
-    branchingVariableFeatures = variableFeatures[:, variableIndices] # Fx1xB
-    relevantVariableFeatures = reshape(nn.varChain(RL.flatten_batch(branchingVariableFeatures)), :, 1, batchSize) # F'x1xB
+    branchingVariableFeatures = nn.varChain(variableFeatures) # Fx1xB
+    relevantVariableFeatures = reshape(branchingVariableFeatures, size(branchingVariableFeatures)[1], size(branchingVariableFeatures)[2], 1, size(branchingVariableFeatures)[3])
+    #relevantVariableFeatures = reshape(nn.varChain(RL.flatten_batch(branchingVariableFeatures)), :, 1, batchSize) # F'x1xB
 
     # Extract the features corresponding to the values
-    relevantValueFeatures = reshape(nn.valChain(RL.flatten_batch(valueFeatures)), :, actionSpaceSize, batchSize) # F'xAxB
+    relevantValueFeatures = nn.valChain(valueFeatures)
+    relevantValueFeatures = reshape(relevantValueFeatures, size(relevantValueFeatures)[1], 1 ,  size(relevantValueFeatures)[2],  size(relevantValueFeatures)[3])
+    #relevantValueFeatures = reshape(nn.valChain(RL.flatten_batch(valueFeatures)), :, actionSpaceSize, batchSize) # F'xAxB
 
     finalFeatures = nothing
     if sizeof(globalFeatures) != 0
 
         # Extract the global features
-        globalFeatures = reshape(nn.globalChain(globalFeatures), :, 1, batchSize) # G'x1xB
+        globalFeatures = reshape(nn.globalChain(globalFeatures), :, 1,1, batchSize) # G'x1xB
 
         # Prepare the input of the outputChain
         finalFeatures = vcat(
-            relevantVariableFeatures .+ mask, # F'xAxB
-            globalFeatures .+ mask, # G'xAxB
-            relevantValueFeatures,
+            relevantVariableFeatures .+ Mask, # F'xAxB
+            globalFeatures .+ Mask, # G'xAxB
+            relevantValueFeatures .+ Mask,
         ) # (F'+G'+F')xAxB
-        finalFeatures = RL.flatten_batch(finalFeatures) # (F'+G'+F')x(AxB)
     else
         # Prepare the input of the outputChain
         finalFeatures = vcat(
-            relevantVariableFeatures .+ mask, # F'xAxB
-            relevantValueFeatures,
+            relevantVariableFeatures .+ Mask, # F'xAxB
+            relevantValueFeatures.+ Mask,
         ) # (F'+F')xAxB
-        finalFeatures = RL.flatten_batch(finalFeatures) # (F'+F')x(AxB)
     end
 
     # output layer
-    predictions = nn.outputChain(finalFeatures) # Ox(AxB)
-    output = reshape(predictions, actionSpaceSize, batchSize) # OxAxB
-
-    return output
+    predictions = nn.outputChain(finalFeatures)# Ox(AxB)
+    predictions  = permutedims(predictions, [1,3,2,4])
+    #variableIndices = Flux.unsqueeze(CartesianIndex.(variableIdx, 1:batchSize), 1)|> gpu
+    variableIndices = device(states) in devices() ? CuArray(Flux.unsqueeze(CartesianIndex.(variableIdx, 1:batchSize), 1)) : Flux.unsqueeze(CartesianIndex.(variableIdx, 1:batchSize), 1)
+    output = dropdims(predictions[:,:, variableIndices], dims = tuple(findall(size(predictions[:,:, variableIndices]) .== 1)...))
+    return output 
 end
 
 function (nn::HeterogeneousFullFeaturedCPNN)(states::HeterogeneousTrajectoryState)
     variableIdx = states.variableIdx
     actionSpaceSize = size(states.fg.valnf,2)
-    mask = device(states) == Val(:gpu) ? CUDA.zeros(Float32, 1, actionSpaceSize) : zeros(Float32, 1, actionSpaceSize) # this mask will replace `reapeat` using broadcasted `+`
-    #mask = device(states) == device() ? CUDA.zeros(Float32, 1, actionSpaceSize) : zeros(Float32, 1, actionSpaceSize) # this mask will replace `reapeat` using broadcasted `+`
+    #Mask = device(states) == device() ? CUDA.zeros(Float32, 1, actionSpaceSize) : zeros(Float32, 1, actionSpaceSize) # this Mask will replace `reapeat` using broadcasted `+`
 
     # chain working on the graph(s) with the GNNs
     featuredGraph = nn.graphChain(states.fg)
     variableFeatures = featuredGraph.varnf # FxNxB
     valueFeatures = featuredGraph.valnf
     globalFeatures = featuredGraph.gf # GxB
+    Mask = device(states) == device() ? CUDA.zeros(Float32, 1,size(states.fg.varnf,2), actionSpaceSize) : zeros(Float32, 1,size(states.fg.varnf,2), actionSpaceSize) # this Mask will replace `reapeat` using broadcasted `+`
 
     # Extract the features corresponding to the varibales
-    branchingVariableFeatures = variableFeatures[:, variableIdx] # Fx1
-    relevantVariableFeatures = nn.varChain(branchingVariableFeatures) # F'x1
+    relevantVariableFeatures = nn.varChain(variableFeatures) # F'x1
 
     # Extract the features corresponding to the values
     relevantValueFeatures = nn.valChain(valueFeatures) # F'xA
+    relevantValueFeatures = reshape(relevantValueFeatures,size(relevantValueFeatures)[1],1,:)
     finalFeatures = nothing
+
     if sizeof(globalFeatures) != 0
 
         # Prepare the input of the outputChain
         finalFeatures = vcat(
-            relevantVariableFeatures .+ mask, # F'xA
-            globalFeatures .+ mask, # G'xA
-            relevantValueFeatures, # F'xA
+            relevantVariableFeatures .+ Mask, # F'xA
+            globalFeatures .+ Mask, # G'xA
+            relevantValueFeatures .+ Mask#F'xA
+            , # F'xA
         ) # (F'+G'+F')xA
     else
         # Prepare the input of the outputChain
         finalFeatures = vcat(
-            relevantVariableFeatures .+ mask, # F'xA
-            relevantValueFeatures, #F'xA
+            relevantVariableFeatures .+ Mask, # F'xA
+            relevantValueFeatures .+ Mask#F'xA
         ) # (F'+F')xA
     end
 
     # output layer
-    predictions = nn.outputChain(finalFeatures) # OxA
-
-    return predictions
+    predictions = nn.outputChain(finalFeatures) |> cpu# OxA
+    return vec(predictions[:,variableIdx,:])
 end
