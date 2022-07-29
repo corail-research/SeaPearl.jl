@@ -66,11 +66,10 @@ function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any,meanPooling})(fgs::Ba
 
     MatVar, MatCon, MatVal = nothing,nothing,nothing
     Zygote.ignore() do
-
-    sumcontovar = reshape(mapslices(x -> sum(eachrow(x)), contovar, dims=[1, 2]), 1, :, size(contovar, 3))
-    sumvaltovar = reshape(mapslices(x -> sum(eachrow(x)), valtovar, dims=[1, 2]), 1, :, size(valtovar, 3))
-    sumvartocon = reshape(mapslices(x -> sum(eachrow(x)), vartocon, dims=[1, 2]), 1, :, size(vartocon, 3))
-    sumvartoval = reshape(mapslices(x -> sum(eachrow(x)), vartoval, dims=[1, 2]), 1, :, size(vartoval, 3))
+    sumcontovar =  sum(contovar, dims = 1)
+    sumvaltovar =  sum(valtovar, dims = 1)
+    sumvartocon =  sum(vartocon, dims = 1)
+    sumvartoval =  sum(vartoval, dims = 1)
 
     sumcontovar = max.(sumcontovar, device(sumcontovar) == Val{:gpu}() ? CUDA.ones(size(sumcontovar)) : ones(size(sumcontovar)))
     sumvaltovar = max.(sumvaltovar, device(sumvaltovar) == Val{:gpu}() ? CUDA.ones(size(sumvaltovar)) : ones(size(sumvaltovar)))
@@ -111,10 +110,10 @@ function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any,meanPooling})(fg::Het
     MatVar, MatCon, MatVal = nothing,nothing,nothing
     sumcontovar,sumvaltovar,sumvartocon,sumvartoval = nothing,nothing,nothing,nothing
     Zygote.ignore() do
-        sumcontovar = reshape(sum(eachrow(contovar)), 1, :)
-        sumvaltovar = reshape(sum(eachrow(valtovar)), 1, :)
-        sumvartocon = reshape(sum(eachrow(vartocon)), 1, :)
-        sumvartoval = reshape(sum(eachrow(vartoval)), 1, :)
+        sumcontovar = sum(contovar, dims =1)
+        sumvaltovar = sum(valtovar, dims =1)
+        sumvartocon = sum(vartocon, dims =1)
+        sumvartoval = sum(vartoval, dims =1)
 
         sumcontovar = max.(sumcontovar, device(sumcontovar) == Val{:gpu}() ? CUDA.ones(size(sumcontovar)) : ones(size(sumcontovar)))
         sumvaltovar = max.(sumvaltovar, device(sumvaltovar) == Val{:gpu}() ? CUDA.ones(size(sumvaltovar)) : ones(size(sumvaltovar)))
