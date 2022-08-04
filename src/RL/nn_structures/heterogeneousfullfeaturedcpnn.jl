@@ -91,7 +91,10 @@ function (nn::HeterogeneousFullFeaturedCPNN)(states::BatchedHeterogeneousTraject
     predictions = nn.outputChain(finalFeatures)# Ox(AxB)
     predictions  = permutedims(predictions, [1,3,2,4])
     #variableIndices = Flux.unsqueeze(CartesianIndex.(variableIdx, 1:batchSize), 1)|> gpu
-    variableIndices = device(states) in devices() ? CuArray(Flux.unsqueeze(CartesianIndex.(variableIdx, 1:batchSize), 1)) : Flux.unsqueeze(CartesianIndex.(variableIdx, 1:batchSize), 1)
+    variableIndices = nothing
+    Zygote.ignore() do
+        variableIndices = device(states) in devices() ? CuArray(Flux.unsqueeze(CartesianIndex.(variableIdx, 1:batchSize), 1)) : Flux.unsqueeze(CartesianIndex.(variableIdx, 1:batchSize), 1)
+    end
     output = dropdims(predictions[:,:, variableIndices], dims = tuple(findall(size(predictions[:,:, variableIndices]) .== 1)...))
     return output 
 end
@@ -99,7 +102,7 @@ end
 function (nn::HeterogeneousFullFeaturedCPNN)(states::HeterogeneousTrajectoryState)
     variableIdx = states.variableIdx
     actionSpaceSize = size(states.fg.valnf,2)
-    #Mask = device(states) == device() ? CUDA.zeros(Float32, 1, actionSpaceSize) : zeros(Float32, 1, actionSpaceSize) # this Mask will replace `reapeat` using broadcasted `+`
+    #Mask = device(states) == Val{:gpu}() ? CUDA.zeros(Float32, 1, actionSpaceSize) : zeros(Float32, 1, actionSpaceSize) # this Mask will replace `reapeat` using broadcasted `+`
 
     # chain working on the graph(s) with the GNNs
     featuredGraph = nn.graphChain(states.fg)
