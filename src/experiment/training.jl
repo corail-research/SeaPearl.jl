@@ -27,9 +27,11 @@ function train!(;
         out_solver::Bool=false,
         verbose::Bool=true,
         evaluator::Union{Nothing, AbstractEvaluator},
+        training_timeout =nothing::Union{Nothing, Int},
         metrics::Union{Nothing,AbstractMetrics}=nothing, 
         restartPerInstances = 1,
-        rngTraining = MersenneTwister()
+        rngTraining = MersenneTwister(), 
+        eval_every =nothing::Union{Nothing, Int},
     ) where{ T <: ValueSelection, S1, S2 <: SearchStrategy}
 
     if isa(valueSelectionArray, T)
@@ -60,6 +62,8 @@ function train!(;
         evaluator=evaluator,
         restartPerInstances,
         rngTraining,
+        training_timeout = training_timeout,
+        eval_every = eval_every,
     )
 
     for valueSelection in valueSelectionArray

@@ -38,6 +38,8 @@ function launch_experiment!(
         evaluator::Union{Nothing, AbstractEvaluator}=SameInstancesEvaluator(valueSelectionArray,generator),
         restartPerInstances::Int64,
         rngTraining::AbstractRNG,
+        training_timeout =nothing::Union{Nothing, Int},
+        eval_every =nothing::Union{Nothing, Int},
     ) where{T <: ValueSelection, S1,S2 <: SearchStrategy}
 
 
@@ -63,7 +65,8 @@ function launch_experiment!(
         evaluate(evaluator, variableHeuristic, eval_strategy; verbose = verbose)
         empty!(evaluator)
     end
-
+    start_time, train_time = time_ns(), time_ns()
+    eval_time, eval_start, eval_end, j = 0, 0, 0, 0
     iter = ProgressBar(1:nbEpisodes)
     for i in iter
         #for i in 1:nbEpisodes
@@ -74,10 +77,10 @@ function launch_experiment!(
         
         for j in 1:nbHeuristics
             reset_model!(model)
-        
             if isa(valueSelectionArray[j], LearnedHeuristic)
                 verbose && print("Visited nodes with learnedHeuristic ",j," : " )
-            
+                println(ReinforcementLearningCore.get_ϵ(valueSelectionArray[j].agent.policy.explorer))
+
                 dt = @elapsed for k in 1:restartPerInstances
                     restart_search!(model)
                     search!(model, strategy, variableHeuristic, valueSelectionArray[j], out_solver=out_solver)
@@ -88,10 +91,25 @@ function launch_experiment!(
             end
         end
 
-        if !isnothing(evaluator) && (i % evaluator.evalFreq == 1)
-            evaluate(evaluator, variableHeuristic, eval_strategy; verbose = verbose)
+        if !isnothing(evaluator)
+            if isnothing(eval_every) && (i % evaluator.evalFreq == 1)
+                eval_start = time_ns()
+                evaluate(evaluator, variableHeuristic, eval_strategy; verbose = verbose)
+                eval_end = time_ns()
+                eval_time += eval_end - eval_start
+            elseif !isnothing(eval_every) && (train_time - start_time)/1.0e9 > eval_every*j
+                j +=1
+                eval_start = time_ns()
+                evaluate(evaluator, variableHeuristic, eval_strategy; verbose = verbose)
+                eval_end = time_ns()
+                eval_time += eval_end - eval_start
+            end
+        else 
+            eval_time = 0
         end
+        train_time = time_ns() - eval_time
         verbose && println()
+        !isnothing(training_timeout) && (train_time - start_time)/1.0e9 > training_timeout && break
     end
 
     if !isnothing(evaluator)
