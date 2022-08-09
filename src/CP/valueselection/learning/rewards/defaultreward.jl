@@ -19,16 +19,16 @@ function set_reward!(::Type{StepPhase}, lh::LearnedHeuristic{SR, DefaultReward, 
     A <: ActionOutput
 }
     if symbol == :Infeasible  
-        lh.reward.value -= 10*model.statistics.numberOfNodes
+        lh.reward.value -= 0
 
     elseif symbol == :FoundSolution
-        lh.reward.value -= 1
+        lh.reward.value -= 0
 
     elseif symbol == :Feasible 
-        lh.reward.value -= 1
+        lh.reward.value -= 0
 
     elseif symbol == :BackTracking
-        lh.reward.value -= 1
+        lh.reward.value -= 0
     end
 end
 
@@ -42,7 +42,7 @@ function set_reward!(::Type{DecisionPhase}, lh::LearnedHeuristic{SR, DefaultRewa
     SR <: AbstractStateRepresentation,
     A <: ActionOutput
 }
-    lh.reward.value += -1/40
+    lh.reward.value += -1
 
 end
 
@@ -57,6 +57,6 @@ function set_reward!(::Type{EndingPhase}, lh::LearnedHeuristic{SR, DefaultReward
     SR <: AbstractStateRepresentation, 
     A <: ActionOutput
 }
-    lh.reward.value += 1
+    lh.reward.value += 0
 
 end
