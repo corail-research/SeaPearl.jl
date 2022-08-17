@@ -71,10 +71,10 @@ function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any,meanPooling})(fgs::Ba
     sumvartocon =  sum(vartocon, dims = 1)
     sumvartoval =  sum(vartoval, dims = 1)
 
-    sumcontovar = max.(sumcontovar, device(sumcontovar) == Val{:gpu}() ? CUDA.ones(size(sumcontovar)) : ones(size(sumcontovar)))
-    sumvaltovar = max.(sumvaltovar, device(sumvaltovar) == Val{:gpu}() ? CUDA.ones(size(sumvaltovar)) : ones(size(sumvaltovar)))
-    sumvartocon = max.(sumvartocon, device(sumvartocon) == Val{:gpu}() ? CUDA.ones(size(sumvartocon)) : ones(size(sumvartocon)))
-    sumvartoval = max.(sumvartoval, device(sumvartoval) == Val{:gpu}() ? CUDA.ones(size(sumvartoval)) : ones(size(sumvartoval)))
+    sumcontovar = max.(sumcontovar, device(sumcontovar) != Val{:cpu}() ? CUDA.ones(size(sumcontovar)) : ones(size(sumcontovar)))
+    sumvaltovar = max.(sumvaltovar, device(sumvaltovar) != Val{:cpu}() ? CUDA.ones(size(sumvaltovar)) : ones(size(sumvaltovar)))
+    sumvartocon = max.(sumvartocon, device(sumvartocon) != Val{:cpu}() ? CUDA.ones(size(sumvartocon)) : ones(size(sumvartocon)))
+    sumvartoval = max.(sumvartoval, device(sumvartoval) != Val{:cpu}() ? CUDA.ones(size(sumvartoval)) : ones(size(sumvartoval)))
 
     contovarN = contovar ./ sumcontovar
     valtovarN = valtovar ./ sumvaltovar
@@ -115,10 +115,10 @@ function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any,meanPooling})(fg::Het
         sumvartocon = sum(vartocon, dims =1)
         sumvartoval = sum(vartoval, dims =1)
 
-        sumcontovar = max.(sumcontovar, device(sumcontovar) == Val{:gpu}() ? CUDA.ones(size(sumcontovar)) : ones(size(sumcontovar)))
-        sumvaltovar = max.(sumvaltovar, device(sumvaltovar) == Val{:gpu}() ? CUDA.ones(size(sumvaltovar)) : ones(size(sumvaltovar)))
-        sumvartocon = max.(sumvartocon, device(sumvartocon) == Val{:gpu}() ? CUDA.ones(size(sumvartocon)) : ones(size(sumvartocon)))
-        sumvartoval = max.(sumvartoval, device(sumvartoval) == Val{:gpu}() ? CUDA.ones(size(sumvartoval)) : ones(size(sumvartoval)))
+        sumcontovar = max.(sumcontovar, device(sumcontovar) != Val{:cpu}() ? CUDA.ones(size(sumcontovar)) : ones(size(sumcontovar)))
+        sumvaltovar = max.(sumvaltovar, device(sumvaltovar) != Val{:cpu}() ? CUDA.ones(size(sumvaltovar)) : ones(size(sumvaltovar)))
+        sumvartocon = max.(sumvartocon, device(sumvartocon) != Val{:cpu}() ? CUDA.ones(size(sumvartocon)) : ones(size(sumvartocon)))
+        sumvartoval = max.(sumvartoval, device(sumvartoval) != Val{:cpu}() ? CUDA.ones(size(sumvartoval)) : ones(size(sumvartoval)))
 
 
         contovarN = contovar ./ sumcontovar
@@ -217,10 +217,10 @@ function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any, maxPooling})(fg::Het
     filteredembvartoval = nothing
     Zygote.ignore() do      
     
-        contovarIdx = device(contovar) == Val{:gpu}() ? CuArray(repeat(collect(1:size(contovar,1)),1,size(contovar,2))) : repeat(collect(1:size(contovar,1)),1,size(contovar,2))
-        valtovarIdx = device(valtovar) == Val{:gpu}() ? CuArray(repeat(collect(1:size(valtovar,1)),1,size(valtovar,2))) : repeat(collect(1:size(valtovar,1)),1,size(valtovar,2))
-        vartoconIdx = device(vartocon) == Val{:gpu}() ? CuArray(repeat(collect(1:size(vartocon,1)),1,size(vartocon,2))) : repeat(collect(1:size(vartocon,1)),1,size(vartocon,2))
-        vartovalIdx = device(vartoval) == Val{:gpu}() ? CuArray(repeat(collect(1:size(vartoval,1)),1,size(vartoval,2))) : repeat(collect(1:size(vartoval,1)),1,size(vartoval,2))
+        contovarIdx = device(contovar) != Val{:cpu}() ? CuArray(repeat(collect(1:size(contovar,1)),1,size(contovar,2))) : repeat(collect(1:size(contovar,1)),1,size(contovar,2))
+        valtovarIdx = device(valtovar) != Val{:cpu}() ? CuArray(repeat(collect(1:size(valtovar,1)),1,size(valtovar,2))) : repeat(collect(1:size(valtovar,1)),1,size(valtovar,2))
+        vartoconIdx = device(vartocon) != Val{:cpu}() ? CuArray(repeat(collect(1:size(vartocon,1)),1,size(vartocon,2))) : repeat(collect(1:size(vartocon,1)),1,size(vartocon,2))
+        vartovalIdx = device(vartoval) != Val{:cpu}() ? CuArray(repeat(collect(1:size(vartoval,1)),1,size(vartoval,2))) : repeat(collect(1:size(vartoval,1)),1,size(vartoval,2))
 
         contovarIdx = contovarIdx.*contovar
         valtovarIdx = valtovarIdx.*valtovar
