@@ -34,7 +34,7 @@ function set_reward!(::Type{DecisionPhase}, lh::LearnedHeuristic{SR, ScoreReward
     SR <: AbstractStateRepresentation,
     A <: ActionOutput
 }
-    lh.reward.value = 0
+    nothing
 end
 
 
