@@ -31,10 +31,11 @@ Constructor for SameInstancesEvaluator. In order to generate nbInstances times t
 function SameInstancesEvaluator(valueSelectionArray::Array{H, 1}, generator::AbstractModelGenerator ; rng::AbstractRNG = MersenneTwister(), evalFreq::Int64 = 50, nbInstances::Int64 = 10, evalTimeOut::Union{Nothing,Int64} = nothing) where H<: ValueSelection
     instances = Array{CPModel}(undef, nbInstances)
     metrics = Matrix{AbstractMetrics}(undef,nbInstances, size(valueSelectionArray,1)) 
-
+    Random.seed!(rand(rng, 0:typemax(Int64)))
     for i in 1:nbInstances
         instances[i] = CPModel()
-        fill_with_generator!(instances[i], generator; rng = rng)
+        fill_with_generator!(instances[i], generator, rng = rng)   #fill_with_generator!(instances[i], generator; rng = rng)
+
         instances[i].limit.searchingTime = evalTimeOut
         for (j, value) in enumerate(valueSelectionArray)
             metrics[i,j]=BasicMetrics(instances[i],value;meanOver=1)
