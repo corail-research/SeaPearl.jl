@@ -1,4 +1,5 @@
 using ProgressBars
+using TensorBoardLogger, Logging, Random
 
 """
     launch_experiment!(;
@@ -25,6 +26,21 @@ This function is called by `train!` and by `benchmark_solving!`.
 
 Every "evalFreq" episodes, all heuristic are evaluated ( weights are no longer updated during the evaluation).
 """
+function monitorInput()
+    # Put STDIN in 'raw mode'
+    ccall(:jl_tty_set_mode, Int32, (Ptr{Nothing}, Int32), stdin.handle, true) == 0 || throw("FATAL: Terminal unable to enter raw mode.")
+
+    inputBuffer = Channel{Char}(100)
+
+    @async begin
+        while true
+            c = read(stdin, Char)
+            put!(inputBuffer, c)
+        end
+    end
+    return inputBuffer
+end
+
 function launch_experiment!(
         valueSelectionArray::Array{T, 1}, 
         generator::AbstractModelGenerator,
@@ -40,9 +56,10 @@ function launch_experiment!(
         rngTraining::AbstractRNG,
         training_timeout =nothing::Union{Nothing, Int},
         eval_every =nothing::Union{Nothing, Int},
+        logger = logger
     ) where{T <: ValueSelection, S1,S2 <: SearchStrategy}
-
-
+    
+    #inputBuffer = monitorInput()
     nbHeuristics = length(valueSelectionArray)
 
     #get the type of CPmodel ( does it contains an objective )
@@ -68,49 +85,74 @@ function launch_experiment!(
     start_time, train_time = time_ns(), time_ns()
     eval_time, eval_start, eval_end, j = 0, 0, 0, 0
     iter = ProgressBar(1:nbEpisodes)
-    for i in iter
-        #for i in 1:nbEpisodes
-        verbose && println(" --- EPISODE: ", i)
-
-        empty!(model)
-        fill_with_generator!(model, generator; rng = rngTraining)
-        
-        for j in 1:nbHeuristics
-            reset_model!(model)
-            if isa(valueSelectionArray[j], LearnedHeuristic)
-                verbose && print("Visited nodes with learnedHeuristic ",j," : " )
-                println(ReinforcementLearningCore.get_ϵ(valueSelectionArray[j].agent.policy.explorer))
-
-                dt = @elapsed for k in 1:restartPerInstances
-                    restart_search!(model)
-                    search!(model, strategy, variableHeuristic, valueSelectionArray[j], out_solver=out_solver)
-                    verbose && print(model.statistics.numberOfNodesBeforeRestart, ": ",model.statistics.numberOfSolutions, "(",model.statistics.AccumulatedRewardBeforeRestart,") / ")
-                end 
-                metricsArray[j](model,dt)  #adding results in the metrics data structure
-                verbose && println()
+        for i in iter
+            #if isready(inputBuffer) && take!(inputBuffer) == 'q'
+            #    break
+            #end
+            #verbose && println(CUDA.memory_status())
+            if !isnothing(evaluator)
+                if isnothing(eval_every) && (i % evaluator.evalFreq == 1)
+                    eval_start = time_ns()
+                    evaluate(evaluator, variableHeuristic, eval_strategy; verbose = verbose)
+                    if !isnothing(logger)
+                        with_logger(logger) do
+                            for j in 1:nbHeuristics
+                                @info "Eval Heuristic "*string(j) Score = Vector(map(x -> x[1],first.(Vector(last.([metric.scores for metric in evaluator.metrics[:,j]])))))
+                            end
+                        end
+                    end
+                    eval_end = time_ns()
+                    eval_time += eval_end - eval_start
+                elseif !isnothing(eval_every) && (train_time - start_time)/1.0e9 > eval_every*j
+                    j +=1
+                    eval_start = time_ns()
+                    evaluate(evaluator, variableHeuristic, eval_strategy; verbose = verbose)
+                    if !isnothing(logger)
+                        with_logger(logger) do
+                            for j in 1:nbHeuristics
+                                @info "Eval Heuristic "*string(j) Score = Vector(map(x -> x[1],first.(Vector(last.([metric.scores for metric in evaluator.metrics[:,j]])))))
+                            end
+                        end
+                    end
+                    eval_end = time_ns()
+                    eval_time += eval_end - eval_start
+                end
+            else 
+                eval_time = 0
+            end
+            train_time = time_ns() - eval_time
+            !isnothing(training_timeout) && (train_time - start_time)/1.0e9 > training_timeout && break
+            #for i in 1:nbEpisodes
+            verbose && println(" --- EPISODE: ", i)
+    
+            empty!(model)
+            fill_with_generator!(model, generator; rng = rngTraining)
+            
+            for j in 1:nbHeuristics
+                reset_model!(model)
+                if isa(valueSelectionArray[j], LearnedHeuristic)
+    
+                    verbose && print("Visited nodes with learnedHeuristic ",j," : " )
+                    #println(ReinforcementLearningCore.get_ϵ(valueSelectionArray[j].agent.policy.explorer))
+                    #verbose && println(valueSelectionArray[j].agent.trajectory)
+    
+                    dt = @elapsed for k in 1:restartPerInstances
+                        restart_search!(model)
+                        search!(model, strategy, variableHeuristic, valueSelectionArray[j], out_solver=out_solver)
+                        verbose && print(model.statistics.numberOfNodesBeforeRestart, ": ",model.statistics.numberOfSolutions, "(",model.statistics.AccumulatedRewardBeforeRestart,") / ")
+    
+                    end 
+                    metricsArray[j](model,dt)  #adding results in the metrics data structure
+                    if !isnothing(logger)
+                        with_logger(logger) do
+                            @info "Train Heuristic "*string(j) Loss=last(metricsArray[j].loss) Reward = last(metricsArray[j].totalReward) Node_Visited = last(metricsArray[j].nodeVisited) Time = last(metricsArray[j].timeneeded) Score = first(last(metricsArray[j].scores)) Explorer = ReinforcementLearningCore.get_ϵ(valueSelectionArray[j].agent.policy.explorer)
+                        end
+                    end
+                    verbose && println()
+                end
             end
         end
 
-        if !isnothing(evaluator)
-            if isnothing(eval_every) && (i % evaluator.evalFreq == 1)
-                eval_start = time_ns()
-                evaluate(evaluator, variableHeuristic, eval_strategy; verbose = verbose)
-                eval_end = time_ns()
-                eval_time += eval_end - eval_start
-            elseif !isnothing(eval_every) && (train_time - start_time)/1.0e9 > eval_every*j
-                j +=1
-                eval_start = time_ns()
-                evaluate(evaluator, variableHeuristic, eval_strategy; verbose = verbose)
-                eval_end = time_ns()
-                eval_time += eval_end - eval_start
-            end
-        else 
-            eval_time = 0
-        end
-        train_time = time_ns() - eval_time
-        verbose && println()
-        !isnothing(training_timeout) && (train_time - start_time)/1.0e9 > training_timeout && break
-    end
 
     if !isnothing(evaluator)
         evaluate(evaluator, variableHeuristic, eval_strategy; verbose = verbose)
