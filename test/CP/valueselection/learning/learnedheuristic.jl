@@ -154,9 +154,6 @@
     end
 
     @testset "advanced test on learnedheuristic.jl" begin
-
-
-
         approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
         target_approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
         gnnlayers = 1
