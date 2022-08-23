@@ -165,7 +165,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::ClusterizedGraphColoringGen
     end
 
     ### Objective ###
-    numberOfColors = SeaPearl.IntVar(1, nb_nodes, "numberOfColors", cpmodel.trailer)
+    numberOfColors = SeaPearl.IntVar(1, n, "numberOfColors", cpmodel.trailer)
     SeaPearl.addVariable!(cpmodel, numberOfColors, branchable=false)
     SeaPearl.addConstraint!(cpmodel, SeaPearl.MaximumConstraint(x, numberOfColors, cpmodel.trailer))
     SeaPearl.addObjective!(cpmodel, numberOfColors)
