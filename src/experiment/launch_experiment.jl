@@ -1,6 +1,6 @@
 using ProgressBars
 using TensorBoardLogger, Logging, Random
-
+using Suppressor
 """
     launch_experiment!(;
         ValueSelectionArray::Array{ValueSelection, 1}, 
@@ -56,12 +56,12 @@ function launch_experiment!(
         rngTraining::AbstractRNG,
         training_timeout =nothing::Union{Nothing, Int},
         eval_every =nothing::Union{Nothing, Int},
-        logger = logger
+        logger = logger,
+        nbTrainingPoints = 1000
     ) where{T <: ValueSelection, S1,S2 <: SearchStrategy}
     
     #inputBuffer = monitorInput()
     nbHeuristics = length(valueSelectionArray)
-
     #get the type of CPmodel ( does it contains an objective )
     trailer = Trailer()
     model = CPModel(trailer)
@@ -141,16 +141,23 @@ function launch_experiment!(
                         search!(model, strategy, variableHeuristic, valueSelectionArray[j], out_solver=out_solver)
                         verbose && print(model.statistics.numberOfNodesBeforeRestart, ": ",model.statistics.numberOfSolutions, "(",model.statistics.AccumulatedRewardBeforeRestart,") / ")
     
-                    end 
-                    metricsArray[j](model,dt)  #adding results in the metrics data structure
+                    end
+
+                    if i % (nbEpisodes/nbTrainingPoints) == 1 || nbEpisodes <= nbTrainingPoints #We want nbTrainingPoints in the Metrics Array
+                        metricsArray[j](model,dt)  #adding results in the metrics data structure
+                    end
+                    VRAM_status = @capture_out CUDA.memory_status()
+                    VRAM = match(r"\b(?<!\.)(?!0+(?:\.0+)?%)(?:\d|[1-9]\d|100)(?:(?<!100)\.\d+)?%",VRAM_status)
+                    VRAM = VRAM.match
                     if !isnothing(logger)
                         with_logger(logger) do
-                            @info "Train Heuristic "*string(j) Loss=last(metricsArray[j].loss) Reward = last(metricsArray[j].totalReward) Node_Visited = last(metricsArray[j].nodeVisited) Time = last(metricsArray[j].timeneeded) Score = first(last(metricsArray[j].scores)) Explorer = ReinforcementLearningCore.get_ϵ(valueSelectionArray[j].agent.policy.explorer)
+                            @info "Train Heuristic "*string(j) Loss=last(metricsArray[j].loss) Reward = last(metricsArray[j].totalReward) Node_Visited = last(metricsArray[j].nodeVisited) Time = last(metricsArray[j].timeneeded) Score = first(last(metricsArray[j].scores)) Explorer = ReinforcementLearningCore.get_ϵ(valueSelectionArray[j].agent.policy.explorer) Load_RAM = (Sys.total_memory()-Sys.free_memory())/Sys.total_memory() Load_VRAM = parse(Float64,replace(VRAM,r"%" => "" ))/100 Trajectory_load = length(valueSelectionArray[j].agent.trajectory) Metrics_size = sizeof(metricsArray)
                         end
                     end
                     verbose && println()
                 end
             end
+            GC.gc()
         end
 
 
