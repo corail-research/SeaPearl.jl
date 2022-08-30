@@ -130,6 +130,7 @@ function launch_experiment!(
             
             for j in 1:nbHeuristics
                 reset_model!(model)
+
                 if isa(valueSelectionArray[j], LearnedHeuristic)
     
                     verbose && print("Visited nodes with learnedHeuristic ",j," : " )

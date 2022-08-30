@@ -28,6 +28,7 @@ RollingFunctions = "b0e4dd01-7b14-53d8-9b45-175a3e362653"
 SimpleWeightedGraphs = "47aef6b3-ad0c-573a-a1e2-d07658019622"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
+TensorBoardLogger = "899adc3e-224a-11e9-021f-63837185c80f"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [compat]
