@@ -57,7 +57,8 @@ function launch_experiment!(
         training_timeout =nothing::Union{Nothing, Int},
         eval_every =nothing::Union{Nothing, Int},
         logger = logger,
-        nbTrainingPoints = 1000
+        nbTrainingPoints = 1000,
+        device = cpu
     ) where{T <: ValueSelection, S1,S2 <: SearchStrategy}
     
     #inputBuffer = monitorInput()
@@ -94,6 +95,7 @@ function launch_experiment!(
                 if isnothing(eval_every) && (i % evaluator.evalFreq == 1)
                     eval_start = time_ns()
                     evaluate(evaluator, variableHeuristic, eval_strategy; verbose = verbose)
+                    GC.gc()
                     if !isnothing(logger)
                         with_logger(logger) do
                             for j in 1:nbHeuristics
@@ -107,6 +109,7 @@ function launch_experiment!(
                     j +=1
                     eval_start = time_ns()
                     evaluate(evaluator, variableHeuristic, eval_strategy; verbose = verbose)
+                    GC.gc()
                     if !isnothing(logger)
                         with_logger(logger) do
                             for j in 1:nbHeuristics
@@ -125,17 +128,15 @@ function launch_experiment!(
             #for i in 1:nbEpisodes
             verbose && println(" --- EPISODE: ", i)
     
-            empty!(model)
+            model = CPModel(trailer)
             fill_with_generator!(model, generator; rng = rngTraining)
             
             for j in 1:nbHeuristics
                 reset_model!(model)
-
                 if isa(valueSelectionArray[j], LearnedHeuristic)
     
                     verbose && print("Visited nodes with learnedHeuristic ",j," : " )
-                    #println(ReinforcementLearningCore.get_ϵ(valueSelectionArray[j].agent.policy.explorer))
-                    #verbose && println(valueSelectionArray[j].agent.trajectory)
+
     
                     dt = @elapsed for k in 1:restartPerInstances
                         restart_search!(model)
@@ -147,18 +148,25 @@ function launch_experiment!(
                     if i % (nbEpisodes/nbTrainingPoints) == 1 || nbEpisodes <= nbTrainingPoints #We want nbTrainingPoints in the Metrics Array
                         metricsArray[j](model,dt)  #adding results in the metrics data structure
                     end
-                    VRAM_status = @capture_out CUDA.memory_status()
-                    VRAM = match(r"\b(?<!\.)(?!0+(?:\.0+)?%)(?:\d|[1-9]\d|100)(?:(?<!100)\.\d+)?%",VRAM_status)
-                    VRAM = VRAM.match
+                    Load_RAM = (Sys.total_memory()-Sys.free_memory())/Sys.total_memory()
+                    
+                    if device == cpu
+                        Load_VRAM = Load_RAM
+                    else 
+                        VRAM_status = @capture_out CUDA.memory_status()  #retrieve raw string status
+                        VRAM = match(r"\b(?<!\.)(?!0+(?:\.0+)?%)(?:\d|[1-9]\d|100)(?:(?<!100)\.\d+)?%",VRAM_status) #retrieve VRAM allocation percentage
+                        VRAM = VRAM.match
+                        Load_VRAM = parse(Float64,replace(VRAM,r"%" => "" ))/100
+                    end
+
                     if !isnothing(logger)
                         with_logger(logger) do
-                            @info "Train Heuristic "*string(j) Loss=last(metricsArray[j].loss) Reward = last(metricsArray[j].totalReward) Node_Visited = last(metricsArray[j].nodeVisited) Time = last(metricsArray[j].timeneeded) Score = first(last(metricsArray[j].scores)) Explorer = ReinforcementLearningCore.get_ϵ(valueSelectionArray[j].agent.policy.explorer) Load_RAM = (Sys.total_memory()-Sys.free_memory())/Sys.total_memory() Load_VRAM = parse(Float64,replace(VRAM,r"%" => "" ))/100 Trajectory_load = length(valueSelectionArray[j].agent.trajectory) Metrics_size = sizeof(metricsArray)
+                            @info "Train Heuristic "*string(j) Loss=last(metricsArray[j].loss) Reward = last(metricsArray[j].totalReward) Node_Visited = last(metricsArray[j].nodeVisited) Time = last(metricsArray[j].timeneeded) Score = first(last(metricsArray[j].scores)) Explorer = ReinforcementLearningCore.get_ϵ(valueSelectionArray[j].agent.policy.explorer) Load_RAM = Load_RAM Load_VRAM = Load_VRAM Trajectory_load = length(valueSelectionArray[j].agent.trajectory) Metrics_size = Base.summarysize(metricsArray)
                         end
                     end
                     verbose && println()
                 end
             end
-            GC.gc()
         end
 
 
