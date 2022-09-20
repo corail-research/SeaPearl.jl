@@ -248,10 +248,10 @@
         lh.firstActionTaken = true
         lh(SeaPearl.DecisionPhase, model, x)
         @test !isnothing(model.statistics.lastVar)
-        @test lh.agent.trajectory[:reward][end] == -0.025f0
+        @test lh.agent.trajectory[:reward][end] == -1
 
         lh(SeaPearl.EndingPhase, model, :Optimal)
-        @test lh.agent.trajectory[:reward][end] == 0.975f0    #last DecisionReward (-0.025f0) + EndingReward (+1)
+        @test lh.agent.trajectory[:reward][end] == -1
     end
 
     @testset "explorer variation on testmode" begin

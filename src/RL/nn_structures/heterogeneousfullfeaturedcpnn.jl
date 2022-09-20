@@ -51,7 +51,7 @@ function (nn::HeterogeneousFullFeaturedCPNN)(states::BatchedHeterogeneousTraject
     featuredGraph = nn.graphChain(states.fg)
     variableFeatures = featuredGraph.varnf # FxNxB
     valueFeatures = featuredGraph.valnf
-    globalFeatures = featuredGraph.gf # GxBstat
+    globalFeatures = featuredGraph.gf # GxB
 
     # Extract the features corresponding to the varibales
     variableIndices = nothing

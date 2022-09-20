@@ -50,18 +50,22 @@ end
             lh.reward.value = 0 
             model.statistics.numberOfNodes = 1
             SeaPearl.set_reward!(SeaPearl.StepPhase, lh, model,:Infeasible)
-            @test lh.reward.value == -10
+            @test lh.reward.value == 0
     
             lh.reward.value = 0 
             SeaPearl.set_reward!(SeaPearl.StepPhase, lh, model,:FoundSolution)
-            @test lh.reward.value == -1
+            @test lh.reward.value == 0
          
             lh.reward.value = 0 
             SeaPearl.set_reward!(SeaPearl.StepPhase, lh, model,:Feasible)
-            @test lh.reward.value == -1
+            @test lh.reward.value == 0
          
             lh.reward.value = 0 
             SeaPearl.set_reward!(SeaPearl.StepPhase, lh, model,:BackTracking)
+            @test lh.reward.value == 0
+
+            lh.reward.value = 0 
+            SeaPearl.set_reward!(SeaPearl.DecisionPhase, lh, model)
             @test lh.reward.value == -1
     
         end
