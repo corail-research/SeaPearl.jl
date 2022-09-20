@@ -78,7 +78,7 @@ function launch_experiment!(
 
     empty!(model)
     fill_with_generator!(model, generator)
-    #false evaluation used to compile the evaluate function that was previously compiled during first "true" evaluation virtually distorting 1st eval computing time
+    #false evaluation used to compile the evaluate function before the real one. Doing so prevent distortion on 1st eval computing time
     if !isnothing(evaluator) 
         evaluate(evaluator, variableHeuristic, eval_strategy; verbose = verbose)
         empty!(evaluator)
@@ -87,10 +87,10 @@ function launch_experiment!(
     eval_time, eval_start, eval_end, j = 0, 0, 0, 0
     iter = ProgressBar(1:nbEpisodes)
         for i in iter
+            #uncomment the 3 lines below to activate "code stopping by KeyFrame q"
             #if isready(inputBuffer) && take!(inputBuffer) == 'q'
             #    break
             #end
-            #verbose && println(CUDA.memory_status())
             if !isnothing(evaluator)
                 if isnothing(eval_every) && (i % evaluator.evalFreq == 1)
                     eval_start = time_ns()
@@ -168,7 +168,6 @@ function launch_experiment!(
                 end
             end
         end
-
 
     if !isnothing(evaluator)
         evaluate(evaluator, variableHeuristic, eval_strategy; verbose = verbose)
