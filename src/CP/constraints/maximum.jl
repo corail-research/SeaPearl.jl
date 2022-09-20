@@ -1,6 +1,6 @@
 """
-    maximum(x<:AbstractIntVar, v::Int)
-
+    MaximumConstraint <: Constraint
+    
 Maximum constraint, states that `y = max(x)`
 """
 struct MaximumConstraint <: Constraint

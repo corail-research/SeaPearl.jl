@@ -93,7 +93,6 @@ function (nn::HeterogeneousFullFeaturedCPNN)(states::BatchedHeterogeneousTraject
     #variableIndices = Flux.unsqueeze(CartesianIndex.(variableIdx, 1:batchSize), 1)|> gpu
     variableIndices = nothing
     Zygote.ignore() do
-        #variableIndices = device(states) == Val(:gpu) ? CuArray(Flux.unsqueeze(CartesianIndex.(variableIdx, 1:batchSize), 1)) : Flux.unsqueeze(CartesianIndex.(variableIdx, 1:batchSize), 1)
         variableIndices = device(states) != Val{:cpu}() ? CuArray(Flux.unsqueeze(CartesianIndex.(variableIdx, 1:batchSize), 1)) : Flux.unsqueeze(CartesianIndex.(variableIdx, 1:batchSize), 1)
     end
     output = dropdims(predictions[:,:, variableIndices], dims = tuple(findall(size(predictions[:,:, variableIndices]) .== 1)...))
@@ -103,7 +102,7 @@ end
 function (nn::HeterogeneousFullFeaturedCPNN)(states::HeterogeneousTrajectoryState)
     variableIdx = states.variableIdx
     actionSpaceSize = size(states.fg.valnf,2)
-    #Mask = device(states) == Val(:gpu) ? CUDA.zeros(Float32, 1, actionSpaceSize) : zeros(Float32, 1, actionSpaceSize) # this Mask will replace `reapeat` using broadcasted `+`
+
 
     # chain working on the graph(s) with the GNNs
     featuredGraph = nn.graphChain(states.fg)
@@ -111,7 +110,6 @@ function (nn::HeterogeneousFullFeaturedCPNN)(states::HeterogeneousTrajectoryStat
     valueFeatures = featuredGraph.valnf
     globalFeatures = featuredGraph.gf # GxB
     Mask = device(states) != Val{:cpu}() ? CUDA.zeros(Float32, 1,size(states.fg.varnf,2), actionSpaceSize) : zeros(Float32, 1,size(states.fg.varnf,2), actionSpaceSize) # this Mask will replace `reapeat` using broadcasted `+`
-    #Mask = device(states) == Val(:gpu) ? CUDA.zeros(Float32, 1,size(states.fg.varnf,2), actionSpaceSize) : zeros(Float32, 1,size(states.fg.varnf,2), actionSpaceSize) # this Mask will replace `reapeat` using broadcasted `+`
 
     # Extract the features corresponding to the varibales
     relevantVariableFeatures = nn.varChain(variableFeatures) # F'x1
