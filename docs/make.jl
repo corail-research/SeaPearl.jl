@@ -17,5 +17,6 @@ makedocs(
 )
 
 deploydocs(
-     repo = "github.com/corail-research/SeaPearl.jl.git"
+    repo = "github.com/corail-research/SeaPearl.jl.git",
+    push_preview = true,
 )
