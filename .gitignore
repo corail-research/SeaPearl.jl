@@ -2,5 +2,5 @@
 .vscode
 .vscode/
 /dev/
-/Manifest.toml
 /docs/build/
+/Manifest.toml
