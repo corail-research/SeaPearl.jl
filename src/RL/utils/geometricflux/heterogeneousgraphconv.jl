@@ -1,3 +1,5 @@
+using KernelAbstractions, CUDA
+
 struct HeterogeneousGraphConv{A<:AbstractMatrix,B,G<:pool}
     weightsvar::A
     weightscon::A
@@ -9,7 +11,7 @@ struct HeterogeneousGraphConv{A<:AbstractMatrix,B,G<:pool}
     pool::G
 end
 
-function HeterogeneousGraphConv(ch::Pair{Int,Int}, original_dimensions::Array{Int}, σ=Flux.leakyrelu; init=Flux.glorot_uniform, bias::Bool=true, T::DataType=Float32, pool::pool=sumPooling())
+function HeterogeneousGraphConv(ch::Pair{Int,Int}, original_dimensions::Array{Int}, σ=Flux.leakyrelu; init=Flux.glorot_uniform, bias::Bool=true, T::DataType=Float32, pool::pool=meanPooling())
     in, out = ch
     weightsvar = init(out, 3 * in + original_dimensions[1])
     biasvar = bias ? T.(init(out)) : zeros(T, out)
@@ -64,11 +66,16 @@ function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any,meanPooling})(fgs::Ba
 
     MatVar, MatCon, MatVal = nothing,nothing,nothing
     Zygote.ignore() do
-        sumcontovar = replace(reshape(mapslices(x -> sum(eachrow(x)), contovar, dims=[1, 2]), 1, :, size(contovar, 3)), 0=>1)
-        sumvaltovar = replace(reshape(mapslices(x -> sum(eachrow(x)), valtovar, dims=[1, 2]), 1, :, size(valtovar, 3)), 0=>1)
-        sumvartocon = replace(reshape(mapslices(x -> sum(eachrow(x)), vartocon, dims=[1, 2]), 1, :, size(vartocon, 3)), 0=>1)
-        sumvartoval = replace(reshape(mapslices(x -> sum(eachrow(x)), vartoval, dims=[1, 2]), 1, :, size(vartoval, 3)), 0=>1)
-    
+    sumcontovar =  sum(contovar, dims = 1)
+    sumvaltovar =  sum(valtovar, dims = 1)
+    sumvartocon =  sum(vartocon, dims = 1)
+    sumvartoval =  sum(vartoval, dims = 1)
+
+    sumcontovar = max.(sumcontovar, device(sumcontovar) != Val{:cpu}() ? CUDA.ones(size(sumcontovar)) : ones(size(sumcontovar)))
+    sumvaltovar = max.(sumvaltovar, device(sumvaltovar) != Val{:cpu}() ? CUDA.ones(size(sumvaltovar)) : ones(size(sumvaltovar)))
+    sumvartocon = max.(sumvartocon, device(sumvartocon) != Val{:cpu}() ? CUDA.ones(size(sumvartocon)) : ones(size(sumvartocon)))
+    sumvartoval = max.(sumvartoval, device(sumvartoval) != Val{:cpu}() ? CUDA.ones(size(sumvartoval)) : ones(size(sumvartoval)))
+
     contovarN = contovar ./ sumcontovar
     valtovarN = valtovar ./ sumvaltovar
     vartoconN = vartocon ./ sumvartocon
@@ -96,20 +103,23 @@ end
 
 function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any,meanPooling})(fg::HeterogeneousFeaturedGraph, original_fg::HeterogeneousFeaturedGraph)
     contovar, valtovar = fg.contovar, fg.valtovar
-    vartocon, vartoval = transpose(contovar), transpose(valtovar)
+    vartocon, vartoval = permutedims(contovar, [2, 1]), permutedims(valtovar, [2, 1])
     H1, H2, H3 = fg.varnf, fg.connf, fg.valnf
     X1, X2, X3 = original_fg.varnf, original_fg.connf, original_fg.valnf
 
-    sumcontovar = reshape(sum(eachrow(contovar)), 1, :)
-    sumvaltovar = reshape(sum(eachrow(valtovar)), 1, :)
-    sumvartocon = reshape(sum(eachrow(vartocon)), 1, :)
-    sumvartoval = reshape(sum(eachrow(vartoval)), 1, :)
     MatVar, MatCon, MatVal = nothing,nothing,nothing
+    sumcontovar,sumvaltovar,sumvartocon,sumvartoval = nothing,nothing,nothing,nothing
     Zygote.ignore() do
-        sumcontovar = replace(sumcontovar, 0=>1)
-        sumvaltovar = replace(sumvaltovar, 0=>1)
-        sumvartocon = replace(sumvartocon, 0=>1)
-        sumvartoval = replace(sumvartoval, 0=>1)
+        sumcontovar = sum(contovar, dims =1)
+        sumvaltovar = sum(valtovar, dims =1)
+        sumvartocon = sum(vartocon, dims =1)
+        sumvartoval = sum(vartoval, dims =1)
+
+        sumcontovar = max.(sumcontovar, device(sumcontovar) != Val{:cpu}() ? CUDA.ones(size(sumcontovar)) : ones(size(sumcontovar)))
+        sumvaltovar = max.(sumvaltovar, device(sumvaltovar) != Val{:cpu}() ? CUDA.ones(size(sumvaltovar)) : ones(size(sumvaltovar)))
+        sumvartocon = max.(sumvartocon, device(sumvartocon) != Val{:cpu}() ? CUDA.ones(size(sumvartocon)) : ones(size(sumvartocon)))
+        sumvartoval = max.(sumvartoval, device(sumvartoval) != Val{:cpu}() ? CUDA.ones(size(sumvartoval)) : ones(size(sumvartoval)))
+
 
         contovarN = contovar ./ sumcontovar
         valtovarN = valtovar ./ sumvaltovar
@@ -197,8 +207,8 @@ For more details about the operations, please look at function (g::GraphConv{<:A
 """
 function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any, maxPooling})(fg::HeterogeneousFeaturedGraph, original_fg::HeterogeneousFeaturedGraph)
     contovar, valtovar = fg.contovar, fg.valtovar
-    vartocon, vartoval = transpose(contovar), transpose(valtovar)
-    
+    vartocon, vartoval = permutedims(contovar, [2, 1]), permutedims(valtovar, [2, 1])
+
     H1, H2, H3 = fg.varnf, fg.connf, fg.valnf
     X1, X2, X3 = original_fg.varnf, original_fg.connf, original_fg.valnf
     filteredembcontovar = nothing
@@ -206,10 +216,16 @@ function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any, maxPooling})(fg::Het
     filteredembvartocon = nothing
     filteredembvartoval = nothing
     Zygote.ignore() do      
-        contovarIdx = repeat(collect(1:size(contovar,1)),1,size(contovar,2)).*contovar
-        valtovarIdx = repeat(collect(1:size(valtovar,1)),1,size(valtovar,2)).*valtovar
-        vartoconIdx = repeat(collect(1:size(vartocon,1)),1,size(vartocon,2)).*vartocon
-        vartovalIdx = repeat(collect(1:size(vartoval,1)),1,size(vartoval,2)).*vartoval
+    
+        contovarIdx = device(contovar) != Val{:cpu}() ? CuArray(repeat(collect(1:size(contovar,1)),1,size(contovar,2))) : repeat(collect(1:size(contovar,1)),1,size(contovar,2))
+        valtovarIdx = device(valtovar) != Val{:cpu}() ? CuArray(repeat(collect(1:size(valtovar,1)),1,size(valtovar,2))) : repeat(collect(1:size(valtovar,1)),1,size(valtovar,2))
+        vartoconIdx = device(vartocon) != Val{:cpu}() ? CuArray(repeat(collect(1:size(vartocon,1)),1,size(vartocon,2))) : repeat(collect(1:size(vartocon,1)),1,size(vartocon,2))
+        vartovalIdx = device(vartoval) != Val{:cpu}() ? CuArray(repeat(collect(1:size(vartoval,1)),1,size(vartoval,2))) : repeat(collect(1:size(vartoval,1)),1,size(vartoval,2))
+
+        contovarIdx = contovarIdx.*contovar
+        valtovarIdx = valtovarIdx.*valtovar
+        vartoconIdx = vartoconIdx.*vartocon
+        vartovalIdx = vartovalIdx.*vartoval
 
         filteredcolcontovar = map(x-> filter(y -> y!=0,x),eachcol(contovarIdx))
         filteredcolvaltovar = map(x-> filter(y -> y!=0,x),eachcol(valtovarIdx))

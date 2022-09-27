@@ -75,22 +75,22 @@
         @test SeaPearl.expandRbs!(toCall, model, 10, search, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Feasible
         @test length(toCall) == 6
 
-        @test pop!(toCall)(model) == :SavingState
+        @test pop!(toCall)(model, :SavingState) == :SavingState
         @test length(model.trailer.prior) == 1 # saveState!()
 
-        @test pop!(toCall)(model) == :FoundSolution
+        @test pop!(toCall)(model, :FoundSolution) == :FoundSolution
         @test length(model.statistics.solutions) == 1 # Found a solution
 
-        @test pop!(toCall)(model) == :BackTracking
+        @test pop!(toCall)(model, :BackTracking) == :BackTracking
         @test length(model.trailer.prior) == 0 # restoreState!()
 
-        @test pop!(toCall)(model) == :SavingState
+        @test pop!(toCall)(model, :SavingState) == :SavingState
         @test length(model.trailer.prior) == 1 # saveState!()
 
-        @test pop!(toCall)(model) == :FoundSolution
+        @test pop!(toCall)(model, :FoundSolution) == :FoundSolution
         @test length(model.statistics.solutions) == 2 # Found another solution
 
-        @test pop!(toCall)(model) == :BackTracking
+        @test pop!(toCall)(model, :BackTracking) == :BackTracking
         @test length(model.trailer.prior) == 0 # restoreState!()
     end
 
@@ -205,8 +205,8 @@
             toCall = Stack{Function}()
             @test SeaPearl.expandRbs!(toCall, model, 1, criteria, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Feasible
             @test criteria(model,1) == true    #only one node has been visited
-            pop!(toCall)(model) # :SavingState
-            pop!(toCall)(model) # expandRbs!(...)
+            pop!(toCall)(model, :dummySymbol) # :SavingState
+            pop!(toCall)(model, :dummySymbol) # expandRbs!(...)
             @test criteria(model,1) == false
         end
 
@@ -226,12 +226,12 @@
             toCall = Stack{Function}()
             @test SeaPearl.expandRbs!(toCall, model, 2, criteria, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Feasible
             @test criteria(model,2) == true    
-            pop!(toCall)(model) # :SavingState 
-            @test pop!(toCall)(model) == :FoundSolution
+            pop!(toCall)(model, :dummySymbol) # :SavingState 
+            @test pop!(toCall)(model, :dummySymbol) == :FoundSolution
             @test criteria(model,2) == true  #One solution found
-            pop!(toCall)(model) # :Backtrack
-            pop!(toCall)(model) # :SavingState
-            @test pop!(toCall)(model) == :FoundSolution
+            pop!(toCall)(model, :dummySymbol) # :Backtrack
+            pop!(toCall)(model, :dummySymbol) # :SavingState
+            @test pop!(toCall)(model, :dummySymbol) == :FoundSolution
             @test criteria(model,2) == false #Two solution found
         end
     end

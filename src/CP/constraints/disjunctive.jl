@@ -64,7 +64,7 @@ struct Disjunctive <: Constraint
     active::StateObject{Bool}
     filteringAlgorithm::Array{filteringAlgorithmTypes}
 
-    function Disjunctive(earliestStartingTime::Array{IntVar}, 
+    function Disjunctive(earliestStartingTime::Array{<:AbstractIntVar}, 
                         processingTime::Array{Int}, trailer, filteringAlgorithm::Array{filteringAlgorithmTypes} = [algoTimeTabling])::Disjunctive
 
         tasks = []
@@ -242,4 +242,16 @@ function detectablePrecedence!(constraint::Disjunctive, toPropagate::Set{Constra
     return true
 end
 
-variablesArray(constraint::Disjunctive) = [task.earliestStartingTime for task in constraint.tasks]
+function variablesArray(constraint::Disjunctive) 
+    variables = AbstractIntVar[task.earliestStartingTime for task in constraint.tasks]
+    varviews = IntVarViewOffset[]
+    for var in variables
+        for varview in var.children
+            if isa(varview, IntVarViewOffset)
+                push!(varviews,varview)
+            end
+        end
+    end
+    append!(variables,varviews)
+    return variables
+end

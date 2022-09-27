@@ -49,7 +49,7 @@ strategy requires the use of a stochastic variable/value heuristic, otherwise, a
 function initroot!(toCall::Stack{Function}, strategy::RBSearch{C}, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection) where C <: ExpandCriteria
     nodeLimitList = generateLimitList(strategy)
     for i in strategy.n:-1:2 
-        push!(toCall, (model) -> (restart_search!(model) ; expandRbs!(toCall, model, nodeLimitList[i], strategy, variableHeuristic, valueSelection)))
+        push!(toCall, (model, currentStatus) -> (restart_search!(model) ; expandRbs!(toCall, model, nodeLimitList[i], strategy, variableHeuristic, valueSelection)))
     end
     return expandRbs!(toCall, model, nodeLimitList[1], strategy, variableHeuristic, valueSelection)
 end
@@ -106,20 +106,20 @@ function expandRbs!(toCall::Stack{Function}, model::CPModel, nodeLimit::Int64, c
 
     #println("Value : ", v, " assigned to : ", x.id)
     if  criteria(model, nodeLimit)  
-        push!(toCall, (model) -> (restoreState!(model.trailer); :BackTracking))
-        push!(toCall, (model) -> (
+        push!(toCall, (model, currentStatus) -> (restoreState!(model.trailer); :BackTracking))
+        push!(toCall, (model, currentStatus) -> (
             prunedDomains = CPModification();
             addToPrunedDomains!(prunedDomains, x, remove!(x.domain, v));
             expandRbs!(toCall, model, nodeLimit, criteria, variableHeuristic, valueSelection, getOnDomainChange(x); prunedDomains=prunedDomains)
         ))
-        push!(toCall, (model) -> (saveState!(model.trailer); :SavingState))
-        push!(toCall, (model) -> (restoreState!(model.trailer); :BackTracking))
-        push!(toCall, (model) -> (
+        push!(toCall, (model, currentStatus) -> (saveState!(model.trailer); :SavingState))
+        push!(toCall, (model, currentStatus) -> (restoreState!(model.trailer); :BackTracking))
+        push!(toCall, (model, currentStatus) -> (
             prunedDomains = CPModification();
             addToPrunedDomains!(prunedDomains, x, assign!(x, v));
             expandRbs!(toCall, model, nodeLimit, criteria, variableHeuristic, valueSelection, getOnDomainChange(x); prunedDomains=prunedDomains)
         ))
-        push!(toCall, (model) -> (saveState!(model.trailer); :SavingState))
+        push!(toCall, (model, currentStatus) -> (saveState!(model.trailer); :SavingState))
     end 
     return :Feasible
 end

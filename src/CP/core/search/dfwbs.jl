@@ -1,11 +1,11 @@
 """
-    initroot!(toCall::Stack{Function}, ::DFSearch, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
+    initroot!(toCall::Stack{Function}, ::DFWBSearch, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
 
 Used as a generic function to instantiate the research based on a specific Strategy <: SearchStrategy. 
     
 """
-function initroot!(toCall::Stack{Function}, ::DFSearch, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
-    return expandDfs!(toCall, model, variableHeuristic, valueSelection)
+function initroot!(toCall::Stack{Function}, ::DFWBSearch, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
+    return expandDfwbs!(toCall, model, variableHeuristic, valueSelection, direction= :Left)
 end
 
 
@@ -17,7 +17,7 @@ Add procedures to `toCall`, that, called in the stack order (LIFO) with the `mod
 Some procedures will contain a call to `expandDfs!` itself. Each `expandDfs!` call is wrapped around a `saveState!` and a `restoreState!` to be
 able to backtrack thanks to the trailer.
 """
-function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, newConstraints=nothing; prunedDomains::Union{CPModification,Nothing}=nothing)
+function expandDfwbs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, newConstraints=nothing; prunedDomains::Union{CPModification,Nothing}=nothing, direction::Symbol)
 
     # Dealing with limits
     model.statistics.numberOfNodes += 1
@@ -54,6 +54,9 @@ function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
         return :FoundSolution
     end
 
+    if direction == :Right
+        valueSelection(InitializingPhase, model)
+    end
     # Variable selection
     x = variableHeuristic(model)
     # Value selection
@@ -63,16 +66,22 @@ function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
     push!(toCall, (model, currentStatus) -> (
         prunedDomains = CPModification();
         addToPrunedDomains!(prunedDomains, x, remove!(x.domain, v));
-        expandDfs!(toCall, model, variableHeuristic, valueSelection, getOnDomainChange(x); prunedDomains=prunedDomains)
-    ))
+        expandDfwbs!(toCall, model, variableHeuristic, valueSelection, getOnDomainChange(x); prunedDomains=prunedDomains, direction = :Right)
+        ))
     push!(toCall, (model, currentStatus) -> (saveState!(model.trailer); :SavingState))
-
     push!(toCall, (model, currentStatus) -> (restoreState!(model.trailer); :BackTracking))
     push!(toCall, (model, currentStatus) -> (
         prunedDomains = CPModification();
         addToPrunedDomains!(prunedDomains, x, assign!(x, v));
-        expandDfs!(toCall, model, variableHeuristic, valueSelection, getOnDomainChange(x); prunedDomains=prunedDomains)
+        currentStatus = expandDfwbs!(toCall, model, variableHeuristic, valueSelection, getOnDomainChange(x); prunedDomains=prunedDomains, direction = :Left);
+        if currentStatus != :Feasible
+            valueSelection(EndingPhase, model, :End)
+        end;
+        return currentStatus
     ))
+    """if direction == :Right
+        push!(toCall, (model, currentStatus) -> (valueSelection(InitializingPhase, model); :Init))
+    end"""
     push!(toCall, (model, currentStatus) -> (saveState!(model.trailer); :SavingState))
 
     return :Feasible

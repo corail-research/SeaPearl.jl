@@ -9,7 +9,7 @@
 
         lh.reward.value = 0
         SeaPearl.set_reward!(SeaPearl.DecisionPhase, lh, model)
-        @test lh.reward.value == -0.025f0
+        @test lh.reward.value == -1
     end
 
     @testset "set_reward!(EndingPhase)" begin
@@ -22,6 +22,6 @@
         lh.reward.value = 5
         model.statistics.numberOfNodes = 30
         SeaPearl.set_reward!(SeaPearl.EndingPhase, lh, model, nothing)
-        @test lh.reward.value == 6
+        @test lh.reward.value == 5
     end
 end

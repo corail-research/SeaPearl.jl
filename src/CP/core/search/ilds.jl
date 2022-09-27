@@ -11,7 +11,7 @@ function initroot!(toCall::Stack{Function}, search::ILDSearch , model::CPModel, 
 
     # Note that toCall stack is a LIFO data structure, expandIlds with a discrepancy threshold of 0 will be the first one to execute (then with 1, 2, 3, etc.)
     for k in search.d:-1:1
-        push!(toCall, (model) -> (restart_search!(model); expandIlds!(toCall,k, model, variableHeuristic, valueSelection)))
+        push!(toCall, (model, currentStatus) -> (restart_search!(model); expandIlds!(toCall,k, model, variableHeuristic, valueSelection)))
     end
     return expandIlds!(toCall, 0, model, variableHeuristic, valueSelection, nothing)
 end
@@ -69,21 +69,21 @@ function expandIlds!(toCall::Stack{Function}, discrepancy::Int64, model::CPModel
     v = valueSelection(DecisionPhase, model, x)
 
     if (discrepancy>0)
-    push!(toCall, (model) -> (restoreState!(model.trailer); :BackTracking))
-    push!(toCall, (model) -> (
+    push!(toCall, (model, currentStatus) -> (restoreState!(model.trailer); :BackTracking))
+    push!(toCall, (model, currentStatus) -> (
         prunedDomains = CPModification();
         addToPrunedDomains!(prunedDomains, x, remove!(x.domain, v));
         expandIlds!(toCall, discrepancy-1, model, variableHeuristic, valueSelection, getOnDomainChange(x), prunedDomains=prunedDomains)
     ))
-    push!(toCall, (model) -> (saveState!(model.trailer); :SavingState))
+    push!(toCall, (model, currentStatus) -> (saveState!(model.trailer); :SavingState))
     end
        
-    push!(toCall, (model) -> (restoreState!(model.trailer); :BackTracking))
-    push!(toCall, (model) -> (
+    push!(toCall, (model, currentStatus) -> (restoreState!(model.trailer); :BackTracking))
+    push!(toCall, (model, currentStatus) -> (
         prunedDomains = CPModification();
         addToPrunedDomains!(prunedDomains, x, assign!(x, v));
         expandIlds!(toCall, discrepancy, model, variableHeuristic, valueSelection, getOnDomainChange(x), prunedDomains=prunedDomains)
     ))
-    push!(toCall, (model) -> (saveState!(model.trailer); :SavingState))
+    push!(toCall, (model, currentStatus) -> (saveState!(model.trailer); :SavingState))
     return :Feasible
 end

@@ -71,22 +71,22 @@
         @test SeaPearl.expandDfs!(toCall, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :Feasible
         @test length(toCall) == 6
 
-        @test pop!(toCall)(model) == :SavingState
+        @test pop!(toCall)(model, :dummySymbol) == :SavingState
         @test length(model.trailer.prior) == 1 # saveState!()
 
-        @test pop!(toCall)(model) == :FoundSolution
+        @test pop!(toCall)(model, :dummySymbol) == :FoundSolution
         @test length(model.statistics.solutions) == 1 # Found a solution
 
-        @test pop!(toCall)(model) == :BackTracking
+        @test pop!(toCall)(model, :dummySymbol) == :BackTracking
         @test length(model.trailer.prior) == 0 # restoreState!()
 
-        @test pop!(toCall)(model) == :SavingState
+        @test pop!(toCall)(model, :dummySymbol) == :SavingState
         @test length(model.trailer.prior) == 1 # saveState!()
 
-        @test pop!(toCall)(model) == :FoundSolution
+        @test pop!(toCall)(model, :dummySymbol) == :FoundSolution
         @test length(model.statistics.solutions) == 2 # Found another solution
 
-        @test pop!(toCall)(model) == :BackTracking
+        @test pop!(toCall)(model, :dummySymbol) == :BackTracking
         @test length(model.trailer.prior) == 0 # restoreState!()
     end
 

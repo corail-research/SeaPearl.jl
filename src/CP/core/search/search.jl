@@ -1,5 +1,6 @@
 
 include("dfs.jl")
+include("dfwbs.jl")
 include("ilds.jl")
 include("rbs.jl")
 include("lns.jl")
@@ -40,7 +41,7 @@ function search!(model::CPModel, strategy::S, variableHeuristic::AbstractVariabl
         end
 
         currentProcedure = pop!(toCall)
-        currentStatus::Union{Nothing, Symbol} = currentProcedure(model)
+        currentStatus::Union{Nothing, Symbol} = currentProcedure(model, currentStatus)
     end
     # set final reward and last observation
     model.statistics.numberOfSolutions=sum(map(x->!isnothing(x),model.statistics.solutions))
