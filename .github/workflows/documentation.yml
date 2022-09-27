@@ -4,6 +4,7 @@ on:
     branches:
       - master
     tags: '*'
+  pull_requests:
 jobs:
   build:
     permissions:
