@@ -2,7 +2,7 @@ using Documenter
 using SeaPearl
 
 makedocs(
-    sitename = "SeaPearl",
+    sitename = "SeaPearl.jl",
     doctest = VERSION >= v"1.4",
     format = Documenter.HTML(),
     modules = [SeaPearl],
