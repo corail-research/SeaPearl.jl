@@ -2,7 +2,7 @@ using Documenter
 using SeaPearl
 
 makedocs(
-    sitename = "SeaPearl",
+    sitename = "SeaPearl.jl",
     doctest = VERSION >= v"1.4",
     format = Documenter.HTML(),
     modules = [SeaPearl],
@@ -16,9 +16,7 @@ makedocs(
     "Community" => "community.md"],
 )
 
-# Documenter can also automatically deploy documentation to gh-pages.
-# See "Hosting Documentation" and deploydocs() in the Documenter manual
-# for more information.
-#=deploydocs(
-    repo = "<repository url>"
-)=#
+deploydocs(
+    repo = "github.com/corail-research/SeaPearl.jl.git",
+    push_preview = true,
+)

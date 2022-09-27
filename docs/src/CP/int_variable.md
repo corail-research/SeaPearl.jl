@@ -51,9 +51,9 @@ If you want to express some variations of an integer variable ``x`` (for example
 
 ```@docs
 SeaPearl.IntVarViewMul
-SeaPearl.IntVarViewMul(x::AbstractIntVar, a::Int, id::String)
+SeaPearl.IntVarViewMul(x::SeaPearl.AbstractIntVar, a::Int, id::String)
 SeaPearl.IntVarViewOpposite
-SeaPearl.IntVarViewOpposite(x::AbstractIntVar, id::String)
+SeaPearl.IntVarViewOpposite(x::SeaPearl.AbstractIntVar, id::String)
 SeaPearl.IntVarViewOffset
-SeaPearl.IntVarViewOffset(x::AbstractIntVar, id::String)
+SeaPearl.IntVarViewOffset(x::SeaPearl.AbstractIntVar, id::String)
 ```
