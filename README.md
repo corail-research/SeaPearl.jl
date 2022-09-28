@@ -16,7 +16,7 @@ The RL agents are defined using [ReinforcementLearning.jl](https://github.com/Ju
 
 ## Use
 
-Working examples can be found in [SeaPearlZoo](https://github.com/corail-research/SeaPearlZoo).
+Working examples can be found in [SeaPearlZoo](https://github.com/corail-research/SeaPearlZoo) and documentation can be found [here](https://corail-research.github.io/SeaPearl.jl/dev/).
 
 SeaPearl can be used either as a classic CP solver that uses predefined variable and value selection heuristics or as Reinforcement Learning driven CP solver that is capable of learning through solving automatically generated instances of a given problem (knapsack, tsptw, graphcoloring, EternityII ...). 
 
