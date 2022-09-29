@@ -56,31 +56,7 @@ mutable struct CPModel
     limit                   ::Limit
     knownObjective          ::Union{Nothing,Int64}
     adhocInfo               ::Any
-
-    modelStatistics = Statistics(
-        Dict{String, Int}(), 
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        Solution[],
-        Int[],
-        nothing,
-        nothing,
-        nothing,
-        nothing,
-        nothing,
-        Dict{Constraint, Int}()
-    )
-    modelLimits = Limit(
-        nothing,
-        nothing,
-        nothing
-    )
+    
     CPModel(trailer) = new(
         Dict{String, AbstractVar}(),
         Dict{String, Bool}(),
@@ -89,8 +65,30 @@ mutable struct CPModel
         trailer,
         nothing,
         nothing,
-        modelStatistics,
-        modelLimits,
+        Statistics(
+            Dict{String, Int}(), 
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            Solution[],
+            Int[],
+            nothing,
+            nothing,
+            nothing,
+            nothing,
+            nothing,
+            Dict{Constraint, Int}()
+        ),
+        Limit(
+            nothing,
+            nothing,
+            nothing
+        ),
         nothing
     )
 end
