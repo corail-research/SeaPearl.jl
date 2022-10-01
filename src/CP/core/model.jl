@@ -7,7 +7,7 @@ const Solution = Dict{String, Union{Int, Bool, Set{Int}}}
 # objectiveUpPruning: max(model.objective.domain)(current) - max(model.objective.domain)(past state)
 
 mutable struct Statistics
-    infeasibleStatusPerVariable             ::Dict{String, Int} # question: pourquoi pas Dict{String, Bool} ? c'est un compteur?
+    infeasibleStatusPerVariable             ::Dict{String, Int}
     numberOfNodes                           ::Int
     numberOfSolutions                       ::Int
     numberOfInfeasibleSolutions             ::Int
@@ -46,8 +46,8 @@ or filled by an `AbstractModelGenerator`.
 """
 mutable struct CPModel
     variables               ::Dict{String, AbstractVar}
-    branchable              ::Dict{String, Bool}        # question
-    branchable_variables    ::Dict{String, AbstractVar} # question
+    branchable              ::Dict{String, Bool}
+    branchable_variables    ::Dict{String, AbstractVar}
     constraints             ::Array{Constraint}
     trailer                 ::Trailer
     objective               ::Union{Nothing, AbstractIntVar}
@@ -91,9 +91,10 @@ mutable struct CPModel
         ),
         nothing
     )
+    CPModel() = CPModel(Trailer())
 end
 
-CPModel() = CPModel(Trailer()) # question : C'est quoi ça
+
 
 """
     addVariable!(model::CPModel, x::AbstractVar; branchable=true)
@@ -125,7 +126,7 @@ function addObjective!(model::CPModel, objective::AbstractVar)
     model.statistics.objectives = Int[]  #initialisation of the Array that will contain the score of every solution
 end
 
-function addKnownObjective!(model::CPModel, knownObective::Int64) # question: difference avec addObjective; addObjective est custom?
+function addKnownObjective!(model::CPModel, knownObective::Int64)
     model.knownObjective = knownObective
 end
 
@@ -235,7 +236,7 @@ end
 Set a new constraint to minimize the objective variable.
 """
 function tightenObjective!(model::CPModel)
-    model.objectiveBound = assignedValue(model.objective) - 1 # question: c'est quoi ça?
+    model.objectiveBound = assignedValue(model.objective) - 1
 end
 
 """

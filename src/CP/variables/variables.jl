@@ -1,6 +1,5 @@
 abstract type AbstractVar end
 abstract type AbstractDomain end
-
 abstract type AbstractSetVar <: AbstractVar end
 
 """
