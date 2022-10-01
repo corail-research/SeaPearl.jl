@@ -38,7 +38,7 @@ end
 
 Check whether x has an assigned value.
 """
-isbound(x::AbstractIntVar) = length(x.domain) == 1
+isbound(x::AbstractIntVar) = length(x.domain) == 1 # question: cette definition de fonction?
 
 """
     assign!(x::AbstractIntVar, value::Int)
