@@ -46,6 +46,12 @@ function search!(model::CPModel, strategy::S, variableHeuristic::AbstractVariabl
         end
         currentProcedure = pop!(toCall)
         currentStatus::Union{Nothing, Symbol} = currentProcedure(model, currentStatus)
+        stopping_conditions = (
+            currentStatus == :NodeLimitStop || 
+            currentStatus == :SolutionLimitStop || 
+            currentStatus == :TimeLimitStop || 
+            (out_solver && (currentStatus in [:Infeasible, :FoundSolution]))
+        )
     end
     # set final reward and last observation
     model.statistics.numberOfSolutions = sum(map(x -> !isnothing(x), model.statistics.solutions))
@@ -63,4 +69,3 @@ function search!(model::CPModel, strategy::S, variableHeuristic::AbstractVariabl
     end
     return :Infeasible
 end
-
