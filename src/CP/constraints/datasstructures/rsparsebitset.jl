@@ -1,7 +1,7 @@
 """
-    RSparseBitSet{T}(size, trailer)
+    RSparseBitSet{T}(numEdges, trailer)
 
-Create a Reversible Sparse BitSet with `size` elements.
+Create a Reversible Sparse BitSet with `numEdges` elements.
 
 This datastructure follows the implementation from Demeulenaere J. et al. 
 (2016) Compact-Table: Efficiently Filtering Table Constraints with Reversible Sparse Bit-Sets. 
@@ -13,10 +13,10 @@ struct RSparseBitSet{T}
     limit::StateObject{Int}
     mask::Vector{T}
 
-    function RSparseBitSet{T}(size::Int, trailer) where T <: Unsigned
+    function RSparseBitSet{T}(numEdges::Int, trailer) where T <: Unsigned
         n = sizeof(T) * 8
-        p = Int(ceil(size/n))
-        rest = size % n
+        p = Int(ceil(numEdges/n))
+        rest = numEdges % n
         words = Vector{StateObject{T}}(undef, p)
         for i = 1:(p-1)
             words[i] = StateObject{T}(typemax(T), trailer)
@@ -35,7 +35,7 @@ struct RSparseBitSet{T}
     end
 end
 
-RSparseBitSet(size::Int, trailer) = RSparseBitSet{UInt64}(size::Int, trailer)
+RSparseBitSet(numEdges::Int, trailer) = RSparseBitSet{UInt64}(numEdges::Int, trailer)
 
 
 """
