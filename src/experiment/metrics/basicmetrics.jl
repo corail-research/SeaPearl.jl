@@ -50,22 +50,22 @@ It updates all the metrics during the search.
 """
 function (metrics::BasicMetrics{DontTakeObjective, <:BasicHeuristic})(model::CPModel,dt::Float64)
     metrics.nbEpisodes+=1
-    push!(metrics.nodeVisited,copy(model.statistics.nodeVisitedPerSolution))
+    push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
     push!(metrics.solutionFound, (x -> !isnothing(x)).(model.statistics.solutions))
     push!(metrics.meanNodeVisitedUntilEnd,model.statistics.numberOfNodes)
     index = findfirst(!isnothing, model.statistics.solutions) #return the list of index of real solution in model.statistics.solutions
-    push!(metrics.meanNodeVisitedUntilfirstSolFound, !isnothing(index) ? model.statistics.nodeVisitedPerSolution[index] : nothing)
+    push!(metrics.meanNodeVisitedUntilfirstSolFound, !isnothing(index) ? model.statistics.nodevisitedpersolution[index] : nothing)
     push!(metrics.timeneeded,dt)
     return
 end 
 
 function (metrics::BasicMetrics{TakeObjective, <:BasicHeuristic})(model::CPModel,dt::Float64)
     metrics.nbEpisodes+=1
-    push!(metrics.nodeVisited,copy(model.statistics.nodeVisitedPerSolution))
+    push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
     push!(metrics.solutionFound, (x -> !isnothing(x)).(model.statistics.solutions))
     push!(metrics.meanNodeVisitedUntilEnd,model.statistics.numberOfNodes)
     index = findfirst(!isnothing, model.statistics.solutions) #return the list of index of real solution in model.statistics.solutions
-    push!(metrics.meanNodeVisitedUntilfirstSolFound, !isnothing(index) ? model.statistics.nodeVisitedPerSolution[index] : nothing)
+    push!(metrics.meanNodeVisitedUntilfirstSolFound, !isnothing(index) ? model.statistics.nodevisitedpersolution[index] : nothing)
     push!(metrics.timeneeded,dt)
     push!(metrics.scores,copy(model.statistics.objectives))
     
@@ -74,11 +74,11 @@ end
 
 function (metrics::BasicMetrics{DontTakeObjective, <:LearnedHeuristic})(model::CPModel,dt::Float64)
     metrics.nbEpisodes+=1
-    push!(metrics.nodeVisited,copy(model.statistics.nodeVisitedPerSolution))
+    push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
     push!(metrics.solutionFound, (x -> !isnothing(x)).(model.statistics.solutions))
     push!(metrics.meanNodeVisitedUntilEnd,model.statistics.numberOfNodes)
     index = findfirst(!isnothing, model.statistics.solutions) #return the list of index of real solution in model.statistics.solutions
-    push!(metrics.meanNodeVisitedUntilfirstSolFound, !isnothing(index) ? model.statistics.nodeVisitedPerSolution[index] : nothing)
+    push!(metrics.meanNodeVisitedUntilfirstSolFound, !isnothing(index) ? model.statistics.nodevisitedpersolution[index] : nothing)
     push!(metrics.timeneeded,dt)
     
     total_reward = last_episode_total_reward(metrics.heuristic.agent.trajectory)
@@ -97,11 +97,11 @@ end
 
 function (metrics::BasicMetrics{TakeObjective, <:LearnedHeuristic})(model::CPModel,dt::Float64) 
     metrics.nbEpisodes+=1
-    push!(metrics.nodeVisited,copy(model.statistics.nodeVisitedPerSolution))
+    push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
     push!(metrics.solutionFound, (x -> !isnothing(x)).(model.statistics.solutions))
     push!(metrics.meanNodeVisitedUntilEnd,model.statistics.numberOfNodes)
     index = findfirst(!isnothing, model.statistics.solutions) #return the list of index of real solution in model.statistics.solutions
-    push!(metrics.meanNodeVisitedUntilfirstSolFound, !isnothing(index) ? model.statistics.nodeVisitedPerSolution[index] : nothing)
+    push!(metrics.meanNodeVisitedUntilfirstSolFound, !isnothing(index) ? model.statistics.nodevisitedpersolution[index] : nothing)
     push!(metrics.timeneeded,dt)
     push!(metrics.scores,copy(model.statistics.objectives))
     total_reward = last_episode_total_reward(metrics.heuristic.agent.trajectory)

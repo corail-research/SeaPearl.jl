@@ -141,7 +141,7 @@ function launch_experiment!(
                     dt = @elapsed for k in 1:restartPerInstances
                         restart_search!(model)
                         search!(model, strategy, variableHeuristic, valueSelectionArray[j], out_solver=out_solver)
-                        verbose && print(model.statistics.numberOfNodesBeforeRestart, ": ",model.statistics.numberOfSolutions, "(",model.statistics.accumulatedRewardBeforeRestart,") / ")
+                        verbose && print(model.statistics.numberOfNodesBeforeRestart, ": ",model.statistics.numberOfSolutions, "(",model.statistics.AccumulatedRewardBeforeRestart,") / ")
     
                     end
 
