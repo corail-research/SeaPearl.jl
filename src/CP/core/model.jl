@@ -14,10 +14,10 @@ mutable struct Statistics
     numberOfSolutionsBeforeRestart          ::Int
     numberOfInfeasibleSolutionsBeforeRestart::Int
     numberOfNodesBeforeRestart              ::Int
-    AccumulatedRewardBeforeReset            ::Float32 # =last_episode_total_reward(lh.agent.trajectory)
-    AccumulatedRewardBeforeRestart          ::Float32
+    accumulatedRewardBeforeReset            ::Float32 # =last_episode_total_reward(lh.agent.trajectory)
+    accumulatedRewardBeforeRestart          ::Float32
     solutions                               ::Vector{Union{Nothing,Solution}}
-    nodevisitedpersolution                  ::Vector{Int}
+    nodeVisitedPerSolution                  ::Vector{Int}
     objectives                              ::Union{Nothing, Vector{Union{Nothing,Int}}}
     lastPruning                             ::Union{Nothing, Int}
     objectiveDownPruning                    ::Union{Nothing, Float32}
@@ -56,12 +56,45 @@ mutable struct CPModel
     limit                   ::Limit
     knownObjective          ::Union{Nothing,Int64}
     adhocInfo               ::Any
-
-
-    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Dict{String, AbstractVar}(), Constraint[], trailer, nothing, nothing, Statistics(Dict{String, Int}(), 0, 0, 0, 0, 0, 0, 0, 0, Solution[],Int[], nothing, nothing, nothing, nothing, nothing, Dict{Constraint, Int}()), Limit(nothing, nothing, nothing), nothing)
+    
+    CPModel(trailer) = new(
+        Dict{String, AbstractVar}(),
+        Dict{String, Bool}(),
+        Dict{String, AbstractVar}(),
+        Constraint[],
+        trailer,
+        nothing,
+        nothing,
+        Statistics(
+            Dict{String, Int}(), 
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            Solution[],
+            Int[],
+            nothing,
+            nothing,
+            nothing,
+            nothing,
+            nothing,
+            Dict{Constraint, Int}()
+        ),
+        Limit(
+            nothing,
+            nothing,
+            nothing
+        ),
+        nothing
+    )
+    CPModel() = CPModel(Trailer())
 end
 
-CPModel() = CPModel(Trailer())
+
 
 """
     addVariable!(model::CPModel, x::AbstractVar; branchable=true)
@@ -72,7 +105,6 @@ The `branchable` argument allows you to tell if we will be able to branch on tha
 function addVariable!(model::CPModel, x::AbstractVar; branchable=true)
     # Ensure the id is unique
     @assert !haskey(model.variables, x.id) "The id of the variable must be unique"
-
     @assert !branchable || typeof(x) <: Union{AbstractIntVar, AbstractBoolVar} "You can only branch on Boolean and Integer variables"
 
     model.statistics.infeasibleStatusPerVariable[id(x)]=0
@@ -99,10 +131,10 @@ function addKnownObjective!(model::CPModel, knownObective::Int64)
 end
 
 function addConstraint!(model::CPModel,constraint::Constraint)
-    push!(model.constraints,constraint)
+    push!(model.constraints, constraint)
     for var in variablesArray(constraint)
         if haskey(model.branchable, id(var))
-            @assert haskey(model.statistics.infeasibleStatusPerVariable, id(var)) "You forget to add the variable $(id(var)) to the model"
+            @assert haskey(model.statistics.infeasibleStatusPerVariable, id(var)) "You forgot to add the variable $(id(var)) to the model"
             model.statistics.infeasibleStatusPerVariable[id(var)]+=1
         end
     end
@@ -164,9 +196,9 @@ function triggerFoundSolution!(model::CPModel)
     end
     if !(solution in model.statistics.solutions)   #probably not efficient but necessary
         push!(model.statistics.solutions, solution)
-        push!(model.statistics.nodevisitedpersolution,model.statistics.numberOfNodes)
+        push!(model.statistics.nodeVisitedPerSolution,model.statistics.numberOfNodes)
         if !isnothing(model.objective)
-            @assert !isnothing(model.statistics.objectives)   "did you used SeaPearl.addObjective! to declare your objective function ? "
+            @assert !isnothing(model.statistics.objectives)   "did you use SeaPearl.addObjective! to declare your objective function ? "
             push!(model.statistics.objectives, assignedValue(model.objective))
             return :tightenObjective
         end
@@ -176,8 +208,8 @@ end
 """
     triggerInfeasible!(constraint::Constraint, model::CPModel)
 
-this function increments by one the statistic infeasibleStatusPerVariable for each variable involved in the constraint. infeasibleStatusPerVariable
-keeps in track for each variable the number of times the variable was involved in a constraint that led to an infeasible state during a fixpoint. This statistic
+this function increments by one the statistic infeasibleStatusPerVariable for each variable involved in the constraint. For every variable, infeasibleStatusPerVariable
+keeps track of the number of times the variable was involved in a constraint that led to an infeasible state during a fixpoint. This statistic
 is used by the failure-based variable selection heuristic.
 """
 function triggerInfeasible!(constraint::Constraint, model::CPModel; isFailureBased::Bool=false)
@@ -190,14 +222,13 @@ function triggerInfeasible!(constraint::Constraint, model::CPModel; isFailureBas
     end
 
     push!(model.statistics.solutions, nothing)
-    push!(model.statistics.nodevisitedpersolution,model.statistics.numberOfNodes)
+    push!(model.statistics.nodeVisitedPerSolution,model.statistics.numberOfNodes)
 
     if !isnothing(model.objective)
-        @assert !isnothing(model.statistics.objectives)   "did you used SeaPearl.addObjective! to declare your objective function ? "
+        @assert !isnothing(model.statistics.objectives)   "did you use SeaPearl.addObjective! to declare your objective function ? "
         push!(model.statistics.objectives, nothing)
     end
 end
-
 
 """
     tightenObjective!(model::CPModel)
@@ -205,7 +236,7 @@ end
 Set a new constraint to minimize the objective variable.
 """
 function tightenObjective!(model::CPModel)
-    model.objectiveBound = assignedValue(model.objective)-1
+    model.objectiveBound = assignedValue(model.objective) - 1
 end
 
 """
@@ -231,7 +262,7 @@ function Base.isempty(model::CPModel)::Bool
         && isnothing(model.objective)
         && isnothing(model.objectiveBound)
         && isempty(model.statistics.solutions)
-        && isempty(model.statistics.nodevisitedpersolution)
+        && isempty(model.statistics.nodeVisitedPerSolution)
         && isempty(model.statistics.infeasibleStatusPerVariable)
         && isnothing(model.statistics.objectives)
         && isnothing(model.statistics.lastPruning)
@@ -242,8 +273,8 @@ function Base.isempty(model::CPModel)::Bool
         && model.statistics.numberOfInfeasibleSolutionsBeforeRestart == 0
         && model.statistics.numberOfSolutionsBeforeRestart == 0
         && model.statistics.numberOfNodesBeforeRestart == 0
-        && model.statistics.AccumulatedRewardBeforeReset == 0
-        && model.statistics.AccumulatedRewardBeforeRestart == 0
+        && model.statistics.accumulatedRewardBeforeReset == 0
+        && model.statistics.accumulatedRewardBeforeRestart == 0
         && isnothing(model.limit.numberOfNodes)
         && isnothing(model.limit.numberOfSolutions)
         && isnothing(model.limit.searchingTime)
@@ -266,7 +297,7 @@ function Base.empty!(model::CPModel)
     model.objective = nothing
     model.objectiveBound = nothing
     empty!(model.statistics.solutions)
-    empty!(model.statistics.nodevisitedpersolution)
+    empty!(model.statistics.nodeVisitedPerSolution)
     empty!(model.statistics.infeasibleStatusPerVariable)
     model.statistics.objectives = nothing
     model.statistics.lastPruning = nothing
@@ -277,8 +308,8 @@ function Base.empty!(model::CPModel)
     model.statistics.numberOfInfeasibleSolutionsBeforeRestart = 0
     model.statistics.numberOfSolutionsBeforeRestart = 0
     model.statistics.numberOfNodesBeforeRestart = 0
-    model.statistics.AccumulatedRewardBeforeReset = 0
-    model.statistics.AccumulatedRewardBeforeRestart = 0
+    model.statistics.accumulatedRewardBeforeReset = 0
+    model.statistics.accumulatedRewardBeforeRestart = 0
     model.limit.numberOfNodes = nothing
     model.limit.numberOfSolutions = nothing
     model.limit.searchingTime = nothing
@@ -297,7 +328,7 @@ function reset_model!(model::CPModel)
     restoreInitialState!(model.trailer)
     model.objectiveBound = nothing
     empty!(model.statistics.solutions)
-    empty!(model.statistics.nodevisitedpersolution)
+    empty!(model.statistics.nodeVisitedPerSolution)
     for (key, value) in model.statistics.infeasibleStatusPerVariable
         model.statistics.infeasibleStatusPerVariable[key]=length(getOnDomainChange(model.variables[key]))  #the degree is reset to the initial value : the number of constraints the variable is involved in.
     end
@@ -313,8 +344,8 @@ function reset_model!(model::CPModel)
     model.statistics.numberOfInfeasibleSolutionsBeforeRestart = 0
     model.statistics.numberOfSolutionsBeforeRestart = 0
     model.statistics.numberOfNodesBeforeRestart = 0
-    model.statistics.AccumulatedRewardBeforeReset = 0
-    model.statistics.AccumulatedRewardBeforeRestart = 0  
+    model.statistics.accumulatedRewardBeforeReset = 0
+    model.statistics.accumulatedRewardBeforeRestart = 0  
 end
 """
 restart_search!(model::CPModel)
@@ -329,8 +360,7 @@ function restart_search!(model::CPModel)
     model.statistics.numberOfInfeasibleSolutionsBeforeRestart = 0
     model.statistics.numberOfSolutionsBeforeRestart = 0
     model.statistics.numberOfNodesBeforeRestart = 0
-    model.statistics.AccumulatedRewardBeforeRestart = 0
-
+    model.statistics.accumulatedRewardBeforeRestart = 0
 end
 
 """
@@ -391,8 +421,6 @@ function global_domain_cardinality(model::CPModel)
     end
     return cardinality
 end
-
-
 
 """
     updateStatistics!(model::CPModel, pruned)

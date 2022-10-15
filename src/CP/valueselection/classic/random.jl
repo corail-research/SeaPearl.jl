@@ -21,7 +21,7 @@ Selects a random value of the domain of `x`.
 A random generator `rng` can be specified, notably to ensure the reproducibility of results.
 """
 function select_random_value(x::SeaPearl.BoolVar, rng::Union{Nothing,AbstractRNG})
-    if isbound(x)
+    if isbound(x) # question: cette fonction
         return assignedValue(x)
     else
         if isnothing(rng)
@@ -35,7 +35,7 @@ end
 """
     RandomHeuristic(rng::Union{Nothing,AbstractRNG}=nothing)
 
-Create a `BasicHeuristic` that selects a random value of the domain.
+Create a `BasicHeuristic` that selects a random value of the domain of a given variable.
 
 A random generator `rng` can be specified, notably to ensure the reproducibility of results.
 """
