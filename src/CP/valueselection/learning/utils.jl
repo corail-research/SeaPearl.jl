@@ -132,8 +132,8 @@ function get_observation!(lh::LearnedHeuristic, model::CPModel, x::AbstractIntVa
     reward = lh.reward.value
     
     # Initialize reward for the next state: not compulsory with DefaultReward, but maybe useful in case the user forgets it
-    model.statistics.accumulatedRewardBeforeReset += lh.reward.value
-    model.statistics.accumulatedRewardBeforeRestart += lh.reward.value
+    model.statistics.AccumulatedRewardBeforeReset += lh.reward.value
+    model.statistics.AccumulatedRewardBeforeRestart += lh.reward.value
 
     lh.reward.value = 0
 

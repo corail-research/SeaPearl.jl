@@ -41,7 +41,7 @@ end
 """
         function initroot!(toCall::Stack{Function}, strategy::S, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection) where {S <: RBSearch}
 
-It fills the toCall Stack in a certain order based on a specific Strategy <: RBSearch with 
+It fills the toCall Stack in a certains order based on a specific Strategy <: RBSearch with 
 function that expand the search tree. In restart based strategy, we fill the Stack with calls to expandRbs with different nodeLimit. The nodeLimit corresponds 
 to the number of infeasiblesolution that can be reached before restarting the search a the top of the tree with a possibly different nodeLimit. This search 
 strategy requires the use of a stochastic variable/value heuristic, otherwise, at each restart the search will end-up on the exact previous solutions.
