@@ -26,6 +26,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::MaximumIndependentSetGenera
     # sum(x[i]) + objective = 0 <=> objective = -sum(x[i]) 
     SeaPearl.addConstraint!(cpmodel, SeaPearl.SumToZero(vars, cpmodel.trailer)) 
     SeaPearl.addObjective!(cpmodel,objective)
+    cpmodel.adhocInfo = graph
 
     nothing
 end
