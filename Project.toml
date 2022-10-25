@@ -1,7 +1,7 @@
 name = "SeaPearl"
 uuid = "c13076dc-bdcd-48ba-bc88-4b44c2587ab3"
 authors = ["Ilan Coulon", "Félix Chalumeau", "Tom Marty", "Tom Sander", "Pierre Tessier"]
-version = "0.4.0"
+version = "0.4.1"
 
 [deps]
 CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
