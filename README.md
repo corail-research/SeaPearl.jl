@@ -106,7 +106,7 @@ restartPerInstances = restartPerInstances
 ## Contributing to SeaPearl
 
 All PRs and issues are welcome.
-This repo contains README.md and images to facilitate the understanding of the code. We ask that all contriutors abide by our [code of conduct](https://github.com/corail-research/SeaPearl.jl/blob/master/CODE_OF_CONDUCT.md)
+This repo contains README.md and images to facilitate the understanding of the code. We ask that all contriutors abide by our [code of conduct](https://github.com/corail-research/SeaPearl.jl/blob/master/CODE_OF_CONDUCT.md).
 To contribute to Sealpearl, follow these steps:
 
 1. Fork this repository.
