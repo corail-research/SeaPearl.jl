@@ -54,7 +54,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::LegacyGraphColoringGenerato
     SeaPearl.addVariable!(cpmodel, numberOfColors, branchable=false)
     SeaPearl.addConstraint!(cpmodel, SeaPearl.MaximumConstraint(x, numberOfColors, cpmodel.trailer))
     SeaPearl.addObjective!(cpmodel, numberOfColors)
-
+    cpmodel.adhocInfo = nothing
     nothing
 end
 
@@ -105,6 +105,8 @@ function fill_with_generator!(cpmodel::CPModel, gen::HomogenousGraphColoringGene
     SeaPearl.addVariable!(cpmodel, numberOfColors, branchable=false)
     SeaPearl.addConstraint!(cpmodel, SeaPearl.MaximumConstraint(x, numberOfColors, cpmodel.trailer))
     SeaPearl.addObjective!(cpmodel, numberOfColors)
+    cpmodel.adhocInfo = nothing
+
     nothing
 end
 
@@ -171,6 +173,10 @@ function fill_with_generator!(cpmodel::CPModel, gen::ClusterizedGraphColoringGen
     SeaPearl.addObjective!(cpmodel, numberOfColors)
     cpmodel.knownObjective = k 
     cpmodel.adhocInfo = nothing
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
     nothing
 end
 
@@ -208,11 +214,6 @@ function fill_with_generator!(cpmodel::CPModel, gen::BarabasiAlbertGraphGenerato
     SeaPearl.addVariable!(cpmodel, numberOfColors, branchable=false)
     SeaPearl.addConstraint!(cpmodel, SeaPearl.MaximumConstraint(vars, numberOfColors, cpmodel.trailer))
     SeaPearl.addObjective!(cpmodel, numberOfColors)
-    cpmodel.adhocInfo = graph
-
-    nothing
-end
-
 """
     struct ErdosRenyiGraphGenerator <: AbstractModelGenerator
 
@@ -282,6 +283,5 @@ function fill_with_generator!(cpmodel::CPModel, gen::WattsStrogatzGraphGenerator
     SeaPearl.addConstraint!(cpmodel, SeaPearl.MaximumConstraint(vars, numberOfColors, cpmodel.trailer))
     SeaPearl.addObjective!(cpmodel, numberOfColors)
     cpmodel.adhocInfo = graph
-
     nothing
 end
