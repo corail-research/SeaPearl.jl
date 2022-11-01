@@ -32,5 +32,6 @@ function fill_with_generator!(cpmodel::CPModel, gen::MaxCutGenerator;  rng::Abst
     SeaPearl.addConstraint!(cpmodel, SeaPearl.SumToZero(edge_vars, cpmodel.trailer)) 
     SeaPearl.addObjective!(cpmodel,objective)
 
+    cpmodel.adhocInfo = graph
     nothing
 end
