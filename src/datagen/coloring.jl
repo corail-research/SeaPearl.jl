@@ -173,10 +173,6 @@ function fill_with_generator!(cpmodel::CPModel, gen::ClusterizedGraphColoringGen
     SeaPearl.addObjective!(cpmodel, numberOfColors)
     cpmodel.knownObjective = k 
     cpmodel.adhocInfo = nothing
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
     nothing
 end
 
