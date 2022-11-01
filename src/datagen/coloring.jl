@@ -162,7 +162,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::ClusterizedGraphColoringGen
     SeaPearl.addVariable!(cpmodel, numberOfColors, branchable=false)
     SeaPearl.addConstraint!(cpmodel, SeaPearl.MaximumConstraint(x, numberOfColors, cpmodel.trailer))
     SeaPearl.addObjective!(cpmodel, numberOfColors)
-    cpmodel.knownObjective = k
+    cpmodel.knownObjective = k 
 end
 
 """
@@ -203,7 +203,6 @@ function fill_with_generator!(cpmodel::CPModel, gen::BarabasiAlbertGraphGenerato
     SeaPearl.addObjective!(cpmodel, numberOfColors)
     cpmodel.adhocInfo = graph
 end
-
 """
     struct ErdosRenyiGraphGenerator <: AbstractModelGenerator
 
