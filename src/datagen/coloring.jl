@@ -203,6 +203,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::BarabasiAlbertGraphGenerato
     SeaPearl.addObjective!(cpmodel, numberOfColors)
     cpmodel.adhocInfo = graph
 end
+
 """
     struct ErdosRenyiGraphGenerator <: AbstractModelGenerator
 
