@@ -1,13 +1,18 @@
 name: Run Julia tests
 
-on: [push, pull_request]
-
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
 jobs:
   test:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        julia-version: ['1.6', '1.7']
+        julia-version: ['1.7']
         julia-arch: [x64]
         os: [ubuntu-latest]
 
