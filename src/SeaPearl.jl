@@ -1,12 +1,12 @@
 module SeaPearl
 
+using ChainRulesCore
+using Graphs
 using Random
 using ReinforcementLearning
-using Graphs
 const RL = ReinforcementLearning
 
 include("abstract_types.jl")
-
 include("trailer.jl")
 include("CP/CP.jl")
 #include("MOI_wrapper/MOI_wrapper.jl")
