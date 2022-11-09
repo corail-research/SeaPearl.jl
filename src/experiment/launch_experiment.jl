@@ -161,7 +161,7 @@ function launch_experiment!(
 
                     if !isnothing(logger)
                         with_logger(logger) do
-                            @info "Train Heuristic "*string(j) Loss=last(metricsArray[j].loss) Reward = last(metricsArray[j].totalReward) Node_Visited = last(metricsArray[j].nodeVisited) Time = last(metricsArray[j].timeneeded) Score = first(last(metricsArray[j].scores)) Explorer = ReinforcementLearningCore.get_ϵ(valueSelectionArray[j].agent.policy.explorer) Load_RAM = Load_RAM Load_VRAM = Load_VRAM Trajectory_load = length(valueSelectionArray[j].agent.trajectory) Metrics_size = Base.summarysize(metricsArray)
+                            @info "Train Heuristic "*string(j) Loss=last(metricsArray[j].loss) Reward = last(metricsArray[j].totalReward) Node_Visited = last(metricsArray[j].nodeVisited) Time = last(metricsArray[j].TotalTimeNeeded) Score = first(last(metricsArray[j].scores)) Explorer = ReinforcementLearningCore.get_ϵ(valueSelectionArray[j].agent.policy.explorer) Load_RAM = Load_RAM Load_VRAM = Load_VRAM Trajectory_load = length(valueSelectionArray[j].agent.trajectory) Metrics_size = Base.summarysize(metricsArray)
                         end
                     end
                     verbose && println()

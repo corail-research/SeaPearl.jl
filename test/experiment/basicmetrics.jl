@@ -80,7 +80,7 @@ agent = RL.Agent(
         @test isempty(metrics.nodeVisited)== true
         @test isempty(metrics.solutionFound) == true
         @test isempty(metrics.meanNodeVisitedUntilEnd) == true
-        @test isempty(metrics.timeneeded) == true
+        @test isempty(metrics.TotalTimeNeeded) == true
         @test isnothing(metrics.scores) == true
         @test isnothing(metrics.totalReward) == true
         @test isnothing(metrics.loss) == true
@@ -138,7 +138,7 @@ agent = RL.Agent(
 
         @test metrics.nodeVisited[1] == [2,3]
         @test metrics.solutionFound[1] == [1, 1]
-        @test size(metrics.timeneeded,1) == 1
+        @test size(metrics.TotalTimeNeeded,1) == 1
         @test metrics.nbEpisodes == 1 
         
     end
@@ -163,7 +163,7 @@ agent = RL.Agent(
         @test isempty(metrics.nodeVisited) == false #the number of solution found and their relative score depend on the stochastic heuristic...
         @test isempty(metrics.solutionFound) == false
         @test metrics.nbEpisodes == 1 
-        @test size(metrics.timeneeded,1) == 1
+        @test size(metrics.TotalTimeNeeded,1) == 1
         @test size(metrics.totalReward,1) == 1
         @test size(metrics.loss,1) == 1
 
@@ -187,7 +187,7 @@ agent = RL.Agent(
         @test metrics.nodeVisited[1] == [2, 3]
         @test metrics.solutionFound[1] == [1, 1]
         @test metrics.scores[1] == [3, 2] 
-        @test size(metrics.timeneeded,1) == 1
+        @test size(metrics.TotalTimeNeeded,1) == 1
         @test metrics.nbEpisodes == 1 
     end
 
@@ -209,7 +209,7 @@ agent = RL.Agent(
         @test metrics.nodeVisited[1] == [1]
         @test metrics.solutionFound[1] == [0]
         @test metrics.scores[1] == [nothing] 
-        @test size(metrics.timeneeded,1) == 1
+        @test size(metrics.TotalTimeNeeded,1) == 1
         @test metrics.nbEpisodes == 1 
     end
 
@@ -234,7 +234,7 @@ agent = RL.Agent(
         @test isempty(metrics.solutionFound) == false 
         @test isempty(metrics.scores) == false 
         @test metrics.nbEpisodes == 1 
-        @test size(metrics.timeneeded,1) == 1
+        @test size(metrics.TotalTimeNeeded,1) == 1
         @test size(metrics.totalReward,1) == 1
         @test size(metrics.loss,1) == 1
     end
@@ -325,7 +325,7 @@ agent = RL.Agent(
         @test size(metrics.nodeVisited,1) == 1
         @test size(metrics.meanNodeVisitedUntilEnd,1) == 1
         @test size(metrics.meanNodeVisitedUntilfirstSolFound,1) == 1
-        @test size(metrics.timeneeded,1) == 1
+        @test size(metrics.TotalTimeNeeded,1) == 1
         @test size(metrics.scores,1) == 1
         
         SeaPearl.repeatlast!(metrics)
@@ -337,13 +337,13 @@ agent = RL.Agent(
         @test size(metrics.nodeVisited,1) == 2
         @test size(metrics.meanNodeVisitedUntilEnd,1) == 2
         @test size(metrics.meanNodeVisitedUntilfirstSolFound,1) == 2
-        @test size(metrics.timeneeded,1) == 2
+        @test size(metrics.TotalTimeNeeded,1) == 2
         @test size(metrics.scores,1) == 2
 
         @test metrics.nodeVisited[1] == metrics.nodeVisited[2]
         @test metrics.meanNodeVisitedUntilEnd[1] == metrics.meanNodeVisitedUntilEnd[2]
         @test metrics.meanNodeVisitedUntilfirstSolFound[1] == metrics.meanNodeVisitedUntilfirstSolFound[2]
-        @test metrics.timeneeded[1] == metrics.timeneeded[2]
+        @test metrics.TotalTimeNeeded[1] == metrics.TotalTimeNeeded[2]
         @test metrics.scores[1] == metrics.scores[2]
         
     end
