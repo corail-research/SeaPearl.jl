@@ -14,6 +14,7 @@ It satisfies the two AbstractMetrics requirements:
 
     heuristic::H                                                        ->  The related heuristic for which the metrics stores the results.
     nodeVisited::Vector{Vector{Int64}}                                  ->  contains the result of each search in term of node visited : number of nodes visited to find every final state found (Solution / Infeasible case) reached during a search.
+    timeNeeded::Vector{Vector{Float32}}                                  ->  contains the result of each search in term of time needed: time needed to find every final state found (Solution / Infeasible case) reached during a search.
     solutionFound::Vector{Vector{Bool}}                                 ->  contains the result of each search in term of solution found: true if the dead-end is a solution and false otherwise.
     meanNodeVisitedUntilfirstSolFound::Vector{Union{Nothing,Float32}}   ->  contains the result of each search in term of node visited to find a first solution. "nothing" means no solution has been found during the entire search. 
     meanNodeVisitedUntilEnd::Vector{Float32}                            ->  contains the result of each search in term of node visited until the end of the search.
@@ -52,6 +53,7 @@ It updates all the metrics during the search.
 function (metrics::BasicMetrics{DontTakeObjective, <:BasicHeuristic})(model::CPModel,dt::Float64)
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
+    push!(metrics.timeNeeded,copy(model.statistics.timeneededpersolution))
     push!(metrics.solutionFound, (x -> !isnothing(x)).(model.statistics.solutions))
     push!(metrics.meanNodeVisitedUntilEnd,model.statistics.numberOfNodes)
     index = findfirst(!isnothing, model.statistics.solutions) #return the list of index of real solution in model.statistics.solutions
@@ -63,6 +65,7 @@ end
 function (metrics::BasicMetrics{TakeObjective, <:BasicHeuristic})(model::CPModel,dt::Float64)
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
+    push!(metrics.timeNeeded,copy(model.statistics.timeneededpersolution))
     push!(metrics.solutionFound, (x -> !isnothing(x)).(model.statistics.solutions))
     push!(metrics.meanNodeVisitedUntilEnd,model.statistics.numberOfNodes)
     index = findfirst(!isnothing, model.statistics.solutions) #return the list of index of real solution in model.statistics.solutions
@@ -74,6 +77,7 @@ end
 function (metrics::BasicMetrics{DontTakeObjective, <:LearnedHeuristic})(model::CPModel,dt::Float64)
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
+    push!(metrics.timeNeeded,copy(model.statistics.timeneededpersolution))
     push!(metrics.solutionFound, (x -> !isnothing(x)).(model.statistics.solutions))
     push!(metrics.meanNodeVisitedUntilEnd,model.statistics.numberOfNodes)
     index = findfirst(!isnothing, model.statistics.solutions) #return the list of index of real solution in model.statistics.solutions
@@ -89,6 +93,7 @@ end
 function (metrics::BasicMetrics{TakeObjective, <:LearnedHeuristic})(model::CPModel,dt::Float64) 
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
+    push!(metrics.timeNeeded,copy(model.statistics.timeneededpersolution))
     push!(metrics.solutionFound, (x -> !isnothing(x)).(model.statistics.solutions))
     push!(metrics.meanNodeVisitedUntilEnd,model.statistics.numberOfNodes)
     index = findfirst(!isnothing, model.statistics.solutions) #return the list of index of real solution in model.statistics.solutions
@@ -109,6 +114,7 @@ The function is called during an evaluation. To avoid useless evaluation on dete
 function repeatlast!(metrics::BasicMetrics{<:AbstractTakeObjective, <:BasicHeuristic})
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,last(metrics.nodeVisited))
+    push!(metrics.timeNeeded,last(metrics.timeNeeded))
     push!(metrics.solutionFound, last(metrics.solutionFound))
     push!(metrics.meanNodeVisitedUntilEnd,last(metrics.meanNodeVisitedUntilEnd))
     push!(metrics.meanNodeVisitedUntilfirstSolFound,last(metrics.meanNodeVisitedUntilfirstSolFound))
