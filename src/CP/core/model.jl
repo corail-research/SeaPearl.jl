@@ -32,17 +32,18 @@ mutable struct Statistics
     numberOfInfeasibleSolutions::Int
     numberOfSolutionsBeforeRestart::Int
     numberOfInfeasibleSolutionsBeforeRestart::Int
-    numberOfNodesBeforeRestart::Int
-    AccumulatedRewardBeforeReset::Float32 # =last_episode_total_reward(lh.agent.trajectory)
-    AccumulatedRewardBeforeRestart::Float32
-    solutions::Vector{Union{Nothing,Solution}}
-    nodevisitedpersolution::Vector{Int}
-    objectives::Union{Nothing,Vector{Union{Nothing,Int}}}
-    lastPruning::Union{Nothing,Int}
-    objectiveDownPruning::Union{Nothing,Float32}
-    objectiveUpPruning::Union{Nothing,Float32}
-    lastVar::Union{Nothing,AbstractIntVar} #last var on which we branched
-    numberOfTimesInvolvedInPropagation::Union{Nothing,Dict{Constraint,Int}}
+    numberOfNodesBeforeRestart              ::Int
+    AccumulatedRewardBeforeReset            ::Float32 # =last_episode_total_reward(lh.agent.trajectory)
+    AccumulatedRewardBeforeRestart          ::Float32
+    solutions                               ::Vector{Union{Nothing,Solution}}
+    nodevisitedpersolution                  ::Vector{Int}
+    timeneededpersolution                   ::Vector{Float32}
+    objectives                              ::Union{Nothing, Vector{Union{Nothing,Int}}}
+    lastPruning                             ::Union{Nothing, Int}
+    objectiveDownPruning                    ::Union{Nothing, Float32}
+    objectiveUpPruning                      ::Union{Nothing, Float32}
+    lastVar                                 ::Union{Nothing, AbstractIntVar} #last var on which we branched
+    numberOfTimesInvolvedInPropagation      ::Union{Nothing, Dict{Constraint,Int}}
 end
 
 """Limit(numberOfNodes::Union{Int, Nothing}, numberOfSolutions::Union{Int, Nothing}, searchingTime::Union{Int, Nothing})
@@ -79,27 +80,29 @@ The CPModel struct has the following attributes:
     - adhocInfo::Any : Any ad-hoc information related to the CPModel
 """
 mutable struct CPModel
-    variables::Dict{String,AbstractVar}
-    branchable::Dict{String,Bool}
-    branchable_variables::Dict{String,AbstractVar}
-    constraints::Array{Constraint}
-    trailer::Trailer
-    objective::Union{Nothing,AbstractIntVar}
-    objectiveBound::Union{Nothing,Int}
-    statistics::Statistics
-    limit::Limit
-    knownObjective::Union{Nothing,Int64}
-    adhocInfo::Any
+    variables               ::Dict{String, AbstractVar}
+    branchable              ::Dict{String, Bool}
+    branchable_variables    ::Dict{String, AbstractVar}
+    constraints             ::Array{Constraint}
+    trailer                 ::Trailer
+    objective               ::Union{Nothing, AbstractIntVar}
+    objectiveBound          ::Union{Nothing, Int}
+    statistics              ::Statistics
+    limit                   ::Limit
+    knownObjective          ::Union{Nothing,Int64}
+    adhocInfo               ::Any
+
 
     CPModel(trailer) = new(
-        Dict{String,AbstractVar}(),
-        Dict{String,Bool}(),
-        Dict{String,AbstractVar}(),
+        Dict{String, AbstractVar}(),
+        Dict{String, Bool}(),
+        Dict{String, AbstractVar}(),
         Constraint[],
         trailer,
         nothing,
         nothing,
-        Statistics(Dict{String,Int}(),
+        Statistics(
+            Dict{String, Int}(),
             0,
             0,
             0,
@@ -110,15 +113,20 @@ mutable struct CPModel
             0,
             Solution[],
             Int[],
+            Float32[],
             nothing,
             nothing,
             nothing,
             nothing,
             nothing,
-            Dict{Constraint,Int}()),
-        Limit(nothing, nothing, nothing),
-        nothing
-    )
+            Dict{Constraint, Int}()
+        ),
+        Limit(
+            nothing,
+            nothing,
+            nothing
+        ),
+        nothing)
 end
 
 CPModel() = CPModel(Trailer())
@@ -231,7 +239,8 @@ function triggerFoundSolution!(model::CPModel)
     end
     if !(solution in model.statistics.solutions)   #probably not efficient but necessary
         push!(model.statistics.solutions, solution)
-        push!(model.statistics.nodevisitedpersolution, model.statistics.numberOfNodes)
+        push!(model.statistics.nodevisitedpersolution,model.statistics.numberOfNodes)
+        push!(model.statistics.timeneededpersolution,peektimer())
         if !isnothing(model.objective)
             @assert !isnothing(model.statistics.objectives) "did you use SeaPearl.addObjective! to declare your objective function ? "
             push!(model.statistics.objectives, assignedValue(model.objective))
@@ -257,7 +266,8 @@ function triggerInfeasible!(constraint::Constraint, model::CPModel; isFailureBas
     end
 
     push!(model.statistics.solutions, nothing)
-    push!(model.statistics.nodevisitedpersolution, model.statistics.numberOfNodes)
+    push!(model.statistics.nodevisitedpersolution,model.statistics.numberOfNodes)
+    push!(model.statistics.timeneededpersolution, peektimer())
 
     if !isnothing(model.objective)
         @assert !isnothing(model.statistics.objectives) "did you use SeaPearl.addObjective! to declare your objective function ? "
@@ -299,6 +309,7 @@ function Base.isempty(model::CPModel)::Bool
         && isnothing(model.objectiveBound)
         && isempty(model.statistics.solutions)
         && isempty(model.statistics.nodevisitedpersolution)
+        && isempty(model.statistics.timeneededpersolution)
         && isempty(model.statistics.infeasibleStatusPerVariable)
         && isnothing(model.statistics.objectives)
         && isnothing(model.statistics.lastPruning)
@@ -334,6 +345,7 @@ function Base.empty!(model::CPModel)
     model.objectiveBound = nothing
     empty!(model.statistics.solutions)
     empty!(model.statistics.nodevisitedpersolution)
+    empty!(model.statistics.timeneededpersolution)
     empty!(model.statistics.infeasibleStatusPerVariable)
     model.statistics.objectives = nothing
     model.statistics.lastPruning = nothing
@@ -365,6 +377,7 @@ function reset_model!(model::CPModel)
     model.objectiveBound = nothing
     empty!(model.statistics.solutions)
     empty!(model.statistics.nodevisitedpersolution)
+    empty!(model.statistics.timeneededpersolution)
     for (key, value) in model.statistics.infeasibleStatusPerVariable
         model.statistics.infeasibleStatusPerVariable[key] = length(getOnDomainChange(model.variables[key]))  #the degree is reset to the initial value : the number of constraints the variable is involved in.
     end
