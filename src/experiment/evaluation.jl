@@ -45,7 +45,7 @@ function SameInstancesEvaluator(valueSelectionArray::Array{H, 1}, generator::Abs
 end
 
 
-function setNodesBudget!(evaluator::SameInstancesEvaluator, budget::Int)
+function setNodesBudget!(evaluator::SameInstancesEvaluator, budget::Union{Int,Nothing})
     for instance in evaluator.instances
         instance.limit.numberOfNodes = budget
     end
