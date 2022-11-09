@@ -27,6 +27,7 @@ It satisfies the two AbstractMetrics requirements:
 mutable struct BasicMetrics{O<:AbstractTakeObjective, H<:ValueSelection} <: AbstractMetrics
     heuristic::H
     nodeVisited::Vector{Vector{Int64}}
+    timeNeeded::Vector{Vector{Float32}}
     meanNodeVisitedUntilfirstSolFound::Vector{Union{Nothing,Float32}}
     solutionFound::Vector{Vector{Bool}}
     meanNodeVisitedUntilEnd::Vector{Float32}
@@ -37,7 +38,7 @@ mutable struct BasicMetrics{O<:AbstractTakeObjective, H<:ValueSelection} <: Abst
     meanOver::Int64
     nbEpisodes::Int64
 
-    BasicMetrics{O,H}(heuristic,meanOver) where {O,H}= new{O, H}(heuristic,Vector{Vector{Int64}}(),Vector{Union{Nothing,Float32}}(), Float32[], Float32[], Float32[], O==TakeObjective ? Vector{Vector{Float32}}() : nothing, (H == BasicHeuristic) ? nothing : Float32[], (H == BasicHeuristic) ? nothing : Float32[], meanOver,0)
+    BasicMetrics{O,H}(heuristic,meanOver) where {O,H}= new{O, H}(heuristic,Vector{Vector{Int64}}(),Vector{Vector{Float32}}(),Vector{Union{Nothing,Float32}}(), Float32[], Float32[], Float32[], O==TakeObjective ? Vector{Vector{Float32}}() : nothing, (H == BasicHeuristic) ? nothing : Float32[], (H == BasicHeuristic) ? nothing : Float32[], meanOver,0)
 end
 
 BasicMetrics(model::CPModel, heuristic::ValueSelection; meanOver=1) = BasicMetrics{(!isnothing(model.objective)) ? TakeObjective : DontTakeObjective ,typeof(heuristic)}(heuristic,meanOver)
