@@ -27,7 +27,7 @@ end
 function toc()
     timers = get(task_local_storage(), :TIMERS, ())
     if timers === ()
-        error("Use `tick()` to start a timer.")
+        error("Use `tic()` to start a timer.")
     end
     t = peektimer()
     task_local_storage(:TIMERS, timers[2])
