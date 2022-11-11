@@ -1,5 +1,5 @@
 using SimpleWeightedGraphs
-using LinearAlgebra
+# using LinearAlgebra
 
 include("tsptwtrajectorystate.jl")
 
