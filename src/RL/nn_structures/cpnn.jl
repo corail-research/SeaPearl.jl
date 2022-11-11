@@ -39,7 +39,7 @@ function (nn::CPNN)(states::BatchedDefaultTrajectoryState)
     
     # extract the feature(s) of the variable(s) we're working on
     indices = nothing
-    Zygote.ignore() do
+    ChainRulesCore.ignore_derivatives() do
         indices = CartesianIndex.(zip(variableIdx, 1:batchSize))
     end
     variableFeatures = nodeFeatures[:, indices]

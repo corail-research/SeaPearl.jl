@@ -65,7 +65,7 @@ function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any,meanPooling})(fgs::Ba
     X1, X2, X3 = original_fgs.varnf, original_fgs.connf, original_fgs.valnf
 
     MatVar, MatCon, MatVal = nothing,nothing,nothing
-    Zygote.ignore() do
+    ChainRulesCore.ignore_derivatives() do
     sumcontovar =  sum(contovar, dims = 1)
     sumvaltovar =  sum(valtovar, dims = 1)
     sumvartocon =  sum(vartocon, dims = 1)
@@ -89,7 +89,7 @@ function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any,meanPooling})(fgs::Ba
     XX2 = g.σ.(g.weightscon ⊠ MatCon .+ g.biascon)
     XX3 = g.σ.(g.weightsval ⊠ MatVal .+ g.biasval)
 
-    Zygote.ignore() do
+    ChainRulesCore.ignore_derivatives() do
         return BatchedHeterogeneousFeaturedGraph{Float32}(
         contovar,
         valtovar,
@@ -109,7 +109,7 @@ function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any,meanPooling})(fg::Het
 
     MatVar, MatCon, MatVal = nothing,nothing,nothing
     sumcontovar,sumvaltovar,sumvartocon,sumvartoval = nothing,nothing,nothing,nothing
-    Zygote.ignore() do
+    ChainRulesCore.ignore_derivatives() do
         sumcontovar = sum(contovar, dims =1)
         sumvaltovar = sum(valtovar, dims =1)
         sumvartocon = sum(vartocon, dims =1)
@@ -134,7 +134,7 @@ function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any,meanPooling})(fg::Het
     XX1 = g.σ.(g.weightsvar * MatVar .+ g.biasvar)
     XX2 = g.σ.(g.weightscon * MatCon .+ g.biascon)
     XX3 = g.σ.(g.weightsval * MatVal.+ g.biasval)
-    Zygote.ignore() do
+    ChainRulesCore.ignore_derivatives() do
     return HeterogeneousFeaturedGraph(
         contovar,
         valtovar,
@@ -164,7 +164,7 @@ function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any, maxPooling})(fgs::Ba
     filteredembvaltovar = nothing
     filteredembvartoval = nothing
 
-    Zygote.ignore() do
+    ChainRulesCore.ignore_derivatives() do
         contovarIdx = repeat(collect(1:size(contovar,1)),1,size(contovar,2)).*contovar
         valtovarIdx = repeat(collect(1:size(valtovar,1)),1,size(valtovar,2)).*valtovar
         vartoconIdx = repeat(collect(1:size(vartocon,1)),1,size(vartocon,2)).*vartocon
@@ -215,7 +215,7 @@ function (g::HeterogeneousGraphConv{<:AbstractMatrix,<:Any, maxPooling})(fg::Het
     filteredembvaltovar = nothing
     filteredembvartocon = nothing
     filteredembvartoval = nothing
-    Zygote.ignore() do      
+    ChainRulesCore.ignore_derivatives() do      
     
         contovarIdx = device(contovar) != Val{:cpu}() ? CuArray(repeat(collect(1:size(contovar,1)),1,size(contovar,2))) : repeat(collect(1:size(contovar,1)),1,size(contovar,2))
         valtovarIdx = device(valtovar) != Val{:cpu}() ? CuArray(repeat(collect(1:size(valtovar,1)),1,size(valtovar,2))) : repeat(collect(1:size(valtovar,1)),1,size(valtovar,2))

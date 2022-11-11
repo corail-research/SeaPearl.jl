@@ -88,7 +88,7 @@ function Flux.functor(::Type{Vector{DefaultTrajectoryState}}, v)
         allValuesIdx = zeros(Int, maxActions, batchSize)
     end
     
-    Zygote.ignore() do
+    ChainRulesCore.ignore_derivatives() do
         variableIdx = (state -> state.variableIdx).(v)
         possibleValuesIdx = (state -> state.possibleValuesIdx).(v)
         # TODO: this could probably be optimized

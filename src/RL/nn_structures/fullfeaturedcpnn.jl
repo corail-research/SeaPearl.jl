@@ -51,7 +51,7 @@ function (nn::FullFeaturedCPNN)(states::BatchedDefaultTrajectoryState)
     
     # Extract the features corresponding to the variables
     variableIndices = nothing
-    Zygote.ignore() do
+    ChainRulesCore.ignore_derivatives() do
         variableIndices = Flux.unsqueeze(CartesianIndex.(variableIdx, 1:batchSize), 1)
     end
     variableFeatures = nodeFeatures[:, variableIndices] # Fx1xB
@@ -59,7 +59,7 @@ function (nn::FullFeaturedCPNN)(states::BatchedDefaultTrajectoryState)
     
     # Extract the features corresponding to the values
     valueIndices = nothing
-    Zygote.ignore() do 
+    ChainRulesCore.ignore_derivatives() do 
         valueIndices = CartesianIndex.(allValuesIdx, repeat(transpose(1:batchSize); outer=(actionSpaceSize, 1)))
     end
     valueFeatures = nodeFeatures[:, valueIndices] # FxAxB
