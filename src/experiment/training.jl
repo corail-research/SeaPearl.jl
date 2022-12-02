@@ -79,10 +79,10 @@ function train!(;
                 print("Has been trained on : ", typeof(generator))
                 print(" with strategy : ", strategy)
                 print(" during ", nbEpisodes, " episodes ")
-                restartPerInstances > 1 && print("with ", restartPerInstances, " restart per episode ")
+                restartPerInstances > 1 && print("with ", restartPerInstances, " restarts per episode ")
                 out_solver && println("out of the solver.")
                 !out_solver && println("in the solver.")
-                println("Training mode now desactivated !")
+                println("Training mode now deactivated !")
             end
         end
     end
