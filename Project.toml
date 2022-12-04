@@ -1,6 +1,6 @@
 name = "SeaPearl"
 uuid = "c13076dc-bdcd-48ba-bc88-4b44c2587ab3"
-authors = ["Ilan Coulon", "Félix Chalumeau", "Tom Marty", "Tom Sander", "Pierre Tessier"]
+authors = ["Léo Boisvert", "Ilan Coulon", "Félix Chalumeau", "Tom Marty", "Tom Sander", "Pierre Tessier"]
 version = "0.4.2"
 
 [deps]
