@@ -371,14 +371,7 @@ Returns the sum of the cardinalities of the variable domains.
 function global_domain_cardinality(model::CPModel)
     cardinality = 0
     for (id, x) in model.variables
-        if isa(x.domain, BoolDomain)
-            cardinality += length(x.domain)
-            if !isempty(x.children)
-                for child in x.children
-                    cardinality += length(child.domain)
-                end
-            end
-        elseif isa(x.domain, IntSetDomain)
+        if isa(x.domain, IntSetDomain) || isa(x, IntVarViewMul)
             cardinality += length(x.domain)
         else
             cardinality += length(x.domain)
