@@ -58,7 +58,34 @@ mutable struct CPModel
     adhocInfo               ::Any
 
 
-    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Dict{String, AbstractVar}(), Constraint[], trailer, nothing, nothing, Statistics(Dict{String, Int}(), 0, 0, 0, 0, 0, 0, 0, 0, Solution[],Int[], nothing, nothing, nothing, nothing, nothing, Dict{Constraint, Int}()), Limit(nothing, nothing, nothing), nothing)
+    CPModel(trailer) = new(
+        Dict{String, AbstractVar}(),
+        Dict{String, Bool}(),
+        Dict{String, AbstractVar}(),
+        Constraint[],
+        trailer,
+        nothing,
+        nothing,
+        Statistics(Dict{String, Int}(),
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        Solution[],
+        Int[],
+        nothing,
+        nothing,
+        nothing,
+        nothing,
+        nothing,
+        Dict{Constraint, Int}()),
+        Limit(nothing, nothing, nothing),
+        nothing
+    )
 end
 
 CPModel() = CPModel(Trailer())
@@ -371,10 +398,8 @@ Returns the sum of the cardinalities of the variable domains.
 function global_domain_cardinality(model::CPModel)
     cardinality = 0
     for (id, x) in model.variables
-        if isa(x.domain, IntSetDomain) || isa(x, IntVarViewMul)
-            cardinality += length(x.domain)
-        else
-            cardinality += length(x.domain)
+        cardinality += length(x.domain)
+        if !(isa(x.domain, IntSetDomain) || isa(x, IntVarViewMul))
             if !isempty(x.children)
                 for child in x.children
                     cardinality += length(child.domain)
@@ -384,8 +409,6 @@ function global_domain_cardinality(model::CPModel)
     end
     return cardinality
 end
-
-
 
 """
     updateStatistics!(model::CPModel, pruned)
