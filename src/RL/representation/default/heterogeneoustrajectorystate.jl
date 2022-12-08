@@ -11,12 +11,12 @@ struct HeterogeneousTrajectoryState <: GraphTrajectoryState
     variableIdx::Int
     possibleValuesIdx::Union{Nothing, Vector{Int64}}
 
-function HeterogeneousTrajectoryState(fg, var, val)
-    @assert var <= size(fg.varnf,2) "The variable index is out of bound"
-    @assert all(val .<= size(fg.valnf,2)) "One of the values index is out of bound"
-    @assert all([tuple[2] for tuple in countmap([c for c in val])] .== 1) "values array contains one element at least twice"
-    return new(fg, var, val)
-end
+    function HeterogeneousTrajectoryState(fg, var, val)
+        @assert var <= size(fg.varnf,2) "The variable index is out of bound"
+        @assert all(val .<= size(fg.valnf,2)) "One of the values index is out of bound"
+        @assert all([tuple[2] for tuple in countmap([c for c in val])] .== 1) "values array contains one element at least twice"
+        return new(fg, var, val)
+    end
 end
 
 HeterogeneousTrajectoryState(sr::AbstractStateRepresentation) = throw(ErrorException("missing function HeterogeneousTrajectoryState(::$(typeof(sr)))."))
@@ -34,11 +34,11 @@ struct BatchedHeterogeneousTrajectoryState{T} <: NonTabularTrajectoryState
     variableIdx::AbstractVector{Int}
     possibleValuesIdx::Union{Nothing, AbstractVector{Vector{Int64}}} #Todo change this to abstract matrix
 
-function BatchedHeterogeneousTrajectoryState(fg, var, val)
-    @assert all(var .<= size(fg.varnf,2)) "The variable index is out of bound"
-    @assert all(reduce(vcat,val) .<= size(fg.valnf,2)) "One of the values index is out of bound"
-    @assert all(reduce(vcat,[[tuple[2] for tuple in countmap([c for c in vals])] for vals in val]) .== 1) "values array contains one element at least twice"
-    return new{Float32}(fg, var, val)
+    function BatchedHeterogeneousTrajectoryState(fg, var, val)
+        @assert all(var .<= size(fg.varnf,2)) "The variable index is out of bound"
+        @assert all(reduce(vcat,val) .<= size(fg.valnf,2)) "One of the values index is out of bound"
+        @assert all(reduce(vcat,[[tuple[2] for tuple in countmap([c for c in vals])] for vals in val]) .== 1) "values array contains one element at least twice"
+        return new{Float32}(fg, var, val)
     end
 end
 
