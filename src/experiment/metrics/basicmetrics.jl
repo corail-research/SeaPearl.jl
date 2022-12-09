@@ -82,13 +82,6 @@ function (metrics::BasicMetrics{DontTakeObjective, <:LearnedHeuristic})(model::C
     push!(metrics.timeneeded,dt)
     
     total_reward = last_episode_total_reward(metrics.heuristic.agent.trajectory)
-    #=
-    # Uncomment to print metrics during execution
-    print("Episode reward: ")
-    println(total_reward)
-    print("Loss: ")
-    println(metrics.heuristic.agent.policy.learner.loss)
-    =#
     push!(metrics.totalReward,total_reward)
     push!(metrics.loss,metrics.heuristic.agent.policy.learner.loss)
     return
@@ -105,14 +98,6 @@ function (metrics::BasicMetrics{TakeObjective, <:LearnedHeuristic})(model::CPMod
     push!(metrics.timeneeded,dt)
     push!(metrics.scores,copy(model.statistics.objectives))
     total_reward = last_episode_total_reward(metrics.heuristic.agent.trajectory)
-    #=
-    # Uncomment to print these metrics during training
-    print("Reward: ")
-    println(total_reward)
-    print("Loss: ")
-    println(metrics.heuristic.agent.policy.learner.loss)
-    println("")
-    =#
     push!(metrics.totalReward,total_reward)
     push!(metrics.loss,metrics.heuristic.agent.policy.learner.loss)
     return
@@ -135,4 +120,3 @@ function repeatlast!(metrics::BasicMetrics{<:AbstractTakeObjective, <:BasicHeuri
     end
     return last(metrics.timeneeded),last(metrics.meanNodeVisitedUntilEnd), sum(map(x -> x,last(metrics.solutionFound)))
 end
-
