@@ -9,9 +9,7 @@ We expect SeaPearl to be less efficient for 2 reasons:
 ## Method
 
 The commercial CP solver used is Gecode and the model has been implemented using MiniZinc. 
-
 The problem used for the experience is the Kidney Exchange Problem (KEP) using 7 instances from size 5 to 35 (step size of 5). 
-
 A basic model has been implemented in MiniZinc and SeaPearl using the same logic (variables, constraints, heuristics...).
 
 ## Results and conclusions
@@ -19,7 +17,6 @@ A basic model has been implemented in MiniZinc and SeaPearl using the same logic
 The main observations from the experience are:
 
 * The time of execution grows over-polynomially with the size of the instance. This result was expected for this combinatorial problem.
-
 * For instances with significant time of execution (more than 1 second), **Gecode is on average 7.5 times faster than SeaPearl**.
 
 ### PS: Tips to do a performance test with SeaPearl
