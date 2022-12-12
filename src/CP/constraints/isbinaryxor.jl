@@ -1,5 +1,5 @@
 """
-    isBinaryXor(b::AbstractBoolVar, x::AbstractBoolVar, y::AbstractBoolVar)
+    isBinaryXor(b::AbstractBoolVar, x::AbstractBoolVar, y::AbstractBoolVar, trailer::SeaPearl.Trailer)
 
 Is Xor constraint, states that `b <=> x ⊻ y`.
 """

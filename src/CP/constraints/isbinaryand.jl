@@ -1,5 +1,5 @@
 """
-    isBinaryAnd(b::AbstractBoolVar, x::AbstractBoolVar, y::AbstractBoolVar)
+    isBinaryAnd(b::AbstractBoolVar, x::AbstractBoolVar, y::AbstractBoolVar, trailer::SeaPearl.Trailer)
 
 Is And constraint, states that `b <=> x and y`.
 """

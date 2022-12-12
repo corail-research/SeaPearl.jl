@@ -1,7 +1,7 @@
 abstract type EqualConstraint <: Constraint end
 
 """
-    EqualConstant(x::SeaPearl.AbstractIntVar, v::Int)
+    EqualConstant(x::SeaPearl.AbstractIntVar, v::Int, SeaPearl.trailer)
 
 Equality constraint, putting a constant value `v` for the variable `x` i.e. `x == v`.
 """

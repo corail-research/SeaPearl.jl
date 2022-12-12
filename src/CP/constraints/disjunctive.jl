@@ -52,11 +52,10 @@ function getLST(task::Task)
     return task.earliestStartingTime.domain.max.value
 end
 
-"""
-    function Disjunctive(earliestStartingTime::Array{AbstractIntVar}, 
-        processingTime::Array{Int}, trailer)::Disjunctive
+"""Disjunctive(earliestStartingTime::Array{<:AbstractIntVar}, 
+processingTime::Array{Int}, trailer, filteringAlgorithm::Array{filteringAlgorithmTypes} = [algoTimeTabling])::Disjunctive
 
-Constraint that insure that no task are executed in the same time range, i.e. 
+Constraint that insure that no task are executed in the same time range.
 """
 struct Disjunctive <: Constraint
     

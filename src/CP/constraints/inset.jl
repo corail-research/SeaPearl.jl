@@ -1,5 +1,5 @@
 """
-    InSet(x::AbstractIntVar, s::IntSetVar, trailer::Trailer)
+    InSet(x::AbstractIntVar, s::IntSetVar, trailer::SeaPearl.Trailer)
 
 InSet constraint, states that x ∈ s
 """

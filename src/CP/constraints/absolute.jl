@@ -1,5 +1,5 @@
 """
-    Absolute(x::SeaPearl.AbstractIntVar, y::SeaPearl.AbstractIntVar)
+    Absolute(x::SeaPearl.AbstractIntVar, y::SeaPearl.AbstractIntVar, ::SeaPearl.Trailer)
 
 Absolute value constraint, enforcing y = |x|.
 """

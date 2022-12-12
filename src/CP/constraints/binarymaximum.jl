@@ -1,5 +1,5 @@
 """
-    BinaryMaximum(x::AbstractIntVar, y::AbstractIntVar, z::AbstractIntVar, trailer)
+    BinaryMaximum(x::AbstractIntVar, y::AbstractIntVar, z::AbstractIntVar, trailer::SeaPearl.Trailer)
 
 BinaryMaximum constraint, states that `x == max(y, z)`
 """

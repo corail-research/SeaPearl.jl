@@ -1,5 +1,5 @@
 """
-    LessOrEqualConstant(x::SeaPearl.AbstractIntVar, v::Int)
+    LessOrEqualConstant(x::SeaPearl.AbstractIntVar, v::Int, trailer::SeaPearl.Trailer)
 
 Inequality constraint, `x <= v`
 """
@@ -7,7 +7,7 @@ struct LessOrEqualConstant <: OnePropagationConstraint
     x       ::AbstractIntVar
     v       ::Int
     active  ::StateObject{Bool}
-    function LessOrEqualConstant(x, v, trailer)
+    function LessOrEqualConstant(x::AbstractIntVar, v::Int, trailer)
         constraint = new(x, v, StateObject(true, trailer))
         addOnDomainChange!(x, constraint)
         return constraint
@@ -53,7 +53,7 @@ struct LessOrEqual <: Constraint
 
     Inequality between variables constraint, states that `x <= y`
     """
-    function LessOrEqual(x, y, trailer)
+    function LessOrEqual(x::AbstractIntVar, y::AbstractIntVar, trailer)
         constraint = new(x, y, StateObject(true, trailer))
         addOnDomainChange!(x, constraint)
         addOnDomainChange!(y, constraint)
