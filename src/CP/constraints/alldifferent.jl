@@ -8,7 +8,7 @@ include("algorithms/matching.jl")
 end
 
 """
-    AllDifferent(x::Array{<:AbstractIntVar}, ::SeaPearl.Trailer)
+    AllDifferent(x::Array{<:AbstractIntVar}, trailer::SeaPearl.Trailer)
 
 AllDifferent constraint, enforcing ∀ i ≠ j ∈ ⟦1, length(x)⟧, x[i] ≠ x[j].
 
