@@ -1,5 +1,3 @@
-include("datasstructures/disjointSet.jl")
-
 @enum filteringAlgorithmTypes begin
     algoTimeTabling
     algoDetectablePrecedence 

@@ -1,3 +1,4 @@
+include("disjointset.jl")
 """
     Timeline(tasks::Array{Task}) 
 
