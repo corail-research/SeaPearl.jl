@@ -5,22 +5,22 @@ SeaPearl.Absolute
 ```
 
 ```@docs
-SeaPearl.AllDifferent(x::Array{<:SeaPearl.AbstractIntVar}, trailer)
+SeaPearl.AllDifferent
 ```
 
 ```@docs
-SeaPearl.BinaryEquivalence(x::SeaPearl.AbstractBoolVar, y::SeaPearl.AbstractBoolVar, trailer)
+SeaPearl.BinaryEquivalence
 ```
 
 ```@docs
-SeaPearl.BinaryImplication(x::SeaPearl.AbstractBoolVar, y::SeaPearl.AbstractBoolVar, trailer)
-SeaPearl.BinaryMaximumBC(x::SeaPearl.AbstractIntVar, y::SeaPearl.AbstractIntVar, z::SeaPearl.AbstractIntVar, trailer)
-SeaPearl.BinaryOr(x::SeaPearl.AbstractBoolVar, y::SeaPearl.AbstractBoolVar, trailer)
-SeaPearl.BinaryXor(x::SeaPearl.AbstractBoolVar, y::SeaPearl.AbstractBoolVar, trailer)
-SeaPearl.TableConstraint(variables::Vector{<:SeaPearl.AbstractIntVar}, table::Matrix{Int}, supports::Dict{Pair{Int,Int},BitVector}, trailer::SeaPearl.SeaPearl.Trailer)
-SeaPearl.TableConstraint(variables::Vector{<:SeaPearl.AbstractIntVar}, table::Matrix{Int}, trailer)
-SeaPearl.BinaryImplication(x::SeaPearl.AbstractBoolVar, y::SeaPearl.AbstractBoolVar, trailer)
-Disjunctive(earliestStartingTime::Array{<:SeaPearl.AbstractIntVar}, processingTime::Array{Int}, trailer, filteringAlgorithm::Array{filteringAlgorithmTypes} = [algoTimeTabling])
+SeaPearl.BinaryImplication
+SeaPearl.BinaryMaximumBC
+SeaPearl.BinaryOr
+SeaPearl.BinaryXor
+SeaPearl.TableConstraint
+<!-- SeaPearl.TableConstraint -->
+SeaPearl.BinaryImplication
+SeaPearl.Disjunctive(earliestStartingTime::Array{<:SeaPearl.AbstractIntVar}, processingTime::Array{Int}, trailer, filteringAlgorithm::Array{filteringAlgorithmTypes} = [algoTimeTabling])
 SeaPearl.Element1D(matrix::Array{Int, 1}, i::SeaPearl.AbstractIntVar, x::SeaPearl.AbstractIntVar, trailer::SeaPearl.Trailer)
 SeaPearl.Element2D(matrix::Array{Int, 2}, x::SeaPearl.AbstractIntVar, y::SeaPearl.AbstractIntVar, z::SeaPearl.AbstractIntVar, trailer)
 SeaPearl.EqualConstant(x::SeaPearl.SeaPearl.AbstractIntVar, v::Int, trailer)
