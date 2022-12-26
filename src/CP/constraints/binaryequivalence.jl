@@ -1,5 +1,5 @@
 """
-    BinaryEquivalence(x::BoolVar, y::BoolVar)
+    BinaryEquivalence(x::BoolVar, y::BoolVar, trailer::SeaPearl.Trailer)
 
 Binary equivalence constraint, states that `x <=> y`.
 """

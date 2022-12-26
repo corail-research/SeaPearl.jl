@@ -8,6 +8,7 @@ makedocs(
     modules = [SeaPearl],
     pages = ["Home" => "index.md",
     "Constraint Programming solver" => [
+        "Constraints" => "CP/constraints.md",
         "Variables" => "CP/int_variable.md",
         "Trailer" => "CP/trailer.md",
     ],

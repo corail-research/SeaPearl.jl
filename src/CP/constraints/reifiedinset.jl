@@ -78,7 +78,6 @@ function propagate!(constraint::ReifiedInSet, toPropagate::Set{Constraint}, prun
         end
     else
         # No feasibility test because if b not assigned, it is always feasible
-
         # Filtering b
         if surely_in_set
             removed = assign!(constraint.b, true)

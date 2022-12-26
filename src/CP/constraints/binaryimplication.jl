@@ -1,5 +1,5 @@
 """
-    BinaryImplication(x::BoolVar, y::BoolVar)
+    BinaryImplication(x::BoolVar, y::BoolVar, trailer::SeaPearl.Trailer)
 
 Binary implication constraint, states that `x => y`.
 """

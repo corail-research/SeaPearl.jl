@@ -1,5 +1,5 @@
 """
-    Element2D(matrix::Array{Int, 2}, x::AbstractIntVar, y::AbstractIntVar, z::AbstractIntVar, trailer)
+    Element2D(matrix::Array{Int, 2}, x::AbstractIntVar, y::AbstractIntVar, z::AbstractIntVar, SeaPearl.trailer)
 
 Element2D constraint, states that `matrix[x, y] == z`
 """
