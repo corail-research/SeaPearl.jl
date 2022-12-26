@@ -1,4 +1,4 @@
-include("disjointset.jl")
+include("disjoint_set.jl")
 
 """
     Timeline(tasks::Array{Task}) 
