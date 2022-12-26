@@ -1,6 +1,10 @@
 addChildrenVariable!(x::IntVar, y::IntVarView) = push!(x.children, y)
 addChildrenVariable!(x::IntVarView, y::IntVarView) = addChildrenVariable!(x.x, y)
 
+"""
+    IntDomainViewMul(orig::AbstractIntDomain, a::Int)
+Domain for an integer variable that is a multiple of another integer variable. See IntVarViewMul.
+"""
 struct IntDomainViewMul <: IntDomainView
     orig            ::AbstractIntDomain
     a               ::Int
@@ -27,6 +31,10 @@ struct IntVarViewMul <: IntVarView
     end
 end
 
+"""
+    IntDomainViewOpposite(orig::AbstractIntDomain)
+Domain for an integer variable that is the opposite of another integer variable (y = -x).
+"""
 struct IntDomainViewOpposite <: IntDomainView
     orig            ::AbstractIntDomain
 end
@@ -49,6 +57,10 @@ struct IntVarViewOpposite <: IntVarView
     end
 end
 
+"""
+    IntDomainViewOffset(orig::AbstractIntDomain, c::Int)
+Domain for an integer variable that is offset by a constant 'c' (y = x + c)
+"""
 struct IntDomainViewOffset <: IntDomainView
     orig            ::AbstractIntDomain
     c               ::Int
