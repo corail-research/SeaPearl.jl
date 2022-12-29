@@ -9,7 +9,7 @@ makedocs(
     pages = ["Home" => "index.md",
     "Constraint Programming solver" => [
         "Constraints" => "CP/constraints.md",
-        "Variables" => "CP/int_variable.md",
+        "Variables" => "CP/variables.md",
         "Trailer" => "CP/trailer.md",
     ],
     "Building Models" =>

@@ -5,7 +5,6 @@ abstract type AbstractBoolDomain <: AbstractIntDomain end
 
 Boolean domain, uses a IntDomain in it. (true is 1 and false is 0)
 """
-
 struct BoolDomain <: AbstractBoolDomain
     inner::IntDomain
 
