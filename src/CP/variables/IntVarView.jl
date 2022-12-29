@@ -10,7 +10,11 @@ struct IntDomainViewMul <: IntDomainView
     a               ::Int
 end
 
+"""
+        IntVarViewMul(x::AbstractIntVar, a::Int, id::String)
 
+    Create a *fake* variable `y`, such that `y == a*x`. This variable behaves like an usual one.
+    """
 struct IntVarViewMul <: IntVarView
     x               ::AbstractIntVar
     a               ::Int
@@ -39,6 +43,11 @@ struct IntDomainViewOpposite <: IntDomainView
     orig            ::AbstractIntDomain
 end
 
+"""
+    IntVarViewOpposite(x::AbstractIntVar, id::String)
+
+    Create a *fake* variable `y`, such that `y = -x`. This variable behaves like an usual one.
+"""
 struct IntVarViewOpposite <: IntVarView
     x               ::AbstractIntVar
     domain          ::IntDomainViewOpposite
