@@ -65,3 +65,22 @@ SeaPearl.IntDomainViewMul
 SeaPearl.IntDomainViewOpposite
 SeaPearl.IntDomainViewOffset
 ```
+
+## Boolean Variables
+
+### Base Boolean Variables
+```@docs
+SeaPearl.BoolVar
+```
+
+### Boolean View Variables
+
+```@docs
+SeaPearl.BoolVarViewNot
+```
+
+### Boolean Domains
+```@docs
+SeaPearl.BoolDomain
+SeaPearl.BoolDomainViewNot
+```
