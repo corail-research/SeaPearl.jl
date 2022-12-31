@@ -54,8 +54,6 @@ function fill_with_generator!(cpmodel::CPModel, gen::LegacyGraphColoringGenerato
     SeaPearl.addVariable!(cpmodel, numberOfColors, branchable=false)
     SeaPearl.addConstraint!(cpmodel, SeaPearl.MaximumConstraint(x, numberOfColors, cpmodel.trailer))
     SeaPearl.addObjective!(cpmodel, numberOfColors)
-
-    nothing
 end
 
 struct HomogenousGraphColoringGenerator <: AbstractModelGenerator
@@ -68,8 +66,6 @@ struct HomogenousGraphColoringGenerator <: AbstractModelGenerator
         new(n, p)
     end
 end
-
-
 
 """
     fill_with_generator!(cpmodel::CPModel, gen::GraphColoringGenerator)::CPModel    
@@ -105,7 +101,6 @@ function fill_with_generator!(cpmodel::CPModel, gen::HomogenousGraphColoringGene
     SeaPearl.addVariable!(cpmodel, numberOfColors, branchable=false)
     SeaPearl.addConstraint!(cpmodel, SeaPearl.MaximumConstraint(x, numberOfColors, cpmodel.trailer))
     SeaPearl.addObjective!(cpmodel, numberOfColors)
-    nothing
 end
 
 """
@@ -171,7 +166,6 @@ function fill_with_generator!(cpmodel::CPModel, gen::ClusterizedGraphColoringGen
     SeaPearl.addObjective!(cpmodel, numberOfColors)
     cpmodel.knownObjective = k 
     cpmodel.adhocInfo = nothing
-    nothing
 end
 
 """
@@ -209,8 +203,6 @@ function fill_with_generator!(cpmodel::CPModel, gen::BarabasiAlbertGraphGenerato
     SeaPearl.addConstraint!(cpmodel, SeaPearl.MaximumConstraint(vars, numberOfColors, cpmodel.trailer))
     SeaPearl.addObjective!(cpmodel, numberOfColors)
     cpmodel.adhocInfo = graph
-
-    nothing
 end
 
 """
@@ -248,8 +240,6 @@ function fill_with_generator!(cpmodel::CPModel, gen::ErdosRenyiGraphGenerator; r
     SeaPearl.addConstraint!(cpmodel, SeaPearl.MaximumConstraint(vars, numberOfColors, cpmodel.trailer))
     SeaPearl.addObjective!(cpmodel, numberOfColors)
     cpmodel.adhocInfo = graph
-
-    nothing
 end
 
 
@@ -282,6 +272,4 @@ function fill_with_generator!(cpmodel::CPModel, gen::WattsStrogatzGraphGenerator
     SeaPearl.addConstraint!(cpmodel, SeaPearl.MaximumConstraint(vars, numberOfColors, cpmodel.trailer))
     SeaPearl.addObjective!(cpmodel, numberOfColors)
     cpmodel.adhocInfo = graph
-
-    nothing
 end
