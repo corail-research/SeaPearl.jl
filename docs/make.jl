@@ -12,6 +12,7 @@ makedocs(
         "Variables" => "CP/variables.md",
         "Trailer" => "CP/trailer.md",
     ],
+    "Reinforcement Learning" => "reinforcement_learning.md",
     "Building Models" =>
       ["Basics" => "models/basics.md"],
     "Community" => "community.md"],

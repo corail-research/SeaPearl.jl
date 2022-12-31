@@ -5,16 +5,18 @@ struct JobShopGenerator  <: AbstractModelGenerator
 end
 
 """
-    fill_with_generator!(cpmodel::CPModel, gen::GraphColoringGenerator)  
+    fill_with_generator!(cpmodel::CPModel, gen::JobShopGenerator)  
 Fill a CPModel with the variables and constraints generated. We fill it directly instead of 
 creating temporary files for efficiency purpose.
 """
 function fill_with_generator!(cpmodel::CPModel, gen::JobShopGenerator;  rng::AbstractRNG = MersenneTwister())
     job_times  =  fill(1, gen.numberOfJobs, gen.numberOfMachines) #each task needs to be run at least for 1 unit of time on each machine
     for i in 1:gen.numberOfJobs
-        # One of these 2 lines should be uncommented. Uncomment the first one if there are more machines than jobs, the second one otherwise
-        totalTimePerTask = Int(floor(gen.maxTime*0.5))
-        #totalTimePerTask = Int(floor(gen.maxTime*(gen.numberOfMachines/gen.numberOfJobs)*0.5))
+        if gen.numberOfMachines > gen.numberOfJobs
+            totalTimePerTask = Int(floor(gen.maxTime*0.5))
+        else
+            totalTimePerTask = Int(floor(gen.maxTime*(gen.numberOfMachines/gen.numberOfJobs)*0.5))
+        end
         for j in 1:totalTimePerTask-gen.numberOfMachines
             job_times[i,rand(rng, 1:j) % gen.numberOfMachines + 1] += 1
         end
@@ -35,7 +37,6 @@ function fill_with_generator!(cpmodel::CPModel, gen::JobShopGenerator;  rng::Abs
             job_start[i,j] = SeaPearl.IntVar(1, gen.maxTime, "job_start_"*string(i)*"_"*string(j), cpmodel.trailer)
             SeaPearl.addVariable!(cpmodel, job_start[i,j]; branchable=true)  #TODO : double-check this 
             job_end[i,j] = SeaPearl.IntVarViewOffset(job_start[i,j], job_times[i,j], "job_end_"*string(i)*"_"*string(j))
-            # SeaPearl.addVariable!(cpmodel, job_end[i,j]; branchable=false)
             # Set maxTime as upper bound to each job_end
             SeaPearl.addConstraint!(cpmodel, SeaPearl.LessOrEqualConstant(job_end[i,j] , gen.maxTime,  cpmodel.trailer))
         end
@@ -87,7 +88,7 @@ struct JobShopSoftDeadlinesGenerator  <: AbstractModelGenerator
 end
 
 """
-    fill_with_generator!(cpmodel::CPModel, gen::GraphColoringGenerator)  
+    fill_with_generator!(cpmodel::CPModel, gen::JobShopSoftDeadlinesGenerator)  
 Fill a CPModel with the variables and constraints generated. We fill it directly instead of 
 creating temporary files for efficiency purpose.
 """
@@ -253,8 +254,6 @@ function fill_with_generator!(cpmodel::CPModel, gen::JobShopSoftDeadlinesGenerat
     SeaPearl.addConstraint!(cpmodel, SeaPearl.SumToZero(objectiveArray, cpmodel.trailer))
     SeaPearl.addObjective!(cpmodel, objective)
     
-
-
     ### Core constraints ###
     # ensure non-overlaps of the machines
     bool_matrix = Array{SeaPearl.AbstractBoolVar,3}(undef, gen.numberOfMachines, gen.numberOfJobs, gen.numberOfJobs)
