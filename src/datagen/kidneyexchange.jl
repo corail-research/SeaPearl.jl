@@ -6,7 +6,7 @@ struct KepGenerator <: AbstractModelGenerator
 end
 
 """
-    fill_with_generator!(cpmodel::CPModel, gen::KepGenerator; seed=nothing)   
+    fill_with_generator!(cpmodel::CPModel, gen::KepGenerator; rng::AbstractRNG = MersenneTwister())   
 
 Fill a CPModel with the variables and constraints generated. We fill it directly instead of 
 creating temporary files for efficiency purpose!
@@ -87,6 +87,4 @@ function fill_with_generator!(model, gen::KepGenerator; rng::AbstractRNG = Merse
     objective = SeaPearl.SumToZero(vars, model.trailer)
     SeaPearl.addConstraint!(model, objective)
     SeaPearl.addObjective!(model, minusNumberOfExchanges)
-
-    nothing
 end
