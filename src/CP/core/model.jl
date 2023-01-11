@@ -1,88 +1,109 @@
 
-const Solution = Dict{String, Union{Int, Bool, Set{Int}}}
+const Solution = Dict{String,Union{Int,Bool,Set{Int}}}
 
 #TODO add documentation for BeforeRestart
 # lastPruning: number of deleted variable-value edges
 # objectiveDownPruning: min(model.objective.domain)(current) - min(model.objective.domain)(past state)
 # objectiveUpPruning: max(model.objective.domain)(current) - max(model.objective.domain)(past state)
-
+"""Statistics
+Contains statistics used in the search process:
+- infeasibleStatusPerVariable::Dict{String,Int} : maps variable id to the number of infeasible solutions the variable was involved in
+- numberOfNodes::Int : number of nodes in the search
+- numberOfSolutions::Int : number of solutions found
+- numberOfInfeasibleSolutions::Int : number of infeasible solutions found
+- numberOfSolutionsBeforeRestart::Int : number of solutions found before the search restart
+- numberOfInfeasibleSolutionsBeforeRestart::Int : number of infeasible solutions found before the search restart
+- numberOfNodesBeforeRestart::Int : number of nodes in the search tree before the search restart
+- AccumulatedRewardBeforeReset::Float32 : reward accumulated before the search reset
+- AccumulatedRewardBeforeRestart::Float32 : reward accumulated before the search restart
+- solutions::Vector{Union{Nothing,Solution}} : solutions found
+- nodevisitedpersolution::Vector{Int} : number of times nodes that were visited in solutions
+- objectives::Union{Nothing,Vector{Union{Nothing,Int}}}
+- lastPruning::Union{Nothing,Int} 
+- objectiveDownPruning::Union{Nothing,Float32}
+- objectiveUpPruning::Union{Nothing,Float32}
+- lastVar::Union{Nothing,AbstractIntVar} : Last variable that the search branched on
+- numberOfTimesInvolvedInPropagation::Union{Nothing,Dict{Constraint,Int}} : number of times every constraint was involved in a propagation
+"""
 mutable struct Statistics
-    infeasibleStatusPerVariable             ::Dict{String, Int}
-    numberOfNodes                           ::Int
-    numberOfSolutions                       ::Int
-    numberOfInfeasibleSolutions             ::Int
-    numberOfSolutionsBeforeRestart          ::Int
+    infeasibleStatusPerVariable::Dict{String,Int}
+    numberOfNodes::Int
+    numberOfSolutions::Int
+    numberOfInfeasibleSolutions::Int
+    numberOfSolutionsBeforeRestart::Int
     numberOfInfeasibleSolutionsBeforeRestart::Int
-    numberOfNodesBeforeRestart              ::Int
-    AccumulatedRewardBeforeReset            ::Float32 # =last_episode_total_reward(lh.agent.trajectory)
-    AccumulatedRewardBeforeRestart          ::Float32
-    solutions                               ::Vector{Union{Nothing,Solution}}
-    nodevisitedpersolution                  ::Vector{Int}
-    objectives                              ::Union{Nothing, Vector{Union{Nothing,Int}}}
-    lastPruning                             ::Union{Nothing, Int}
-    objectiveDownPruning                    ::Union{Nothing, Float32}
-    objectiveUpPruning                      ::Union{Nothing, Float32}
-    lastVar                                 ::Union{Nothing, AbstractIntVar} #last var on which we branched
-    numberOfTimesInvolvedInPropagation      ::Union{Nothing, Dict{Constraint,Int}}
+    numberOfNodesBeforeRestart::Int
+    AccumulatedRewardBeforeReset::Float32 # =last_episode_total_reward(lh.agent.trajectory)
+    AccumulatedRewardBeforeRestart::Float32
+    solutions::Vector{Union{Nothing,Solution}}
+    nodevisitedpersolution::Vector{Int}
+    objectives::Union{Nothing,Vector{Union{Nothing,Int}}}
+    lastPruning::Union{Nothing,Int}
+    objectiveDownPruning::Union{Nothing,Float32}
+    objectiveUpPruning::Union{Nothing,Float32}
+    lastVar::Union{Nothing,AbstractIntVar} #last var on which we branched
+    numberOfTimesInvolvedInPropagation::Union{Nothing,Dict{Constraint,Int}}
 end
 
+"""Limit(numberOfNodes::Union{Int, Nothing}, numberOfSolutions::Union{Int, Nothing}, searchingTime::Union{Int, Nothing})
+Limits for the search process.
+"""
 mutable struct Limit
-    numberOfNodes       ::Union{Int, Nothing}
-    numberOfSolutions   ::Union{Int, Nothing}  #the limit can be triggered by set of non-unique solutions
-    searchingTime       ::Union{Int, Nothing}
+    numberOfNodes::Union{Int,Nothing}
+    numberOfSolutions::Union{Int,Nothing}  #the limit can be triggered by set of non-unique solutions
+    searchingTime::Union{Int,Nothing}
 end
 
 """
     CPModel(trailer::Trailer)
     CPModel()
 
-The structure storing all the informations needed to solve a specific problem and it also stores the solutions.
-The CPModel is the center of the solver and evolve during the solving.
-The `AbstractStateRepresentation` used by the RL Agent is created from the CPModel.
+The structure storing all the information needed when solving a given problem, as well as the solutions that were found.
+The CPModel is at the core of the solving process and evolves over its course.
+Note: The `AbstractStateRepresentation` used by the RL Agent is created from the CPModel.
 
 The CPModel is always created empty and is filled eather by hand by the user (or automatically thanks to written files)
 or filled by an `AbstractModelGenerator`.
-
 """
 mutable struct CPModel
-    variables               ::Dict{String, AbstractVar}
-    branchable              ::Dict{String, Bool}
-    branchable_variables    ::Dict{String, AbstractVar}
-    constraints             ::Array{Constraint}
-    trailer                 ::Trailer
-    objective               ::Union{Nothing, AbstractIntVar}
-    objectiveBound          ::Union{Nothing, Int}
-    statistics              ::Statistics
-    limit                   ::Limit
-    knownObjective          ::Union{Nothing,Int64}
-    adhocInfo               ::Any
+    variables::Dict{String,AbstractVar}
+    branchable::Dict{String,Bool}
+    branchable_variables::Dict{String,AbstractVar}
+    constraints::Array{Constraint}
+    trailer::Trailer
+    objective::Union{Nothing,AbstractIntVar}
+    objectiveBound::Union{Nothing,Int}
+    statistics::Statistics
+    limit::Limit
+    knownObjective::Union{Nothing,Int64}
+    adhocInfo::Any
 
 
     CPModel(trailer) = new(
-        Dict{String, AbstractVar}(),
-        Dict{String, Bool}(),
-        Dict{String, AbstractVar}(),
+        Dict{String,AbstractVar}(),
+        Dict{String,Bool}(),
+        Dict{String,AbstractVar}(),
         Constraint[],
         trailer,
         nothing,
         nothing,
-        Statistics(Dict{String, Int}(),
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        Solution[],
-        Int[],
-        nothing,
-        nothing,
-        nothing,
-        nothing,
-        nothing,
-        Dict{Constraint, Int}()),
+        Statistics(Dict{String,Int}(),
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            Solution[],
+            Int[],
+            nothing,
+            nothing,
+            nothing,
+            nothing,
+            nothing,
+            Dict{Constraint,Int}()),
         Limit(nothing, nothing, nothing),
         nothing
     )
@@ -99,16 +120,14 @@ The `branchable` argument allows you to tell if we will be able to branch on tha
 function addVariable!(model::CPModel, x::AbstractVar; branchable=true)
     # Ensure the id is unique
     @assert !haskey(model.variables, x.id) "The id of the variable must be unique"
+    @assert !branchable || typeof(x) <: Union{AbstractIntVar,AbstractBoolVar} "You can only branch on Boolean and Integer variables"
 
-    @assert !branchable || typeof(x) <: Union{AbstractIntVar, AbstractBoolVar} "You can only branch on Boolean and Integer variables"
-
-    model.statistics.infeasibleStatusPerVariable[id(x)]=0
+    model.statistics.infeasibleStatusPerVariable[id(x)] = 0
     model.branchable[x.id] = branchable
     model.variables[x.id] = x
     if branchable
         model.branchable_variables[x.id] = x
     end
-    
 end
 
 """
@@ -125,12 +144,12 @@ function addKnownObjective!(model::CPModel, knownObective::Int64)
     model.knownObjective = knownObective
 end
 
-function addConstraint!(model::CPModel,constraint::Constraint)
-    push!(model.constraints,constraint)
+function addConstraint!(model::CPModel, constraint::Constraint)
+    push!(model.constraints, constraint)
     for var in variablesArray(constraint)
         if haskey(model.branchable, id(var))
             @assert haskey(model.statistics.infeasibleStatusPerVariable, id(var)) "You forget to add the variable $(id(var)) to the model"
-            model.statistics.infeasibleStatusPerVariable[id(var)]+=1
+            model.statistics.infeasibleStatusPerVariable[id(var)] += 1
         end
     end
     model.statistics.numberOfTimesInvolvedInPropagation[constraint] = 0
@@ -150,7 +169,7 @@ is_branchable(model::CPModel, x::AbstractVar) = haskey(model.branchable, x.id) &
 Return a dict of all branchable variables.
 """
 function branchable_variables(model::CPModel)
-    to_return = Dict{String, AbstractVar}()
+    to_return = Dict{String,AbstractVar}()
     for x in values(model.variables)
         if is_branchable(model, x)
             to_return[x.id] = x
@@ -191,9 +210,9 @@ function triggerFoundSolution!(model::CPModel)
     end
     if !(solution in model.statistics.solutions)   #probably not efficient but necessary
         push!(model.statistics.solutions, solution)
-        push!(model.statistics.nodevisitedpersolution,model.statistics.numberOfNodes)
+        push!(model.statistics.nodevisitedpersolution, model.statistics.numberOfNodes)
         if !isnothing(model.objective)
-            @assert !isnothing(model.statistics.objectives)   "did you used SeaPearl.addObjective! to declare your objective function ? "
+            @assert !isnothing(model.statistics.objectives) "did you use SeaPearl.addObjective! to declare your objective function ? "
             push!(model.statistics.objectives, assignedValue(model.objective))
             return :tightenObjective
         end
@@ -203,28 +222,27 @@ end
 """
     triggerInfeasible!(constraint::Constraint, model::CPModel)
 
-this function increments by one the statistic infeasibleStatusPerVariable for each variable involved in the constraint. infeasibleStatusPerVariable
-keeps in track for each variable the number of times the variable was involved in a constraint that led to an infeasible state during a fixpoint. This statistic
+This function increments by one the statistic infeasibleStatusPerVariable for each variable involved in the constraint. infeasibleStatusPerVariable
+keeps track for each variable the number of times the variable was involved in a constraint that led to an infeasible state during a fixpoint. This statistic
 is used by the failure-based variable selection heuristic.
 """
 function triggerInfeasible!(constraint::Constraint, model::CPModel; isFailureBased::Bool=false)
     if isFailureBased
         for var in variablesArray(constraint)
             if haskey(model.branchable, id(var))
-                model.statistics.infeasibleStatusPerVariable[id(var)]+=1
+                model.statistics.infeasibleStatusPerVariable[id(var)] += 1
             end
         end
     end
 
     push!(model.statistics.solutions, nothing)
-    push!(model.statistics.nodevisitedpersolution,model.statistics.numberOfNodes)
+    push!(model.statistics.nodevisitedpersolution, model.statistics.numberOfNodes)
 
     if !isnothing(model.objective)
-        @assert !isnothing(model.statistics.objectives)   "did you used SeaPearl.addObjective! to declare your objective function ? "
+        @assert !isnothing(model.statistics.objectives) "did you use SeaPearl.addObjective! to declare your objective function ? "
         push!(model.statistics.objectives, nothing)
     end
 end
-
 
 """
     tightenObjective!(model::CPModel)
@@ -232,18 +250,19 @@ end
 Set a new constraint to minimize the objective variable.
 """
 function tightenObjective!(model::CPModel)
-    model.objectiveBound = assignedValue(model.objective)-1
+    model.objectiveBound = assignedValue(model.objective) - 1
 end
 
 """
     belowLimits(model::CPModel)
 
-Check if `model`' statistics are still under the limits.
+Check if the `model`'s statistics are still under the limits.
 """
 belowLimits(model::CPModel) = belowNodeLimit(model) && belowSolutionLimit(model) && belowTimeLimit(model)
 belowNodeLimit(model::CPModel) = isnothing(model.limit.numberOfNodes) || model.statistics.numberOfNodes < model.limit.numberOfNodes
 belowSolutionLimit(model::CPModel) = isnothing(model.limit.numberOfSolutions) || model.statistics.numberOfSolutions < model.limit.numberOfSolutions
 belowTimeLimit(model::CPModel) = isnothing(model.limit.searchingTime) || peektimer() < model.limit.searchingTime
+
 """
     Base.isempty(model::CPModel)::Bool
 
@@ -326,10 +345,10 @@ function reset_model!(model::CPModel)
     empty!(model.statistics.solutions)
     empty!(model.statistics.nodevisitedpersolution)
     for (key, value) in model.statistics.infeasibleStatusPerVariable
-        model.statistics.infeasibleStatusPerVariable[key]=length(getOnDomainChange(model.variables[key]))  #the degree is reset to the initial value : the number of constraints the variable is involved in.
+        model.statistics.infeasibleStatusPerVariable[key] = length(getOnDomainChange(model.variables[key]))  #the degree is reset to the initial value : the number of constraints the variable is involved in.
     end
     if !isnothing(model.objective)
-        @assert !isnothing(model.statistics.objectives)   "did you used SeaPearl.addObjective! to declare your objective function ?"
+        @assert !isnothing(model.statistics.objectives) "did you use SeaPearl.addObjective! to declare your objective function?"
         empty!(model.statistics.objectives)
     end
     model.statistics.lastPruning = nothing
@@ -341,12 +360,12 @@ function reset_model!(model::CPModel)
     model.statistics.numberOfSolutionsBeforeRestart = 0
     model.statistics.numberOfNodesBeforeRestart = 0
     model.statistics.AccumulatedRewardBeforeReset = 0
-    model.statistics.AccumulatedRewardBeforeRestart = 0  
+    model.statistics.AccumulatedRewardBeforeRestart = 0
 end
 """
 restart_search!(model::CPModel)
 
-Usefull when dealing with restart based search : ILDS or RBS. Reset to zero usefull statistics on the search that can be used to define
+Restarts the search process. Useful when dealing with restart based search : ILDS or RBS. Resets to zero are useful statistics on the search that can be used to define
 the restart criteria.
 """
 function restart_search!(model::CPModel)
@@ -357,7 +376,6 @@ function restart_search!(model::CPModel)
     model.statistics.numberOfSolutionsBeforeRestart = 0
     model.statistics.numberOfNodesBeforeRestart = 0
     model.statistics.AccumulatedRewardBeforeRestart = 0
-
 end
 
 """
@@ -369,7 +387,7 @@ Helps providing insights about what is happening during a search.
 function domains_cartesian_product(model::CPModel)
     cart_pdt = 1
     for (id, x) in model.variables
-        if typeof(x) <: Union{AbstractIntVar, AbstractBoolVar}
+        if typeof(x) <: Union{AbstractIntVar,AbstractBoolVar}
             cart_pdt *= length(x.domain)
         end
     end
@@ -379,7 +397,7 @@ end
 """
     nb_boundvariables(model::CPModel)
 
-Return the number of variables that have already been assigned to a value.
+Return the number of variables that have already been assigned to a value (that are bound).
 Helps providing insights about what is happening during a search.
 """
 function nb_boundvariables(model::CPModel)
@@ -393,7 +411,7 @@ end
 """
     global_domain_cardinality(model::CPModel)
 
-Returns the sum of the cardinalities of the variable domains.
+Returns the sum of the cardinalities of all the variable domains.
 """
 function global_domain_cardinality(model::CPModel)
     cardinality = 0
@@ -415,11 +433,10 @@ end
 
 Called in DFS to update the appropriate statistics used in GeneralReward
 """
-
 function updateStatistics!(model::CPModel, pruned)
-    model.statistics.lastPruning = sum(map(x-> length(x[2]),collect(pruned)))
+    model.statistics.lastPruning = sum(map(x -> length(x[2]), collect(pruned)))
     if !isnothing(model.objective)
-        if haskey(pruned,model.objective.id)
+        if haskey(pruned, model.objective.id)
             model.statistics.objectiveDownPruning = 0
             model.statistics.objectiveUpPruning = 0
             orderedPrunedValues = sort(pruned[model.objective.id])
@@ -432,8 +449,8 @@ function updateStatistics!(model::CPModel, pruned)
                     model.statistics.objectiveUpPruning += 1
                 else
                     # Pruning from the middle of the domain of the objective variable
-                    model.statistics.objectiveDownPruning += (model.objective.domain.max.value - val)/(model.objective.domain.max.value-model.objective.domain.min.value)
-                    model.statistics.objectiveUpPruning += (val - model.objective.domain.min.value)/(model.objective.domain.max.value-model.objective.domain.min.value)
+                    model.statistics.objectiveDownPruning += (model.objective.domain.max.value - val) / (model.objective.domain.max.value - model.objective.domain.min.value)
+                    model.statistics.objectiveUpPruning += (val - model.objective.domain.min.value) / (model.objective.domain.max.value - model.objective.domain.min.value)
                 end
             end
         else
