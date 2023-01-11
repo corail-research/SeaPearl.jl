@@ -64,6 +64,19 @@ Note: The `AbstractStateRepresentation` used by the RL Agent is created from the
 
 The CPModel is always created empty and is filled eather by hand by the user (or automatically thanks to written files)
 or filled by an `AbstractModelGenerator`.
+
+The CPModel struct has the following attributes:
+    - variables::Dict{String,AbstractVar} : dict mapping variable id to variables
+    - branchable::Dict{String,Bool} : dict mapping variable id to a bool indicating whether or not the variables are branchable
+    - branchable_variables::Dict{String, AbstractVar} : dict where the keys are the variable id's of ONLY the branchable variables. Maps variable id's to variables
+    - constraints::Array{Constraint} : Array of all the model's constraints
+    - trailer::Trailer : trailer used for the search and solving
+    - objective::Union{Nothing,AbstractIntVar} : objective function of the model
+    - objectiveBound::Union{Nothing,Int}
+    - statistics::Statistics : statistics, described in details
+    - limit::Limit : model's limits
+    - knownObjective::Union{Nothing,Int64} : optional; contains the known objective of the model. For example, if the goal is to minimize the number of delays, it could be set to 0.
+    - adhocInfo::Any : Any ad-hoc information related to the CPModel
 """
 mutable struct CPModel
     variables::Dict{String,AbstractVar}
@@ -77,7 +90,6 @@ mutable struct CPModel
     limit::Limit
     knownObjective::Union{Nothing,Int64}
     adhocInfo::Any
-
 
     CPModel(trailer) = new(
         Dict{String,AbstractVar}(),
@@ -140,10 +152,20 @@ function addObjective!(model::CPModel, objective::AbstractVar)
     model.statistics.objectives = Int[]  #initialisation of the Array that will contain the score of every solution
 end
 
+"""
+    addKnownObjective!(model::CPModel, knownObective::Int64)
+
+Add a known Objective to the model. 
+"""
 function addKnownObjective!(model::CPModel, knownObective::Int64)
     model.knownObjective = knownObective
 end
 
+"""
+    addConstraint!(model::CPModel, constraint::Constraint)
+
+Add a constraint to the CPModel.
+"""
 function addConstraint!(model::CPModel, constraint::Constraint)
     push!(model.constraints, constraint)
     for var in variablesArray(constraint)
@@ -155,7 +177,6 @@ function addConstraint!(model::CPModel, constraint::Constraint)
     model.statistics.numberOfTimesInvolvedInPropagation[constraint] = 0
 end
 
-
 """
     function is_branchable(model::CPModel, x::AbstractVar)
 
@@ -166,7 +187,7 @@ is_branchable(model::CPModel, x::AbstractVar) = haskey(model.branchable, x.id) &
 """
     function branchable_variables(model::CPModel)
 
-Return a dict of all branchable variables.
+Return a dict of all branchable variables, mapping from variable id to variable.
 """
 function branchable_variables(model::CPModel)
     to_return = Dict{String,AbstractVar}()
