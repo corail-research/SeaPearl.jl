@@ -18,4 +18,10 @@ SeaPearl.triggerInfeasible!
 SeaPearl.tightenObjective!
 Base.isempty
 Base.empty!
+SeaPearl.reset_model!
+SeaPearl.restart_search!
+SeaPearl.domains_cartesian_product
+SeaPearl.nb_boundvariables
+SeaPearl.global_domain_cardinality
+SeaPearl.updateStatistics!
 ```
