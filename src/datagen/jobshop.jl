@@ -3,6 +3,8 @@ Generator for standard jobshop problem with:
     - numberOfMachines::Int : Number of available machines
     - numberOfJobs::Int : Number of jobs to accomplish
     - maxTime::Int : Maximum available
+
+    https://en.wikipedia.org/wiki/Job-shop_scheduling
 """
 struct JobShopGenerator <: AbstractModelGenerator
     numberOfMachines::Int
@@ -13,7 +15,7 @@ end
 """
     fill_with_generator!(cpmodel::CPModel, gen::JobShopGenerator)  
 Fill a CPModel with the variables and constraints generated. We fill it directly instead of 
-creating temporary files for efficiency purpose.
+creating temporary files for efficiency purpose. 
 """
 function fill_with_generator!(cpmodel::CPModel, gen::JobShopGenerator; rng::AbstractRNG=MersenneTwister())
     job_times = fill(1, gen.numberOfJobs, gen.numberOfMachines) #each task needs to be run at least for 1 unit of time on each machine
@@ -83,6 +85,10 @@ function fill_with_generator!(cpmodel::CPModel, gen::JobShopGenerator; rng::Abst
     return cpmodel
 end
 
+""" JobShopSoftDeadlinesGenerator <: AbstractModelGenerator
+Generates instances for jobshop with soft deadlines:
+https://pdf.sciencedirectassets.com/280203/1-s2.0-S1877050922X00033/1-s2.0-S1877050922003751/main.pdf?X-Amz-Security-Token=IQoJb3JpZ2luX2VjEG0aCXVzLWVhc3QtMSJIMEYCIQDG4MU9PKDsKAa4VpTuWSFyXGjjFdTDk0JXAehy2ZyGQAIhAKKgEwg7tlXa%2F4OvXAKn2ybXVki9QMZHqDOf8tTRUvQ%2FKtUECMb%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEQBRoMMDU5MDAzNTQ2ODY1IgxGzm2MwCcrpAkU7NEqqQTzFFC4st5fSQY3a9zdXOR25GNnRmRBmqdExR7Q1PAcU63O6DmG68AXo9VaWJKEoCJDj1dH5drRKvj00iz2caffkqYGFJUVJWn0OFiKbSnaDcTZLKVKrCPC4XiHCBPmuQBSdxlwAA5aYH5jezpefo96UeGHzd3U9X1LN22EE4uDl0AWjqs5S2eC6NfKyyUEECS6MY2HsZGSbWzwxXKR32Lu9mnqifkkT8XF0iwhndFPGHvSMn%2Bz3XlajbIncVKcGXoYCIdvyZ99umli%2FT0Zi0grfhjWnOSI%2F%2Fxq6e4k2ZrwWlFPnkB5aYZFrwFEtW%2B6ll3xEws%2B7R8bdEG4Xr3CGNeH3gxr51L8Z7%2BSfOPlzWasKjMZMtYNB6s5bJBjyM5JnXAS9542AI%2FS2yoAR6Ecq3MhSnGYv2L7e8sLtoSD6N8WQu%2ByfwB7Ag7agQ%2BfTwT3EF9auiTCbZB%2FUyIPbtXtXTAVU5%2BWnXYwiU3nXl7owEPeYkIJriQDCA2pppkJro4V4x9xuZ67mkMUvLLJb1TZ6ez8Hv3%2Bi0X3BphMTqoYuG%2BzQ1GhLCEzhdbAyHi4uTHetL9q0o16AGALmwe7fXyLLWbKazO%2BEdaC71fPlJw5WbCMlnDj0gIq%2FGG5MLJrpvPr2ISy8MHOMDyDxNB9m8PS7sK2ASajYy503rK1P0RLBDC6qfim030TyIskPyayYSmeIf%2B8E9hOVzY9fXxlLaE1TnrnR1rp8SS56%2F7QMJHngZ4GOqgBCFPAvmcYg8gKUx%2FJooLfFjYEdgSjBStrfEoOfXgLUNGOjpjnFsFZxR68m5tE0zUJDQ8bH6DShX7C1RXFp4yIcjN3RrPVUU%2F7SN%2F0JD9A96lXdCneZoZ0rIKA5cgkFJ1p5vtfgWTNeqE%2B0%2BtPrPdhwFgeUWyKCmcFmS%2B%2BtymvaUMeGfSPNazyqYqaexXo9oegmaqAMPCucUP0r93y1LqDewgM5sJ4vpw6&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20230112T215059Z&X-Amz-SignedHeaders=host&X-Amz-Expires=300&X-Amz-Credential=ASIAQ3PHCVTY4EPJWPEZ%2F20230112%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Signature=af42a496530ab5b193ef09a53d21dd670b61a7bbcd0ac8a9ff72693c1605875c&hash=5842d19667d6a66f71b1560c65483c22f096daf42fbc1c3db10701f6800bbf4e&host=68042c943591013ac2b2430a89b270f6af2c76d8dfd086a07176afe7c76c2c61&pii=S1877050922003751&tid=spdf-b72d31a5-fae3-4107-bd10-6aff129cf509&sid=9ff9ae3a7f65a247868a9f317e6aa558c6b4gxrqa&type=client&ua=595d575f5f0d59505d&rr=78891c6599f7546d
+"""
 struct JobShopSoftDeadlinesGenerator <: AbstractModelGenerator
     numberOfMachines::Int
     numberOfJobs::Int
@@ -92,7 +98,7 @@ end
 """
     fill_with_generator!(cpmodel::CPModel, gen::JobShopSoftDeadlinesGenerator)  
 Fill a CPModel with the variables and constraints generated. We fill it directly instead of 
-creating temporary files for efficiency purpose.
+creating temporary files for efficiency purpose. Generates jobshop with soft deadlines instances.
 """
 function fill_with_generator!(cpmodel::CPModel, gen::JobShopSoftDeadlinesGenerator; rng::AbstractRNG=MersenneTwister())
     job_times = fill(1, gen.numberOfJobs, gen.numberOfMachines) #each task needs to be run at least for 1 unit of time on each machine
