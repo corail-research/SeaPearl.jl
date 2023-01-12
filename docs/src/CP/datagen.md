@@ -30,3 +30,40 @@ SeaPearl.JobShopSoftDeadlinesGenerator2
 ```@docs
 SeaPearl.KepGenerator
 ```
+
+## Knapsack
+
+```@docs
+SeaPearl.KnapsackGenerator
+```
+
+## Latin Square
+
+```@docs
+SeaPearl.LatinGenerator
+```
+
+## Max-Cut
+```@docs
+SeaPearl.MaxCutGenerator
+```
+
+## Maximal Independent Set
+```@docs
+SeaPearl.MaximumIndependentSetGenerator
+```
+
+## N-Queens
+```@docs
+SeaPearl.NQueensGenerator
+```
+
+## RB Generator
+```@docs
+SeaPearl.RBGenerator
+```
+
+## TSPTW
+```@docs
+SeaPearl.TsptwGenerator
+```
