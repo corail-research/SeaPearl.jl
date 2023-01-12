@@ -35,7 +35,6 @@ struct ILDSearch <: SearchStrategy
 end
 
 abstract type ExpandCriteria end 
-
 abstract type RBSearch{C} <: SearchStrategy where C <: ExpandCriteria end
 
 """

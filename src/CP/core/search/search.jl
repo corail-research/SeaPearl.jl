@@ -52,7 +52,7 @@ function search!(model::CPModel, strategy::S, variableHeuristic::AbstractVariabl
         return currentStatus
     end
     
-    if isa(strategy, DFSearch) && !all(map(x->isnothing(x),model.statistics.solutions)) == 1       #Only the DFS search can give the optimality certificate
+    if isa(strategy, DFSearch) && !all(map(x->isnothing(x),model.statistics.solutions)) == 1    #Only the DFS search can give the optimality certificate
         return :Optimal
     elseif !all(map(x->isnothing(x),model.statistics.solutions)) == 1 
         return :NonOptimal

@@ -1,8 +1,4 @@
-
-
-
-"""
-initroot!(toCall::Stack{Function}, ::ILDSearch, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
+"""initroot!(toCall::Stack{Function}, ::ILDSearch, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
 
 generic function to instantiate the research based on a specific Strategy <: SearchStrategy. The max discrepancy correspond to the number of branchable variables 
 at the beginning of the search. Calls to expandIlds! with a decreasing discrepancy is stacked in the toCall Stack. 
@@ -16,8 +12,7 @@ function initroot!(toCall::Stack{Function}, search::ILDSearch , model::CPModel, 
     return expandIlds!(toCall, 0, model, variableHeuristic, valueSelection, nothing)
 end
 
-"""
-        expandIlds!(toCall::Stack{Function}, discrepancy::Int64, previousdepth::Int64, direction::Union{Nothing, Symbol} , model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, newConstraints=nothing)
+"""expandIlds!(toCall::Stack{Function}, discrepancy::Int64, previousdepth::Int64, direction::Union{Nothing, Symbol} , model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, newConstraints=nothing)
 
 This function fills the toCall Stack (LIFO) and perform a recursive Limited Discrepancy Search. Some procedures will contain a call to `expandIlds!` itself. Each `expandIlds!` 
 call is wrapped around a `saveState!` and a `restoreState!` to be able to backtrack thanks to the trailer. 
@@ -40,14 +35,12 @@ function expandIlds!(toCall::Stack{Function}, discrepancy::Int64, model::CPModel
     if !belowSolutionLimit(model)
         return :SolutionLimitStop
     end
-    # Fix-point algorithm
     feasible, pruned = fixPoint!(model, newConstraints, prunedDomains; isFailureBased=isa(variableHeuristic, FailureBasedVariableSelection))
     updateStatistics!(model,pruned)
 
     if !feasible
         model.statistics.numberOfInfeasibleSolutions += 1
         model.statistics.numberOfInfeasibleSolutionsBeforeRestart += 1
-
         return :Infeasible
     end
     if solutionFound(model)
@@ -63,9 +56,7 @@ function expandIlds!(toCall::Stack{Function}, discrepancy::Int64, model::CPModel
         end
         return :alreadyFoundSolution
     end
-    # Variable selection
     x = variableHeuristic(model)
-    # Value selection
     v = valueSelection(DecisionPhase, model, x)
 
     if (discrepancy>0)

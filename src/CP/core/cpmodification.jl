@@ -42,13 +42,11 @@ function addToPrunedDomains!(prunedDomains::CPModification, x::Union{IntVar, Boo
     if isempty(pruned)
         return
     end
-
     if haskey(prunedDomains, x.id)
         prunedDomains[x.id] = append!(prunedDomains[x.id], Array(pruned)) 
     else
         prunedDomains[x.id] = Array(pruned)
     end
-
     updateChildren!(prunedDomains, x, pruned)
 end
 
@@ -66,7 +64,6 @@ function addToPrunedDomains!(prunedDomains::CPModification, x::Union{IntVarView,
     if isempty(pruned)
         return
     end
-
     # Update the ParentVariable only (it will then update all the children variables)
     parentPruned = parentValue.([x], pruned)
     addToPrunedDomains!(prunedDomains, x.x, parentPruned)

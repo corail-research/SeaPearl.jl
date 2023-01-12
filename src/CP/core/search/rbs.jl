@@ -65,7 +65,6 @@ The Search stops as long as the search reached the limit on a given criteria.
 .
 """
 function expandRbs!(toCall::Stack{Function}, model::CPModel, nodeLimit::Int64, criteria::RBSearch{C}  ,variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection, newConstraints=nothing; prunedDomains::Union{CPModification,Nothing}=nothing) where C <: ExpandCriteria
-    
     # Dealing with limits
     model.statistics.numberOfNodes += 1
     model.statistics.numberOfNodesBeforeRestart += 1
@@ -79,8 +78,6 @@ function expandRbs!(toCall::Stack{Function}, model::CPModel, nodeLimit::Int64, c
     if !belowSolutionLimit(model)
         return :SolutionLimitStop
     end
-
-    # Fix-point algorithm
     feasible, pruned = fixPoint!(model, newConstraints, prunedDomains; isFailureBased=isa(variableHeuristic, FailureBasedVariableSelection))
     updateStatistics!(model,pruned)
     
@@ -99,12 +96,9 @@ function expandRbs!(toCall::Stack{Function}, model::CPModel, nodeLimit::Int64, c
         return :FoundSolution
     end
 
-    # Variable selection
     x = variableHeuristic(model)
-    # Value selection
     v = valueSelection(DecisionPhase, model, x)
 
-    #println("Value : ", v, " assigned to : ", x.id)
     if  criteria(model, nodeLimit)  
         push!(toCall, (model, currentStatus) -> (restoreState!(model.trailer); :BackTracking))
         push!(toCall, (model, currentStatus) -> (

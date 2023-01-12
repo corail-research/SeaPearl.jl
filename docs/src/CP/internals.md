@@ -25,3 +25,13 @@ SeaPearl.nb_boundvariables
 SeaPearl.global_domain_cardinality
 SeaPearl.updateStatistics!
 ```
+
+## Search
+```@docs
+SeaPearl.initroot!
+SeaPearl.dfs
+SeaPearl.expandDfwbs!
+SeaPearl.expandIlds!
+SeaPearl.expandLns!
+SeaPearl.expandRbs!
+```
