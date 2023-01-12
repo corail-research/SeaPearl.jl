@@ -37,9 +37,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::LegacyGraphColoringGenerato
     for new_co in new_connexions
         connexions[convert(Int64, new_co)] += 1
     end
-
     # should make sure that every node has less than nb_nodes - 1 connexions
-
     # edge constraints
     for i in 1:length(connexions)
         possible_neightbors =  [j for j in (i+1):length(connexions) if connexions[i] > 0]
@@ -241,7 +239,6 @@ function fill_with_generator!(cpmodel::CPModel, gen::ErdosRenyiGraphGenerator; r
     SeaPearl.addObjective!(cpmodel, numberOfColors)
     cpmodel.adhocInfo = graph
 end
-
 
 struct WattsStrogatzGraphGenerator <: AbstractModelGenerator
     n::Int64

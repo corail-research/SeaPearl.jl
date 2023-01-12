@@ -68,8 +68,6 @@ function (metrics::BasicMetrics{TakeObjective, <:BasicHeuristic})(model::CPModel
     push!(metrics.meanNodeVisitedUntilfirstSolFound, !isnothing(index) ? model.statistics.nodevisitedpersolution[index] : nothing)
     push!(metrics.timeneeded,dt)
     push!(metrics.scores,copy(model.statistics.objectives))
-    
-
 end 
 
 function (metrics::BasicMetrics{DontTakeObjective, <:LearnedHeuristic})(model::CPModel,dt::Float64)
@@ -86,7 +84,6 @@ function (metrics::BasicMetrics{DontTakeObjective, <:LearnedHeuristic})(model::C
     push!(metrics.loss,metrics.heuristic.agent.policy.learner.loss)
     return
 end 
-
 
 function (metrics::BasicMetrics{TakeObjective, <:LearnedHeuristic})(model::CPModel,dt::Float64) 
     metrics.nbEpisodes+=1

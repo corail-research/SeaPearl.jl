@@ -45,7 +45,6 @@ function train!(;
             valueSelection.fitted_problem = typeof(generator)
             valueSelection.fitted_strategy = typeof(strategy)
             # we could add more information later ...
-
             # make sure it is in training mode
             testmode!(valueSelection, false)
         end
@@ -74,7 +73,6 @@ function train!(;
         if isa(valueSelection, LearnedHeuristic)
             # go to testing mode 
             testmode!(valueSelection)
-
             if verbose 
                 print("Has been trained on : ", typeof(generator))
                 print(" with strategy : ", strategy)

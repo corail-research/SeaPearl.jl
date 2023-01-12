@@ -1,4 +1,3 @@
-
 """
     benchmark_solving!(;
         valueSelectionArray::Union{T, Array{T, 1}},
@@ -41,20 +40,16 @@ function benchmark_solving(;
             if valueSelection.fitted_strategy != typeof(strategy)
                 @warn "This learned heuristic was trained with a different search strategy."
             end
-
             # make sure it is in testing mode
             testmode!(valueSelection, true)
         end
     end
-
     nbHeuristics = length(valueSelectionArray)
     nbInstances = evaluator.nbInstances
-
     if isnothing(evaluator)
         evaluator=SameInstancesEvaluator(valueSelectionArray, generator)
     end
     evaluate(evaluator, variableHeuristic, strategy)
-
 
     return evaluator.metrics
 end
