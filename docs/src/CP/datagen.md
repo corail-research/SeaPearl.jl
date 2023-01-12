@@ -24,3 +24,9 @@ SeaPearl.Eternity2Generator
 SeaPearl.JobShopGenerator
 SeaPearl.JobShopSoftDeadlinesGenerator2
 ```
+
+## Kidney Exchange
+
+```@docs
+SeaPearl.KepGenerator
+```

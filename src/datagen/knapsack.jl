@@ -1,3 +1,6 @@
+"""KnapsackGenerator <: AbstractModelGenerator
+Generator for the knapsack problem: https://en.wikipedia.org/wiki/Knapsack_problem
+"""
 struct KnapsackGenerator <: AbstractModelGenerator
     nb_items::Int
     max_weight::Int
@@ -19,26 +22,26 @@ https://www.researchgate.net/publication/2548374_Core_Problems_in_Knapsack_Algor
 
 Rng is a random number generator used to ensure experiment reproductibility accross devices. It is often set at the beginning of an experiment to generate deterministic training samples. 
 """
-function fill_with_generator!(cpmodel::CPModel, gen::KnapsackGenerator; rng::AbstractRNG = MersenneTwister())
+function fill_with_generator!(cpmodel::CPModel, gen::KnapsackGenerator; rng::AbstractRNG=MersenneTwister())
     correlation = gen.correlation
     max_weight = gen.max_weight
     nb_items = gen.nb_items
 
 
     @assert correlation > 0
-    
+
     # create values, weights and capacity
     weights_distr = DiscreteUniform(1, max_weight)
     weights = rand(rng, weights_distr, nb_items)
 
-    deviation = floor(max_weight/(10*correlation))
+    deviation = floor(max_weight / (10 * correlation))
     value_distr = truncated.(DiscreteUniform.(weights .- deviation, weights .+ deviation), 1, Inf)
     values = rand.(rng, value_distr)
 
-    c = floor(nb_items * max_weight/2 / 4)
-    capacity = rand(rng, DiscreteUniform(c, c*4))
-    
-    
+    c = floor(nb_items * max_weight / 2 / 4)
+    capacity = rand(rng, DiscreteUniform(c, c * 4))
+
+
     ### Variables
     x = SeaPearl.IntVar[]
     for i in 1:nb_items
@@ -52,14 +55,14 @@ function fill_with_generator!(cpmodel::CPModel, gen::KnapsackGenerator; rng::Abs
     varsWeight = SeaPearl.AbstractIntVar[]
     maxWeight = 0
     for i in 1:nb_items
-        wx_i = SeaPearl.IntVarViewMul(x[i], weights[i], "w["*string(i)*"]*x["*string(i)*"]")
+        wx_i = SeaPearl.IntVarViewMul(x[i], weights[i], "w[" * string(i) * "]*x[" * string(i) * "]")
         push!(varsWeight, wx_i)
         maxWeight += weights[i]
     end
     totalWeight = SeaPearl.IntVar(0, maxWeight, "totalWeight", cpmodel.trailer)
     minusTotalWeight = SeaPearl.IntVarViewOpposite(totalWeight, "-totalWeight")
-    SeaPearl.addVariable!(cpmodel, totalWeight;branchable=false)
-    SeaPearl.addVariable!(cpmodel, minusTotalWeight;branchable=false)
+    SeaPearl.addVariable!(cpmodel, totalWeight; branchable=false)
+    SeaPearl.addVariable!(cpmodel, minusTotalWeight; branchable=false)
     push!(varsWeight, minusTotalWeight)
     weightEquality = SeaPearl.SumToZero(varsWeight, cpmodel.trailer)
     SeaPearl.addConstraint!(cpmodel, weightEquality)
@@ -74,20 +77,20 @@ function fill_with_generator!(cpmodel::CPModel, gen::KnapsackGenerator; rng::Abs
     varsValue = SeaPearl.AbstractIntVar[]
     maxValue = 0
     for i in 1:nb_items
-        vx_i = SeaPearl.IntVarViewMul(x[i], values[i], "v["*string(i)*"]*x["*string(i)*"]")
+        vx_i = SeaPearl.IntVarViewMul(x[i], values[i], "v[" * string(i) * "]*x[" * string(i) * "]")
         push!(varsValue, vx_i)
         maxValue += values[i]
     end
     totalValue = SeaPearl.IntVar(-maxValue, 0, "totalValue", cpmodel.trailer)
-    SeaPearl.addVariable!(cpmodel, totalValue;branchable=false)
+    SeaPearl.addVariable!(cpmodel, totalValue; branchable=false)
     push!(varsValue, totalValue)
     valueEquality = SeaPearl.SumToZero(varsValue, cpmodel.trailer)
     SeaPearl.addConstraint!(cpmodel, valueEquality)
 
     # Setting it as the objective
-    SeaPearl.addObjective!(cpmodel,totalValue)
+    SeaPearl.addObjective!(cpmodel, totalValue)
 
     nothing
 end
 
-feature_length(gen::KnapsackGenerator,  t::Type{DefaultStateRepresentation{F}}) where {F} = 10  
+feature_length(gen::KnapsackGenerator, t::Type{DefaultStateRepresentation{F}}) where {F} = 10  
