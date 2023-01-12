@@ -28,8 +28,9 @@ SeaPearl.updateStatistics!
 
 ## Search
 ```@docs
+SeaPearl.search!
 SeaPearl.initroot!
-SeaPearl.dfs
+SeaPearl.expandDfs!
 SeaPearl.expandDfwbs!
 SeaPearl.expandIlds!
 SeaPearl.expandLns!
