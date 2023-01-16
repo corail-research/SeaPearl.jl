@@ -30,6 +30,4 @@ function fill_with_generator!(cpmodel::CPModel, gen::MaximumIndependentSetGenera
     SeaPearl.addConstraint!(cpmodel, SeaPearl.SumToZero(vars, cpmodel.trailer))
     SeaPearl.addObjective!(cpmodel, objective)
     cpmodel.adhocInfo = graph
-
-    nothing
 end
