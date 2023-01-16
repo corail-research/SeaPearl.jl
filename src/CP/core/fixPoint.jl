@@ -11,25 +11,21 @@ only those will be propagated in the first place.
 """
 function fixPoint!(model::CPModel, new_constraints::Union{Array{Constraint}, Nothing}=nothing, prunedDomains::Union{CPModification,Nothing}=nothing; isFailureBased::Bool=false)
     toPropagate = Set{Constraint}()
-
     if isnothing(prunedDomains)
         prunedDomains = CPModification()
     end
 
-    # If we did not specify the second argument, it is the beginning so we propagate every constraint
     if isnothing(new_constraints)
         addToPropagate!(toPropagate, model.constraints)
     else
         addToPropagate!(toPropagate, new_constraints)
     end
-
     # Dealing with the objective
     if !isnothing(model.objectiveBound)
         prunedObj = removeAbove!(model.objective.domain, model.objectiveBound)
         if isempty(model.objective.domain)
             return false, prunedDomains
         end
-
         if !isempty(prunedObj)
             addToPrunedDomains!(prunedDomains, model.objective, prunedObj)
             triggerDomainChange!(toPropagate, model.objective)

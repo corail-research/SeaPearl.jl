@@ -1,11 +1,14 @@
 using Graphs
 
+"""MaxCutGenerator <: AbstractModelGenerator
+Generator for the max-cut problem: https://en.wikipedia.org/wiki/Maximum_cut
+"""
 struct MaxCutGenerator <: AbstractModelGenerator
     n::Int
     k::Int
 end
 
-function fill_with_generator!(cpmodel::CPModel, gen::MaxCutGenerator;  rng::AbstractRNG = MersenneTwister())
+function fill_with_generator!(cpmodel::CPModel, gen::MaxCutGenerator; rng::AbstractRNG=MersenneTwister())
     graph = Graphs.SimpleGraphs.barabasi_albert(gen.n, gen.k, seed=rand(rng, typemin(Int64):typemax(Int64)))
 
     # create node variables
@@ -25,12 +28,12 @@ function fill_with_generator!(cpmodel::CPModel, gen::MaxCutGenerator;  rng::Abst
 
     ### Objective ### minimize: -sum(edge_vars[i])
     objective = SeaPearl.IntVar(-Graphs.ne(graph), 0, "objective", cpmodel.trailer)
-    SeaPearl.addVariable!(cpmodel, objective;branchable=false)
+    SeaPearl.addVariable!(cpmodel, objective; branchable=false)
     push!(edge_vars, objective)
 
     # sum(edge_vars[i]) + objective = 0 <=> objective = -sum(edge_vars[i]) 
-    SeaPearl.addConstraint!(cpmodel, SeaPearl.SumToZero(edge_vars, cpmodel.trailer)) 
-    SeaPearl.addObjective!(cpmodel,objective)
+    SeaPearl.addConstraint!(cpmodel, SeaPearl.SumToZero(edge_vars, cpmodel.trailer))
+    SeaPearl.addObjective!(cpmodel, objective)
 
     cpmodel.adhocInfo = graph
     nothing

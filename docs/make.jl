@@ -11,10 +11,13 @@ makedocs(
         "Constraints" => "CP/constraints.md",
         "Variables" => "CP/variables.md",
         "Trailer" => "CP/trailer.md",
+        "Internals" => "CP/internals.md",
+        "Search" => "CP/search.md",
+        "Instance Generation" => "CP/datagen.md"
     ],
     "Reinforcement Learning" => "reinforcement_learning.md",
-    "Building Models" =>
-      ["Basics" => "models/basics.md"],
+    # "Building Models" =>
+    #   ["Basics" => "models/basics.md"],
     "Community" => "community.md"],
 )
 

@@ -31,7 +31,6 @@ Then a destroy and repair loop tries to upgrade the current solution until some 
 - valueSelection: Value selection method to be used in the search
 """
 function expandLns!(search::LNSearch, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
-
     # Make sure that the model is consistent with a LNS
     @assert !isnothing(model.objective)
     @assert isnothing(model.limit.numberOfNodes)
@@ -48,7 +47,6 @@ function expandLns!(search::LNSearch, model::CPModel, variableHeuristic::Abstrac
     end
 
     ### Get first solution using DFS ###
-
     model.limit.numberOfSolutions = 1
     status = search!(model, DFSearch(), variableHeuristic, valueSelection)
     model.limit.numberOfSolutions = nothing
@@ -61,7 +59,7 @@ function expandLns!(search::LNSearch, model::CPModel, variableHeuristic::Abstrac
 
     ### Set parameters ###
     
-    # `numberOfValuesToRemove` is initialised to 1 and increase by 1 after `limitIterNoImprovement` iterations 
+    # `numberOfValuesToRemove` is initialised to 1 and increased by 1 after `limitIterNoImprovement` iterations 
     # with no improvement until `limitValuesToRemove` is reached.
     numberOfValuesToRemove = 1
     nbIterNoImprovement = 0
@@ -90,7 +88,6 @@ function expandLns!(search::LNSearch, model::CPModel, variableHeuristic::Abstrac
     nbBranchableVariables = count(values(model.branchable))
 
     ### Destroy and repair loop ###
-
     while (isnothing(globalTimeLimit) || peektimer() < globalTimeLimit) && bestSolution[objectiveId] > optimalScoreLowerBound
         # Update searchingTime to ensure that time limits are respected
         if !isnothing(globalTimeLimit) 
@@ -103,8 +100,10 @@ function expandLns!(search::LNSearch, model::CPModel, variableHeuristic::Abstrac
 
         # Get variable fixed by current solution
         varsToSet = sample(branchableVariablesId, nbBranchableVariables - numberOfValuesToRemove; replace=false)
-
-        tempSolution = repair!(destroy!(model, currentSolution, varsToSet, objectiveId), repairSearch, objectiveId, variableHeuristic, valueSelection)
+        tempSolution = repair!(
+            destroy!(model, currentSolution, varsToSet, objectiveId), 
+            repairSearch, objectiveId, variableHeuristic, valueSelection
+        )
 
         nbIterNoImprovement += 1
         if search.limitIterNoImprovement ≤ nbIterNoImprovement && numberOfValuesToRemove < limitValuesToRemove
@@ -216,4 +215,3 @@ function destroy!(model::CPModel, solution::Solution, varsToSet::Vector{String},
 
     return model
 end
-

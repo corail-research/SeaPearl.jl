@@ -1,3 +1,6 @@
+"""TsptwGenerator <: AbstractModelGenerator
+Generator for the TSPTW problem: https://acrogenesis.com/or-tools/documentation/user_manual/manual/tsp/tsptw.html
+"""
 struct TsptwGenerator <: AbstractModelGenerator
     n_city::Int
     grid_size::Int # Maximum of positions
@@ -25,7 +28,7 @@ some randomness by using uniform distributions with gap and the length of the ti
 Rng is a random number generator used to ensure experiment reproductibility accross devices. It is often set at the beginning of an experiment to generate deterministic training samples. 
 
 """
-function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; rng::AbstractRNG = MersenneTwister(), dist = nothing, timeWindows=nothing)
+function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; rng::AbstractRNG=MersenneTwister(), dist=nothing, timeWindows=nothing)
     x_pos = zeros(gen.n_city)
     y_pos = zeros(gen.n_city)
 
@@ -70,11 +73,11 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; rng::Abstra
 
     ### Filling the CPModel
     ## Creating variables
-    m = [IntSetVar(1, gen.n_city, "m_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # Remaining cities to visit
-    v = [IntVar(1, gen.n_city, "v_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # Last customer
-    t = [IntVar(0, max_upper_tw, "t_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # Current time
-    a = [IntVar(1, gen.n_city, "a_"*string(i), cpmodel.trailer) for i in 1:(gen.n_city-1)] # Action: serving customer a_i at stage i
-    c = [IntVar(0, max_upper_tw, "c_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # Current cost
+    m = [IntSetVar(1, gen.n_city, "m_" * string(i), cpmodel.trailer) for i in 1:gen.n_city] # Remaining cities to visit
+    v = [IntVar(1, gen.n_city, "v_" * string(i), cpmodel.trailer) for i in 1:gen.n_city] # Last customer
+    t = [IntVar(0, max_upper_tw, "t_" * string(i), cpmodel.trailer) for i in 1:gen.n_city] # Current time
+    a = [IntVar(1, gen.n_city, "a_" * string(i), cpmodel.trailer) for i in 1:(gen.n_city-1)] # Action: serving customer a_i at stage i
+    c = [IntVar(0, max_upper_tw, "c_" * string(i), cpmodel.trailer) for i in 1:gen.n_city] # Current cost
     total_cost = IntVar(0, max_upper_tw, "total_cost", cpmodel.trailer)
     addVariable!(cpmodel, total_cost; branchable=false)
     for i in 1:gen.n_city
@@ -86,23 +89,23 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; rng::Abstra
         end
         addVariable!(cpmodel, c[i]; branchable=false)
     end
-    
+
 
     ## Intermediaries
-    d = [IntVar(0, gen.grid_size * 2, "d_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # d[v_i, a_i]
-    lowers = [IntVar(0, max_upper_tw, "td_"*string(i), cpmodel.trailer) for i in 1:(gen.n_city-1)] # t + d[v_i, a_i]
-    lower_ai = [IntVar(0, max_upper_tw, "lower_ai_"*string(i), cpmodel.trailer) for i in 1:(gen.n_city-1)] # timeWindows[i, 1]
-    upper_tw_minus_1 = [IntVar(timeWindows[i, 2] - 1, timeWindows[i, 2] - 1, "upper_tw_"*string(i), cpmodel.trailer) for i in 1:gen.n_city] # timeWindows[i, 2] + 1
+    d = [IntVar(0, gen.grid_size * 2, "d_" * string(i), cpmodel.trailer) for i in 1:gen.n_city] # d[v_i, a_i]
+    lowers = [IntVar(0, max_upper_tw, "td_" * string(i), cpmodel.trailer) for i in 1:(gen.n_city-1)] # t + d[v_i, a_i]
+    lower_ai = [IntVar(0, max_upper_tw, "lower_ai_" * string(i), cpmodel.trailer) for i in 1:(gen.n_city-1)] # timeWindows[i, 1]
+    upper_tw_minus_1 = [IntVar(timeWindows[i, 2] - 1, timeWindows[i, 2] - 1, "upper_tw_" * string(i), cpmodel.trailer) for i in 1:gen.n_city] # timeWindows[i, 2] + 1
     one_var = IntVar(1, 1, "one", cpmodel.trailer)
-    upper_ai = [IntVar(0, max_upper_tw, "upper_ai_"*string(i), cpmodel.trailer) for i in 1:(gen.n_city-1)] # timeWindows[a_i, 2]
-    j_index = [IntVarViewMul(one_var, j, "index_"*string(j)) for j in 1:gen.n_city]
+    upper_ai = [IntVar(0, max_upper_tw, "upper_ai_" * string(i), cpmodel.trailer) for i in 1:(gen.n_city-1)] # timeWindows[a_i, 2]
+    j_index = [IntVarViewMul(one_var, j, "index_" * string(j)) for j in 1:gen.n_city]
 
-    still_time = Array{BoolVar, 2}(undef, (gen.n_city, gen.n_city))
-    j_in_m_i = Array{BoolVar, 2}(undef, (gen.n_city, gen.n_city))
+    still_time = Array{BoolVar,2}(undef, (gen.n_city, gen.n_city))
+    j_in_m_i = Array{BoolVar,2}(undef, (gen.n_city, gen.n_city))
     for i in 1:gen.n_city
         for j in 1:gen.n_city
-            still_time[i, j] = BoolVar("s_t_"*string(i)*"_"*string(j), cpmodel.trailer) # t_i < upper_bound[j]
-            j_in_m_i[i, j] = BoolVar(string(j)*"_in_m_"*string(i), cpmodel.trailer) # t_i < upper_bound[j]
+            still_time[i, j] = BoolVar("s_t_" * string(i) * "_" * string(j), cpmodel.trailer) # t_i < upper_bound[j]
+            j_in_m_i[i, j] = BoolVar(string(j) * "_in_m_" * string(i), cpmodel.trailer) # t_i < upper_bound[j]
         end
     end
 
@@ -134,7 +137,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; rng::Abstra
     SeaPearl.addConstraint!(cpmodel, SetEqualConstant(m[1], Set{Int}(collect(2:gen.n_city)), cpmodel.trailer))
 
     # Variable definition
-    for i in 1:(gen.n_city - 1)
+    for i in 1:(gen.n_city-1)
         # m[i+1] = m[i] \ a[i]
         SeaPearl.addConstraint!(cpmodel, SetDiffSingleton(m[i+1], m[i], a[i], cpmodel.trailer))
 
@@ -145,7 +148,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; rng::Abstra
         SeaPearl.addConstraint!(cpmodel, BinaryMaximumBC(t[i+1], lowers[i], lower_ai[i], cpmodel.trailer))
 
         # c[i + 1] = c[i] + d[i]
-        SeaPearl.addConstraint!(cpmodel, SumToZero(AbstractIntVar[c[i], d[i], IntVarViewOpposite(c[i+1], "-c_"*string(i+1))], cpmodel.trailer))
+        SeaPearl.addConstraint!(cpmodel, SumToZero(AbstractIntVar[c[i], d[i], IntVarViewOpposite(c[i+1], "-c_" * string(i + 1))], cpmodel.trailer))
 
         # upper_ai = timeWindows[a_i, 2]
         SeaPearl.addConstraint!(cpmodel, Element1D(timeWindows[:, 2], a[i], upper_ai[i], cpmodel.trailer))
@@ -156,7 +159,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; rng::Abstra
         # d[i] = dist[v[i], a[i]]
         SeaPearl.addConstraint!(cpmodel, Element2D(dist, v[i], a[i], d[i], cpmodel.trailer))
         # lowers[i] = t[i] + d[i]
-        SeaPearl.addConstraint!(cpmodel, SumToZero(AbstractIntVar[t[i], d[i], IntVarViewOpposite(lowers[i], "-td_"*string(i))], cpmodel.trailer))
+        SeaPearl.addConstraint!(cpmodel, SumToZero(AbstractIntVar[t[i], d[i], IntVarViewOpposite(lowers[i], "-td_" * string(i))], cpmodel.trailer))
     end
     # d[n] = dist[a[n-1], 1]
     SeaPearl.addConstraint!(cpmodel, Element2D(dist, a[gen.n_city-1], one_var, d[gen.n_city], cpmodel.trailer))
@@ -164,7 +167,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; rng::Abstra
     SeaPearl.addConstraint!(cpmodel, SumToZero(AbstractIntVar[c[gen.n_city], d[gen.n_city], IntVarViewOpposite(total_cost, "-total_cost")], cpmodel.trailer))
 
     # Validity constraints
-    for i in 1:(gen.n_city - 1)
+    for i in 1:(gen.n_city-1)
         # a[i] ∈ m[i]
         SeaPearl.addConstraint!(cpmodel, InSet(a[i], m[i], cpmodel.trailer))
 
@@ -185,13 +188,13 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; rng::Abstra
                 # t[i] >= upper[j] ⟹ j ∉ m[i]
                 # ≡ t[i] < upper[j] ⋁ j ∉ m[i]
                 # ≡ still_time[i, j] ⋁ ¬j_in_m_i[i, j]
-                SeaPearl.addConstraint!(cpmodel, BinaryOr(still_time[i, j], BoolVarViewNot(j_in_m_i[i, j], "¬"*string(j)*"_in_m_"*string(i)), cpmodel.trailer))
+                SeaPearl.addConstraint!(cpmodel, BinaryOr(still_time[i, j], BoolVarViewNot(j_in_m_i[i, j], "¬" * string(j) * "_in_m_" * string(i)), cpmodel.trailer))
             end
         end
     end
 
     # Objective function: min total_cost
-    SeaPearl.addObjective!(cpmodel,total_cost)
+    SeaPearl.addObjective!(cpmodel, total_cost)
     return dist, timeWindows
 end
 

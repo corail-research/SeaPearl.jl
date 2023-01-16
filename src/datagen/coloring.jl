@@ -16,7 +16,7 @@ on more smooth cases.
 This is done by getting a geometric distribution of each node connectivity (number of edges) and then select
 randomly the connexions. 
 """
-function fill_with_generator!(cpmodel::CPModel, gen::LegacyGraphColoringGenerator;  rng::AbstractRNG = MersenneTwister())
+function fill_with_generator!(cpmodel::CPModel, gen::LegacyGraphColoringGenerator; rng::AbstractRNG=MersenneTwister())
     density = gen.density
     nb_nodes = gen.nb_nodes
 
@@ -37,13 +37,11 @@ function fill_with_generator!(cpmodel::CPModel, gen::LegacyGraphColoringGenerato
     for new_co in new_connexions
         connexions[convert(Int64, new_co)] += 1
     end
-
     # should make sure that every node has less than nb_nodes - 1 connexions
-
     # edge constraints
     for i in 1:length(connexions)
-        possible_neightbors =  [j for j in (i+1):length(connexions) if connexions[i] > 0]
-        neighbors = Distributions.sample(rng, possible_neightbors, min(connexions[i], length(possible_neightbors)),replace=false)
+        possible_neightbors = [j for j in (i+1):length(connexions) if connexions[i] > 0]
+        neighbors = Distributions.sample(rng, possible_neightbors, min(connexions[i], length(possible_neightbors)), replace=false)
         for j in neighbors
             SeaPearl.addConstraint!(cpmodel, SeaPearl.NotEqual(x[i], x[j], cpmodel.trailer))
         end
@@ -76,7 +74,7 @@ creating temporary files for efficiency purpose ! Density should be more than 1.
 Very simple case from: Exploring the k-colorable Landscape with Iterated Greedy by Culberson & Luo
 https://pdfs.semanticscholar.org/e6cc/ab8f757203bf15680dbf456f295a7a31431a.pdf
 """
-function fill_with_generator!(cpmodel::CPModel, gen::HomogenousGraphColoringGenerator;  rng::AbstractRNG = MersenneTwister())
+function fill_with_generator!(cpmodel::CPModel, gen::HomogenousGraphColoringGenerator; rng::AbstractRNG=MersenneTwister())
     p = gen.probability
     n = gen.nb_nodes
 
@@ -86,7 +84,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::HomogenousGraphColoringGene
         push!(x, SeaPearl.IntVar(1, n, string(i), cpmodel.trailer))
         addVariable!(cpmodel, last(x))
     end
-    
+
     # edge constraints
     for i in 1:n
         for j in (i+1):n
@@ -115,7 +113,7 @@ struct ClusterizedGraphColoringGenerator <: AbstractModelGenerator
     n::Int64
     k::Int64
     p::Float64
-    
+
     function ClusterizedGraphColoringGenerator(n, k, p)
         @assert n > 0
         @assert k > 0 && k <= n
@@ -133,11 +131,11 @@ creating temporary files for efficiency purpose ! Density should be more than 1.
 Very simple case from: Exploring the k-colorable Landscape with Iterated Greedy by Culberson & Luo
 https://pdfs.semanticscholar.org/e6cc/ab8f757203bf15680dbf456f295a7a31431a.pdf
 """
-function fill_with_generator!(cpmodel::CPModel, gen::ClusterizedGraphColoringGenerator; rng::AbstractRNG = MersenneTwister())
+function fill_with_generator!(cpmodel::CPModel, gen::ClusterizedGraphColoringGenerator; rng::AbstractRNG=MersenneTwister())
     n = gen.n
     p = gen.p
     k = gen.k
-    
+
     assigned_colors = zeros(Int64, gen.n)
     for i in 1:n
         assigned_colors[i] = rand(rng, 1:k)
@@ -149,7 +147,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::ClusterizedGraphColoringGen
         push!(x, SeaPearl.IntVar(1, n, string(i), cpmodel.trailer))
         addVariable!(cpmodel, last(x))
     end
-    
+
     # edge constraints
     for i in 1:n
         for j in (i+1):n
@@ -164,7 +162,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::ClusterizedGraphColoringGen
     SeaPearl.addVariable!(cpmodel, numberOfColors, branchable=false)
     SeaPearl.addConstraint!(cpmodel, SeaPearl.MaximumConstraint(x, numberOfColors, cpmodel.trailer))
     SeaPearl.addObjective!(cpmodel, numberOfColors)
-    cpmodel.knownObjective = k 
+    cpmodel.knownObjective = k
     cpmodel.adhocInfo = nothing
 end
 
@@ -174,6 +172,7 @@ end
     Generator of Graph Coloring instances : 
     - n is the number of nodes
     - k is the number of color
+    http://networksciencebook.com/chapter/5
 """
 struct BarabasiAlbertGraphGenerator <: AbstractModelGenerator
     n::Int64
@@ -181,9 +180,10 @@ struct BarabasiAlbertGraphGenerator <: AbstractModelGenerator
 end
 
 """
-    fill_with_generator!(cpmodel::CPModel, gen::BarabasiAlbertGraphGenerator)::CPModel    
+    fill_with_generator!(cpmodel::CPModel, gen::BarabasiAlbertGraphGenerator)::CPModel
+    Creates graphs according to the Barbarasi-Albert attachment model: http://networksciencebook.com/chapter/5
 """
-function fill_with_generator!(cpmodel::CPModel, gen::BarabasiAlbertGraphGenerator; rng::AbstractRNG = MersenneTwister())
+function fill_with_generator!(cpmodel::CPModel, gen::BarabasiAlbertGraphGenerator; rng::AbstractRNG=MersenneTwister())
     graph = Graphs.SimpleGraphs.barabasi_albert(gen.n, gen.k, seed=rand(rng, typemin(Int64):typemax(Int64)))
 
     # create variables
@@ -211,6 +211,8 @@ end
     Generator of Graph Coloring instances : 
     - n is the number of nodes
     - k is the number of color
+
+    https://en.wikipedia.org/wiki/Erd%C5%91s%E2%80%93R%C3%A9nyi_model
 """
 struct ErdosRenyiGraphGenerator <: AbstractModelGenerator
     n::Int64
@@ -219,8 +221,10 @@ end
 
 """
     fill_with_generator!(cpmodel::CPModel, gen::ErdosRenyiGraphGenerator)::CPModel    
+
+    Generates graphs according to the Erdos-Renyi model: https://en.wikipedia.org/wiki/Erd%C5%91s%E2%80%93R%C3%A9nyi_model
 """
-function fill_with_generator!(cpmodel::CPModel, gen::ErdosRenyiGraphGenerator; rng::AbstractRNG = MersenneTwister())
+function fill_with_generator!(cpmodel::CPModel, gen::ErdosRenyiGraphGenerator; rng::AbstractRNG=MersenneTwister())
     graph = Graphs.SimpleGraphs.erdos_renyi(gen.n, gen.p, seed=rand(rng, typemin(Int64):typemax(Int64)))
 
     # create variables
@@ -242,7 +246,6 @@ function fill_with_generator!(cpmodel::CPModel, gen::ErdosRenyiGraphGenerator; r
     cpmodel.adhocInfo = graph
 end
 
-
 struct WattsStrogatzGraphGenerator <: AbstractModelGenerator
     n::Int64
     k::Int64
@@ -252,7 +255,7 @@ end
 """
     fill_with_generator!(cpmodel::CPModel, gen::WattsStrogatzGraphGenerator)::CPModel    
 """
-function fill_with_generator!(cpmodel::CPModel, gen::WattsStrogatzGraphGenerator; rng::AbstractRNG = MersenneTwister())
+function fill_with_generator!(cpmodel::CPModel, gen::WattsStrogatzGraphGenerator; rng::AbstractRNG=MersenneTwister())
     graph = Graphs.SimpleGraphs.watts_strogatz(gen.n, gen.k, gen.beta, seed=rand(rng, typemin(Int64):typemax(Int64)))
 
     # create variables
