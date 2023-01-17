@@ -163,7 +163,6 @@ function fill_with_generator!(cpmodel::CPModel, gen::ClusterizedGraphColoringGen
     SeaPearl.addConstraint!(cpmodel, SeaPearl.MaximumConstraint(x, numberOfColors, cpmodel.trailer))
     SeaPearl.addObjective!(cpmodel, numberOfColors)
     cpmodel.knownObjective = k
-    cpmodel.adhocInfo = nothing
 end
 
 """
