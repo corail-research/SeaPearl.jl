@@ -19,9 +19,7 @@ creating temporary files for efficiency purpose.
 
 Rng is a random number generator used to ensure experiment reproductibility accross devices. It is often set at the beginning of an experiment to generate deterministic training samples. 
 
-
 This generator create graps for the NQueens problem.
-
 """
 function fill_with_generator!(cpmodel::CPModel, gen::NQueensGenerator; rng::AbstractRNG=MersenneTwister())
     cpmodel.limit.numberOfSolutions = 1
@@ -35,18 +33,14 @@ function fill_with_generator!(cpmodel::CPModel, gen::NQueensGenerator; rng::Abst
     rows_plus = Vector{SeaPearl.AbstractIntVar}(undef, board_size)
     for i = 1:board_size
         rows_plus[i] = SeaPearl.IntVarViewOffset(rows[i], i, rows[i].id * "+" * string(i))
-        SeaPearl.addVariable!(model, rows_plus[i]; branchable=false)
     end
 
     rows_minus = Vector{SeaPearl.AbstractIntVar}(undef, board_size)
     for i = 1:board_size
-        rows_minus[i] = SeaPearl.IntVarViewOffset(rows[i], -i, rows[i].id * "-" * string(i))
-        SeaPearl.addVariable!(model, rows_minus[i]; branchable=false)
+        rows_minus[i] = SeaPearl.IntVarViewOffset(rows[i], - i, rows[i].id * "-" * string(i))
     end
 
     SeaPearl.addConstraint!(cpmodel, SeaPearl.AllDifferent(rows, cpmodel.trailer))
     SeaPearl.addConstraint!(cpmodel, SeaPearl.AllDifferent(rows_plus, cpmodel.trailer))
     SeaPearl.addConstraint!(cpmodel, SeaPearl.AllDifferent(rows_minus, cpmodel.trailer))
-    return nothing
-    #return model
 end
