@@ -1,5 +1,8 @@
 [![codecov](https://codecov.io/gh/corail-research/SeaPearl.jl/branch/master/graph/badge.svg?token=2LQFB28LHV)](https://codecov.io/gh/corail-research/SeaPearl.jl)
 ![license](https://img.shields.io/github/license/corail-research/SeaPearl.jl)
+![Docs](https://img.shields.io/github/actions/workflow/status/corail-research/SeaPearl.jl/documentation.yml?label=Docs)
+![Build](https://img.shields.io/github/actions/workflow/status/corail-research/SeaPearl.jl/ci.yml?label=Build%20%2B%20Test)
+![TagBot](https://img.shields.io/github/actions/workflow/status/corail-research/SeaPearl.jl/TagBot.yml?label=TagBot%20Triggers)
 
 <img src="logo.png" alt="drawing" width="200"/>
 
