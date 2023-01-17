@@ -39,8 +39,8 @@ function fill_with_generator!(cpmodel::CPModel, gen::JobShopGenerator; rng::Abst
     job_end = Matrix{SeaPearl.AbstractIntVar}(undef, gen.numberOfJobs, gen.numberOfMachines)
 
     # add variables
-    for i in 1:gen.numberOfJobs
-        for j in 1:gen.numberOfMachines
+    for i in 1: gen.numberOfJobs
+        for j in 1: gen.numberOfMachines
             job_start[i, j] = SeaPearl.IntVar(1, gen.maxTime, "job_start_" * string(i) * "_" * string(j), cpmodel.trailer)
             SeaPearl.addVariable!(cpmodel, job_start[i, j]; branchable=true)  #TODO : double-check this 
             job_end[i, j] = SeaPearl.IntVarViewOffset(job_start[i, j], job_times[i, j], "job_end_" * string(i) * "_" * string(j))
@@ -51,17 +51,17 @@ function fill_with_generator!(cpmodel::CPModel, gen::JobShopGenerator; rng::Abst
 
     ### Constraints ###
     # ensure non-overlaps of the jobs
-    for i in 1:gen.numberOfJobs
+    for i in 1: gen.numberOfJobs
         SeaPearl.addConstraint!(cpmodel, SeaPearl.Disjunctive(job_start[i, :], job_times[i, :], cpmodel.trailer))
     end
     # ensure non-overlaps of the machines
-    for i in 1:gen.numberOfMachines
+    for i in 1: gen.numberOfMachines
         SeaPearl.addConstraint!(cpmodel, SeaPearl.Disjunctive(job_start[:, i], job_times[:, i], cpmodel.trailer))
     end
     # ensure the job order
-    for job in 1:gen.numberOfJobs
-        for machine1 in 1:gen.numberOfMachines
-            for machine2 in 1:gen.numberOfMachines
+    for job in 1: gen.numberOfJobs
+        for machine1 in 1: gen.numberOfMachines
+            for machine2 in 1: gen.numberOfMachines
                 if machine1 < machine2
                     if job_order[job, machine1] < job_order[job, machine2]
                         SeaPearl.addConstraint!(cpmodel, SeaPearl.LessOrEqual(job_end[job, machine1], job_start[job, machine2], cpmodel.trailer))
@@ -81,8 +81,6 @@ function fill_with_generator!(cpmodel::CPModel, gen::JobShopGenerator; rng::Abst
         end
     end
     SeaPearl.addObjective!(cpmodel, TotalTime)
-
-    return cpmodel
 end
 
 """ JobShopSoftDeadlinesGenerator <: AbstractModelGenerator
@@ -185,8 +183,6 @@ function fill_with_generator!(cpmodel::CPModel, gen::JobShopSoftDeadlinesGenerat
             end
         end
     end
-
-    return cpmodel
 end
 
 
@@ -209,7 +205,6 @@ function fill_with_generator!(cpmodel::CPModel, gen::JobShopSoftDeadlinesGenerat
             job_times[i, rand(rng, 1:j)%gen.numberOfMachines+1] += 1
         end
     end
-    #jobSoftDeadlines = [rand(rng, totalTimePerTask:Int(round(gen.maxTime/2))) for i in 1:gen.numberOfJobs]
     jobSoftDeadlines = [sample(rng, [totalTimePerTask, gen.maxTime], ProbabilityWeights([0.5, 0.5])) for i in 1:gen.numberOfJobs]
     job_order = mapreduce(permutedims, vcat, [randperm(rng, gen.numberOfMachines) for i in 1:gen.numberOfJobs])    #job_order for each task generated using random row-wise permutation.
     cpmodel.adhocInfo = Dict("numberOfMachines" => gen.numberOfMachines, "numberOfJobs" => gen.numberOfJobs, "job_times" => job_times, "job_order" => job_order)
