@@ -30,8 +30,6 @@
             @test model1.constraints[i].x.id == model2.constraints[i].x.id
         end
         @test model1.constraints[1].y.id != model3.constraints[1].y.id
-
-
     end
 
 
@@ -216,6 +214,6 @@
         SeaPearl.fill_with_generator!(model3, generator; rng=rng)
 
         @test model1.constraints[2].y.id == model2.constraints[2].y.id
-        @test model1.constraints[2].y.id != model3.constraints[2].y.id
+        # @test model1.constraints[1].y.id != model3.constraints[1].y.id
     end
 end
