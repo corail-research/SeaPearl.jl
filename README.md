@@ -1,4 +1,5 @@
 [![codecov](https://codecov.io/gh/corail-research/SeaPearl.jl/branch/master/graph/badge.svg?token=2LQFB28LHV)](https://codecov.io/gh/corail-research/SeaPearl.jl)
+![license](https://img.shields.io/github/license/corail-research/SeaPearl.jl)
 
 <img src="logo.png" alt="drawing" width="200"/>
 
