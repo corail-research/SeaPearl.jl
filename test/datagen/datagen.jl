@@ -1,4 +1,5 @@
 include("coloring.jl")
+include("eternity2.jl")
 include("kidneyexchange.jl")
 include("jobshop.jl")
 include("knapsack.jl")
