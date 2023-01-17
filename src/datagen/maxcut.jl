@@ -36,5 +36,4 @@ function fill_with_generator!(cpmodel::CPModel, gen::MaxCutGenerator; rng::Abstr
     SeaPearl.addObjective!(cpmodel, objective)
 
     cpmodel.adhocInfo = graph
-    nothing
 end
