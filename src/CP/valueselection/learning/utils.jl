@@ -79,7 +79,6 @@ function update_with_cpmodel!(lh::LearnedHeuristic{SR, R, A}, model::CPModel; ch
     R <: AbstractReward, 
     A <: ActionOutput
 }
-
     # construct the action_space
     valuesOfVariables = sort(branchable_values(model))
 
@@ -90,18 +89,15 @@ function update_with_cpmodel!(lh::LearnedHeuristic{SR, R, A}, model::CPModel; ch
     lh.reward = R(model)
 
     lh.search_metrics = SearchMetrics(model)
-
-    lh
 end
 
 """
-    sync!(lh::LearnedHeuristic, model::CPModel, x::AbstractIntVar)
+    sync_state!(lh::LearnedHeuristic, model::CPModel, x::AbstractIntVar)
 
 Synchronize the environment part of the LearnedHeuristic with the CPModel.
 """
 function sync_state!(lh::LearnedHeuristic, model::CPModel, x::AbstractIntVar)
     update_representation!(lh.current_state, model, x)
-    nothing 
 end
 
 """
