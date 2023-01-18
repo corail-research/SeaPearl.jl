@@ -71,5 +71,7 @@ function (valueSelection::SimpleLearnedHeuristic)(PHASE::Type{DecisionPhase}, mo
         valueSelection.agent(RL.PRE_ACT_STAGE, env, action)
     end
 
-    return action_to_value(valueSelection, action, state(env), model)
+    model.statistics.lastVal = action_to_value(valueSelection, action, state(env), model)
+
+    return model.statistics.lastVal
 end

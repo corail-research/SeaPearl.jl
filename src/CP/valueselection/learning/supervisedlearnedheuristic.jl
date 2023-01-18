@@ -123,7 +123,7 @@ function (valueSelection::SupervisedLearnedHeuristic)(PHASE::Type{DecisionPhase}
         
     else # Else we choose the action provided by the agent
         action = valueSelection.agent(env) # Choose action
-        value = action_to_value(valueSelection, action, state(env), model)
+        model.statistics.lastVal = action_to_value(valueSelection, action, state(env), model)
     end
     
     if valueSelection.trainMode
@@ -132,7 +132,7 @@ function (valueSelection::SupervisedLearnedHeuristic)(PHASE::Type{DecisionPhase}
         valueSelection.agent(RL.PRE_ACT_STAGE, env, action)
     end
     
-    return value
+    return model.statistics.lastVal
 end
 
 """
