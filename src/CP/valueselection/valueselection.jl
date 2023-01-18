@@ -24,6 +24,7 @@ include("searchmetrics.jl")
 abstract type ValueSelection end
 
 include("classic/basicheuristic.jl")
+include("classic/impactheuristic.jl")
 
 abstract type ActionOutput end
 struct VariableOutput <: ActionOutput end
