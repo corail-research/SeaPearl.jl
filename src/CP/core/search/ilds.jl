@@ -55,7 +55,7 @@ function expandIlds!(toCall::Stack{Function}, discrepancy::Int64, model::CPModel
         if (discrepancy == 0)
             act = triggerFoundSolution!(model)
             if act == :tightenObjective
-                if isa(valueSelection, LearnedHeuristic) && !valueSelection.trainMode  || isa(valueSelection, BasicHeuristic)
+                if isa(valueSelection, LearnedHeuristic) && !valueSelection.trainMode  || isa(valueSelection, Union{BasicHeuristic, ImpactHeuristic})
                     tightenObjective!(model)
                 end
             end
