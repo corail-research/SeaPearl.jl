@@ -32,7 +32,7 @@ function fill_with_generator!(cpmodel::CPModel, gen::LegacyGraphColoringGenerato
     connexions = [1 for i in 1:nb_nodes]
     # create Geometric distribution
     p = 2 / nb_nodes
-    distr = Truncated(Geometric(p), 1, nb_nodes)
+    distr = truncated(Geometric(p), 1, nb_nodes)
     new_connexions = rand(rng, distr, nb_edges - nb_nodes)
     for new_co in new_connexions
         connexions[convert(Int64, new_co)] += 1
