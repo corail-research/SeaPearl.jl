@@ -20,6 +20,88 @@
 
     end
 
+    @testset "lastVal" begin
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+
+        x = SeaPearl.IntVar(2, 6, "x", trailer)
+        y = SeaPearl.IntVar(2, 6, "y", trailer)
+    
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y)
+
+        valueselection = SeaPearl.BasicHeuristic()
+        @test isnothing(model.statistics.lastVar)
+        v = valueselection(SeaPearl.DecisionPhase, model, x)
+        SeaPearl.assign!(x, v)
+        @test model.statistics.lastVal == v
+
+        v = valueselection(SeaPearl.DecisionPhase, model, y)
+        SeaPearl.assign!(y, v)
+        @test model.statistics.lastVal == v
+
+    end
+
+    @testset "searchTreeSize" begin
+        #for int var
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+
+        x = SeaPearl.IntVar(2, 6, "x", trailer)
+        y = SeaPearl.IntVar(2, 4, "y", trailer)
+
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addVariable!(model, y)
+
+        @test model.statistics.searchTreeSize == nothing
+        @test SeaPearl.computeSearchTreeSize!(model) == 15
+        SeaPearl.fixPoint!(model)
+        @test model.statistics.searchTreeSize == 15
+
+        valueselection = SeaPearl.BasicHeuristic()
+        v = valueselection(SeaPearl.DecisionPhase, model, x)
+        SeaPearl.assign!(x, v)
+        @test SeaPearl.computeSearchTreeSize!(model) == 3
+        SeaPearl.fixPoint!(model)
+        @test model.statistics.searchTreeSize == 3
+
+        v = valueselection(SeaPearl.DecisionPhase, model, y)
+        SeaPearl.assign!(y, v)
+        @test SeaPearl.computeSearchTreeSize!(model) == 1
+        SeaPearl.fixPoint!(model)
+        @test model.statistics.searchTreeSize == 1
+
+        #for bool var
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+
+        b = SeaPearl.BoolVar("b", trailer)
+
+        SeaPearl.addVariable!(model, b)
+
+        @test model.statistics.searchTreeSize == nothing
+        @test SeaPearl.computeSearchTreeSize!(model) == 2
+        SeaPearl.fixPoint!(model)
+        @test model.statistics.searchTreeSize == 2
+
+        valueselection = SeaPearl.BasicHeuristic()
+        v = valueselection(SeaPearl.DecisionPhase, model, b)
+        SeaPearl.assign!(b, v)
+        @test SeaPearl.computeSearchTreeSize!(model) == 1
+
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+
+        z = SeaPearl.IntSetVar(4, 7, "z", trailer)
+
+        SeaPearl.addVariable!(model, z; branchable = false)
+        @test model.statistics.searchTreeSize == nothing
+        @test SeaPearl.computeSearchTreeSize!(model) == 4
+        SeaPearl.fixPoint!(model)
+        @test model.statistics.searchTreeSize == 4
+    end
+
+
     @testset "addVariable!()" begin
         trailer = SeaPearl.Trailer()
         x = SeaPearl.IntVar(2, 6, "x", trailer)

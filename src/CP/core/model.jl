@@ -43,6 +43,8 @@ mutable struct Statistics
     objectiveDownPruning                    ::Union{Nothing, Float32}
     objectiveUpPruning                      ::Union{Nothing, Float32}
     lastVar                                 ::Union{Nothing, AbstractIntVar} #last var on which we branched
+    lastVal                                 ::Union{Nothing, Int} #last val on which we branched
+    searchTreeSize                          ::Union{Nothing, Int} #size of the search tree for impact based search
     numberOfTimesInvolvedInPropagation      ::Union{Nothing, Dict{Constraint,Int}}
 end
 
@@ -90,43 +92,11 @@ mutable struct CPModel
     statistics              ::Statistics
     limit                   ::Limit
     knownObjective          ::Union{Nothing,Int64}
+    impact_var_val          ::Dict{Tuple{AbstractIntVar,Int}, Float32}
     adhocInfo               ::Any
 
 
-    CPModel(trailer) = new(
-        Dict{String, AbstractVar}(),
-        Dict{String, Bool}(),
-        Dict{String, AbstractVar}(),
-        Constraint[],
-        trailer,
-        nothing,
-        nothing,
-        Statistics(
-            Dict{String, Int}(),
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            Solution[],
-            Int[],
-            Float32[],
-            nothing,
-            nothing,
-            nothing,
-            nothing,
-            nothing,
-            Dict{Constraint, Int}()
-        ),
-        Limit(
-            nothing,
-            nothing,
-            nothing
-        ),
-        nothing)
+    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Dict{String, AbstractVar}(), Constraint[], trailer, nothing, nothing, Statistics(Dict{String, Int}(), 0, 0, 0, 0, 0, 0, 0, 0, Solution[], Int[], Float32[], nothing, nothing, nothing, nothing, nothing, nothing, nothing, Dict{Constraint, Int}()), Limit(nothing, nothing, nothing), nothing, Dict{Tuple{AbstractIntVar,Int}, Float32}())
 end
 
 CPModel() = CPModel(Trailer())
@@ -169,13 +139,17 @@ function addKnownObjective!(model::CPModel, knownObective::Int64)
     model.knownObjective = knownObective
 end
 
+function computeSearchTreeSize!(model::CPModel)
+    model.statistics.searchTreeSize = prod([length(x.domain) for (k, x) in model.variables])
+end
+
 """
     addConstraint!(model::CPModel, constraint::Constraint)
 
 Add a constraint to the CPModel.
 """
-function addConstraint!(model::CPModel, constraint::Constraint)
-    push!(model.constraints, constraint)
+function addConstraint!(model::CPModel,constraint::Constraint)
+    push!(model.constraints,constraint)
     for var in variablesArray(constraint)
         if haskey(model.branchable, id(var))
             @assert haskey(model.statistics.infeasibleStatusPerVariable, id(var)) "You forget to add the variable $(id(var)) to the model"
@@ -314,6 +288,7 @@ function Base.isempty(model::CPModel)::Bool
         && isnothing(model.statistics.objectives)
         && isnothing(model.statistics.lastPruning)
         && isnothing(model.statistics.lastVar)
+        && isnothing(model.statistics.lastVal)
         && model.statistics.numberOfNodes == 0
         && model.statistics.numberOfSolutions == 0
         && model.statistics.numberOfInfeasibleSolutions == 0
@@ -337,6 +312,7 @@ Empty the CPModel.
 function Base.empty!(model::CPModel)
     empty!(model.variables)
     empty!(model.branchable_variables)
+    empty!(model.impact_var_val)
     empty!(model.branchable)
     empty!(model.constraints)
     empty!(model.trailer.prior)
@@ -350,6 +326,7 @@ function Base.empty!(model::CPModel)
     model.statistics.objectives = nothing
     model.statistics.lastPruning = nothing
     model.statistics.lastVar = nothing
+    model.statistics.lastVal = nothing
     model.statistics.numberOfNodes = 0
     model.statistics.numberOfSolutions = 0
     model.statistics.numberOfInfeasibleSolutions = 0
@@ -387,6 +364,7 @@ function reset_model!(model::CPModel)
     end
     model.statistics.lastPruning = nothing
     model.statistics.lastVar = nothing
+    model.statistics.lastVal = nothing
     model.statistics.numberOfNodes = 0
     model.statistics.numberOfSolutions = 0
     model.statistics.numberOfInfeasibleSolutions = 0
@@ -406,6 +384,7 @@ function restart_search!(model::CPModel)
     restoreInitialState!(model.trailer)
     model.statistics.lastPruning = 0
     model.statistics.lastVar = nothing
+    model.statistics.lastVal = nothing
     model.statistics.numberOfInfeasibleSolutionsBeforeRestart = 0
     model.statistics.numberOfSolutionsBeforeRestart = 0
     model.statistics.numberOfNodesBeforeRestart = 0
