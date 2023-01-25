@@ -3,7 +3,7 @@ using Random
 Solution = Dict{String, Union{Int, Bool, Set{Int}}}
 
 """
-initroot!(toCall::Stack{Function}, search::LNSearch, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
+    initroot!(toCall::Stack{Function}, search::LNSearch, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
 
 Used as a generic function to instantiate the research based on a specific Strategy <: SearchStrategy. 
 
@@ -19,7 +19,7 @@ function initroot!(toCall::Stack{Function}, search::LNSearch, model::CPModel, va
 end
 
 """
-expandLns!(search::LNSearch, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
+    expandLns!(search::LNSearch, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
 
 This function make a Large Neighbourhood Search. As initial solution we use the first feasible solution found by a DFS. 
 Then a destroy and repair loop tries to upgrade the current solution until some stop critiria.
@@ -131,7 +131,7 @@ function expandLns!(search::LNSearch, model::CPModel, variableHeuristic::Abstrac
 end
 
 """
-accept(tempSolution::Solution, currentSolution::Solution, objectiveId::String)
+    accept(tempSolution::Solution, currentSolution::Solution, objectiveId::String)
 
 Decide if we update the current solution with the neighbour solution get by destroy and repair (tempSolution).
 In this implementation, accept() and compare() have exactly the same behavior. In other versions of LNS, 
@@ -147,7 +147,7 @@ function accept(tempSolution::Solution, currentSolution::Solution, objectiveId::
 end
 
 """
-compare(tempSolution::Solution, bestSolution::Solution, objectiveId::String)
+    compare(tempSolution::Solution, bestSolution::Solution, objectiveId::String)
 
 Comparare the objective variable value from tempSolution and bestSolution
 
@@ -161,7 +161,7 @@ function compare(tempSolution::Solution, bestSolution::Solution, objectiveId::St
 end
 
 """
-repair!(model::CPModel, repairSearch::SearchStrategy, objectiveId::String, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
+    repair!(model::CPModel, repairSearch::SearchStrategy, objectiveId::String, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection)
 
 Use the `repairSearch` to try to repair the destoyed model 
 
@@ -187,7 +187,7 @@ function repair!(model::CPModel, repairSearch::SearchStrategy, objectiveId::Stri
 end
 
 """
-destroy!(model::CPModel, solution::Solution, numberOfValuesToRemove::Int, objectiveId::String)
+    destroy!(model::CPModel, solution::Solution, numberOfValuesToRemove::Int, objectiveId::String)
 
 Reset to initial state `numberOfValuesToRemove` branchable variables and prune the objective domain to force the search for a better solution
 

@@ -185,7 +185,9 @@ function fill_with_generator!(cpmodel::CPModel, gen::JobShopSoftDeadlinesGenerat
     end
 end
 
-
+"""JobShopSoftDeadlinesGenerator2 <: AbstractModelGenerator
+Generator for jobshop problem with soft deadlines.
+"""
 struct JobShopSoftDeadlinesGenerator2 <: AbstractModelGenerator
     numberOfMachines::Int
     numberOfJobs::Int
