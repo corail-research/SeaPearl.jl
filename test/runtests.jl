@@ -14,7 +14,6 @@ const RL = ReinforcementLearning
     include("experiment/experiment.jl")
     include("RL/RL.jl")
     include("trailer.jl")
-    # include("MOI_wrapper/MOI_wrapper.jl")
 end
 
 revise_user = "You use Revise, you're efficient in your work, well done ;)" 

@@ -43,6 +43,11 @@ function Base.show(io::IO, con::LessOrEqualConstant)
     print(io, typeof(con), ": ", con.x.id, " <= ", con.v)
 end
 
+"""
+    LessOrEqual(x::AbstractIntVar, y::AbstractIntVar, trailer::Trailer)
+
+Inequality between variables constraint, states that `x <= y`
+"""
 struct LessOrEqual <: Constraint
     x       ::AbstractIntVar
     y       ::AbstractIntVar

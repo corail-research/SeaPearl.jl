@@ -54,6 +54,9 @@ function fill_with_generator!(cpmodel::CPModel, gen::LegacyGraphColoringGenerato
     SeaPearl.addObjective!(cpmodel, numberOfColors)
 end
 
+""" HomogenousGraphColoringGenerator <: AbstractModelGenerator
+Generator for homogeneous graph coloring problem.
+"""
 struct HomogenousGraphColoringGenerator <: AbstractModelGenerator
     nb_nodes::Int
     probability::Real

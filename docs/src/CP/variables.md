@@ -34,7 +34,6 @@ SeaPearl.IntDomain(::SeaPearl.Trailer, ::Int, ::Int)
 ```@docs
 SeaPearl.isempty
 SeaPearl.length
-SeaPearl.isempty
 Base.in(::Int, ::SeaPearl.IntDomain)
 SeaPearl.remove!
 SeaPearl.removeAll!
