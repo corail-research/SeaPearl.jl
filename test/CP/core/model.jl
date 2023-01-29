@@ -197,7 +197,6 @@
         trailer = SeaPearl.Trailer()
         x = SeaPearl.IntVar(2, 2, "x", trailer)
         y = SeaPearl.IntVar(3, 3, "y", trailer)
-
         model = SeaPearl.CPModel(trailer)
 
         SeaPearl.addVariable!(model, x)
