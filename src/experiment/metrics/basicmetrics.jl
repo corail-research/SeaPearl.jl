@@ -42,7 +42,7 @@ mutable struct BasicMetrics{O<:AbstractTakeObjective, H<:ValueSelection} <: Abst
     BasicMetrics{O,H}(heuristic,meanOver) where {O,H}= new{O, H}(heuristic,Vector{Vector{Int64}}(),Vector{Vector{Float32}}(),Vector{Union{Nothing,Float32}}(), Float32[], Float32[], Float32[], O==TakeObjective ? Vector{Vector{Float32}}() : nothing, (H == BasicHeuristic|| H == ImpactHeuristic) ? nothing : Float32[], (H == BasicHeuristic || H == ImpactHeuristic) ? nothing : Float32[], meanOver,0)
 end
 
-BasicMetrics(model::CPModel, heuristic::ValueSelection; meanOver=1) = BasicMetrics{(!isnothing(model.objective)) ? TakeObjective : DontTakeObjective ,typeof(heuristic)}(heuristic,meanOver)
+BasicMetrics(model::CPModel, heuristic::ValueSelection; meanOver=1) = BasicMetrics{(!isnothing(model.objective)) ? TakeObjective : DontTakeObjective ,typeof(heuristic)}(heuristic, meanOver)
 
 """
     function (metrics::BasicMetrics)(model::CPModel, dt::Float64)
@@ -72,8 +72,6 @@ function (metrics::BasicMetrics{TakeObjective, <:Union{BasicHeuristic, ImpactHeu
     push!(metrics.meanNodeVisitedUntilfirstSolFound, !isnothing(index) ? model.statistics.nodevisitedpersolution[index] : nothing)
     push!(metrics.TotalTimeNeeded,dt)
     push!(metrics.scores,copy(model.statistics.objectives))
-    
-
 end 
 
 function (metrics::BasicMetrics{DontTakeObjective, <:LearnedHeuristic})(model::CPModel,dt::Float64)
@@ -87,18 +85,10 @@ function (metrics::BasicMetrics{DontTakeObjective, <:LearnedHeuristic})(model::C
     push!(metrics.TotalTimeNeeded,dt)
     
     total_reward = last_episode_total_reward(metrics.heuristic.agent.trajectory)
-    #=
-    # Uncomment to print metrics during execution
-    print("Episode reward: ")
-    println(total_reward)
-    print("Loss: ")
-    println(metrics.heuristic.agent.policy.learner.loss)
-    =#
     push!(metrics.totalReward,total_reward)
     push!(metrics.loss,metrics.heuristic.agent.policy.learner.loss)
     return
 end 
-
 
 function (metrics::BasicMetrics{TakeObjective, <:LearnedHeuristic})(model::CPModel,dt::Float64) 
     metrics.nbEpisodes+=1
@@ -111,14 +101,6 @@ function (metrics::BasicMetrics{TakeObjective, <:LearnedHeuristic})(model::CPMod
     push!(metrics.TotalTimeNeeded,dt)
     push!(metrics.scores,copy(model.statistics.objectives))
     total_reward = last_episode_total_reward(metrics.heuristic.agent.trajectory)
-    #=
-    # Uncomment to print these metrics during training
-    print("Reward: ")
-    println(total_reward)
-    print("Loss: ")
-    println(metrics.heuristic.agent.policy.learner.loss)
-    println("")
-    =#
     push!(metrics.totalReward,total_reward)
     push!(metrics.loss,metrics.heuristic.agent.policy.learner.loss)
     return
@@ -142,4 +124,3 @@ function repeatlast!(metrics::BasicMetrics{<:AbstractTakeObjective, <:Union{Basi
     end
     return last(metrics.TotalTimeNeeded),last(metrics.meanNodeVisitedUntilEnd), sum(map(x -> x,last(metrics.solutionFound)))
 end
-

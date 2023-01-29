@@ -1,5 +1,5 @@
 """
-    BinaryXor(x::AbstractBoolVar, y::AbstractBoolVar)
+    BinaryXor(x::AbstractBoolVar, y::AbstractBoolVar, trailer::SeaPearl.Trailer)
 
 Binary Xor constraint, states that `x ⊻ y`.
 """

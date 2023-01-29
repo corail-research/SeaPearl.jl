@@ -8,8 +8,6 @@ function initroot!(toCall::Stack{Function}, ::DFWBSearch, model::CPModel, variab
     return expandDfwbs!(toCall, model, variableHeuristic, valueSelection, direction= :Left)
 end
 
-
-
 """
     expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::Function, valueSelection::ValueSelection, newConstraints=nothing)
 
@@ -32,11 +30,8 @@ function expandDfwbs!(toCall::Stack{Function}, model::CPModel, variableHeuristic
     if !belowSolutionLimit(model)
         return :SolutionLimitStop
     end
-
-    # Fix-point algorithm
     feasible, pruned = fixPoint!(model, newConstraints, prunedDomains; isFailureBased=isa(variableHeuristic, FailureBasedVariableSelection))
     updateStatistics!(model,pruned)
-
 
     if !feasible
         model.statistics.numberOfInfeasibleSolutions += 1
@@ -57,9 +52,7 @@ function expandDfwbs!(toCall::Stack{Function}, model::CPModel, variableHeuristic
     if direction == :Right
         valueSelection(InitializingPhase, model)
     end
-    # Variable selection
     x = variableHeuristic(model)
-    # Value selection
     v = valueSelection(DecisionPhase, model, x)
 
     push!(toCall, (model, currentStatus) -> (restoreState!(model.trailer); :BackTracking))
@@ -79,9 +72,6 @@ function expandDfwbs!(toCall::Stack{Function}, model::CPModel, variableHeuristic
         end;
         return currentStatus
     ))
-    """if direction == :Right
-        push!(toCall, (model, currentStatus) -> (valueSelection(InitializingPhase, model); :Init))
-    end"""
     push!(toCall, (model, currentStatus) -> (saveState!(model.trailer); :SavingState))
 
     return :Feasible

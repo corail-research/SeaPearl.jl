@@ -1,10 +1,21 @@
 addChildrenVariable!(x::BoolVar, y::BoolVarView) = push!(x.children, y)
 addChildrenVariable!(x::BoolVarView, y::BoolVarView) = addChildrenVariable!(x.x, y)
 
+
+"""
+BoolDomainViewNot <: BoolDomainView
+Domain for BoolVarView variables
+"""
 struct BoolDomainViewNot <: BoolDomainView
     orig            ::AbstractBoolDomain
 end
 
+
+"""
+BoolVarViewNot(x::AbstractBoolVar, id::String)
+
+*Fake* variable `y`, such that `y = ¬x`. This variable behaves like an usual one.
+"""
 struct BoolVarViewNot <: BoolVarView
     x               ::AbstractBoolVar
     domain          ::BoolDomainViewNot

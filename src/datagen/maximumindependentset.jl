@@ -1,9 +1,12 @@
+"""MaximumIndependentSetGenerator <: AbstractModelGenerator
+Generator for the maximal independent set: https://en.wikipedia.org/wiki/Independent_set_(graph_theory)#Maximal_independent_set
+"""
 struct MaximumIndependentSetGenerator <: AbstractModelGenerator
     n::Int
     k::Int
 end
 
-function fill_with_generator!(cpmodel::CPModel, gen::MaximumIndependentSetGenerator;  rng::AbstractRNG = MersenneTwister())
+function fill_with_generator!(cpmodel::CPModel, gen::MaximumIndependentSetGenerator; rng::AbstractRNG=MersenneTwister())
     graph = Graphs.SimpleGraphs.barabasi_albert(gen.n, gen.k, seed=rand(rng, typemin(Int64):typemax(Int64)))
 
     # create variables
@@ -20,13 +23,11 @@ function fill_with_generator!(cpmodel::CPModel, gen::MaximumIndependentSetGenera
 
     ### Objective ### minimize: -sum(x[i])
     objective = SeaPearl.IntVar(-Graphs.nv(graph), 0, "objective", cpmodel.trailer)
-    SeaPearl.addVariable!(cpmodel, objective;branchable=false)
+    SeaPearl.addVariable!(cpmodel, objective; branchable=false)
     push!(vars, objective)
 
     # sum(x[i]) + objective = 0 <=> objective = -sum(x[i]) 
-    SeaPearl.addConstraint!(cpmodel, SeaPearl.SumToZero(vars, cpmodel.trailer)) 
-    SeaPearl.addObjective!(cpmodel,objective)
+    SeaPearl.addConstraint!(cpmodel, SeaPearl.SumToZero(vars, cpmodel.trailer))
+    SeaPearl.addObjective!(cpmodel, objective)
     cpmodel.adhocInfo = graph
-
-    nothing
 end

@@ -8,11 +8,16 @@ makedocs(
     modules = [SeaPearl],
     pages = ["Home" => "index.md",
     "Constraint Programming solver" => [
-        "Variables" => "CP/int_variable.md",
+        "Constraints" => "CP/constraints.md",
+        "Variables" => "CP/variables.md",
         "Trailer" => "CP/trailer.md",
+        "Internals" => "CP/internals.md",
+        "Search" => "CP/search.md",
+        "Instance Generation" => "CP/datagen.md"
     ],
-    "Building Models" =>
-      ["Basics" => "models/basics.md"],
+    "Reinforcement Learning" => "reinforcement_learning.md",
+    # "Building Models" =>
+    #   ["Basics" => "models/basics.md"],
     "Community" => "community.md"],
 )
 

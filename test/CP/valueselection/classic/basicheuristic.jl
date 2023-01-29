@@ -29,7 +29,7 @@
 end
 
 
-@testset "impactheuristic.jl"
+@testset "impactheuristic.jl" begin
 
     trailer = SeaPearl.Trailer()
     model = SeaPearl.CPModel(trailer)

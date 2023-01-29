@@ -1,6 +1,3 @@
-
-
-
 """
         AbstractMetrics
 
@@ -14,7 +11,6 @@ AbstractMetrics made just after the search.
 The user can add new features on its CustomMetrics such as advanced plotting. 
 """
 abstract type AbstractMetrics end
-
 
 """
         AbstractTakeObjective
@@ -30,6 +26,4 @@ abstract type AbstractTakeObjective end
 struct TakeObjective<:AbstractTakeObjective end
 struct DontTakeObjective<:AbstractTakeObjective end
 
-
 include("basicmetrics.jl")
-

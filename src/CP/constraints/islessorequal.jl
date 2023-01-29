@@ -1,5 +1,5 @@
 """
-isLessOrEqual(b::AbstractBoolVar, x::AbstractIntVar, y::AbstractIntVar, trailer::Trailer)
+isLessOrEqual(b::AbstractBoolVar, x::AbstractIntVar, y::AbstractIntVar, trailer::SeaPearl.Trailer)
 
 Equivalence between a boolean variable and the inequality between variables, states that `b ⟺ x ≤ y`
 """
@@ -9,7 +9,7 @@ struct isLessOrEqual <: Constraint
     y       ::AbstractIntVar
     active  ::StateObject{Bool}
 
-    function isLessOrEqual(b, x, y, trailer)
+    function isLessOrEqual(b::AbstractBoolVar, x::AbstractIntVar, y::AbstractIntVar, trailer)
         constraint = new(b, x, y, StateObject(true, trailer))
         addOnDomainChange!(b, constraint)
         addOnDomainChange!(x, constraint)

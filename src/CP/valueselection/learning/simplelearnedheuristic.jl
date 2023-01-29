@@ -33,9 +33,7 @@ function (valueSelection::SimpleLearnedHeuristic)(::Type{InitializingPhase}, mod
     # FIXME get rid of this => prone to bugs
     false_x = first(values(branchable_variables(model)))
     env = get_observation!(valueSelection, model, false_x)
-
-    # Reset the agent, useful for things like recurrent networks
-    Flux.reset!(valueSelection.agent)
+    Flux.reset!(valueSelection.agent) # Reset the agent, useful for things like recurrent networks
 
     if valueSelection.trainMode
         valueSelection.agent(RL.PRE_EPISODE_STAGE, env)

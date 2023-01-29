@@ -9,7 +9,7 @@ struct NotEqualConstant <: NotEqualConstraint
     x       ::AbstractIntVar
     v       ::Int
     active  ::StateObject{Bool}
-    function NotEqualConstant(x, v, trailer)
+    function NotEqualConstant(x::AbstractIntVar, v::Int, trailer)
         constraint = new(x, v, StateObject(true, trailer))
         addOnDomainChange!(x, constraint)
         return constraint

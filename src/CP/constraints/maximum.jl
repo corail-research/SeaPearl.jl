@@ -1,5 +1,5 @@
 """
-    MaximumConstraint <: Constraint
+    MaximumConstraint(x::Array{<:AbstractIntVar},y::AbstractIntVar, trailer::SeaPearl.Trailer) <: Constraint
     
 Maximum constraint, states that `y = max(x)`
 """

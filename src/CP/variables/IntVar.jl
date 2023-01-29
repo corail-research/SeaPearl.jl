@@ -19,7 +19,6 @@ and that will be backtracked by `trailer`.
 """
 function IntVar(min::Int, max::Int, id::String, trailer::Trailer)
     offset = min - 1
-
     dom = IntDomain(trailer, max - min + 1, offset)
 
     return IntVar(Constraint[], dom, id, Set{AbstractIntVar}())
@@ -50,11 +49,10 @@ assign!(x::AbstractIntVar, value::Int) = assign!(x.domain, value)
 """
     assignedValue(x::AbstractIntVar)
 
-Return the assigened value of `x`. Throw an error if `x` is not bound.
+Return the assigned value of `x`. Throw an error if `x` is not bound.
 """
 function assignedValue(x::AbstractIntVar)
     @assert isbound(x)
-
     return minimum(x.domain)
 end
 

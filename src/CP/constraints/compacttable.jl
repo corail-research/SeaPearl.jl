@@ -78,7 +78,7 @@ struct TableConstraint <: Constraint
 end
 
 """
-    TableConstraint(variables, table, trailer)
+    TableConstraint(variables::Vector{<:AbstractIntVar}, table::Matrix{Int}, trailer::SeaPearl.Trailer)
 
 Create a CompactTable constraint from the `variables`, with values given in `table`.
 

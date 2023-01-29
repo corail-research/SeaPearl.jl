@@ -30,7 +30,7 @@ function (nn::HeterogeneousCPNN)(states::BatchedHeterogeneousTrajectoryState)
     globalFeatures = fg.gf
     # extract the feature(s) of the variable(s) we're working on
     indices = nothing
-    Zygote.ignore() do
+    ChainRulesCore.ignore_derivatives() do
         # Double check that we are extracting the right variable
         indices = CartesianIndex.(zip(variableIdx, 1:batchSize))
     end

@@ -41,7 +41,7 @@ end
 function (g::GraphConv{<:AbstractMatrix,<:Any,meanPooling})(fgs::BatchedFeaturedGraph{Float32})
     A, X = fgs.graph, fgs.nf
     sumVal = nothing
-    Zygote.ignore() do
+    ChainRulesCore.ignore_derivatives() do
         sumVal = replace(reshape(mapslices(x -> sum(eachrow(x)), A, dims=[1, 2]), 1, :, size(A, 3)), 0=>1)    
     end
     A = A ./ sumVal
@@ -58,7 +58,7 @@ function (g::GraphConv{<:AbstractMatrix,<:Any,meanPooling})(fg::FeaturedGraph)
     A, X = fg.graph, fg.nf
     
     sum = reshape(sum(eachrow(A)), 1, :)
-    Zygote.ignore() do
+    ChainRulesCore.ignore_derivatives() do
         replace(sum, 0=>1)
     end
     A = A ./ sum
@@ -79,7 +79,7 @@ This function operates the coordinate-wise max-Pooling technique along the neigh
 function (g::GraphConv{<:AbstractMatrix,<:Any,maxPooling})(fgs::BatchedFeaturedGraph{Float32})
     A, X = fgs.graph, fgs.nf
 
-    Zygote.ignore() do
+    ChainRulesCore.ignore_derivatives() do
         B = repeat(collect(1:size(A,2)),1,size(A,2)).*A
         B = collect.(zip(B,cat(repeat([1],size(A)[1:2]...),repeat([2], size(A)[1:2]...),dims= 3)))
         filteredcol = mapslices( x -> map(z-> filter(y -> y[1]!=0,z),eachcol(x)), B, dims= [1,2])
@@ -114,7 +114,7 @@ This function operates the coordinate-wise max-Pooling technique along the neigh
 """
 function (g::GraphConv{<:AbstractMatrix,<:Any, maxPooling})(fg::FeaturedGraph)
     A, X = fg.graph, fg.nf
-    Zygote.ignore() do
+    ChainRulesCore.ignore_derivatives() do
         B = repeat(collect(1:size(A,2)),1,size(A,2)).*A
         filteredcol = map(x-> filter(y -> y!=0,x),eachcol(B))
         filteredemb = mapreduce(x->maximum(X[:,x], dims = 2), hcat,filteredcol)

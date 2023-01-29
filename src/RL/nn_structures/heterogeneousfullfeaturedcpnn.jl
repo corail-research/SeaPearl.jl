@@ -44,7 +44,7 @@ function (nn::HeterogeneousFullFeaturedCPNN)(states::BatchedHeterogeneousTraject
     batchSize = length(variableIdx)
     actionSpaceSize = size(states.fg.valnf, 2)
     Mask = nothing
-    Zygote.ignore() do
+    ChainRulesCore.ignore_derivatives() do
         Mask = device(states) != Val{:cpu}() ? CUDA.zeros(Float32, 1, size(states.fg.varnf,2), actionSpaceSize, batchSize) : zeros(Float32, 1, size(states.fg.varnf,2), actionSpaceSize, batchSize) # this Mask will replace `reapeat` using broadcasted `+`
     end
     # chain working on the graph(s) with the GNNs
@@ -55,7 +55,7 @@ function (nn::HeterogeneousFullFeaturedCPNN)(states::BatchedHeterogeneousTraject
 
     # Extract the features corresponding to the varibales
     variableIndices = nothing
-    Zygote.ignore() do
+    ChainRulesCore.ignore_derivatives() do
         variableIndices = Flux.unsqueeze(CartesianIndex.(variableIdx, 1:batchSize), 1)
     end
     branchingVariableFeatures = nn.varChain(variableFeatures) # Fx1xB
@@ -92,7 +92,7 @@ function (nn::HeterogeneousFullFeaturedCPNN)(states::BatchedHeterogeneousTraject
     predictions  = permutedims(predictions, [1,3,2,4])
     #variableIndices = Flux.unsqueeze(CartesianIndex.(variableIdx, 1:batchSize), 1)|> gpu
     variableIndices = nothing
-    Zygote.ignore() do
+    ChainRulesCore.ignore_derivatives() do
         variableIndices = device(states) != Val{:cpu}() ? CuArray(Flux.unsqueeze(CartesianIndex.(variableIdx, 1:batchSize), 1)) : Flux.unsqueeze(CartesianIndex.(variableIdx, 1:batchSize), 1)
     end
     output = dropdims(predictions[:,:, variableIndices], dims = tuple(findall(size(predictions[:,:, variableIndices]) .== 1)...))

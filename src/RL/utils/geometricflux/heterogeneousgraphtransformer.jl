@@ -92,7 +92,7 @@ function (g::HeterogeneousGraphTransformer)(fgs::BatchedHeterogeneousFeaturedGra
     temp_attention_vartocon = cat([(vartocon[:,:,i] .+ zeros(nvar, ncon, g.heads)) .*  ATT_head_vartocon[:,:,:,i] for i in 1:batch_size]..., dims=4)
     temp_attention_valtovar = cat([(valtovar[:,:,i] .+ zeros(nval, nvar, g.heads)) .*  ATT_head_valtovar[:,:,:,i] for i in 1:batch_size]..., dims=4)
     temp_attention_vartoval = cat([(vartoval[:,:,i] .+ zeros(nvar, nval, g.heads)) .*  ATT_head_vartoval[:,:,:,i] for i in 1:batch_size]..., dims=4)
-    Zygote.ignore() do
+    ChainRulesCore.ignore_derivatives() do
         temp_attention_contovar = replace(temp_attention_contovar, 0.0 => -Inf)
         temp_attention_vartocon = replace(temp_attention_vartocon, 0.0 => -Inf)
         temp_attention_valtovar = replace(temp_attention_valtovar, 0.0 => -Inf)
@@ -102,7 +102,7 @@ function (g::HeterogeneousGraphTransformer)(fgs::BatchedHeterogeneousFeaturedGra
     attention_vartocon = softmax(temp_attention_vartocon; dims=2) # nvar x ncon x heads x batch
     attention_valtovar = softmax(temp_attention_valtovar; dims=2) # nval x nvar x heads x batch
     attention_vartoval = softmax(temp_attention_vartoval; dims=2) # nvar x nval x heads x batch
-    Zygote.ignore() do
+    ChainRulesCore.ignore_derivatives() do
         attention_contovar = replace(attention_contovar, NaN => 0)
         attention_vartocon = replace(attention_vartocon, NaN => 0)
         attention_valtovar = replace(attention_valtovar, NaN => 0)
@@ -128,7 +128,7 @@ function (g::HeterogeneousGraphTransformer)(fgs::BatchedHeterogeneousFeaturedGra
     new_H1 = permutedims(σ.(H_tilde_1) ⊠ g.a_lin_var + H1,[2,1,3]) # n x nvar x batch
     new_H2 = permutedims(σ.(H_tilde_2) ⊠ g.a_lin_con + H2,[2,1,3]) # n x ncon x batch
     new_H3 = permutedims(σ.(H_tilde_3) ⊠ g.a_lin_val + H3,[2,1,3]) # n x nval x batch
-    Zygote.ignore() do
+    ChainRulesCore.ignore_derivatives() do
         return BatchedHeterogeneousFeaturedGraph{Float32}(
                 contovar,
                 valtovar,
@@ -173,7 +173,7 @@ function (g::HeterogeneousGraphTransformer)(fg::HeterogeneousFeaturedGraph)
     temp_attention_vartocon = (vartocon .+ zeros(nvar, ncon, g.heads)) .*  ATT_head_vartocon
     temp_attention_valtovar = (valtovar .+ zeros(nval, nvar, g.heads)) .*  ATT_head_valtovar
     temp_attention_vartoval = (vartoval .+ zeros(nvar, nval, g.heads)) .*  ATT_head_vartoval
-    Zygote.ignore() do
+    ChainRulesCore.ignore_derivatives() do
         temp_attention_contovar = replace(temp_attention_contovar, 0.0 => -Inf)
         temp_attention_vartocon = replace(temp_attention_vartocon, 0.0 => -Inf)
         temp_attention_valtovar = replace(temp_attention_valtovar, 0.0 => -Inf)
@@ -184,7 +184,7 @@ function (g::HeterogeneousGraphTransformer)(fg::HeterogeneousFeaturedGraph)
     attention_valtovar = softmax(temp_attention_valtovar; dims=2) # nval x nvar x heads
     attention_vartoval = softmax(temp_attention_vartoval; dims=2) # nvar x nval x heads
     
-    Zygote.ignore() do
+    ChainRulesCore.ignore_derivatives() do
         attention_contovar = replace(attention_contovar, NaN => 0)
         attention_vartocon = replace(attention_vartocon, NaN => 0)
         attention_valtovar = replace(attention_valtovar, NaN => 0)

@@ -57,19 +57,19 @@ function (nn::HeterogeneousVariableOutputCPNN)(state::BatchedHeterogeneousTrajec
     
     # extract the feature(s) of the variable(s) we're working on
     indices = nothing
-    Zygote.ignore() do
+    ChainRulesCore.ignore_derivatives() do
         indices = CartesianIndex.(zip(variableIdx, 1:batchSize))
     end
     variableFeatures = nothing
     numPadded = nothing
-    Zygote.ignore() do
+    ChainRulesCore.ignore_derivatives() do
         variableFeatures = reshape(fg.varnf[:, indices], (:,1,batchSize)) # Fx1xB
         # extract the feature(s) of the variable(s) we're working on
         numPadded = [maxActionSpaceSize - actionSpaceSizes[i] for i in 1:batchSize] #number of padding zeros needed fo each element of the batch
     end
     
     valueIndices = nothing
-    Zygote.ignore() do 
+    ChainRulesCore.ignore_derivatives() do 
         paddedPossibleValuesIdx = [append!(possibleValuesIdx[i], repeat([possibleValuesIdx[i][1]], numPadded[i])) for i in 1:batchSize]
         paddedPossibleValuesIdx = mapreduce(identity, hcat, paddedPossibleValuesIdx) #convert from Vector to Matrix
         #create a CartesianIndex matrix of size (maxActionSpaceSize x batch_size)
@@ -79,7 +79,7 @@ function (nn::HeterogeneousVariableOutputCPNN)(state::BatchedHeterogeneousTrajec
     valueFeatures = fg.valnf[:, valueIndices] #FxAxB
     
     f = size(valueFeatures, 1)
-    Zygote.ignore() do    
+    ChainRulesCore.ignore_derivatives() do    
         for i in 1:batchSize
             for j in 1:numPadded[i]
                 valueFeatures[:,maxActionSpaceSize-j+1,i] = zeros(Float32, f)
@@ -92,13 +92,13 @@ function (nn::HeterogeneousVariableOutputCPNN)(state::BatchedHeterogeneousTrajec
     
     variableOutput = nothing
     valueOutput = nothing
-    Zygote.ignore() do
+    ChainRulesCore.ignore_derivatives() do
         variableOutput = reshape(chainOutput[:,1,:], (:,1,batchSize)) #F'xB
         valueOutput = chainOutput[:,2:end,:] #F'xAxB
     end
     
     finalInput = nothing 
-    Zygote.ignore() do
+    ChainRulesCore.ignore_derivatives() do
         finalInput = []
         for i in 1:batchSize
             singleFinalInput = vcat(repeat(variableOutput[:,:,i], 1, maxActionSpaceSize), valueOutput[:,:,i]) #one element of the batch
@@ -106,7 +106,7 @@ function (nn::HeterogeneousVariableOutputCPNN)(state::BatchedHeterogeneousTrajec
         end
     end
     #finalInput: vector of matrices of size F'xA (total size BxF'xA)
-    Zygote.ignore() do
+    ChainRulesCore.ignore_derivatives() do
         f, a = size(finalInput[1])
         finalInput = reshape(collect(Iterators.flatten(finalInput)), (f, maxActionSpaceSize, batchSize)) #!!TO TEST #convert vector of matrices into a 3-dimensional matrix
         
@@ -115,7 +115,7 @@ function (nn::HeterogeneousVariableOutputCPNN)(state::BatchedHeterogeneousTrajec
     output = dropdims(nn.outputChain(finalInput); dims=1) #AxB
     
     finalOutput = nothing
-    Zygote.ignore() do
+    ChainRulesCore.ignore_derivatives() do
         finalOutput = reshape(
             Float32[-Inf32 for _ in 1:(size(fg.valnf,2)*size(fg.valnf,3))], 
             size(fg.valnf,2), 
@@ -123,7 +123,7 @@ function (nn::HeterogeneousVariableOutputCPNN)(state::BatchedHeterogeneousTrajec
         )
     end
     
-    Zygote.ignore() do
+    ChainRulesCore.ignore_derivatives() do
         for i in 1:batchSize
             for j in 1:actionSpaceSizes[i]
                 #note that possibleValuesIdx is a Vector{Vector{Int64}} while output and finalOutput are Matrix{Int64}

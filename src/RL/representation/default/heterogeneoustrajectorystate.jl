@@ -92,7 +92,7 @@ function Flux.functor(::Type{Vector{HeterogeneousTrajectoryState}}, v)
     variableIdx = ones(Int, batchSize)
     possibleValuesIdx = nothing
 
-    Zygote.ignore() do
+    ChainRulesCore.ignore_derivatives() do
         variableIdx = (state -> state.variableIdx).(v)
         possibleValuesIdx = (state -> state.possibleValuesIdx).(v)
     end

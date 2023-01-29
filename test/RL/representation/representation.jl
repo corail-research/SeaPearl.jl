@@ -24,5 +24,4 @@ end
     @testset "Custom featurization" begin
         @test SeaPearl.featurize(TestFeatState{TestFeaturization,SeaPearl.DefaultTrajectoryState}()) == [1, 2, 3]
     end
-
 end

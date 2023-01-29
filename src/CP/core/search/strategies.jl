@@ -2,12 +2,19 @@
 SeaPearl Provides several pre-implemented search strategy to explore the search tree in a certain way. The specific strategy has to 
 be specified in the search! function. The search strategy choose how the _toCall_ Stack will be filled and empty ( ie. which branch will 
 be explored at a certain node ).
-"""    
+"""
 abstract type SearchStrategy end
 
+"""DFSearch <: SearchStrategy
+Implements a DFS search.
+"""
 struct DFSearch <: SearchStrategy end
+
+"""DFWBSearch <: SearchStrategy
+Implements a DFWBS search.
+"""
 struct DFWBSearch <: SearchStrategy end
- 
+
 """
 struct LNSearch <: SearchStrategy
 Implementation of Large Neighboorhood Search 
@@ -17,12 +24,12 @@ with no improvement until `limitValuesToRemove` is reached. `limitValuesToRemove
 With `repairLimits' one can fix limits (numberOfNodes, numberOfSolutions, searchingTime) that will be applied to the model used in the local search.
 Example: SeaPearl.solve!(model, SeaPearl.LNSearch(limitValuesToRemove=5, repairSearch=SeaPearl.ILDS(1), repairLimits=Dict("searchingTime" => 10)); ...)
 """
-Base.@kwdef struct LNSearch <: SearchStrategy 
-    seed::Union{Nothing, Int} = nothing
-    limitValuesToRemove::Union{Nothing, Int} = nothing
+Base.@kwdef struct LNSearch <: SearchStrategy
+    seed::Union{Nothing,Int} = nothing
+    limitValuesToRemove::Union{Nothing,Int} = nothing
     limitIterNoImprovement::Int64 = 100
     repairSearch::SearchStrategy = DFSearch()
-    repairLimits::Union{Nothing, Dict{String, Int}} = nothing
+    repairLimits::Union{Nothing,Dict{String,Int}} = nothing
 end
 
 """
@@ -34,15 +41,13 @@ struct ILDSearch <: SearchStrategy
     d::Int64
 end
 
-abstract type ExpandCriteria end 
-
-abstract type RBSearch{C} <: SearchStrategy where C <: ExpandCriteria end
-
+abstract type ExpandCriteria end
+abstract type RBSearch{C} <: SearchStrategy where {C<:ExpandCriteria} end
 """
     struct staticRBSearch <: RBSearch
 implements the static Restart-Based strategy where the stopping criteria `L` remains the same at each restart. 
 """
-struct staticRBSearch{C} <: RBSearch{C} 
+struct staticRBSearch{C} <: RBSearch{C}
     L::Int64
     n::Int64
 end
@@ -51,7 +56,7 @@ end
     struct geometricRBSearch <: RBSearch
 implements the geometric Restart-Based strategy where the stopping criteria `L` is increased by the geometric factor `α` at each restart. 
 """
-struct geometricRBSearch{C}<: RBSearch{C} 
+struct geometricRBSearch{C} <: RBSearch{C}
     L::Int64
     n::Int64
     α::Float32
@@ -80,7 +85,7 @@ function (criteria::RBSearch{VisitedNodeCriteria})(model::CPModel, limit::Int64)
     # Here the inequality is large because we don't consider the root node of the tree as a visited node. 
 end
 
-abstract type InfeasibleNodeCriteria <: ExpandCriteria end 
+abstract type InfeasibleNodeCriteria <: ExpandCriteria end
 
 function (criteria::RBSearch{InfeasibleNodeCriteria})(model::CPModel, limit::Int64)::Bool
     return model.statistics.numberOfInfeasibleSolutionsBeforeRestart < limit
@@ -88,7 +93,7 @@ function (criteria::RBSearch{InfeasibleNodeCriteria})(model::CPModel, limit::Int
     # (ie. leading to the :Infeasible case in the expandRbs! function)
 end
 
-abstract type SolutionFoundCriteria <: ExpandCriteria end 
+abstract type SolutionFoundCriteria <: ExpandCriteria end
 
 function (criteria::RBSearch{SolutionFoundCriteria})(model::CPModel, limit::Int64)::Bool
     return model.statistics.numberOfSolutionsBeforeRestart < limit

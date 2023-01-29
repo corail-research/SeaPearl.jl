@@ -1,5 +1,5 @@
 """
-    BinaryOr(x::BoolVar, y::BoolVar)
+    BinaryOr(x::BoolVar, y::BoolVar, trailer::SeaPearl.Trailer)
 
 Binary Or constraint, states that `x || y`.
 """

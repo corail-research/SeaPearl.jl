@@ -1,5 +1,5 @@
 """
-    isBinaryOr(b::AbstractBoolVar, x::AbstractBoolVar, y::AbstractBoolVar)
+    isBinaryOr(b::AbstractBoolVar, x::AbstractBoolVar, y::AbstractBoolVar, trailer::SeaPearl.Trailer)
 
 Is Or constraint, states that `b <=> x or y`.
 """

@@ -107,6 +107,3 @@ function evaluate(eval::SameInstancesEvaluator, variableHeuristic::AbstractVaria
 
     end
 end
-
-
-
