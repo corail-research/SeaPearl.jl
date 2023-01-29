@@ -194,6 +194,7 @@
     end
 
     @testset "triggerFoundSolution!()" begin
+        SeaPearl.tic()
         trailer = SeaPearl.Trailer()
         x = SeaPearl.IntVar(2, 2, "x", trailer)
         y = SeaPearl.IntVar(3, 3, "y", trailer)
