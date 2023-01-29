@@ -202,7 +202,7 @@
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
         SeaPearl.addObjective!(model, y)
-        @time act = SeaPearl.triggerFoundSolution!(model)
+        act = SeaPearl.triggerFoundSolution!(model)
         if act == :tightenObjective
             SeaPearl.tightenObjective!(model)
         end
@@ -231,8 +231,6 @@
         SeaPearl.addObjective!(model, y)
 
         @test isnothing(model.objectiveBound)
-
-
         SeaPearl.tightenObjective!(model)
 
         @test model.objectiveBound == 2

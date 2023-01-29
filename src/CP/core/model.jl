@@ -214,7 +214,7 @@ function triggerFoundSolution!(model::CPModel)
     if !(solution in model.statistics.solutions)   #probably not efficient but necessary
         push!(model.statistics.solutions, solution)
         push!(model.statistics.nodevisitedpersolution,model.statistics.numberOfNodes)
-        push!(model.statistics.timeneededpersolution,peektimer())
+        push!(model.statistics.timeneededpersolution, peektimer())
         if !isnothing(model.objective)
             @assert !isnothing(model.statistics.objectives) "did you use SeaPearl.addObjective! to declare your objective function ? "
             push!(model.statistics.objectives, assignedValue(model.objective))
