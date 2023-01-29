@@ -110,6 +110,7 @@ function (valueSelection::SupervisedLearnedHeuristic)(PHASE::Type{DecisionPhase}
     # order in the Q-table). We thus extract the value and then find the corresponding action.
     if valueSelection.trainMode && !isnothing(valueSelection.helpSolution) 
         value = valueSelection.helpSolution[x.id]
+        model.statistics.lastVal = value
         #find the vertex corresponding to the value
         st = state(env)
         vertex_id = valueSelection.current_state.cplayergraph.nodeToId[ValueVertex(value)]
@@ -123,7 +124,7 @@ function (valueSelection::SupervisedLearnedHeuristic)(PHASE::Type{DecisionPhase}
         
     else # Else we choose the action provided by the agent
         action = valueSelection.agent(env) # Choose action
-        value = action_to_value(valueSelection, action, state(env), model)
+        model.statistics.lastVal = action_to_value(valueSelection, action, state(env), model)
     end
     
     if valueSelection.trainMode
@@ -132,7 +133,7 @@ function (valueSelection::SupervisedLearnedHeuristic)(PHASE::Type{DecisionPhase}
         valueSelection.agent(RL.PRE_ACT_STAGE, env, action)
     end
     
-    return value
+    return model.statistics.lastVal
 end
 
 """

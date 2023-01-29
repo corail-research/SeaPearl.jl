@@ -45,7 +45,7 @@ function SameInstancesEvaluator(valueSelectionArray::Array{H, 1}, generator::Abs
 end
 
 
-function setNodesBudget!(evaluator::SameInstancesEvaluator, budget::Int)
+function setNodesBudget!(evaluator::SameInstancesEvaluator, budget::Union{Int,Nothing})
     for instance in evaluator.instances
         instance.limit.numberOfNodes = budget
     end
@@ -73,7 +73,8 @@ This function computes one evaluation step. It does a full search using a specif
 function evaluate(eval::SameInstancesEvaluator, variableHeuristic::AbstractVariableSelection, strategy::S; verbose::Bool=true) where{S<:SearchStrategy}
     for j in 1:eval.nbHeuristics
         heuristic = eval.metrics[1,j].heuristic
-        if isa(heuristic, LearnedHeuristic)             #LearnedHeuristic has to be evaluated at each evaluation step as long as the heuristic is updated along the training.
+        print("Switching to agent : ",typeof(heuristic))
+        if isa(heuristic, LearnedHeuristic)          #LearnedHeuristic has to be evaluated at each evaluation step as long as the heuristic is updated along the training.
             initsize = length(heuristic.agent.trajectory) 
             testmode!(heuristic, true)
             for i in 1:eval.nbInstances

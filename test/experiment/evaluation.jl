@@ -55,17 +55,17 @@
         @test !isempty(evaluator.metrics[1, 1].nodeVisited)
         @test !isempty(evaluator.metrics[1, 1].meanNodeVisitedUntilfirstSolFound)
         @test !isempty(evaluator.metrics[1, 1].meanNodeVisitedUntilEnd)
-        @test !isempty(evaluator.metrics[1, 1].timeneeded)
+        @test !isempty(evaluator.metrics[1, 1].TotalTimeNeeded)
         @test !isempty(evaluator.metrics[1, 1].scores)
-        @test !isempty(evaluator.metrics[1, 1].timeneeded)
+        @test !isempty(evaluator.metrics[1, 1].TotalTimeNeeded)
 
         SeaPearl.empty!(evaluator)
         @test evaluator.metrics[1, 1].nbEpisodes == 0
         @test isempty(evaluator.metrics[1, 1].nodeVisited)
         @test isempty(evaluator.metrics[1, 1].meanNodeVisitedUntilfirstSolFound)
         @test isempty(evaluator.metrics[1, 1].meanNodeVisitedUntilEnd)
-        @test isempty(evaluator.metrics[1, 1].timeneeded)
+        @test isempty(evaluator.metrics[1, 1].TotalTimeNeeded)
         @test isempty(evaluator.metrics[1, 1].scores)
-        @test isempty(evaluator.metrics[1, 1].timeneeded)
+        @test isempty(evaluator.metrics[1, 1].TotalTimeNeeded)
     end
 end
