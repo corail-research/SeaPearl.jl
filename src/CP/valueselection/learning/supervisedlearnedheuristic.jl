@@ -110,6 +110,7 @@ function (valueSelection::SupervisedLearnedHeuristic)(PHASE::Type{DecisionPhase}
     # order in the Q-table). We thus extract the value and then find the corresponding action.
     if valueSelection.trainMode && !isnothing(valueSelection.helpSolution) 
         value = valueSelection.helpSolution[x.id]
+        model.statistics.lastVal = value
         #find the vertex corresponding to the value
         st = state(env)
         vertex_id = valueSelection.current_state.cplayergraph.nodeToId[ValueVertex(value)]
