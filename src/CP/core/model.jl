@@ -141,7 +141,7 @@ function addKnownObjective!(model::CPModel, knownObective::Int64)
 end
 
 function computeSearchTreeSize!(model::CPModel)
-    model.statistics.searchTreeSize = prod([length(x.domain) for (k, x) in model.variables])
+    return prod([length(x.domain) for (k, x) in model.variables])
 end
 
 """
@@ -290,6 +290,7 @@ function Base.isempty(model::CPModel)::Bool
         && isnothing(model.statistics.lastPruning)
         && isnothing(model.statistics.lastVar)
         && isnothing(model.statistics.lastVal)
+        && isnothing(model.statistics.searchTreeSize)
         && model.statistics.numberOfNodes == 0
         && model.statistics.numberOfSolutions == 0
         && model.statistics.numberOfInfeasibleSolutions == 0
@@ -329,6 +330,7 @@ function Base.empty!(model::CPModel)
     model.statistics.lastPruning = nothing
     model.statistics.lastVar = nothing
     model.statistics.lastVal = nothing
+    model.statistics.searchTreeSize = nothing
     model.statistics.numberOfNodes = 0
     model.statistics.numberOfSolutions = 0
     model.statistics.numberOfInfeasibleSolutions = 0
@@ -367,6 +369,7 @@ function reset_model!(model::CPModel)
     model.statistics.lastPruning = nothing
     model.statistics.lastVar = nothing
     model.statistics.lastVal = nothing
+    model.statistics.searchTreeSize = computeSearchTreeSize!(model)
     model.statistics.numberOfNodes = 0
     model.statistics.numberOfSolutions = 0
     model.statistics.numberOfInfeasibleSolutions = 0
@@ -387,6 +390,7 @@ function restart_search!(model::CPModel)
     model.statistics.lastPruning = 0
     model.statistics.lastVar = nothing
     model.statistics.lastVal = nothing
+    model.statistics.searchTreeSize = computeSearchTreeSize!(model)
     model.statistics.numberOfInfeasibleSolutionsBeforeRestart = 0
     model.statistics.numberOfSolutionsBeforeRestart = 0
     model.statistics.numberOfNodesBeforeRestart = 0
