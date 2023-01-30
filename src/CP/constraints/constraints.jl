@@ -59,6 +59,7 @@ end
     triggerDomainChange!(toPropagate::Set{Constraint}, x::AbstractIntVar)
 
 Add the constraints that have to be propagated when the domain of `x` changes to `toPropagate`.
+Switch variable argument is_impacted to true
 """
 function triggerDomainChange!(toPropagate::Set{<:Constraint}, x::Union{AbstractIntVar, AbstractBoolVar, IntSetVar})
     addToPropagate!(toPropagate, getOnDomainChange(x))
