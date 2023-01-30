@@ -16,10 +16,12 @@ BoolVarViewNot(x::AbstractBoolVar, id::String)
 
 *Fake* variable `y`, such that `y = ¬x`. This variable behaves like an usual one.
 """
-struct BoolVarViewNot <: BoolVarView
+mutable struct BoolVarViewNot <: BoolVarView
     x               ::AbstractBoolVar
     domain          ::BoolDomainViewNot
     id              ::String
+    is_impacted     ::Bool
+
 
     """
         BoolVarViewNot(x::AbstractBoolVar, id::String)
@@ -28,7 +30,7 @@ struct BoolVarViewNot <: BoolVarView
     """
     function BoolVarViewNot(x::AbstractBoolVar, id::String)
         dom = BoolDomainViewNot(x.domain)
-        var = new(x, dom, id)
+        var = new(x, dom, id, false)
         addChildrenVariable!(x, var)
         return var
     end

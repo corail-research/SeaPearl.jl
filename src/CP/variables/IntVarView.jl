@@ -15,11 +15,13 @@ end
 
     Create a *fake* variable `y`, such that `y == a*x`. This variable behaves like an usual one.
     """
-struct IntVarViewMul <: IntVarView
+mutable struct IntVarViewMul <: IntVarView
     x               ::AbstractIntVar
     a               ::Int
     domain          ::IntDomainViewMul
     id              ::String
+    is_impacted         ::Bool
+
 
     """
         IntVarViewMul(x::AbstractIntVar, a::Int, id::String)
@@ -29,7 +31,7 @@ struct IntVarViewMul <: IntVarView
     function IntVarViewMul(x::AbstractIntVar, a::Int, id::String)
         @assert a > 0
         dom = IntDomainViewMul(x.domain, a)
-        var = new(x, a, dom, id)
+        var = new(x, a, dom, id, false)
         addChildrenVariable!(x, var)
         return var
     end
@@ -48,10 +50,12 @@ end
 
     Create a *fake* variable `y`, such that `y = -x`. This variable behaves like an usual one.
 """
-struct IntVarViewOpposite <: IntVarView
+mutable struct IntVarViewOpposite <: IntVarView
     x               ::AbstractIntVar
     domain          ::IntDomainViewOpposite
     id              ::String
+    is_impacted         ::Bool
+
 
     """
     IntVarViewOpposite(x::AbstractIntVar, id::String)
@@ -60,7 +64,7 @@ struct IntVarViewOpposite <: IntVarView
     """
     function IntVarViewOpposite(x::AbstractIntVar, id::String)
         dom = IntDomainViewOpposite(x.domain)
-        var = new(x, dom, id)
+        var = new(x, dom, id, false)
         addChildrenVariable!(x, var)
         return var
     end
@@ -75,11 +79,13 @@ struct IntDomainViewOffset <: IntDomainView
     c               ::Int
 end
 
-struct IntVarViewOffset <: IntVarView
+mutable struct IntVarViewOffset <: IntVarView
     x               ::AbstractIntVar
     c               ::Int
     domain          ::IntDomainViewOffset
     id              ::String
+    is_impacted         ::Bool
+
 
     """
     IntVarViewOffset(x::AbstractIntVar, id::String)
@@ -88,7 +94,7 @@ struct IntVarViewOffset <: IntVarView
     """
     function IntVarViewOffset(x::AbstractIntVar, c::Int, id::String)
         dom = IntDomainViewOffset(x.domain, c)
-        var = new(x, c, dom, id)
+        var = new(x, c, dom, id, false)
         addChildrenVariable!(x, var)
         return var
     end
