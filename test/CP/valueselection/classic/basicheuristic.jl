@@ -39,4 +39,20 @@ end
     y = SeaPearl.IntVar(2, 5, "y", trailer)
     SeaPearl.addVariable!(model, x)
     SeaPearl.addVariable!(model, y)
+
+    #TODO to complete
+end
+
+@testset "activityheuristic.jl" begin
+
+    trailer = SeaPearl.Trailer()
+    model = SeaPearl.CPModel(trailer)
+    valueselection = SeaPearl.ActivityHeuristic()
+
+    x = SeaPearl.IntVar(2, 6, "x", trailer)
+    y = SeaPearl.IntVar(2, 5, "y", trailer)
+    SeaPearl.addVariable!(model, x)
+    SeaPearl.addVariable!(model, y)
+
+    #TODO to complete
 end

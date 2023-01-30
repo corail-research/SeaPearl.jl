@@ -203,6 +203,7 @@
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
         SeaPearl.addObjective!(model, y)
+        SeaPearl.tic()
         @time act = SeaPearl.triggerFoundSolution!(model)
         if act == :tightenObjective
             SeaPearl.tightenObjective!(model)
