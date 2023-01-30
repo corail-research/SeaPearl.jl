@@ -59,43 +59,45 @@
         y = SeaPearl.IntVar(1, 4, "y", trailer)
         z = SeaPearl.IntVar(1, 4, "z", trailer)
 
-        constraint = SeaPearl.Equal(x, y, trailer)
+        constraint1 = SeaPearl.Equal(x, y, trailer)
+        constraint2 = SeaPearl.NotEqual(y, z, trailer)
 
         model = SeaPearl.CPModel(trailer)
 
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
         SeaPearl.addVariable!(model, z)
-        SeaPearl.addConstraint!(model, constraint)
+        SeaPearl.addConstraint!(model, constraint1)
+        SeaPearl.addConstraint!(model, constraint2)
 
         feasability, prunedDomains = SeaPearl.fixPoint!(model)
+        SeaPearl.saveState!(model.trailer)
 
         SeaPearl.assign!(x, 1)
         model.statistics.lastVar = x
         model.statistics.lastVal = 1 
         feasability, prunedDomains = SeaPearl.fixPoint!(model)
-        SeaPearl.saveState!(model.trailer)
 
-        @test model.activity_var_val[(x,1)] == 2 #x and y prunned
-        @test model.impact_var_val[(x,1)] == 0.9375 #x and y prunned
-
-        SeaPearl.assign!(z, 1)
-        model.statistics.lastVar = z
-        model.statistics.lastVal = 1 
-        feasability, prunedDomains = SeaPearl.fixPoint!(model)
-
-        @test model.activity_var_val[(z,1)] == 1 #z prunned
-        @test model.impact_var_val[(z,1)] == 0.75 #z prunned
-
-        SeaPearl.restoreState!(model.trailer)
+        @test model.activity_var_val[(x,1)] == 3 #x,y,z prunned
+        @test model.impact_var_val[(x,1)] == 0.953125 #x and y prunned
 
         SeaPearl.assign!(z, 2)
         model.statistics.lastVar = z
-        model.statistics.lastVal = 1 
+        model.statistics.lastVal = 2
         feasability, prunedDomains = SeaPearl.fixPoint!(model)
 
-        @test model.activity_var_val[(x,1)] == 2 #x and y prunned
-        @test model.impact_var_val[(x,1)] == 0.9375 #x and y prunned
+        @test model.activity_var_val[(z,2)] == 1 #z prunned
+        @test model.impact_var_val[(z,2)] == 0.6666667f0 #z prunned
+
+        SeaPearl.restoreState!(model.trailer)
+        model.statistics.searchTreeSize = SeaPearl.computeSearchTreeSize!(model) #TODO should be done automatically by restoreState!
+        SeaPearl.assign!(z, 2)
+        model.statistics.lastVar = z
+        model.statistics.lastVal = 2
+        feasability, prunedDomains = SeaPearl.fixPoint!(model)
+
+        @test model.activity_var_val[(z,2)] == 1.8f0 #x and y prunned
+        @test model.impact_var_val[(z,2)] == 0.74375004f0 #x and y prunned
 
     end
 end
