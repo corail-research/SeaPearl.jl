@@ -21,7 +21,7 @@ function generateLimitList(strategy::geometricRBSearch{C})   where C <: ExpandCr
 end
 
 """
-    function generateLimitList(strategy::lubyRBSearch)
+    generateLimitList(strategy::lubyRBSearch)
 
 Used as a generic function to generate limits for each search.
 lubyRBSearch : At each restart, the number of infeasible solution before restart is increased by the factor Luby[i]. strategy.L states the 
@@ -39,7 +39,7 @@ function generateLimitList(strategy::lubyRBSearch{C})  where C <: ExpandCriteria
 end
 
 """
-        function initroot!(toCall::Stack{Function}, strategy::S, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection) where {S <: RBSearch}
+    initroot!(toCall::Stack{Function}, strategy::S, model::CPModel, variableHeuristic::AbstractVariableSelection, valueSelection::ValueSelection) where {S <: RBSearch}
 
 It fills the toCall Stack in a certains order based on a specific Strategy <: RBSearch with 
 function that expand the search tree. In restart based strategy, we fill the Stack with calls to expandRbs with different nodeLimit. The nodeLimit corresponds 

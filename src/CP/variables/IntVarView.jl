@@ -6,8 +6,8 @@ addChildrenVariable!(x::IntVarView, y::IntVarView) = addChildrenVariable!(x.x, y
 Domain for an integer variable that is a multiple of another integer variable. See IntVarViewMul.
 """
 struct IntDomainViewMul <: IntDomainView
-    orig            ::AbstractIntDomain
-    a               ::Int
+    orig::AbstractIntDomain
+    a::Int
 end
 
 """
@@ -42,7 +42,7 @@ end
 Domain for an integer variable that is the opposite of another integer variable (y = -x).
 """
 struct IntDomainViewOpposite <: IntDomainView
-    orig            ::AbstractIntDomain
+    orig::AbstractIntDomain
 end
 
 """
@@ -75,8 +75,8 @@ end
 Domain for an integer variable that is offset by a constant 'c' (y = x + c)
 """
 struct IntDomainViewOffset <: IntDomainView
-    orig            ::AbstractIntDomain
-    c               ::Int
+    orig::AbstractIntDomain
+    c::Int
 end
 
 mutable struct IntVarViewOffset <: IntVarView
@@ -154,7 +154,7 @@ function remove!(dom::IntDomainViewMul, value::Int)
     return remove!(dom.orig, value ÷ dom.a) * dom.a
 end
 remove!(dom::IntDomainViewOpposite, value::Int) = -1 * remove!(dom.orig, -value)
-remove!(dom::IntDomainViewOffset, value::Int) = map(x -> x + dom.c, remove!(dom.orig, value - dom.c)) 
+remove!(dom::IntDomainViewOffset, value::Int) = map(x -> x + dom.c, remove!(dom.orig, value - dom.c))
 
 """
     removeAll!(dom::IntDomainView)
@@ -163,7 +163,7 @@ Remove every value from `dom`. Return the removed values.
 """
 removeAll!(dom::IntDomainViewMul) = dom.a * removeAll!(dom.orig)
 removeAll!(dom::IntDomainViewOpposite) = -1 * removeAll!(dom.orig)
-removeAll!(dom::IntDomainViewOffset) = map(x -> x + dom.c, removeAll!(dom.orig)) 
+removeAll!(dom::IntDomainViewOffset) = map(x -> x + dom.c, removeAll!(dom.orig))
 
 
 """
@@ -192,7 +192,7 @@ Remove every integer of `dom` that is *strictly* above `value`.
 """
 removeAbove!(dom::IntDomainViewMul, value::Int) = dom.a * removeAbove!(dom.orig, convert(Int, floor(value / dom.a)))
 removeAbove!(dom::IntDomainViewOpposite, value::Int) = -1 * removeBelow!(dom.orig, -value)
-removeAbove!(dom::IntDomainViewOffset, value::Int) = map(x -> x + dom.c, removeAbove!(dom.orig, value - dom.c)) 
+removeAbove!(dom::IntDomainViewOffset, value::Int) = map(x -> x + dom.c, removeAbove!(dom.orig, value - dom.c))
 
 """
     removeBelow!(dom::IntDomainView, value::Int)
@@ -201,7 +201,7 @@ Remove every integer of `dom` that is *strictly* below `value`. Return the prune
 """
 removeBelow!(dom::IntDomainViewMul, value::Int) = dom.a * removeBelow!(dom.orig, convert(Int, ceil(value / dom.a)))
 removeBelow!(dom::IntDomainViewOpposite, value::Int) = -1 * removeAbove!(dom.orig, -value)
-removeBelow!(dom::IntDomainViewOffset, value::Int) = map(x -> x + dom.c, removeBelow!(dom.orig, value - dom.c)) 
+removeBelow!(dom::IntDomainViewOffset, value::Int) = map(x -> x + dom.c, removeBelow!(dom.orig, value - dom.c))
 
 
 """
@@ -214,7 +214,7 @@ function assign!(dom::IntDomainViewMul, value::Int)
     return dom.a * assign!(dom.orig, value ÷ dom.a)
 end
 assign!(dom::IntDomainViewOpposite, value::Int) = -1 * assign!(dom.orig, -value)
-assign!(dom::IntDomainViewOffset, value::Int) = map(x -> x + dom.c, assign!(dom.orig, value - dom.c)) 
+assign!(dom::IntDomainViewOffset, value::Int) = map(x -> x + dom.c, assign!(dom.orig, value - dom.c))
 
 """
     Base.iterate(dom::IntDomainView, state=1)
@@ -300,8 +300,8 @@ end
 
 parentValue(y::IntVarViewMul, v::Int) = v ÷ y.a
 parentValue(y::IntVarViewOffset, v::Int) = v - y.c
-parentValue(::IntVarViewOpposite, v::Int) = - v
+parentValue(::IntVarViewOpposite, v::Int) = -v
 childrenValue(::IntVar, v::Int) = v
 childrenValue(y::IntVarViewMul, v::Int) = childrenValue(y.x, v) * y.a
 childrenValue(y::IntVarViewOffset, v::Int) = childrenValue(y.x, v) + y.c
-childrenValue(y::IntVarViewOpposite, v::Int) = - childrenValue(y.x, v)
+childrenValue(y::IntVarViewOpposite, v::Int) = -childrenValue(y.x, v)
