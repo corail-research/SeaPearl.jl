@@ -93,10 +93,11 @@ mutable struct CPModel
     limit                   ::Limit
     knownObjective          ::Union{Nothing,Int64}
     impact_var_val          ::Dict{Tuple{AbstractIntVar,Int}, Float32}
+    activity_var_val          ::Dict{Tuple{AbstractIntVar,Int}, Float32}
     adhocInfo               ::Any
 
 
-    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Dict{String, AbstractVar}(), Constraint[], trailer, nothing, nothing, Statistics(Dict{String, Int}(), 0, 0, 0, 0, 0, 0, 0, 0, Solution[], Int[], Float32[], nothing, nothing, nothing, nothing, nothing, nothing, nothing, Dict{Constraint, Int}()), Limit(nothing, nothing, nothing), nothing, Dict{Tuple{AbstractIntVar,Int}, Float32}())
+    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Dict{String, AbstractVar}(), Constraint[], trailer, nothing, nothing, Statistics(Dict{String, Int}(), 0, 0, 0, 0, 0, 0, 0, 0, Solution[], Int[], Float32[], nothing, nothing, nothing, nothing, nothing, nothing, nothing, Dict{Constraint, Int}()), Limit(nothing, nothing, nothing), nothing, Dict{Tuple{AbstractIntVar,Int}, Float32}(), Dict{Tuple{AbstractIntVar,Int}, Float32}())
 end
 
 CPModel() = CPModel(Trailer())
@@ -313,6 +314,7 @@ function Base.empty!(model::CPModel)
     empty!(model.variables)
     empty!(model.branchable_variables)
     empty!(model.impact_var_val)
+    empty!(model.activity_var_val)
     empty!(model.branchable)
     empty!(model.constraints)
     empty!(model.trailer.prior)
