@@ -90,7 +90,7 @@
         @test model.impact_var_val[(z,2)] == 0.6666667f0 #z prunned
 
         SeaPearl.restoreState!(model.trailer)
-        model.statistics.searchTreeSize = SeaPearl.computeSearchTreeSize!(model) #TODO should be done automatically by restoreState!
+
         SeaPearl.assign!(z, 2)
         model.statistics.lastVar = z
         model.statistics.lastVal = 2
