@@ -44,14 +44,14 @@ function fixPoint!(model::CPModel, new_constraints::Union{Array{Constraint}, Not
     end
 
     #impact value computation :
-    if isnothing(model.statistics.searchTreeSize)
-        model.statistics.searchTreeSize = SeaPearl.computeSearchTreeSize!(model)
+    if model.statistics.searchTreeSize.value == -1
+        setValue!(model.statistics.searchTreeSize,computeSearchTreeSize!(model))
     elseif !isnothing(model.statistics.lastVar) #if this is not the first fix-point
         x = model.statistics.lastVar
         v = model.statistics.lastVal
         alpha = 0.4
-        impact = 1.0 - SeaPearl.computeSearchTreeSize!(model)/model.statistics.searchTreeSize  #after/before fix point
-        model.statistics.searchTreeSize = SeaPearl.computeSearchTreeSize!(model) #updating searchTreeSize
+        impact = 1.0 - SeaPearl.computeSearchTreeSize!(model)/model.statistics.searchTreeSize.value #after/before fix point
+        setValue!(model.statistics.searchTreeSize,computeSearchTreeSize!(model))
         if !isnothing(get(model.impact_var_val, (x,v), nothing)) #tuple (x,v) previously seen
             model.impact_var_val[(x,v)] = (1-alpha)*model.impact_var_val[(x,v)] + alpha * impact
         else
