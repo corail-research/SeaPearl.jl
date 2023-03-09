@@ -58,8 +58,8 @@ function fixPoint!(model::CPModel, new_constraints::Union{Array{Constraint}, Not
             model.impact_var_val[(x,v)] = impact
         end
         
-        activity = 1 #starts at 1  because the domain of definition of the assigned variable is pruned no matter what
-
+        alpha = 0.85
+        activity = 0
         #activity value computation : 
         for (k,var) in model.variables
             if isdefined(var, :is_impacted) && var.is_impacted
