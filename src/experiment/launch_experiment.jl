@@ -115,7 +115,7 @@ function launch_experiment!(
         !isnothing(training_timeout) && (train_time - start_time) / 1.0e9 > training_timeout && break
         verbose && println(" --- EPISODE: ", i)
 
-        model = CPModel(trailer)
+        model = CPModel()
         fill_with_generator!(model, generator; rng=rngTraining)
 
         for j in 1:nbHeuristics
@@ -124,8 +124,10 @@ function launch_experiment!(
                 verbose && print("Visited nodes with learnedHeuristic ", j, " : ")
                 dt = @elapsed for k in 1:restartPerInstances
                     restart_search!(model)
+                    remaining_time = training_timeout - (train_time - start_time) / 1.0e9
+                    model.limit.searchingTime = ceil(remaining_time)
                     search!(model, strategy, variableHeuristic, valueSelectionArray[j], out_solver=out_solver)
-                    verbose && print(model.statistics.numberOfNodesBeforeRestart, ": ", model.statistics.numberOfSolutions, "(", model.statistics.AccumulatedRewardBeforeRestart, ") / ")
+                    verbose && println(model.statistics.numberOfNodesBeforeRestart, ": ", model.statistics.numberOfSolutions, "(", model.statistics.AccumulatedRewardBeforeRestart, ") / ")
                 end
 
                 if i % (nbEpisodes / nbTrainingPoints) == 1 || nbEpisodes <= nbTrainingPoints #We want nbTrainingPoints in the Metrics Array
@@ -144,7 +146,7 @@ function launch_experiment!(
 
                 if !isnothing(logger)
                     with_logger(logger) do
-                        @info "Train Heuristic " * string(j) Loss = last(metricsArray[j].loss) Reward = last(metricsArray[j].totalReward) Node_Visited = last(metricsArray[j].nodeVisited) Time = last(metricsArray[j].timeneeded) Score = first(last(metricsArray[j].scores)) Explorer = ReinforcementLearningCore.get_ϵ(valueSelectionArray[j].agent.policy.explorer) Load_RAM = Load_RAM Load_VRAM = Load_VRAM Trajectory_load = length(valueSelectionArray[j].agent.trajectory) Metrics_size = Base.summarysize(metricsArray)
+                        @info "Train Heuristic " * string(j) Loss = last(metricsArray[j].loss) Reward = last(metricsArray[j].totalReward) Node_Visited = last(metricsArray[j].nodeVisited) Time = last(metricsArray[j].timeNeeded) Score = first(last(metricsArray[j].scores)) Explorer = ReinforcementLearningCore.get_ϵ(valueSelectionArray[j].agent.policy.explorer) Load_RAM = Load_RAM Load_VRAM = Load_VRAM Trajectory_load = length(valueSelectionArray[j].agent.trajectory) Metrics_size = Base.summarysize(metricsArray)
                     end
                 end
                 verbose && println()
