@@ -368,6 +368,8 @@ function reset_model!(model::CPModel)
     model.statistics.lastPruning = nothing
     model.statistics.lastVar = nothing
     model.statistics.lastVal = nothing
+    empty!(model.impact_var_val)
+    empty!(model.activity_var_val)
     setValue!(model.statistics.searchTreeSize,computeSearchTreeSize!(model))
     model.statistics.numberOfNodes = 0
     model.statistics.numberOfSolutions = 0
