@@ -103,3 +103,64 @@ end
 function Base.show(io::IO, con::LessOrEqual)
     print(io, typeof(con), ": ", con.x.id, " ≤ ", con.y.id)
 end
+
+"""
+    Less(x::AbstractIntVar, y::AbstractIntVar, trailer::Trailer)
+
+Inequality between variables constraint, states that `x < y`
+"""
+struct Less <: Constraint
+    x       ::AbstractIntVar
+    y       ::AbstractIntVar
+    active  ::StateObject{Bool}
+
+    """
+        Less(x::AbstractIntVar, y::AbstractIntVar, trailer::Trailer)
+
+    Inequality between variables constraint, states that `x < y`
+    """
+    function Less(x::AbstractIntVar, y::AbstractIntVar, trailer)
+        constraint = new(x, y, StateObject(true, trailer))
+        addOnDomainChange!(x, constraint)
+        addOnDomainChange!(y, constraint)
+        return constraint
+    end
+end
+
+"""
+    propagate!(constraint::Less, toPropagate::Set{Constraint}, prunedDomains::CPModification)
+
+`Less` propagation function.
+"""
+function propagate!(constraint::Less, toPropagate::Set{Constraint}, prunedDomains::CPModification)
+
+
+    if maximum(constraint.x.domain) < minimum(constraint.y.domain)
+        setValue!(constraint.active, false)
+    end
+
+    prunedX = removeAbove!(constraint.x.domain, maximum(constraint.y.domain)-1)
+    if !isempty(prunedX)
+        addToPrunedDomains!(prunedDomains, constraint.x, prunedX)
+        triggerDomainChange!(toPropagate, constraint.x)
+    end
+
+    prunedY = removeBelow!(constraint.y.domain, minimum(constraint.x.domain)+1)
+    if !isempty(prunedY)
+        addToPrunedDomains!(prunedDomains, constraint.y, prunedY)
+        triggerDomainChange!(toPropagate, constraint.y)
+    end
+    return !isempty(constraint.x.domain) && !isempty(constraint.y.domain)
+end
+
+variablesArray(constraint::Less) = [constraint.x, constraint.y]
+
+function Base.show(io::IO, ::MIME"text/plain", con::Less)
+    println(io, typeof(con), ": ", con.x.id, " < ", con.y.id, ", active = ", con.active)
+    println(io, "   ", con.x)
+    println(io, "   ", con.y)
+end
+
+function Base.show(io::IO, con::Less)
+    print(io, typeof(con), ": ", con.x.id, " < ", con.y.id)
+end
