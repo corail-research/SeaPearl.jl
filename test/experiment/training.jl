@@ -98,13 +98,8 @@
 end=#
 
 @testset "training.jl outside the solver (without backtracking)" begin
-
-    println("Let's try without backtracking   :   ------------")
-
     generator = SeaPearl.HomogenousGraphColoringGenerator(10, 0.1)
-
     numInFeatures = 3
-
     # Model definition
     approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
     target_approximator_GNN = SeaPearl.GraphConv(64 => 64, Flux.leakyrelu)
@@ -193,6 +188,4 @@ end=#
     final_params = params(learnedHeuristic.agent.policy.learner.approximator.model)
 
     @test final_params != initial_params
-
-
 end
