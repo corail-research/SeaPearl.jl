@@ -72,7 +72,6 @@
 
         @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
 
-
         @test length(x.domain) == 2
         @test length(y.domain) == 2
         @test !(2 in x.domain) && 5 in x.domain && 6 in x.domain
@@ -97,6 +96,82 @@
         #Unfeasible test
         t = SeaPearl.IntVar(15, 30, "t", trailer)
         constraint3 = SeaPearl.Equal(z, t, trailer)
+        @test !SeaPearl.propagate!(constraint3, toPropagate, prunedDomains)
+    end
+
+    @testset "AllEqual()" begin
+        trailer = SeaPearl.Trailer()
+        x = SeaPearl.IntVar(1, 3, "x", trailer)
+        y = SeaPearl.IntVar(2, 3, "y", trailer)
+        z = SeaPearl.IntVar(2, 4, "z", trailer)
+        vec = Vector{SeaPearl.IntVar}([x, y, z])
+
+        constraint = SeaPearl.AllEqual(vec, trailer)
+
+        @test constraint.active.value
+        @test constraint in x.onDomainChange
+        @test constraint in y.onDomainChange
+        @test constraint in z.onDomainChange
+    end
+    @testset "pruneAllEqual!()" begin
+        trailer = SeaPearl.Trailer()
+        x = SeaPearl.IntVar(2, 6, "x", trailer)
+        y = SeaPearl.IntVar(5, 8, "y", trailer)
+        z = SeaPearl.IntVar(3, 7, "z", trailer)
+        vec = Vector{SeaPearl.IntVar}([x, y, z])
+        SeaPearl.pruneAllEqual!(vec)
+        
+        @test length(x.domain) == 2
+        @test length(y.domain) == 2
+        @test length(z.domain) == 2
+        @test !(2 in x.domain) && 5 in y.domain && 6 in y.domain
+        @test !(8 in y.domain) && 5 in y.domain && 6 in y.domain
+        @test !(3 in z.domain) && 5 in z.domain && 6 in z.domain
+        
+    end
+
+    @testset "propagate!(::AllEqual)" begin
+        trailer = SeaPearl.Trailer()
+        x = SeaPearl.IntVar(2, 6, "x", trailer)
+        y = SeaPearl.IntVar(5, 8, "y", trailer)
+        z = SeaPearl.IntVar(3, 7, "z", trailer)
+        vec = Vector{SeaPearl.IntVar}([x, y, z])
+
+        constraint = SeaPearl.AllEqual(vec, trailer)
+        toPropagate = Set{SeaPearl.Constraint}()
+        prunedDomains = SeaPearl.CPModification()
+
+        @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
+
+        @test length(x.domain) == 2
+        @test length(y.domain) == 2
+        @test length(z.domain) == 2
+        @test !(2 in x.domain) && 5 in y.domain && 6 in y.domain
+        @test !(8 in y.domain) && 5 in y.domain && 6 in y.domain
+        @test !(3 in z.domain) && 5 in z.domain && 6 in z.domain
+
+        @test prunedDomains == SeaPearl.CPModification("x" => [2, 3, 4],"y" => [7, 8], "z" => [3, 4, 7])
+
+        # Propagation test
+        w = SeaPearl.IntVar(5, 15, "w", trailer)
+        vec2 = Vector{SeaPearl.IntVar}([w, x, y, z])
+        constraint2 = SeaPearl.AllEqual(vec2, trailer)
+        SeaPearl.propagate!(constraint2, toPropagate, prunedDomains)
+
+        # Domain not reduced => not propagation
+        @test !(constraint in toPropagate)
+        @test !(constraint2 in toPropagate)
+
+        # Domain reduced => propagation
+        SeaPearl.remove!(z.domain, 5)
+        SeaPearl.propagate!(constraint2, toPropagate, prunedDomains)
+        @test constraint in toPropagate
+        @test !(constraint2 in toPropagate)
+
+        #Unfeasible test
+        t = SeaPearl.IntVar(15, 30, "t", trailer)
+        vec3 = Vector{SeaPearl.IntVar}([w, t])
+        constraint3 = SeaPearl.AllEqual(vec3, trailer)
         @test !SeaPearl.propagate!(constraint3, toPropagate, prunedDomains)
     end
 end
