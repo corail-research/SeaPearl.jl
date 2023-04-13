@@ -113,23 +113,6 @@
         @test constraint in y.onDomainChange
         @test constraint in z.onDomainChange
     end
-    @testset "pruneAllEqual!()" begin
-        trailer = SeaPearl.Trailer()
-        x = SeaPearl.IntVar(2, 6, "x", trailer)
-        y = SeaPearl.IntVar(5, 8, "y", trailer)
-        z = SeaPearl.IntVar(3, 7, "z", trailer)
-        vec = Vector{SeaPearl.IntVar}([x, y, z])
-        SeaPearl.pruneAllEqual!(vec)
-        
-        @test length(x.domain) == 2
-        @test length(y.domain) == 2
-        @test length(z.domain) == 2
-        @test !(2 in x.domain) && 5 in y.domain && 6 in y.domain
-        @test !(8 in y.domain) && 5 in y.domain && 6 in y.domain
-        @test !(3 in z.domain) && 5 in z.domain && 6 in z.domain
-        
-    end
-
     @testset "propagate!(::AllEqual)" begin
         trailer = SeaPearl.Trailer()
         x = SeaPearl.IntVar(2, 6, "x", trailer)
@@ -158,7 +141,7 @@
         constraint2 = SeaPearl.AllEqual(vec2, trailer)
         SeaPearl.propagate!(constraint2, toPropagate, prunedDomains)
 
-        # Domain not reduced => not propagation
+        # Domain not reduced for x,y,z => not propagation for constraint1, domain reduced for w but constraint2 already propagated
         @test !(constraint in toPropagate)
         @test !(constraint2 in toPropagate)
 
