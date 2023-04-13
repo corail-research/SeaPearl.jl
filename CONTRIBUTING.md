@@ -157,6 +157,8 @@ If you never created a pull request before, welcome :tada: :smile:
 
 8. [Open a Pull Request][7]
    with a clear title and description.
+   
+9. If you are struggling with something, there is a -small, but growing- [wiki](https://github.com/corail-research/SeaPearl.jl/wiki)
 
 ## Triagers
 

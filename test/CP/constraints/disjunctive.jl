@@ -263,7 +263,7 @@
         SeaPearl.addVariable!(model, task3)
 
         variableSelection = SeaPearl.MinDomainVariableSelection{true}()
-        status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection)
+        status = SeaPearl.solve!(model; variableHeuristic=variableSelection)
 
         @test status == :Infeasible
         @test model.statistics.numberOfSolutions == 0
@@ -347,7 +347,7 @@
         SeaPearl.addConstraint!(model,SeaPearl.Disjunctive(tasks, processing_time, trailer))
 
         variableSelection = SeaPearl.MinDomainVariableSelection{true}()
-        status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection)
+        status = SeaPearl.solve!(model; variableHeuristic=variableSelection)
 
         @test status == :Optimal
         @test model.statistics.numberOfSolutions == 1
@@ -379,7 +379,7 @@
         SeaPearl.addConstraint!(model,SeaPearl.Disjunctive(tasks, processing_time, trailer))
 
         variableSelection = SeaPearl.MinDomainVariableSelection{true}()
-        status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection)
+        status =  SeaPearl.solve!(model; variableHeuristic=variableSelection)
 
         @test status == :Optimal
         @test model.statistics.numberOfSolutions == 2
@@ -428,7 +428,7 @@
 
         SeaPearl.addObjective!(model, objectif)
         variableSelection = SeaPearl.MinDomainVariableSelection{true}()
-        status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection,)
+        status =  SeaPearl.solve!(model; variableHeuristic=variableSelection,)
 
         @test status == :Optimal
         @test (model.statistics.solutions[end-1]["obj"]) == 5
@@ -488,7 +488,7 @@
         push!(model.constraints,SeaPearl.Disjunctive(tasks, processing_time, trailer, [SeaPearl.algoDetectablePrecedence]))
 
         variableSelection = SeaPearl.MinDomainVariableSelection{true}()
-        status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection)
+        status =  SeaPearl.solve!(model; variableHeuristic=variableSelection)
 
         @test status == :Optimal
         @test length(model.statistics.solutions) == 2
@@ -536,7 +536,7 @@
 
         SeaPearl.addObjective!(model, objectif)
         variableSelection = SeaPearl.MinDomainVariableSelection{true}()
-        status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection,)
+        status =  SeaPearl.solve!(model; variableHeuristic=variableSelection,)
 
         @test status == :Optimal
         @test (filter!(!isnothing, model.statistics.solutions)[end]["obj"]) == 5
