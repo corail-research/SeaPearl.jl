@@ -350,7 +350,7 @@
 
         SeaPearl.assign!(x, 3)
         SeaPearl.fixPoint!(model)
-        @time act = SeaPearl.triggerFoundSolution!(model)
+        act = SeaPearl.triggerFoundSolution!(model)
         if act == :tightenObjective
             SeaPearl.tightenObjective!(model)
         end
