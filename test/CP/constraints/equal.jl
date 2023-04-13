@@ -113,6 +113,7 @@
         @test constraint in y.onDomainChange
         @test constraint in z.onDomainChange
     end
+
     @testset "propagate!(::AllEqual)" begin
         trailer = SeaPearl.Trailer()
         x = SeaPearl.IntVar(2, 6, "x", trailer)
@@ -140,6 +141,7 @@
         vec2 = Vector{SeaPearl.IntVar}([w, x, y, z])
         constraint2 = SeaPearl.AllEqual(vec2, trailer)
         SeaPearl.propagate!(constraint2, toPropagate, prunedDomains)
+
 
         # Domain not reduced for x,y,z => not propagation for constraint1, domain reduced for w but constraint2 already propagated
         @test !(constraint in toPropagate)
