@@ -6,6 +6,7 @@ SeaPearl.Absolute
 
 ```@docs
 SeaPearl.AllDifferent
+SeaPearl.AllEqual
 ```
 
 ```@docs
@@ -40,4 +41,5 @@ SeaPearl.SetEqualConstant
 SeaPearl.SumGreaterThan
 SeaPearl.SumLessThan
 SeaPearl.SumToZero
+SeaPearl.Addition
 ```
