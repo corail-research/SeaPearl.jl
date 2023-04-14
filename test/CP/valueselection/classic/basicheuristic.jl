@@ -27,3 +27,16 @@
 
     include("random.jl")
 end
+
+
+@testset "impactheuristic.jl" begin
+
+    trailer = SeaPearl.Trailer()
+    model = SeaPearl.CPModel(trailer)
+    valueselection = SeaPearl.ImpactHeuristic()
+
+    x = SeaPearl.IntVar(2, 6, "x", trailer)
+    y = SeaPearl.IntVar(2, 5, "y", trailer)
+    SeaPearl.addVariable!(model, x)
+    SeaPearl.addVariable!(model, y)
+end

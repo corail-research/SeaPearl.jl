@@ -92,3 +92,15 @@ function Base.show(io::IO, con::SumToZero)
     ids = [var.id for var in con.x]
     print(io, typeof(con), ": ", join(ids, " + "), " == 0")
 end
+
+"""
+    Addition(y::AbstractIntVar, x::Array{<:AbstractIntVar})
+
+Summing constraint, states that `y == x[1] + x[2] + ... + x[length(x)]`
+"""
+
+function Addition(y::AbstractIntVar, x::Array{<:AbstractIntVar}, trailer)
+    z = IntVarViewOpposite(y, "-y")
+    push!(x , z)
+    return SumToZero(x, trailer)
+end

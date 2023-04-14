@@ -24,20 +24,15 @@ end
         strategy::Type{DFSearch}=DFSearch,
         variableHeuristic=selectVariable
 )
-
 This functions launch an amount of nbEpisodes problems solving. The problems are created by
 the given generator. The strategy used during the CP Search and the variable heuristic used can 
 be precised as well. To finish with, the value selection heuristic (eather learned or basic) are 
 given to function. Each problem generated will be solved once by every value selection heuristic
 given, making it possible to compare them.
-
 All the results of consecutive search during the training is stocked in metricsArray containing a metrics 
 for each heuristic (eather learned or basic).  
-
 It is also possible to give an evaluator to compare the evolution of performance of the heuristic on same instances along the search. 
-
 This function is called by `train!` and by `benchmark_solving!`.
-
 Every "evalFreq" episodes, all heuristic are evaluated ( weights are no longer updated during the evaluation).
 """
 function launch_experiment!(
