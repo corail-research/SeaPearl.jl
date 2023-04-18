@@ -1,6 +1,7 @@
 include("datasstructures/rsparsebitset.jl")
 include("absolute.jl")
 include("disjunctive.jl")
+include("distance.jl")
 include("datasstructures/timeline.jl")
 include("alldifferent.jl")
 include("compacttable.jl")
