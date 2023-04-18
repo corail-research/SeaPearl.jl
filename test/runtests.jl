@@ -30,8 +30,8 @@ const RL = ReinforcementLearning
         include("trailer.jl")
     end
 
-    #include("CP/constraints/sumtozero.jl")
-    #include("CP/constraints/arithmetics.jl")
+
+    include("CP/constraints/distance.jl")
 end
 
 revise_user = "You use Revise, you're efficient in your work, well done ;)" 

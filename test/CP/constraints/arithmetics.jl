@@ -264,48 +264,4 @@
         )
 
     end
-
-    # @testset "Distance" begin
-    #     trailer = SeaPearl.Trailer()
-
-    #     x = SeaPearl.IntVar(2, 6, "x", trailer)
-    #     y = SeaPearl.IntVar(2, 3, "y", trailer)
-        
-    #     z = SeaPearl.IntVar(2, 3, "z", trailer)
-        
-    #     constraint = SeaPearl.Distance(x, y, z, trailer)
-
-    #     @test constraint in z.onDomainChange
-
-    #     @test constraint.active.value
-    # end
-    # @testset "propagate!(::Distance)" begin
-    #     trailer = SeaPearl.Trailer()
-        
-    #     x = SeaPearl.IntVar(4, 8, "x", trailer)
-    #     y = SeaPearl.IntVar(0, 4, "y", trailer)
-        
-    #     z = SeaPearl.IntVar(0, 2, "z", trailer)
-        
-    #     constraint = SeaPearl.Distance(x, y, z, trailer)
-
-    #     toPropagate = Set{SeaPearl.Constraint}()
-    #     prunedDomains = SeaPearl.CPModification()
-
-    #     @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
-    #     println(z)
-
-    #     @test length(y.domain) == 3
-    #     @test 4 in x.domain
-    #     @test !(0 in y.domain)
-    #     @test !(8 in x.domain)
-    #     @test prunedDomains == SeaPearl.CPModification(
-    #         "x"  => [5],
-    #         "y"  => [0,1,2],
-    #         "-y"  => [0,-1,-2],
-    #         "-z" => [0],
-    #         "z" => [0]
-    #     )
-    # end
-
 end

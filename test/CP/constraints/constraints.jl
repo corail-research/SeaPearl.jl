@@ -5,6 +5,7 @@
     include("datasstructures/disjointSet.jl")
     include("datasstructures/rsparsebitset.jl")
     include("disjunctive.jl")
+    include("distance.jl")
     include("alldifferent.jl")
     include("compacttable.jl")
     include("equal.jl")
