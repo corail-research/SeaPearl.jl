@@ -50,7 +50,7 @@
 
 
     end
-    @testset "Addition()" begin
+    @testset "SumToVariable()" begin
         trailer = SeaPearl.Trailer()
 
         x1 = SeaPearl.IntVar(2, 6, "x1", trailer)
@@ -61,7 +61,7 @@
         y = SeaPearl.IntVar(2, 3, "y", trailer)
 
         
-        constraint = SeaPearl.Addition(y, x, trailer)
+        constraint = SeaPearl.SumToVariable(x, y, trailer)
 
         @test constraint in x2.onDomainChange
         @test constraint in y.onDomainChange
@@ -70,7 +70,7 @@
         @test constraint.sumOfFixedVars.value == 0
         @test constraint.freeIds == [1, 2, 3, 4]
     end
-    @testset "propagate!(::Addition)" begin
+    @testset "propagate!(::SumToVariable)" begin
         trailer = SeaPearl.Trailer()
 
         x1 = SeaPearl.IntVar(0, 3, "x1", trailer)
@@ -80,7 +80,7 @@
 
         y = SeaPearl.IntVar(0, 1, "y", trailer)
         
-        constraint = SeaPearl.Addition(y, x, trailer)
+        constraint = SeaPearl.SumToVariable(x, y, trailer)
 
         toPropagate = Set{SeaPearl.Constraint}()
         prunedDomains = SeaPearl.CPModification()

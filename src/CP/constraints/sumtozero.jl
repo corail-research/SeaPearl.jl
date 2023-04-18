@@ -94,12 +94,12 @@ function Base.show(io::IO, con::SumToZero)
 end
 
 """
-    Addition(y::AbstractIntVar, x::Array{<:AbstractIntVar})
+SumToVariable(x::Array{<:AbstractIntVar}, y::AbstractIntVar)
 
 Summing constraint, states that `y == x[1] + x[2] + ... + x[length(x)]`
 """
 
-function Addition(y::AbstractIntVar, x::Array{<:AbstractIntVar}, trailer)
+function SumToVariable(x::Array{<:AbstractIntVar}, y::AbstractIntVar, trailer)
     z = IntVarViewOpposite(y, "-y")
     push!(x , z)
     return SumToZero(x, trailer)
