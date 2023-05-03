@@ -4,3 +4,8 @@
 /dev/
 /docs/build/
 /Manifest.toml
+/instancesXCSP22/
+
+# Test files for navaxel
+/test_julia_axel.ipynb
+/test/test_learning_cp.jl
