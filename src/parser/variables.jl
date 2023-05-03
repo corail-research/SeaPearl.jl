@@ -65,7 +65,7 @@ function parse_variable_domain(raw_domain::String)
             continue
         end
         bounds = split(sub_domain, "..")
-        println("bounds : ", bounds)
+
         if length(bounds) > 1
             first, last = bounds[1], bounds[2]
             if first == "inf"
