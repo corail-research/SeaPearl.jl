@@ -21,7 +21,7 @@ function parse_array_variable(array_variable::Node, model::SeaPearl.CPModel, tra
             for id in ids
                 var = SeaPearl.IntVar(min_value, max_value, string(id), trailer)
                 for v in missing_values
-                    var.domain.remove(v)
+                    SeaPearl.remove!(var.domain, v)
                 end
                 idx = map((x) -> x + 1, tuple(parse_dimensions(id)...))
                 SeaPearl.addVariable!(model, var)
@@ -38,7 +38,7 @@ function parse_array_variable(array_variable::Node, model::SeaPearl.CPModel, tra
             str_idx = "[" * join([string(idx[i]-1) for i in 1:length(idx)], "][") * "]"
             var = SeaPearl.IntVar(min_value, max_value, id * str_idx, trailer)
             for v in missing_values
-                var.domain.remove(v)
+                SeaPearl.remove!(var.domain, v)
             end
             seapearl_array_var[idx] = var
         end
@@ -58,15 +58,16 @@ function parse_variable_domain(raw_domain::String)
         domain: Tableau de tableaux d'entiers ou de flottants
     """
     domain = Vector{Int}[]
-    sub_domains = split(replace(replace(raw_domain, ".."=>","), "infinity"=>"inf"), " ")
+    sub_domains = split(raw_domain, " ")
     sub_domains = [dom_element for dom_element in sub_domains]
     for sub_domain in sub_domains
         if sub_domain == ""
             continue
         end
-        end_index = findnext(",", sub_domain, 1)[1]
-        if !isnothing(end_index)
-            first, last = sub_domain[1:end_index-1], sub_domain[end_index+1:end]
+        bounds = split(sub_domain, "..")
+        println("bounds : ", bounds)
+        if length(bounds) > 1
+            first, last = bounds[1], bounds[2]
             if first == "inf"
                 lower_bound = typemin(Int)
             else
