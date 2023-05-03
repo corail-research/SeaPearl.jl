@@ -2,7 +2,7 @@ using SeaPearl
 using XML
 
 function parse_array_variable(array_variable::Node, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
-
+    
     info = attributes(array_variable)
     dimensions = parse_dimensions(info["size"])
     id = info["id"]

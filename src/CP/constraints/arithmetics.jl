@@ -5,7 +5,7 @@ Summing constraint, states that `z == x + y`
 """
 
 function Addition(x::AbstractIntVar, y::AbstractIntVar, z::AbstractIntVar, trailer)
-    opposite_z = IntVarViewOpposite(z, "-z")
+    opposite_z = IntVarViewOpposite(z, "-"*z.id)
     vars = [opposite_z, x, y]
 
     return SumToZero(vars, trailer)
@@ -19,8 +19,8 @@ Summing constraint, states that `z == x - y`
 """
 
 function Subtraction(x::AbstractIntVar, y::AbstractIntVar, z::AbstractIntVar, trailer)
-    opposite_y = IntVarViewOpposite(y, "-y")
-    opposite_z = IntVarViewOpposite(z, "-z")
+    opposite_y = IntVarViewOpposite(y, "-"*y.id)
+    opposite_z = IntVarViewOpposite(z, "-"*z.id)
     vars = [opposite_z, x, opposite_y]
 
     return SumToZero(vars, trailer)
@@ -108,6 +108,18 @@ function propagate!(constraint::Multiplication, toPropagate::Set{Constraint}, pr
         return false
     end
     return true
+end
+
+variablesArray(constraint::Multiplication) = [constraint.x, constraint.y, constraint.z]
+
+function Base.show(io::IO, ::MIME"text/plain", con::Multiplication)
+    println(io, typeof(con), ": ", con.x.id, " * ", con.y.id, " == " , con.z.id, ", active = ", con.active)
+    println(io, "   ", con.x)
+    print(io, "   ", con.y)
+end
+
+function Base.show(io::IO, con::Multiplication)
+    print(io, typeof(con), ": ", con.x.id, " * ", con.y.id, " == " , con.z.id)
 end
 
 
@@ -284,6 +296,18 @@ function propagate!(constraint::Division, toPropagate::Set{Constraint}, prunedDo
     return true
 end
 
+variablesArray(constraint::Division) = [constraint.x, constraint.y, constraint.z]
+
+function Base.show(io::IO, ::MIME"text/plain", con::Division)
+    println(io, typeof(con), ": ", con.x.id, " ÷ ", con.y.id, " == " , con.z.id, ", active = ", con.active)
+    println(io, "   ", con.x)
+    print(io, "   ", con.y)
+end
+
+function Base.show(io::IO, con::Division)
+    print(io, typeof(con), ": ", con.x.id, " ÷ ", con.y.id, " == " , con.z.id)
+end
+
 """
 Modulo(x::AbstractIntVar, y::AbstractIntVar, z::AbstractIntVar)
 
@@ -360,4 +384,14 @@ function propagate!(constraint::Modulo, toPropagate::Set{Constraint}, prunedDoma
     return true
 end
 
+variablesArray(constraint::Modulo) = [constraint.x, constraint.y, constraint.z]
 
+function Base.show(io::IO, ::MIME"text/plain", con::Modulo)
+    println(io, typeof(con), ": ", con.x.id, " mod ", con.y.id, " == " , con.z.id, ", active = ", con.active)
+    println(io, "   ", con.x)
+    print(io, "   ", con.y)
+end
+
+function Base.show(io::IO, con::Modulo)
+    print(io, typeof(con), ": ", con.x.id, " mod ", con.y.id, " == " , con.z.id)
+end

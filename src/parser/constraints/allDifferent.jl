@@ -1,15 +1,10 @@
 using XML
 
-function parse_constraint(constraint::Node, variables::Dict{String, Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
-    tag = constraint.tag
-
-    if tag == "allDifferent"
-        str_constraint_variables = children(constraint)[1].value
-        allDiff_vars = get_constraint_variables(str_constraint_variables, variables)
-        con = SeaPearl.AllDifferent(allDiff_vars, trailer)
-        SeaPearl.addConstraint!(model, con)
-    end
-
+function parse_allDifferent_constraint(constraint::Node, variables::Dict{String, Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
+    str_constraint_variables = children(constraint)[1].value
+    allDiff_vars = get_constraint_variables(str_constraint_variables, variables)
+    con = SeaPearl.AllDifferent(allDiff_vars, trailer)
+    SeaPearl.addConstraint!(model, con)
 end
 
 

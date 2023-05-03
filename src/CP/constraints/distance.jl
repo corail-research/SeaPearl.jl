@@ -18,6 +18,34 @@ struct Distance <: Constraint
 end
 
 """
+    distanceBounds!(xMin::Int, xMax::Int, yMin::Int, yMax::Int)
+
+Bounds for the new distance variable z = |x - y|
+"""
+function distanceBounds!(xMin::Int, xMax::Int, yMin::Int, yMax::Int)
+    zMax1 = xMax - yMin
+    zMax2 = yMax - xMin
+    zMax = max(zMax1, zMax2)
+
+    # z is a positive variable
+    zMin = 0
+
+    # If x and y domains are disjunctive
+    zMin1 = xMin - yMax
+    if zMin1 > 0
+        zMin = zMin1
+    end
+
+    # If x and y domains are disjunctive
+    zMin2 = yMin - xMax
+    if zMin2 > 0 & (zMin1 < 0 || zMin2 < zMin1)
+        zMin = zMin2
+    end
+
+    return zMin, zMax
+end
+
+"""
     propagate!(constraint::Distance, toPropagate::Set{Constraint}, prunedDomains::CPModification)
 
 `Distance` propagation function.
@@ -32,31 +60,7 @@ function propagate!(constraint::Distance, toPropagate::Set{Constraint}, prunedDo
     zDomain = constraint.z.domain
 
     # Prune z domain
-
-    zMax1 = xDomain.max.value - yDomain.min.value
-    zMax2 = yDomain.max.value - xDomain.min.value
-    zMax = max(zMax1, zMax2)
-
-    # z is a positive variable
-    zMin = zDomain.min.value
-    if zMin < 0
-        zMin = 0
-    end
-
-    # If x and y domains are disjunctive
-    zMin1 = xDomain.min.value - yDomain.max.value
-    if zMin1 > 0
-        zMin = zMin1
-    end
-
-    # If x and y domains are disjunctive
-    zMin2 = yDomain.min.value - xDomain.max.value
-    if zMin2 > 0 & zMin2 < zMin 
-        zMin = zMin2
-    end
-
-    println("zMax : ", zMax)
-    println("zMin : ", zMin)
+    zMin, zMax = distanceBounds!(xDomain.min.value, xDomain.max.value, yDomain.min.value, yDomain.max.value)
 
     prunedZ = vcat(removeBelow!(zDomain, zMin), removeAbove!(zDomain, zMax))
 
@@ -110,7 +114,7 @@ function propagate!(constraint::Distance, toPropagate::Set{Constraint}, prunedDo
 
 end
 
-variablesArray(constraint::Distance) = [constraint.x]
+variablesArray(constraint::Distance) = [constraint.x, constraint.y, constraint.z]
 
 function Base.show(io::IO, ::MIME"text/plain", con::Distance)
     println(io, typeof(con), ": ", con.z.id, " == |", con.x, " - ", con.y.id, "|",", active = ", con.active)
