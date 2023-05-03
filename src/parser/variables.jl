@@ -2,7 +2,7 @@ using SeaPearl
 using XML
 
 function parse_array_variable(array_variable::Node, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
-    
+
     info = attributes(array_variable)
     dimensions = parse_dimensions(info["size"])
     id = info["id"]
@@ -59,11 +59,11 @@ function parse_variable_domain(raw_domain::String)
     """
     domain = Vector{Int}[]
     sub_domains = split(raw_domain, " ")
-    sub_domains = [dom_element for dom_element in sub_domains]
     for sub_domain in sub_domains
         if sub_domain == ""
             continue
         end
+        
         bounds = split(sub_domain, "..")
 
         if length(bounds) > 1
