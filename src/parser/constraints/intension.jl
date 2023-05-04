@@ -1,4 +1,13 @@
-const relational_operators = Dict(
+const relational_constant_operators = Dict(
+    "lt" => SeaPearl.LessConstant,
+    "le" => SeaPearl.LessOrEqualConstant,
+    "ge" => SeaPearl.GreaterOrEqualConstant,
+    "gt" => SeaPearl.GreaterConstant,
+    "ne" => SeaPearl.NotEqualConstant,
+    "eq" => SeaPearl.EqualConstant,
+)
+
+const relational_variable_operators = Dict(
     "lt" => SeaPearl.Less,
     "le" => SeaPearl.LessOrEqual,
     "ge" => SeaPearl.GreaterOrEqual,
@@ -31,10 +40,10 @@ function parse_intension_expression(str_constraint::String, variables::Dict{Stri
     # If the expression does not have any further parentheses, return it as a variable or a value
     if !(rel_bool || ari_bool)
         
+        #The expression is a constant
         if is_digit(str_constraint)
             value = parse(Int, str_constraint)
-            var = SeaPearl.IntVar(value, value, "constant="*string(value), trailer)
-            SeaPearl.addVariable!(model, var)
+            return value
         else
             var = get_constraint_variables(str_constraint, variables)[1]
         end
@@ -61,9 +70,14 @@ function parse_intension_expression(str_constraint::String, variables::Dict{Stri
     var2 = parse_intension_expression(operands_str[start:end], variables, model, trailer)
 
     if rel_bool
-        constraint = relational_operators[operator]
+        if isa(var2, Int)
+            constraint = relational_constant_operators[operator]
+        else
+            constraint = relational_variable_operators[operator]
+        end
         SeaPearl.addConstraint!(model, constraint(var1, var2, trailer))
         return nothing
+        
     else
         new_var = create_arithmetic_variable(var1, var2, string(operator), trailer)
         SeaPearl.addVariable!(model, new_var)
