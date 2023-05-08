@@ -1,7 +1,7 @@
 name = "SeaPearl"
 uuid = "c13076dc-bdcd-48ba-bc88-4b44c2587ab3"
 authors = ["Léo Boisvert", "Ilan Coulon", "Félix Chalumeau", "Tom Marty", "Tom Sander", "Pierre Tessier"]
-version = "0.4.3"
+version = "0.5.3"
 
 [deps]
 CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
@@ -61,6 +61,7 @@ SimpleWeightedGraphs = "1.1"
 StatsBase = "< 0.33.21"
 Suppressor = "0.1.0 - 0.2.0"
 TensorBoardLogger = "< 0.1.19"
+XML = "0.2.0"
 Zygote = "0.6.26"
 julia = "1.7"
 

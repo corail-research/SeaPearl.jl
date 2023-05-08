@@ -1,4 +1,3 @@
-using SeaPearl
 using XML
 
 function parse_array_variable(array_variable::Node, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
@@ -6,7 +5,7 @@ function parse_array_variable(array_variable::Node, model::SeaPearl.CPModel, tra
     info = attributes(array_variable)
     dimensions = parse_dimensions(info["size"])
     id = info["id"]
-    
+
     raw_domain = children(array_variable)[1].value
 
     seapearl_array_var = fill(SeaPearl.IntVar(0, 0, "default", trailer), tuple(dimensions...))
@@ -28,22 +27,23 @@ function parse_array_variable(array_variable::Node, model::SeaPearl.CPModel, tra
                 seapearl_array_var[idx...] = var
             end
         end
-    
-    #Same domain for all variables
+
+        #Same domain for all variables
     else
         domain = parse_variable_domain(raw_domain)
         min_value, max_value, missing_values = sort_intervals(domain)
-        
+
         for idx in CartesianIndices(seapearl_array_var)
-            str_idx = "[" * join([string(idx[i]-1) for i in 1:length(idx)], "][") * "]"
+            str_idx = "[" * join([string(idx[i] - 1) for i in 1:length(idx)], "][") * "]"
             var = SeaPearl.IntVar(min_value, max_value, id * str_idx, trailer)
             for v in missing_values
                 SeaPearl.remove!(var.domain, v)
             end
+            SeaPearl.addVariable!(model, var)
             seapearl_array_var[idx] = var
         end
     end
-    
+
     return seapearl_array_var
 end
 
@@ -63,7 +63,7 @@ function parse_variable_domain(raw_domain::String)
         if sub_domain == ""
             continue
         end
-        
+
         bounds = split(sub_domain, "..")
 
         if length(bounds) > 1
@@ -117,7 +117,7 @@ end
 
 
 function sort_intervals(intervals::Vector{Vector{Int64}})
-    
+
     #Si seulement un interval ou singleton
     if length(intervals) == 1
         domain = intervals[1]
@@ -142,14 +142,14 @@ function sort_intervals(intervals::Vector{Vector{Int64}})
             throw(ArgumentError("Invalid input: $(string(x))"))
         end
     end
-    
+
     # Concaténer les singletons et les intervalles triés
     result = sort([singletons..., ranges...])
-    
+
     min_val = result[1]
     max_val = result[end]
-    
-    
+
+
     # Calculer les entiers entre le minimum et le maximum qui ne sont pas dans l'ensemble
     missing_values = Int[]
     if !isempty(result)
@@ -159,7 +159,7 @@ function sort_intervals(intervals::Vector{Vector{Int64}})
             end
         end
     end
-    
+
     # Retourner les résultats sous forme de tuple
     return min_val, max_val, missing_values
 end
