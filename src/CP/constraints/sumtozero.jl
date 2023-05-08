@@ -104,3 +104,99 @@ function SumToVariable(x::Array{<:AbstractIntVar}, y::AbstractIntVar, trailer)
     push!(x , z)
     return SumToZero(x, trailer)
 end
+
+"""
+    SumToConstant(x<:AbstractIntVar, v::Int)
+
+Summing constraint, states that `x[1] + x[2] + ... + x[length(x)] == v`
+"""
+struct SumToConstant <: Constraint
+    x                   ::Array{<:AbstractIntVar}
+    active              ::StateObject{Bool}
+    numberOfFreeVars    ::StateObject{Int}
+    sumOfFixedVars      ::StateObject{Int}
+    freeIds             ::Array{Int}
+    constant            ::Int
+    function SumToConstant(x::Array{<:AbstractIntVar}, constant::Int, trailer)
+        @assert !isempty(x)
+
+        freeIds = zeros(length(x))
+        for i in 1:length(x)
+            freeIds[i] = i
+        end
+
+        constraint = new(x, StateObject{Bool}(true, trailer), StateObject{Int}(length(x), trailer), StateObject{Int}(0, trailer), freeIds, constant)
+        for xi in x
+            addOnDomainChange!(xi, constraint)
+        end
+        return constraint
+    end
+end
+
+"""
+    propagate!(constraint::SumToConstant, toPropagate::Set{Constraint}, prunedDomains::CPModification)
+
+`SumToConstant` propagation function. The pruning is quite superficial.
+"""
+function propagate!(constraint::SumToConstant, toPropagate::Set{Constraint}, prunedDomains::CPModification)
+    # Computing maxSum, minSum, and refreshing other variables
+    newNumberOfFreeVars = constraint.numberOfFreeVars.value
+    sumOfMax, sumOfMin = constraint.sumOfFixedVars.value, constraint.sumOfFixedVars.value
+    for i in newNumberOfFreeVars:-1:1
+        currentId = constraint.freeIds[i]
+        sumOfMin += minimum(constraint.x[currentId].domain)
+        sumOfMax += maximum(constraint.x[currentId].domain)
+
+        if isbound(constraint.x[currentId])
+            setValue!(constraint.sumOfFixedVars, constraint.sumOfFixedVars.value + assignedValue(constraint.x[currentId]))
+            constraint.freeIds[i] = constraint.freeIds[newNumberOfFreeVars]
+            constraint.freeIds[newNumberOfFreeVars] = currentId
+            newNumberOfFreeVars -= 1
+        end
+    end
+    setValue!(constraint.numberOfFreeVars, newNumberOfFreeVars)
+
+    # Checking feasibility
+    if sumOfMin > constraint.constant || sumOfMax < constraint.constant
+        return false
+    end
+
+    ### Filtering ###
+    # Here we must have: x_i = v - sum(x_j for j != i)
+    # But we know that: - sum(x_j for j != i) <= - sum(min(x_j) for j != i)
+    # And: - sum(min(x_j) for j != i) = v + min(x_i) - sumOfMin
+    # Hence we remove everything above that last value from the domain of x_i
+    # The reasoning is equivalent for the minimization
+    for i in newNumberOfFreeVars:-1:1
+        currentId = constraint.freeIds[i]
+        currentMin = minimum(constraint.x[currentId].domain)
+        currentMax = maximum(constraint.x[currentId].domain)
+        pruned = vcat(removeAbove!(constraint.x[currentId].domain, constraint.constant + currentMin - sumOfMin), removeBelow!(constraint.x[currentId].domain, constraint.constant + currentMax - sumOfMax))
+        if !isempty(pruned)
+            addToPrunedDomains!(prunedDomains, constraint.x[currentId], pruned)
+            triggerDomainChange!(toPropagate, constraint.x[currentId])
+
+        end
+    end
+
+    if newNumberOfFreeVars == 0
+        setValue!(constraint.active, false)
+    end
+
+    return true
+end
+
+variablesArray(constraint::SumToConstant) = constraint.x
+
+function Base.show(io::IO, ::MIME"text/plain", con::SumToConstant)
+    ids = [var.id for var in con.x]
+    print(io, typeof(con), ": ", join(ids, " + "), " ==", con.constant," active = ", con.active)
+    for var in con.x
+        print(io, "\n   ", var)
+    end
+end
+
+function Base.show(io::IO, con::SumToConstant)
+    ids = [var.id for var in con.x]
+    print(io, typeof(con), ": ", join(ids, " + "), " == ", con.constant)
+end
