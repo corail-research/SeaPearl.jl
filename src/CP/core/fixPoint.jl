@@ -45,7 +45,7 @@ function fixPoint!(model::CPModel, new_constraints::Union{Array{Constraint}, Not
 
     #impact value computation :
     if model.statistics.searchTreeSize.value == -1
-        setValue!(model.statistics.searchTreeSize,computeSearchTreeSize!(model))
+        setValue!(model.statistics.searchTreeSize, computeSearchTreeSize!(model))
     elseif !isnothing(model.statistics.lastVar) #if this is not the first fix-point
         x = model.statistics.lastVar
         v = model.statistics.lastVal
