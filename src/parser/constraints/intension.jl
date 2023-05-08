@@ -1,4 +1,13 @@
-const relational_operators = Dict(
+const relational_constant_operators = Dict(
+    "lt" => SeaPearl.LessConstant,
+    "le" => SeaPearl.LessOrEqualConstant,
+    "ge" => SeaPearl.GreaterOrEqualConstant,
+    "gt" => SeaPearl.GreaterConstant,
+    "ne" => SeaPearl.NotEqualConstant,
+    "eq" => SeaPearl.EqualConstant,
+)
+
+const relational_variable_operators = Dict(
     "lt" => SeaPearl.Less,
     "le" => SeaPearl.LessOrEqual,
     "ge" => SeaPearl.GreaterOrEqual,
@@ -19,7 +28,7 @@ const arithmetic_operators = Dict(
 function parse_intension_constraint(constraint::Node, variables::Dict{String, Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
     str_constraint = children(constraint)[1].value
     parse_intension_expression(str_constraint, variables, model, trailer)
-
+end
 
 function parse_intension_expression(str_constraint::String, variables::Dict{String, Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
     # Split the expression into operator and operands
@@ -27,9 +36,17 @@ function parse_intension_expression(str_constraint::String, variables::Dict{Stri
     operator = spl[1]
     rel_bool = haskey(relational_operators, operator)
     ari_bool = haskey(arithmetic_operators, operator)
+
+    # If the expression does not have any further parentheses, return it as a variable or a value
     if !(rel_bool || ari_bool)
-        # If the expression does not have any further parentheses, return it as a variable
-        var = get_constraint_variables(str_constraint, variables)[1]
+        
+        #The expression is a constant
+        if is_digit(str_constraint)
+            value = parse(Int, str_constraint)
+            return value
+        else
+            var = get_constraint_variables(str_constraint, variables)[1]
+        end
         return var
     end
     
@@ -53,13 +70,16 @@ function parse_intension_expression(str_constraint::String, variables::Dict{Stri
     var2 = parse_intension_expression(operands_str[start:end], variables, model, trailer)
 
     if rel_bool
-        constraint = relational_operators[operator]
+        if isa(var2, Int)
+            constraint = relational_constant_operators[operator]
+        else
+            constraint = relational_variable_operators[operator]
+        end
         SeaPearl.addConstraint!(model, constraint(var1, var2, trailer))
         return nothing
+        
     else
-        println(operator)
         new_var = create_arithmetic_variable(var1, var2, string(operator), trailer)
-        println(new_var)
         SeaPearl.addVariable!(model, new_var)
 
         constraint = arithmetic_operators[operator]
@@ -83,7 +103,6 @@ function create_arithmetic_variable(x::SeaPearl.AbstractIntVar, y::SeaPearl.Abst
 
     if operator == "sub"
         zMin, zMax = xMin - yMax, xMax - yMin
-        println(zMin, " ", zMax)
         return SeaPearl.IntVar(zMin, zMax, "(" * x.id * "-" * y.id * ")", trailer)
     end
 
@@ -106,4 +125,13 @@ function create_arithmetic_variable(x::SeaPearl.AbstractIntVar, y::SeaPearl.Abst
         zMin, zMax = SeaPearl.distanceBounds!(xMin, xMax, yMin, yMax)
         return SeaPearl.IntVar(zMin, zMax, "|" * x.id * "-" * y.id * "|", trailer)
     end
+end
+
+function is_digit(str::AbstractString)
+    for c in str
+        if !isdigit(c)
+            return false
+        end
+    end
+    return true
 end

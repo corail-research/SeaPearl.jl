@@ -97,4 +97,39 @@
         constraint2 = SeaPearl.Greater(z, y, trailer)
         @test !SeaPearl.propagate!(constraint2, toPropagate, prunedDomains)
     end
+
+    @testset "GreaterConstant()" begin
+        trailer = SeaPearl.Trailer()
+        x = SeaPearl.IntVar(2, 6, "x", trailer)
+
+        constraint = SeaPearl.GreaterConstant(x, 2, trailer)
+
+        @test constraint in x.onDomainChange
+        @test constraint.active.value
+    end
+    @testset "propagate!(::GreaterConstant)" begin
+        trailer = SeaPearl.Trailer()
+        x = SeaPearl.IntVar(2, 6, "x", trailer)
+
+        constraint = SeaPearl.GreaterConstant(x, 4, trailer)
+
+        toPropagate = Set{SeaPearl.Constraint}()
+        prunedDomains = SeaPearl.CPModification()
+
+        @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
+
+        @test length(x.domain) == 2
+        @test 5 in x.domain
+        @test !(4 in x.domain)
+        @test prunedDomains == SeaPearl.CPModification("x" => [2, 3, 4])
+
+        y = SeaPearl.IntVar(2, 2, "y", trailer)
+
+        cons2 = SeaPearl.GreaterOrEqualConstant(y, 3, trailer)
+
+        @test !SeaPearl.propagate!(cons2, toPropagate, prunedDomains)
+
+        @test isempty(y.domain)
+
+    end
 end

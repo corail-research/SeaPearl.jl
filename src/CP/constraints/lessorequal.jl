@@ -164,3 +164,14 @@ end
 function Base.show(io::IO, con::Less)
     print(io, typeof(con), ": ", con.x.id, " < ", con.y.id)
 end
+
+"""
+    LessConstant(x::SeaPearl.AbstractIntVar, v::Int, trailer::SeaPearl.Trailer)
+
+Inequality constraint, `x < v`
+"""
+function LessConstant(x::AbstractIntVar, v::Int, trailer::SeaPearl.Trailer)
+    return LessOrEqualConstant(x, v-1, trailer)
+end
+
+

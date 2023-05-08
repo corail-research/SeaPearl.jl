@@ -161,3 +161,12 @@ end
 function Base.show(io::IO, con::Greater)
     print(io, typeof(con), ": ", con.x.id, " > ", con.y.id)
 end
+
+"""
+    GreaterConstant(x::SeaPearl.AbstractIntVar, v::Int, trailer::SeaPearl.Trailer)
+
+Inequality constraint, `x > v`
+"""
+function GreaterConstant(x::AbstractIntVar, v::Int, trailer::SeaPearl.Trailer)
+    return GreaterOrEqualConstant(x, v+1, trailer)
+end
