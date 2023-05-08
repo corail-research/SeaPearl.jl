@@ -31,6 +31,21 @@ function parse_group(group::Node, variables::Dict{String, Any}, model::SeaPearl.
         end
         
     end
+
+    if tag == "sum"
+        str_relation = children(find_element(constraint_node, "condition"))[1].value
+        list_pattern = get_node_string(find_element(constraint_node, "list"))
+        if isnothing(find_element(constraint_node, "coeffs"))
+            str_coeffs = ""
+        else 
+            str_coeffs = children(find_element(constraint_node, "coeffs"))[1].value
+        end
+
+        for constraint_variables in args_nodes
+            str_list = fill_pattern(list_pattern, constraint_variables)
+            parse_sum_constraint_expression(str_relation, str_list, str_coeffs, variables, model, trailer)
+        end
+    end
     
 end
 
