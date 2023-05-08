@@ -50,6 +50,7 @@ function parse_sum_constraint_expression(str_relation::String, str_list::String,
         # TODO : modifier l'id de y
         min_vars = []
         max_vars = []
+
         name_sum = "sum("
         for i in vars
             push!(min_vars, minimum(i.domain.orig)*i.a)
@@ -61,6 +62,8 @@ function parse_sum_constraint_expression(str_relation::String, str_list::String,
         sum_max_bound = sum(max_vars)
 
         y = SeaPearl.IntVar(sum_min_bound, sum_max_bound, name_sum*"!="*string(value), trailer)
+
+
         con_y = SeaPearl.NotEqualConstant(y, value, trailer)
         con_sum = SeaPearl.SumToVariable(vars, y, trailer)
         SeaPearl.addConstraint!(model, con_y)
@@ -80,6 +83,7 @@ end
 
 function get_constraint_variables_expression(str_list, str_coeffs, variables)
     constraint_variables = SeaPearl.AbstractIntVar[]
+
 
     list_var, variables_but_no_coeffs = get_list_expression(str_list, variables)
     list_coeff = get_coefficients_expression(str_coeffs, variables_but_no_coeffs)
