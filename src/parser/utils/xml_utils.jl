@@ -8,3 +8,7 @@ function find_element(x::Node, tag::AbstractString)
     end
     return nothing
 end
+
+function get_node_string(x::Node)
+    return children(x)[1].value
+end
