@@ -2,21 +2,21 @@ using XML
 
 function parse_array_variable(array_variable::Node, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
 
-    info = attributes(array_variable)
+    info = XML.attributes(array_variable)
     dimensions = parse_dimensions(info["size"])
     id = info["id"]
 
-    raw_domain = children(array_variable)[1].value
+    raw_domain = XML.children(array_variable)[1].value
 
     seapearl_array_var = fill(SeaPearl.IntVar(0, 0, "default", trailer), tuple(dimensions...))
     #Different domain for variables
     if isnothing(raw_domain)
-        for variable in children(array_variable)
-            raw_domain = children(variable)[1].value
+        for variable in XML.children(array_variable)
+            raw_domain = XML.children(variable)[1].value
             domain = parse_variable_domain(raw_domain)
             min_value, max_value, missing_values = sort_intervals(domain)
             #Set of variable with same domain
-            ids = split(attributes(variable)["for"], " ")
+            ids = split(XML.attributes(variable)["for"], " ")
             for id in ids
                 var = SeaPearl.IntVar(min_value, max_value, string(id), trailer)
                 for v in missing_values

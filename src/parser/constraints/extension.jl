@@ -14,7 +14,7 @@ function parse_extension_constraint(constraint::Node, variables::Dict{String, An
         parse_conflict_extension_expression(str_list, str_conflict, variables, model, trailer)
 
     else
-        str_support = children(support_node)[1].value
+        str_support = XML.children(support_node)[1].value
         parse_support_extension_expression(str_list, str_support, variables, model, trailer)
     end
 

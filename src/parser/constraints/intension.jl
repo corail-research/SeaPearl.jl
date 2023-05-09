@@ -26,7 +26,7 @@ const arithmetic_operators = Dict(
 )
 
 function parse_intension_constraint(constraint::Node, variables::Dict{String, Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
-    str_constraint = children(constraint)[1].value
+    str_constraint = get_node_string(constraint)
     parse_intension_expression(str_constraint, variables, model, trailer)
 end
 
@@ -34,8 +34,8 @@ function parse_intension_expression(str_constraint::String, variables::Dict{Stri
     # Split the expression into operator and operands
     spl = split(str_constraint, "(", limit=2)
     operator = spl[1]
-    rel_bool = haskey(relational_operators, operator)
     ari_bool = haskey(arithmetic_operators, operator)
+    rel_bool = !ari_bool
 
     # If the expression does not have any further parentheses, return it as a variable or a value
     if !(rel_bool || ari_bool)
@@ -46,8 +46,8 @@ function parse_intension_expression(str_constraint::String, variables::Dict{Stri
             return value
         else
             var = get_constraint_variables(str_constraint, variables)[1]
+            return var
         end
-        return var
     end
     
     operands_str = string(spl[2])[1:end-1]
