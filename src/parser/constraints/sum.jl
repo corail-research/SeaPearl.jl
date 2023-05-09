@@ -101,7 +101,7 @@ function get_constraint_variables_expression(str_list, str_coeffs, variables)
     return constraint_variables
 end
 
-function get_coefficients_expression(str_coeffs, nb_variables) # variables_but_no_coeffs=[0, 0])
+function get_coefficients_expression(str_coeffs, nb_variables)
     coeffs_list = []
 
     # if there are variables but no coeffiecients, by default the coeffs are put to 1
