@@ -135,24 +135,15 @@ end
 
 function get_list_expression(str_list, variables)
     constraint_variables = SeaPearl.IntVar[]
-    variables_but_no_coeffs = [false, 0]
 
     for str_variable in split(str_list, " ")
-        # Case str_variable : x[]
-        if str_variable[end] == only("]") && str_variable[2] == only("[")
-            # Delete "]"
-            str = replace(str_variable, "]" => "")
-                
-            # Divide string into array of substring
-            str_vector = split(str, "[")
-            id, str_idx = str_vector[1], str_vector[2:end]   
-        
-        # Case str_variable : x1
-        else
-            id, str_idx = str_variable[1], str_variable[2:end]
-            str_idx = [join(str_idx)]     
-            id = string(id)                       
-        end
+        # Delete "]"
+        str = replace(str_variable, "]" => "")
+            
+        # Divide string into array of substring
+        str_vector = split(str, "[")
+
+        id, str_idx = str_vector[1], str_vector[2:end]
 
         #Get array with id
         var = variables[id]
