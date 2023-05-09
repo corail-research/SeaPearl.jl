@@ -1,0 +1,5 @@
+<instance format="XCSP3" type="COP">
+    <variables>
+        <array id="x" size="[4][5]"> 0..25 </array>
+    </variables>
+</instance>
