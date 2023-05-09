@@ -46,7 +46,7 @@ function parse_group(group::Node, variables::Dict{String, Any}, model::SeaPearl.
             parse_sum_constraint_expression(str_relation, str_list, str_coeffs, variables, model, trailer)
         end
     end
-    
+
 end
 
 

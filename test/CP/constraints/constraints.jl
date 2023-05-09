@@ -7,6 +7,7 @@
     include("disjunctive.jl")
     include("distance.jl")
     include("alldifferent.jl")
+    include("compactnegativetable.jl")
     include("compacttable.jl")
     include("equal.jl")
     include("notequal.jl")
