@@ -5,7 +5,6 @@ function parse_extension_constraint(constraint::Node, variables::Dict{String, An
 
     support_node = find_element(constraint, "supports")
 
-    #TODO : contrainte extension conflict (negative table à faire)
     if isnothing(support_node)
         conflict_node = find_element(constraint, "conflicts")  
 
@@ -14,7 +13,7 @@ function parse_extension_constraint(constraint::Node, variables::Dict{String, An
         parse_conflict_extension_expression(str_list, str_conflict, variables, model, trailer)
 
     else
-        str_support = children(support_node)[1].value
+        str_support = get_node_string(support_node)
         parse_support_extension_expression(str_list, str_support, variables, model, trailer)
     end
 
@@ -31,5 +30,11 @@ function parse_support_extension_expression(str_list::String, str_support::Strin
 end
 
 function parse_conflict_extension_expression(str_list::String, str_conflict::String, variables::Dict{String, Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
-    println("TODO: IMPLEMENT NEGATIVE TABLE CONSTRAINT")
+    constraint_variables = get_constraint_variables(str_list, variables)
+
+    str_tuples = split(str_conflict[2:end-1], ")(")
+    table = hcat([map(x -> parse(Int, x), split(tuple, ",")) for tuple in str_tuples]...)
+
+    constraint = SeaPearl.NegativeTableConstraint(constraint_variables, table, trailer)
+    SeaPearl.addConstraint!(model, constraint)
 end
