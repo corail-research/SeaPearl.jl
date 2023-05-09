@@ -10,5 +10,5 @@ function find_element(x::Node, tag::AbstractString)
 end
 
 function get_node_string(x::Node)
-    return children(x)[1].value
+    return XML.children(x)[1].value
 end
