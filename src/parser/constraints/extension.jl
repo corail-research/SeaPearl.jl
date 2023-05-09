@@ -1,12 +1,16 @@
 function parse_extension_constraint(constraint::Node, variables::Dict{String, Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
+
     str_list = get_node_string(find_element(constraint, "list"))
+
 
     support_node = find_element(constraint, "supports")
 
     #TODO : contrainte extension conflict (negative table à faire)
     if isnothing(support_node)
         conflict_node = find_element(constraint, "conflicts")  
+
         str_conflict = get_node_string(conflict_node)
+    
         parse_conflict_extension_expression(str_list, str_conflict, variables, model, trailer)
 
     else

@@ -12,6 +12,7 @@ include("CP/CP.jl")
 #include("MOI_wrapper/MOI_wrapper.jl")
 include("datagen/datagen.jl")
 include("experiment/experiment.jl")
+include("parser/parser.jl")
 
 greet() = print("Hello World!")
 

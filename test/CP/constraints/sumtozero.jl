@@ -100,5 +100,93 @@
         )
 
     end
+    @testset "SumToConstant()" begin
+        trailer = SeaPearl.Trailer()
+
+        x = SeaPearl.IntVar(2, 6, "x", trailer)
+        y = SeaPearl.IntVar(2, 3, "y", trailer)
+        ax = SeaPearl.IntVarViewMul(x, 3, "3x")
+        minusY = SeaPearl.IntVarViewOpposite(y, "-y")
+        vars = [x, y, ax, minusY]
+        constant = 21
+        constraint = SeaPearl.SumToConstant(vars, constant, trailer)
+
+        @test constraint in x.onDomainChange
+        @test constraint in y.onDomainChange
+        @test constraint.active.value
+        @test constraint.numberOfFreeVars.value == 4
+        @test constraint.sumOfFixedVars.value == 0
+        @test constraint.freeIds == [1, 2, 3, 4]
+    end
+    @testset "propagate!(::SumToConstant)" begin
+        # Check if it is still valid for v == 0
+        trailer = SeaPearl.Trailer()
+        vars = SeaPearl.AbstractIntVar[]
+
+        x = SeaPearl.IntVar(2, 3, "x", trailer)
+        push!(vars, x)
+        y = SeaPearl.IntVar(5, 15, "y", trailer)
+        ax = SeaPearl.IntVarViewMul(x, 3, "3x")
+        push!(vars, ax)
+        minusY = SeaPearl.IntVarViewOpposite(y, "-y")
+        push!(vars, minusY)
+        constant = 0
+        constraint = SeaPearl.SumToConstant(vars, constant, trailer)
+
+        toPropagate = Set{SeaPearl.Constraint}()
+        prunedDomains = SeaPearl.CPModification()
+
+        @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
+
+        @test length(y.domain) == 5
+        @test 8 in y.domain
+        @test !(7 in y.domain)
+        @test !(13 in ax.domain)
+        @test prunedDomains == SeaPearl.CPModification(
+            "-y" => [-5, -6, -7, -13, -14, -15],
+            "y"  => [5, 6, 7, 13, 14, 15]
+        )
+
+
+        cons2 = SeaPearl.EqualConstant(y, 15, trailer)
+
+        @test !SeaPearl.propagate!(cons2, toPropagate, prunedDomains)
+        # End check if it is still valid for v == 0
+        
+        trailer = SeaPearl.Trailer()
+        vars = SeaPearl.AbstractIntVar[]
+
+        x = SeaPearl.IntVar(1, 2, "x", trailer)
+        push!(vars, x)
+        y = SeaPearl.IntVar(1, 3, "y", trailer)
+        push!(vars, y)
+        w = SeaPearl.IntVar(0, 3, "w", trailer)
+        push!(vars, w)
+        z = SeaPearl.IntVar(-1, 0, "z", trailer)
+        push!(vars, z)
+        constant = 2
+        constraint = SeaPearl.SumToConstant(vars, constant, trailer)
+
+        toPropagate = Set{SeaPearl.Constraint}()
+        prunedDomains = SeaPearl.CPModification()
+
+        @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
+
+        @test length(x.domain) == 2
+        @test length(w.domain) == 2
+        @test 1 in w.domain
+        @test !(2 in w.domain)
+        @test -1 in z.domain
+        @test prunedDomains == SeaPearl.CPModification(
+            "y"  => [3],
+            "w" => [2,3]
+            )
+
+        cons2 = SeaPearl.EqualConstant(y, 3, trailer)
+
+        @test !SeaPearl.propagate!(cons2, toPropagate, prunedDomains)
+
+
+    end
 end
 
