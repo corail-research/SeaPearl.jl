@@ -35,7 +35,7 @@ function parse_intension_expression(str_constraint::String, variables::Dict{Stri
     spl = split(str_constraint, "(", limit=2)
     operator = spl[1]
     ari_bool = haskey(arithmetic_operators, operator)
-    rel_bool = !ari_bool
+    rel_bool = haskey(relational_constant_operators, operator) || haskey(relational_variable_operators, operator)
 
     # If the expression does not have any further parentheses, return it as a variable or a value
     if !(rel_bool || ari_bool)
