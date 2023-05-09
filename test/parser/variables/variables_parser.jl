@@ -1,3 +1,5 @@
+using XML 
+
 @testset "variables_parser.jl" begin
     @testset "variable_1darray" begin
         filename = "./parser/variables/data/test_variable_1darray.xml"
