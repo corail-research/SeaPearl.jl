@@ -136,6 +136,7 @@ function get_list_expression(str_list, variables)
     constraint_variables = SeaPearl.IntVar[]
 
     for str_variable in split(str_list, " ")
+
         # Delete "]"
         str = replace(str_variable, "]" => "")
             
@@ -143,6 +144,7 @@ function get_list_expression(str_list, variables)
         str_vector = split(str, "[")
 
         id, str_idx = str_vector[1], str_vector[2:end]
+
 
         #Get array with id
         var = variables[id]
