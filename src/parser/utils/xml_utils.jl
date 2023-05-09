@@ -1,7 +1,7 @@
 using XML
 
 function find_element(x::Node, tag::AbstractString)
-    for node in children(x)
+    for node in XML.children(x)
         if node.tag == tag
             return node
         end
