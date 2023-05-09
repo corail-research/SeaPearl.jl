@@ -9,7 +9,6 @@ using XML
         close(file)
         doc = parse(xml_string)
         instance = SeaPearl.find_element(doc, "instance")
-        println(instance)
         variables = SeaPearl.find_element(instance, "variables")
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)

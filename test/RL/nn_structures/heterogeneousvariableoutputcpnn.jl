@@ -29,7 +29,6 @@
         hts = SeaPearl.HeterogeneousTrajectoryState(fg, var, val)
         bhts = hts |> cpu  |> cpu 
         display(bhts.fg.valnf)
-        println(hts.possibleValuesIdx)
         output = modelNN(bhts)
         display(output)
         @test length(output) == size(valtovar,1)
@@ -76,7 +75,6 @@
         hts = SeaPearl.BatchedHeterogeneousTrajectoryState(fg, var, val)
         bhts = hts |> cpu  |> cpu 
         display(bhts.fg.valnf)
-        println(hts.possibleValuesIdx)
         output = modelNN(bhts)
         display(output)
         @test size(output) == (size(valtovar,1), size(valtovar, 3))

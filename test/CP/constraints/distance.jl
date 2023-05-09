@@ -28,10 +28,6 @@
 
         @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
 
-        println(x)
-        println(y)
-        println(z)
-
         @test length(y.domain) == 2
         @test 4 in x.domain
         @test !(0 in z.domain)
