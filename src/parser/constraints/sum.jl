@@ -9,7 +9,6 @@ function parse_sum_constraint(constraint::Node, variables::Dict{String, Any}, mo
     else 
         str_coeffs = children(find_element(constraint, "coeffs"))[1].value
     end
-
     parse_sum_constraint_expression(str_relation, str_list, str_coeffs, variables, model, trailer)
 end
 
@@ -135,24 +134,17 @@ end
 
 function get_list_expression(str_list, variables)
     constraint_variables = SeaPearl.IntVar[]
-    variables_but_no_coeffs = [false, 0]
 
     for str_variable in split(str_list, " ")
-        # Case str_variable : x[]
-        if str_variable[end] == only("]") && str_variable[2] == only("[")
-            # Delete "]"
-            str = replace(str_variable, "]" => "")
-                
-            # Divide string into array of substring
-            str_vector = split(str, "[")
-            id, str_idx = str_vector[1], str_vector[2:end]   
-        
-        # Case str_variable : x1
-        else
-            id, str_idx = str_variable[1], str_variable[2:end]
-            str_idx = [join(str_idx)]     
-            id = string(id)                       
-        end
+
+        # Delete "]"
+        str = replace(str_variable, "]" => "")
+            
+        # Divide string into array of substring
+        str_vector = split(str, "[")
+
+        id, str_idx = str_vector[1], str_vector[2:end]
+
 
         #Get array with id
         var = variables[id]
@@ -193,7 +185,7 @@ function get_relation_sum_expression(str_relation::String, variables)
     relation = ""
 
     if str_relation[2] == only("i") # check if it i 'in' relation
-        relation = match(r"\((\w+),(\d+\.\.\d+)\)", str_relation).captures[1]
+        relation = match(r"\((\w+),(\S+\.\.\S+)\)", str_relation).captures[1]
     else
         relation = match(r"\((\w+),(-?\d+)\)", str_relation).captures[1]
     end
