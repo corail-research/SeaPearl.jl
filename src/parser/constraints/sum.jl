@@ -9,7 +9,6 @@ function parse_sum_constraint(constraint::Node, variables::Dict{String, Any}, mo
     else 
         str_coeffs = children(find_element(constraint, "coeffs"))[1].value
     end
-
     parse_sum_constraint_expression(str_relation, str_list, str_coeffs, variables, model, trailer)
 end
 
@@ -184,7 +183,7 @@ function get_relation_sum_expression(str_relation::String, variables)
     relation = ""
 
     if str_relation[2] == only("i") # check if it i 'in' relation
-        relation = match(r"\((\w+),(\d+\.\.\d+)\)", str_relation).captures[1]
+        relation = match(r"\((\w+),(\S+\.\.\S+)\)", str_relation).captures[1]
     else
         relation = match(r"\((\w+),(-?\d+)\)", str_relation).captures[1]
     end
