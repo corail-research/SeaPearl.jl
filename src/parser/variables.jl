@@ -1,22 +1,40 @@
 using XML
 
+function parse_integer_variable(integer_variable::Node, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
+    info = XML.attributes(integer_variable)
+    id = info["id"]
+
+    raw_domain = get_node_string(integer_variable)
+    domain = parse_variable_domain(raw_domain)
+    min_value, max_value, missing_values = sort_intervals(domain)
+
+    var = SeaPearl.IntVar(min_value, max_value, string(id), trailer)
+    for v in missing_values
+        SeaPearl.remove!(var.domain, v)
+    end
+    SeaPearl.addVariable!(model, var)
+
+    return var
+end
+
+
 function parse_array_variable(array_variable::Node, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
 
-    info = attributes(array_variable)
+    info = XML.attributes(array_variable)
     dimensions = parse_dimensions(info["size"])
     id = info["id"]
 
-    raw_domain = children(array_variable)[1].value
+    raw_domain = get_node_string(array_variable)
 
     seapearl_array_var = fill(SeaPearl.IntVar(0, 0, "default", trailer), tuple(dimensions...))
     #Different domain for variables
     if isnothing(raw_domain)
-        for variable in children(array_variable)
-            raw_domain = children(variable)[1].value
+        for variable in XML.children(array_variable)
+            raw_domain = get_node_string(variable)
             domain = parse_variable_domain(raw_domain)
             min_value, max_value, missing_values = sort_intervals(domain)
             #Set of variable with same domain
-            ids = split(attributes(variable)["for"], " ")
+            ids = split(XML.attributes(variable)["for"], " ")
             for id in ids
                 var = SeaPearl.IntVar(min_value, max_value, string(id), trailer)
                 for v in missing_values
@@ -135,7 +153,7 @@ function sort_intervals(intervals::Vector{Vector{Int64}})
         if length(x) == 1
             push!(singletons, x[1])
         elseif length(x) == 2
-            for v = x[1]:x[2]+1
+            for v = x[1]:x[2]
                 push!(ranges, v)
             end
         else
@@ -148,7 +166,6 @@ function sort_intervals(intervals::Vector{Vector{Int64}})
 
     min_val = result[1]
     max_val = result[end]
-
 
     # Calculer les entiers entre le minimum et le maximum qui ne sont pas dans l'ensemble
     missing_values = Int[]

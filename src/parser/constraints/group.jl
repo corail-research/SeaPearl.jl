@@ -1,5 +1,5 @@
 function parse_group(group::Node, variables::Dict{String, Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
-    constraint_node, args_nodes = children(group)[1], children(group)[2:end]
+    constraint_node, args_nodes = XML.children(group)[1], XML.children(group)[2:end]
 
     tag = constraint_node.tag
 
@@ -33,12 +33,12 @@ function parse_group(group::Node, variables::Dict{String, Any}, model::SeaPearl.
     end
 
     if tag == "sum"
-        str_relation = children(find_element(constraint_node, "condition"))[1].value
+        str_relation = XML.children(find_element(constraint_node, "condition"))[1].value
         list_pattern = get_node_string(find_element(constraint_node, "list"))
         if isnothing(find_element(constraint_node, "coeffs"))
             str_coeffs = ""
         else 
-            str_coeffs = children(find_element(constraint_node, "coeffs"))[1].value
+            str_coeffs = XML.children(find_element(constraint_node, "coeffs"))[1].value
         end
 
         for constraint_variables in args_nodes
@@ -64,5 +64,5 @@ function fill_pattern(pattern::AbstractString, constraint_variables::Node)
         filled_pattern = replace(filled_pattern, "%" * string(i-1) => string(var))
     end
 
-    return split(filled_pattern, "%")[1]
+    return split(filled_pattern, " %")[1]
 end
