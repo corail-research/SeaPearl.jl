@@ -1,0 +1,6 @@
+<instance format="XCSP3" type="COP">
+    <variables>
+        <array id="x" size="[2][3][4][5]"> 0 1 </array>
+        <array id="y" size="[2]"> 1 -1 </array>
+    </variables>
+</instance>

@@ -24,6 +24,7 @@ function parse_array_variable(array_variable::Node, model::SeaPearl.CPModel, tra
     dimensions = parse_dimensions(info["size"])
     id = info["id"]
 
+
     raw_domain = get_node_string(array_variable)
 
     seapearl_array_var = fill(SeaPearl.IntVar(0, 0, "default", trailer), tuple(dimensions...))

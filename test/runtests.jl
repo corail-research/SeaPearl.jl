@@ -29,9 +29,8 @@ const RL = ReinforcementLearning
         println("trailer tests")
         include("trailer.jl")
     end
-
-
-    include("CP/constraints/distance.jl")
+    @time begin
+        println("parser tests")
+        include("parser/parser.jl")
+    end
 end
-
-revise_user = "You use Revise, you're efficient in your work, well done ;)" 

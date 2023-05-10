@@ -1,0 +1,8 @@
+<instance format="XCSP3" type="COP">
+    <variables>
+        <array id="e" note="e[i] is the earliness of the ith plane" size="[2]">
+            <domain for="e[0]"> 0..26 </domain>
+            <domain for="e[1]"> 0..60 </domain>
+        </array>
+    </variables>
+</instance>

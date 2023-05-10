@@ -8,7 +8,6 @@ function (::TsptwVariableSelection{false})(cpmodel::SeaPearl.CPModel; rng=nothin
             return cpmodel.variables["a_"*string(i)]
         end
     end
-    println(cpmodel.variables)
 end
 
 @testset "tsptw.jl" begin
