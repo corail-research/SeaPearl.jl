@@ -63,5 +63,6 @@ function fill_pattern(pattern::AbstractString, constraint_variables::Node)
     for (i, var) in enumerate(str_vars_split)
         filled_pattern = replace(filled_pattern, "%" * string(i-1) => string(var))
     end
-    return filled_pattern
+
+    return split(filled_pattern, " %")[1]
 end

@@ -8,6 +8,7 @@
     include("distance.jl")
     include("alldifferent.jl")
     include("compactnegativetable.jl")
+    include("compactshorttable.jl")
     include("compacttable.jl")
     include("equal.jl")
     include("notequal.jl")

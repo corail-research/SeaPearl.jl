@@ -30,7 +30,7 @@ function parse_intension_constraint(constraint::Node, variables::Dict{String, An
     parse_intension_expression(str_constraint, variables, model, trailer)
 end
 
-function parse_intension_expression(str_constraint::String, variables::Dict{String, Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
+function parse_intension_expression(str_constraint::AbstractString, variables::Dict{String, Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
     # Split the expression into operator and operands
     spl = split(str_constraint, "(", limit=2)
     operator = spl[1]
