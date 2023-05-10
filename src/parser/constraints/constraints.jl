@@ -4,11 +4,12 @@ include("group.jl")
 include("extension.jl")
 include("sum.jl")
 
+
 include("../utils/xml_utils.jl")
 
 function parse_all_constraints(constraints::Node, variables::Dict{String, Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
     
-    for con in children(constraints)
+    for con in XML.children(constraints)
         tag = con.tag
         if tag == "allDifferent"
             parse_allDifferent_constraint(con, variables, model, trailer)

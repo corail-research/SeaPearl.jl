@@ -14,9 +14,6 @@ function parse_sum_constraint(constraint::Node, variables::Dict{String, Any}, mo
 end
 
 function parse_sum_constraint_expression(str_relation::String, str_list::String, str_coeffs::String, variables::Dict{String, Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
-    # TODO : penser à faire le cas où on a des groupes de variables au lieu d'une liste
-    # TODO : penser à faire le cas 'View'
-
     vars = get_constraint_variables_expression(str_list, str_coeffs, variables)
     operator, value = get_relation_sum_expression(str_relation, variables)
     # 'value' is an array (one per sum constraints) of an array with 1 value in the general case 
@@ -39,25 +36,28 @@ function parse_sum_constraint_expression(str_relation::String, str_list::String,
         SeaPearl.addConstraint!(model, con)
 
     elseif operator == "eq"
-        # add a variable y, add the constraint "y == v" (equal.jl),
-        # add the constraint "sum_vars == y"
         con_sum = SeaPearl.SumToConstant(vars, value, trailer)
         SeaPearl.addConstraint!(model, con_sum)
 
     elseif operator == "ne"
         # add the variable y, add the constraint "y = sum" ,
         # add the constraint "y != value"(notequal.jl)
-        # TODO : modifier l'id de y
         min_vars = []
         max_vars = []
+
+        name_sum = "sum("
         for i in vars
             push!(min_vars, minimum(i.domain.orig)*i.a)
             push!(max_vars, maximum(i.domain.orig)*i.a)
+            name_sum *= i.id*","
         end
+        name_sum = name_sum[1:end-1]*")"
         sum_min_bound = sum(min_vars)
         sum_max_bound = sum(max_vars)
 
-        y = SeaPearl.IntVar(sum_min_bound, sum_max_bound, "constant="*string(value), trailer)
+        y = SeaPearl.IntVar(sum_min_bound, sum_max_bound, name_sum*"!="*string(value), trailer)
+
+
         con_y = SeaPearl.NotEqualConstant(y, value, trailer)
         con_sum = SeaPearl.SumToVariable(vars, y, trailer)
         SeaPearl.addConstraint!(model, con_y)
@@ -76,7 +76,8 @@ end
 
 
 function get_constraint_variables_expression(str_list, str_coeffs, variables)
-    constraint_variables = SeaPearl.IntVarViewMul[]
+    constraint_variables = SeaPearl.AbstractIntVar[]
+
 
     list_var, variables_but_no_coeffs = get_list_expression(str_list, variables)
     list_coeff = get_coefficients_expression(str_coeffs, variables_but_no_coeffs)
@@ -84,10 +85,15 @@ function get_constraint_variables_expression(str_list, str_coeffs, variables)
     if length(list_var) == length(list_coeff)
         for i in 1:length(list_var)
             var = list_var[i]
-            coeff = list_coeff[i]
-            id = string(coeff) * string(var.id)
-            var_mul = SeaPearl.IntVarViewMul(var, coeff, id)
-            push!(constraint_variables, var_mul)
+            if str_coeffs == ""
+                push!(constraint_variables, var)
+            else
+                coeff = list_coeff[i]
+                id = string(coeff) * string(var.id)
+                var_mul = SeaPearl.IntVarViewMul(var, coeff, id)
+                push!(constraint_variables, var_mul)
+            end
+            
         end
     else
         println("Error the numbers of variables and coefficients are not the same")
@@ -95,13 +101,12 @@ function get_constraint_variables_expression(str_list, str_coeffs, variables)
     return constraint_variables
 end
 
-
-function get_coefficients_expression(str_coeffs, variables_but_no_coeffs=[0, 0])
+function get_coefficients_expression(str_coeffs, nb_variables)
     coeffs_list = []
 
     # if there are variables but no coeffiecients, by default the coeffs are put to 1
     if str_coeffs == ""
-        for i in 1:variables_but_no_coeffs[2]
+        for i in 1:nb_variables
             push!(coeffs_list, 1)
         end
         return coeffs_list
@@ -133,13 +138,21 @@ function get_list_expression(str_list, variables)
     variables_but_no_coeffs = [false, 0]
 
     for str_variable in split(str_list, " ")
+        # Case str_variable : x[]
+        if str_variable[end] == only("]") && str_variable[2] == only("[")
             # Delete "]"
             str = replace(str_variable, "]" => "")
                 
             # Divide string into array of substring
             str_vector = split(str, "[")
-    
-            id, str_idx = str_vector[1], str_vector[2:end]
+            id, str_idx = str_vector[1], str_vector[2:end]   
+        
+        # Case str_variable : x1
+        else
+            id, str_idx = str_variable[1], str_variable[2:end]
+            str_idx = [join(str_idx)]     
+            id = string(id)                       
+        end
 
         #Get array with id
         var = variables[id]
@@ -170,20 +183,8 @@ function get_list_expression(str_list, variables)
         else
             push!(constraint_variables, vars)
         end
-        
-        # We need to check if there is a coeffs node, if not by default the coeffs are put to 1
-        # à adapter pour quand on enlèvera les for
-        nodes = []
-        for var_node_child in children(constraints)  
-            push!(nodes, var_node_child.tag)
-            if "coeffs" in nodes
-                variables_but_no_coeffs = [0, length(constraint_variables)]
-            else
-                variables_but_no_coeffs = [1, length(constraint_variables)]
-            end
-        end
     end
-    return constraint_variables, variables_but_no_coeffs
+    return constraint_variables, length(constraint_variables) #, variables_but_no_coeffs
 end
 
 

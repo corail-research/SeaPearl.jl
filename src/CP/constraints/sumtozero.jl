@@ -100,7 +100,7 @@ Summing constraint, states that `y == x[1] + x[2] + ... + x[length(x)]`
 """
 
 function SumToVariable(x::Array{<:AbstractIntVar}, y::AbstractIntVar, trailer)
-    z = IntVarViewOpposite(y, "-y")
+    z = IntVarViewOpposite(y, "-" * y.id)
     push!(x , z)
     return SumToZero(x, trailer)
 end
