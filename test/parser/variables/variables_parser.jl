@@ -1,13 +1,10 @@
-using XML 
+using XML
 
 @testset "variables_parser.jl" begin
     @testset "variable_1darray" begin
         filename = "./parser/variables/data/test_variable_1darray.xml"
         # Setup: parse trivial XML file containing Int variables in the range 1-35
-        file = open(filename)
-        xml_string = read(file, String)
-        close(file)
-        doc = parse(xml_string)
+        doc = read(filename, Node)
         instance = SeaPearl.find_element(doc, "instance")
         variables = SeaPearl.find_element(instance, "variables")
         trailer = SeaPearl.Trailer()
@@ -36,10 +33,7 @@ using XML
     @testset "variable_2darray" begin
         filename = "./parser/variables/data/test_variable_2darray.xml"
         # Setup: parse trivial XML file containing Int variables in the range 1-35
-        file = open(filename)
-        xml_string = read(file, String)
-        close(file)
-        doc = parse(xml_string)
+        doc = read(filename, Node)
         instance = SeaPearl.find_element(doc, "instance")
         variables = SeaPearl.find_element(instance, "variables")
         trailer = SeaPearl.Trailer()
@@ -70,10 +64,7 @@ using XML
     @testset "variable_array_different_domains" begin
         filename = "./parser/variables/data/test_variable_4darray.xml"
         # Setup: parse trivial XML file containing Int variables in the range 1-35
-        file = open(filename)
-        xml_string = read(file, String)
-        close(file)
-        doc = parse(xml_string)
+        doc = read(filename, Node)
         instance = SeaPearl.find_element(doc, "instance")
         variables = SeaPearl.find_element(instance, "variables")
         trailer = SeaPearl.Trailer()
@@ -85,7 +76,7 @@ using XML
                 dict_var[id] = SeaPearl.parse_array_variable(var, model, trailer)
             end
         end
-        
+
         @test length(model.variables) == 122
 
         @test SeaPearl.minimum(model.variables["x[0][0][0][0]"].domain) == 0
