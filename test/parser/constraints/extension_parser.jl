@@ -23,8 +23,6 @@ using XML
         SeaPearl.parse_all_constraints(constraints, dict_var, model, trailer)      
 
         # Test whether the constraints have been correctly added to the model
-        println(model.constraints[1].conflicts)
-        @test model.constraints[1].conflicts
         @test length(model.constraints) == 16
         @test isa(model.constraints[1], SeaPearl.NegativeTableConstraint)
         @test length(model.constraints[1].scope) == 2
