@@ -145,23 +145,58 @@ end
 """
 divBounds!(a::Int, b::Int, c::Int, d::Int)pruneDivision!(prunedVar::AbstractIntVar, numeratorVar::AbstractIntVar, denominatorVar::AbstractIntVar)
 
-Finds result interval for division of {a..b} / {c..d}
+Finds result interval for division of {a..b} ÷ {c..d}
 """
 function divBounds!(a::Int, b::Int, c::Int, d::Int)
+    if (a > b || c > d)
+        error("Bad bound definition for divBounds!")
+    end
 
-    ac = a ÷ c
-    ad = a ÷ d
-    bc = b ÷ c
-    bd = b ÷ d
+    # c = 0, d = 0
+    if (c == 0 && d == 0)
+        error("Cannot divide by zero")
+    
+    # c = 0, d > 0
+    elseif (c == 0)
+        divBounds!(a,b,1,d)
 
-    min, idx = Base.findmin([ac, ad, bc, bd])
-    max, idx = Base.findmax([ac, ad, bc, bd])
+    # c < 0, d = 0
+    elseif (d == 0)
+        divBounds!(a,b,c,-1)
+    
+    # c > 0, d > 0 or c < 0, d < 0
+    elseif (c > 0 || d < 0)
+        ac = a / c
+        ad = a / d
+        bc = b / c
+        bd = b / d
+        idx, low = Base.findmin([ac, ad, bc, bd])
+        idx, high = Base.findmax([ac, ad, bc, bd])
+        min = Int(round(ceil(low)))
+        max = Int(round(floor(high)))
+        if (min > max)
+            error("Fail to find division bounds")
+        end
+        return min, max
+    
+    # c < 0, d > 0
+    else
+        min_neg, max_neg = divBounds!(a, b, c, -1)
+        min_pos, max_pos = divBounds!(a, b, 1, d)
 
-    return min, max
+        idx, min =  Base.findmin([min_neg, max_neg, min_pos, max_pos])
+        idx, max =  Base.findmax([min_neg, max_neg, min_pos, max_pos])
+
+        if (min > max)
+            error("Fail to find division bounds")
+        end
+
+        return min, max
+    end
 end
 
 """
-divBounds!(a::Int, b::Int, c::Int, d::Int)pruneDivision!(prunedVar::AbstractIntVar, numeratorVar::AbstractIntVar, denominatorVar::AbstractIntVar)
+reminderBounds!(a::Int, b::Int, c::Int, d::Int)pruneDivision!(prunedVar::AbstractIntVar, numeratorVar::AbstractIntVar, denominatorVar::AbstractIntVar)
 
 Finds result interval for reminder of {a..b} mod {c..d}
 """
