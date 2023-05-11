@@ -28,7 +28,7 @@ function parse_group(group::Node, variables::Dict{String, Any}, model::SeaPearl.
             str_conflict = get_node_string(find_element(constraint_node, "conflicts"))
             for constraint_variables in args_nodes
                 str_list = fill_pattern(list_pattern, constraint_variables)
-                parse_conflict_extension_expression(str_list, str_conflict, variables, model, trailer)
+                parse_conflict_extension_expression!(str_list, str_conflict, variables, model, trailer)
             end
         else 
             str_support = get_node_string(support_node)
