@@ -3,6 +3,14 @@ function parse_group(group::Node, variables::Dict{String, Any}, model::SeaPearl.
 
     tag = constraint_node.tag
 
+    if tag == "allDifferent"
+        allDifferent_pattern = get_node_string(constraint_node)
+        for constraint_variables in args_nodes
+            str_constraint_variables = fill_pattern(allDifferent_pattern, constraint_variables)
+            parse_allDifferent_expression(str_constraint_variables, variables, model, trailer)
+        end
+    end 
+
     if tag == "intension"
         intension_pattern = get_node_string(constraint_node)
         for constraint_variables in args_nodes
