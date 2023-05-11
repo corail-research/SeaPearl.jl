@@ -18,7 +18,7 @@ function parse_extension_constraint(constraint::Node, variables::Dict{String,Any
 
         str_conflict = get_node_string(conflict_node)
 
-        parse_conflict_extension_expression(str_list, str_conflict, variables, model, trailer)
+        parse_conflict_extension_expression!(str_list, str_conflict, variables, model, trailer)
 
     else
         str_support = get_node_string(support_node)
@@ -54,7 +54,7 @@ function parse_support_extension_expression(str_list::AbstractString, str_suppor
 end
 
 """
-    parse_conflict_extension_expression(str_list::String, str_conflict::String, variables::Dict{String, Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
+    parse_conflict_extension_expression!(str_list::String, str_conflict::String, variables::Dict{String, Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
 
 Parse a conflict extension expression from a string and apply it to the constraint programming model.
 
@@ -65,7 +65,7 @@ Parse a conflict extension expression from a string and apply it to the constrai
 - `model::SeaPearl.CPModel`: Constraint programming model where the constraint will be added.
 - `trailer::SeaPearl.Trailer`: An object that keeps track of changes during search to allow for efficient backtracking.
 """
-function parse_conflict_extension_expression(str_list::String, str_conflict::String, variables::Dict{String,Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
+function parse_conflict_extension_expression!(str_list::AbstractString, str_conflict::AbstractString, variables::Dict{String,Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
     constraint_variables = get_constraint_variables(str_list, variables)
 
     str_tuples = split(str_conflict[2:end-1], ")(")
