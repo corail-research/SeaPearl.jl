@@ -19,6 +19,8 @@ SeaPearl.BinaryMaximumBC
 SeaPearl.BinaryOr
 SeaPearl.BinaryXor
 SeaPearl.TableConstraint
+SeaPearl.NegativeTableConstraint
+SeaPearl.ShortTableConstraint
 SeaPearl.Disjunctive
 SeaPearl.Element2D
 SeaPearl.Element1D
