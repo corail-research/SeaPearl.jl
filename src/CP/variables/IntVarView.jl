@@ -15,13 +15,11 @@ end
 
     Create a *fake* variable `y`, such that `y == a*x`. This variable behaves like an usual one.
     """
-mutable struct IntVarViewMul <: IntVarView
-    x               ::AbstractIntVar
-    a               ::Int
-    domain          ::IntDomainViewMul
-    id              ::String
-    is_impacted         ::Bool
-
+struct IntVarViewMul <: IntVarView
+    x::AbstractIntVar
+    a::Int
+    domain::IntDomainViewMul
+    id::String
 
     """
         IntVarViewMul(x::AbstractIntVar, a::Int, id::String)
@@ -31,7 +29,7 @@ mutable struct IntVarViewMul <: IntVarView
     function IntVarViewMul(x::AbstractIntVar, a::Int, id::String)
         @assert a > 0
         dom = IntDomainViewMul(x.domain, a)
-        var = new(x, a, dom, id, false)
+        var = new(x, a, dom, id)
         addChildrenVariable!(x, var)
         return var
     end
@@ -50,12 +48,10 @@ end
 
     Create a *fake* variable `y`, such that `y = -x`. This variable behaves like an usual one.
 """
-mutable struct IntVarViewOpposite <: IntVarView
-    x               ::AbstractIntVar
-    domain          ::IntDomainViewOpposite
-    id              ::String
-    is_impacted         ::Bool
-
+struct IntVarViewOpposite <: IntVarView
+    x::AbstractIntVar
+    domain::IntDomainViewOpposite
+    id::String
 
     """
     IntVarViewOpposite(x::AbstractIntVar, id::String)
@@ -64,7 +60,7 @@ mutable struct IntVarViewOpposite <: IntVarView
     """
     function IntVarViewOpposite(x::AbstractIntVar, id::String)
         dom = IntDomainViewOpposite(x.domain)
-        var = new(x, dom, id, false)
+        var = new(x, dom, id)
         addChildrenVariable!(x, var)
         return var
     end
@@ -79,13 +75,16 @@ struct IntDomainViewOffset <: IntDomainView
     c::Int
 end
 
-mutable struct IntVarViewOffset <: IntVarView
-    x               ::AbstractIntVar
-    c               ::Int
-    domain          ::IntDomainViewOffset
-    id              ::String
-    is_impacted         ::Bool
+"""
+    IntVarViewOffset(x::AbstractIntVar, id::String)
 
+Create a *fake* variable `y`, such that `y = x + c`. This variable behaves like an usual one.
+"""
+struct IntVarViewOffset <: IntVarView
+    x::AbstractIntVar
+    c::Int
+    domain::IntDomainViewOffset
+    id::String
 
     """
     IntVarViewOffset(x::AbstractIntVar, id::String)
@@ -94,7 +93,7 @@ mutable struct IntVarViewOffset <: IntVarView
     """
     function IntVarViewOffset(x::AbstractIntVar, c::Int, id::String)
         dom = IntDomainViewOffset(x.domain, c)
-        var = new(x, c, dom, id, false)
+        var = new(x, c, dom, id)
         addChildrenVariable!(x, var)
         return var
     end

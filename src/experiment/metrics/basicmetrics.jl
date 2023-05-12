@@ -39,7 +39,7 @@ mutable struct BasicMetrics{O<:AbstractTakeObjective, H<:ValueSelection} <: Abst
     meanOver::Int64
     nbEpisodes::Int64
 
-    BasicMetrics{O,H}(heuristic,meanOver) where {O,H}= new{O, H}(heuristic,Vector{Vector{Int64}}(),Vector{Vector{Float32}}(),Vector{Union{Nothing,Float32}}(), Float32[], Float32[], Float32[], O==TakeObjective ? Vector{Vector{Float32}}() : nothing, (H == BasicHeuristic|| H == ImpactHeuristic || H == ActivityHeuristic) ? nothing : Float32[], (H == BasicHeuristic || H == ImpactHeuristic || H == ActivityHeuristic) ? nothing : Float32[], meanOver,0)
+    BasicMetrics{O,H}(heuristic,meanOver) where {O,H}= new{O, H}(heuristic,Vector{Vector{Int64}}(),Vector{Vector{Float32}}(),Vector{Union{Nothing,Float32}}(), Float32[], Float32[], Float32[], O==TakeObjective ? Vector{Vector{Float32}}() : nothing, (H == BasicHeuristic|| H == ImpactHeuristic) ? nothing : Float32[], (H == BasicHeuristic || H == ImpactHeuristic) ? nothing : Float32[], meanOver,0)
 end
 
 BasicMetrics(model::CPModel, heuristic::ValueSelection; meanOver=1) = BasicMetrics{(!isnothing(model.objective)) ? TakeObjective : DontTakeObjective ,typeof(heuristic)}(heuristic, meanOver)
@@ -50,7 +50,7 @@ BasicMetrics(model::CPModel, heuristic::ValueSelection; meanOver=1) = BasicMetri
 The function is called after a search on a Constraint Programming Model.
 It updates all the metrics during the search.
 """
-function (metrics::BasicMetrics{DontTakeObjective, <:Union{BasicHeuristic, ImpactHeuristic, ActivityHeuristic}})(model::CPModel,dt::Float64)
+function (metrics::BasicMetrics{DontTakeObjective, <:Union{BasicHeuristic, ImpactHeuristic}})(model::CPModel,dt::Float64)
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
     push!(metrics.timeNeeded,copy(model.statistics.timeneededpersolution))
@@ -62,7 +62,7 @@ function (metrics::BasicMetrics{DontTakeObjective, <:Union{BasicHeuristic, Impac
     return
 end 
 
-function (metrics::BasicMetrics{TakeObjective, <:Union{BasicHeuristic, ImpactHeuristic, ActivityHeuristic}})(model::CPModel,dt::Float64)
+function (metrics::BasicMetrics{TakeObjective, <:Union{BasicHeuristic, ImpactHeuristic}})(model::CPModel,dt::Float64)
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,copy(model.statistics.nodevisitedpersolution))
     push!(metrics.timeNeeded,copy(model.statistics.timeneededpersolution))
@@ -107,11 +107,11 @@ function (metrics::BasicMetrics{TakeObjective, <:LearnedHeuristic})(model::CPMod
 end 
 
 """
-    function repeatlast!(metrics::BasicMetrics{<:AbstractTakeObjective, <:Union{BasicHeuristic, ImpactHeuristic, ActivityHeuristic}})
+    function repeatlast!(metrics::BasicMetrics{<:AbstractTakeObjective, <:Union{BasicHeuristic, ImpactHeuristic}})
 
 The function is called during an evaluation. To avoid useless evaluation on deterministic heuristic, we simply copy the last solving procedure stored in the BasicMetrics.
 """
-function repeatlast!(metrics::BasicMetrics{<:AbstractTakeObjective, <:Union{BasicHeuristic, ImpactHeuristic, ActivityHeuristic}})
+function repeatlast!(metrics::BasicMetrics{<:AbstractTakeObjective, <:Union{BasicHeuristic, ImpactHeuristic}})
     metrics.nbEpisodes+=1
     push!(metrics.nodeVisited,last(metrics.nodeVisited))
     push!(metrics.timeNeeded,last(metrics.timeNeeded))

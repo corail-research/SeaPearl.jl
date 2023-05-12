@@ -43,36 +43,19 @@ function fixPoint!(model::CPModel, new_constraints::Union{Array{Constraint}, Not
         end
     end
 
-    #impact value computation :
-    if model.statistics.searchTreeSize.value == -1
-        setValue!(model.statistics.searchTreeSize, computeSearchTreeSize!(model))
+    if isnothing(model.statistics.searchTreeSize)
+        model.statistics.searchTreeSize = SeaPearl.computeSearchTreeSize!(model)
     elseif !isnothing(model.statistics.lastVar) #if this is not the first fix-point
         x = model.statistics.lastVar
         v = model.statistics.lastVal
         alpha = 0.4
-        impact = 1.0 - SeaPearl.computeSearchTreeSize!(model)/model.statistics.searchTreeSize.value #after/before fix point
-        setValue!(model.statistics.searchTreeSize,computeSearchTreeSize!(model))
+        impact = 1 - SeaPearl.computeSearchTreeSize!(model)/model.statistics.searchTreeSize  #after/before fix point
+        model.statistics.searchTreeSize = SeaPearl.computeSearchTreeSize!(model) #updating searchTreeSize
         if !isnothing(get(model.impact_var_val, (x,v), nothing)) #tuple (x,v) previously seen
             model.impact_var_val[(x,v)] = (1-alpha)*model.impact_var_val[(x,v)] + alpha * impact
         else
             model.impact_var_val[(x,v)] = impact
         end
-        
-        alpha = 0.85
-        activity = 0
-        #activity value computation : 
-        for (k,var) in model.variables
-            if isdefined(var, :is_impacted) && var.is_impacted
-                activity+=1
-                var.is_impacted = false
-            end
-        end
-        if !isnothing(get(model.activity_var_val, (x,v), nothing)) #tuple (x,v) previously seen
-            model.activity_var_val[(x,v)] = (1-alpha)*model.activity_var_val[(x,v)] + alpha * activity
-        else
-            model.activity_var_val[(x,v)] = activity
-        end
-    
     end
 
     return true, prunedDomains

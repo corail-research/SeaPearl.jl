@@ -25,7 +25,6 @@ abstract type ValueSelection end
 
 include("classic/basicheuristic.jl")
 include("classic/impactheuristic.jl")
-include("classic/activityheuristic.jl")
 
 abstract type ActionOutput end
 struct VariableOutput <: ActionOutput end

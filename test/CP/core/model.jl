@@ -53,23 +53,23 @@
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
 
-        @test model.statistics.searchTreeSize.value == -1
+        @test model.statistics.searchTreeSize == nothing
         @test SeaPearl.computeSearchTreeSize!(model) == 15
         SeaPearl.fixPoint!(model)
-        @test model.statistics.searchTreeSize.value == 15
+        @test model.statistics.searchTreeSize == 15
 
         valueselection = SeaPearl.BasicHeuristic()
         v = valueselection(SeaPearl.DecisionPhase, model, x)
         SeaPearl.assign!(x, v)
         @test SeaPearl.computeSearchTreeSize!(model) == 3
         SeaPearl.fixPoint!(model)
-        @test model.statistics.searchTreeSize.value == 3
+        @test model.statistics.searchTreeSize == 3
 
         v = valueselection(SeaPearl.DecisionPhase, model, y)
         SeaPearl.assign!(y, v)
         @test SeaPearl.computeSearchTreeSize!(model) == 1
         SeaPearl.fixPoint!(model)
-        @test model.statistics.searchTreeSize.value == 1
+        @test model.statistics.searchTreeSize == 1
 
         #for bool var
         trailer = SeaPearl.Trailer()
@@ -79,10 +79,10 @@
 
         SeaPearl.addVariable!(model, b)
 
-        @test model.statistics.searchTreeSize.value == -1
+        @test model.statistics.searchTreeSize == nothing
         @test SeaPearl.computeSearchTreeSize!(model) == 2
         SeaPearl.fixPoint!(model)
-        @test model.statistics.searchTreeSize.value == 2
+        @test model.statistics.searchTreeSize == 2
 
         valueselection = SeaPearl.BasicHeuristic()
         v = valueselection(SeaPearl.DecisionPhase, model, b)
@@ -95,10 +95,10 @@
         z = SeaPearl.IntSetVar(4, 7, "z", trailer)
 
         SeaPearl.addVariable!(model, z; branchable = false)
-        @test model.statistics.searchTreeSize.value == -1
+        @test model.statistics.searchTreeSize == nothing
         @test SeaPearl.computeSearchTreeSize!(model) == 4
         SeaPearl.fixPoint!(model)
-        @test model.statistics.searchTreeSize.value == 4
+        @test model.statistics.searchTreeSize == 4
     end
 
 
@@ -203,8 +203,7 @@
         SeaPearl.addVariable!(model, x)
         SeaPearl.addVariable!(model, y)
         SeaPearl.addObjective!(model, y)
-        SeaPearl.tic()
-        @time act = SeaPearl.triggerFoundSolution!(model)
+        act = SeaPearl.triggerFoundSolution!(model)
         if act == :tightenObjective
             SeaPearl.tightenObjective!(model)
         end

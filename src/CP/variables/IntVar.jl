@@ -4,12 +4,11 @@
 A "simple" integer variable, whose domain can be any set of integers.
 The constraints that affect this variable are stored in the `onDomainChange` array.
 """
-mutable struct IntVar <: AbstractIntVar
+struct IntVar <: AbstractIntVar
     onDomainChange      ::Array{Constraint}
     domain              ::SeaPearl.IntDomain
     id                  ::String
     children            ::Set{AbstractIntVar}
-    is_impacted         ::Bool
 end
 
 """
@@ -22,7 +21,7 @@ function IntVar(min::Int, max::Int, id::String, trailer::Trailer)
     offset = min - 1
     dom = IntDomain(trailer, max - min + 1, offset)
 
-    return IntVar(Constraint[], dom, id, Set{AbstractIntVar}(), false)
+    return IntVar(Constraint[], dom, id, Set{AbstractIntVar}())
 end
 
 function Base.show(io::IO, var::IntVar)

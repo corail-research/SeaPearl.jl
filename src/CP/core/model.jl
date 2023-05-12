@@ -44,7 +44,7 @@ mutable struct Statistics
     objectiveUpPruning                      ::Union{Nothing, Float32}
     lastVar                                 ::Union{Nothing, AbstractIntVar} #last var on which we branched
     lastVal                                 ::Union{Nothing, Int} #last val on which we branched
-    searchTreeSize                          ::Union{Nothing, StateObject{Int}} #size of the search tree for impact based search
+    searchTreeSize                          ::Union{Nothing, Int} #size of the search tree for impact based search
     numberOfTimesInvolvedInPropagation      ::Union{Nothing, Dict{Constraint,Int}}
 end
 
@@ -93,11 +93,10 @@ mutable struct CPModel
     limit                   ::Limit
     knownObjective          ::Union{Nothing,Int64}
     impact_var_val          ::Dict{Tuple{AbstractIntVar,Int}, Float32}
-    activity_var_val          ::Dict{Tuple{AbstractIntVar,Int}, Float32}
     adhocInfo               ::Any
 
 
-    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Dict{String, AbstractVar}(), Constraint[], trailer, nothing, nothing, Statistics(Dict{String, Int}(), 0, 0, 0, 0, 0, 0, 0, 0, Solution[], Int[], Float32[], nothing, nothing, nothing, nothing, nothing, nothing, StateObject{Int}(-1,trailer), Dict{Constraint, Int}()), Limit(nothing, nothing, nothing), nothing, Dict{Tuple{AbstractIntVar,Int}, Float32}(), Dict{Tuple{AbstractIntVar,Int}, Float32}())
+    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Dict{String, AbstractVar}(), Constraint[], trailer, nothing, nothing, Statistics(Dict{String, Int}(), 0, 0, 0, 0, 0, 0, 0, 0, Solution[], Int[], Float32[], nothing, nothing, nothing, nothing, nothing, nothing, nothing, Dict{Constraint, Int}()), Limit(nothing, nothing, nothing), nothing, Dict{Tuple{AbstractIntVar,Int}, Float32}())
 end
 
 CPModel() = CPModel(Trailer())
@@ -141,7 +140,7 @@ function addKnownObjective!(model::CPModel, knownObective::Int64)
 end
 
 function computeSearchTreeSize!(model::CPModel)
-    return prod([length(x.domain) for (k, x) in model.variables])
+    model.statistics.searchTreeSize = prod([length(x.domain) for (k, x) in model.variables])
 end
 
 """
@@ -215,7 +214,7 @@ function triggerFoundSolution!(model::CPModel)
     if !(solution in model.statistics.solutions)   #probably not efficient but necessary
         push!(model.statistics.solutions, solution)
         push!(model.statistics.nodevisitedpersolution,model.statistics.numberOfNodes)
-        push!(model.statistics.timeneededpersolution,peektimer())
+        push!(model.statistics.timeneededpersolution, peektimer())
         if !isnothing(model.objective)
             @assert !isnothing(model.statistics.objectives) "did you use SeaPearl.addObjective! to declare your objective function ? "
             push!(model.statistics.objectives, assignedValue(model.objective))
@@ -314,7 +313,6 @@ function Base.empty!(model::CPModel)
     empty!(model.variables)
     empty!(model.branchable_variables)
     empty!(model.impact_var_val)
-    empty!(model.activity_var_val)
     empty!(model.branchable)
     empty!(model.constraints)
     empty!(model.trailer.prior)
@@ -329,7 +327,6 @@ function Base.empty!(model::CPModel)
     model.statistics.lastPruning = nothing
     model.statistics.lastVar = nothing
     model.statistics.lastVal = nothing
-    model.statistics.searchTreeSize = StateObject{Int}(-1,model.trailer)
     model.statistics.numberOfNodes = 0
     model.statistics.numberOfSolutions = 0
     model.statistics.numberOfInfeasibleSolutions = 0
@@ -368,9 +365,6 @@ function reset_model!(model::CPModel)
     model.statistics.lastPruning = nothing
     model.statistics.lastVar = nothing
     model.statistics.lastVal = nothing
-    empty!(model.impact_var_val)
-    empty!(model.activity_var_val)
-    setValue!(model.statistics.searchTreeSize,computeSearchTreeSize!(model))
     model.statistics.numberOfNodes = 0
     model.statistics.numberOfSolutions = 0
     model.statistics.numberOfInfeasibleSolutions = 0

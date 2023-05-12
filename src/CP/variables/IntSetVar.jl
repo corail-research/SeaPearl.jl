@@ -3,11 +3,10 @@
 
 A set variable, that can be a subset of an integer interval.
 """
-mutable struct IntSetVar <: AbstractVar
+struct IntSetVar <: AbstractVar
     onDomainChange      ::Array{Constraint}
     domain              ::IntSetDomain
     id                  ::String
-    is_impacted         ::Bool
 end
 
 """
@@ -21,7 +20,7 @@ function IntSetVar(min::Int, max::Int, id::String, trailer::Trailer)
 
     dom = IntSetDomain(trailer, min, max)
 
-    return IntSetVar(Constraint[], dom, id, false)
+    return IntSetVar(Constraint[], dom, id)
 end
 
 """
