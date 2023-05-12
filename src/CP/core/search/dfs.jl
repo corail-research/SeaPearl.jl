@@ -43,7 +43,7 @@ function expandDfs!(toCall::Stack{Function}, model::CPModel, variableHeuristic::
     if solutionFound(model)
         act = triggerFoundSolution!(model)
         if act == :tightenObjective
-            if isa(valueSelection, LearnedHeuristic) && !valueSelection.trainMode || isa(valueSelection, Union{BasicHeuristic, ImpactHeuristic})
+            if isa(valueSelection, LearnedHeuristic) || isa(valueSelection, Union{BasicHeuristic, ImpactHeuristic, ActivityHeuristic})
                 tightenObjective!(model)
             end
         end

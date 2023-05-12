@@ -4,11 +4,12 @@
 A "simple" boolean variable.
 The constraints that affect this variable are stored in the `onDomainChange` array.
 """
-struct BoolVar <: AbstractBoolVar
+mutable struct BoolVar <: AbstractBoolVar
     onDomainChange      ::Array{Constraint}
     domain              ::SeaPearl.BoolDomain
     id                  ::String
     children            ::Set{AbstractBoolVar}
+    is_impacted         ::Bool
 end
 
 """
@@ -20,7 +21,7 @@ and that will be backtracked by `trailer`.
 function BoolVar(id::String, trailer::Trailer)
     dom = BoolDomain(trailer)
 
-    return BoolVar(Constraint[], dom, id, Set{AbstractBoolVar}())
+    return BoolVar(Constraint[], dom, id, Set{AbstractBoolVar}(), false)
 end
 
 function Base.show(io::IO, var::BoolVar)

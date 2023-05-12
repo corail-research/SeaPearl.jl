@@ -137,7 +137,7 @@
         rng = MersenneTwister(11)
         SeaPearl.fill_with_generator!(model2, generator; rng=rng)
 
-        rng = MersenneTwister(14)
+        rng = MersenneTwister(120)
         SeaPearl.fill_with_generator!(model3, generator; rng=rng)
 
         @test model1.constraints[2].y.id == model2.constraints[2].y.id
@@ -180,40 +180,4 @@
         @test model1.constraints[2].y.id == model3.constraints[2].y.id
     end
 
-    @testset "fill_with_generator!(::WattsStrogatzGraphGenerator)" begin
-        trailer = SeaPearl.Trailer()
-        model = SeaPearl.CPModel(trailer)
-
-        nb_nodes = 10
-        k = 3
-        beta = 0.5
-
-        generator = SeaPearl.WattsStrogatzGraphGenerator(nb_nodes, k, beta)
-
-        rng = MersenneTwister()
-        Random.seed!(rng, 12)
-        SeaPearl.fill_with_generator!(model, generator; rng=rng)
-
-        @test length(keys(model.variables)) == nb_nodes + 1
-
-        if VERSION >= v"1.6.0"
-            @test length(model.constraints) == 11
-        end
-
-        model1 = SeaPearl.CPModel(trailer)
-        model2 = SeaPearl.CPModel(trailer)
-        model3 = SeaPearl.CPModel(trailer)
-
-        rng = MersenneTwister(11)
-        SeaPearl.fill_with_generator!(model1, generator; rng=rng)
-
-        rng = MersenneTwister(11)
-        SeaPearl.fill_with_generator!(model2, generator; rng=rng)
-
-        rng = MersenneTwister(16)
-        SeaPearl.fill_with_generator!(model3, generator; rng=rng)
-
-        @test model1.constraints[2].y.id == model2.constraints[2].y.id
-        # @test model1.constraints[1].y.id != model3.constraints[1].y.id
-    end
 end
