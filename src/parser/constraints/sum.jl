@@ -1,7 +1,7 @@
 
 
 function parse_sum_constraint(constraint::Node, variables::Dict{String, Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
-    str_relation  = children(find_element(constraint, "condition"))[1].value
+    str_relation  = get_node_string(find_element(constraint, "condition"))
     str_list  = children(find_element(constraint, "list"))[1].value
 
     if isnothing(find_element(constraint, "coeffs"))
@@ -89,13 +89,20 @@ function get_constraint_variables_expression(str_list, str_coeffs, variables)
             else
                 coeff = list_coeff[i]
                 id = string(coeff) * string(var.id)
-                var_mul = SeaPearl.IntVarViewMul(var, coeff, id)
+                if coeff > 0 
+                    var_mul = SeaPearl.IntVarViewMul(var, coeff, id)
+                elseif coeff == 0 
+                    continue
+                else
+                    var_opposite = SeaPearl.IntVarViewOpposite(var, "-" * string(var.id))
+                    var_mul = SeaPearl.IntVarViewMul(var_opposite, -coeff, id)
+                end
                 push!(constraint_variables, var_mul)
             end
             
         end
     else
-        println("Error the numbers of variables and coefficients are not the same")
+        error("Numbers of variables and coefficients are not the same")
     end
     return constraint_variables
 end

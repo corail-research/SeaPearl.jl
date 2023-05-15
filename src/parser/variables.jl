@@ -1,5 +1,22 @@
 using XML
 
+function parse_all_variables(variables::Node, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
+    dict_variables = Dict{String, Any}()
+
+    for var in XML.children(variables)
+        id = XML.attributes(var)["id"]
+        if var.tag == "array"
+            dict_variables[id] = SeaPearl.parse_array_variable(var, model, trailer)
+        end
+    
+        if var.tag == "var"
+            dict_variables[id] = SeaPearl.parse_integer_variable(var, model, trailer)
+        end
+    end
+    return dict_variables
+end
+
+
 function parse_integer_variable(integer_variable::Node, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
     info = XML.attributes(integer_variable)
     id = info["id"]
@@ -180,4 +197,50 @@ function sort_intervals(intervals::Vector{Vector{Int64}})
 
     # Retourner les résultats sous forme de tuple
     return min_val, max_val, missing_values
+end
+
+
+function get_constraint_variables(str_constraint_variables::AbstractString, variables::Dict{String, Any})
+    constraint_variables = SeaPearl.IntVar[]
+
+    for str_variable in split(str_constraint_variables, " ")
+        # Delete "]"
+        str = replace(str_variable, "]" => "")
+            
+        # Divide string into array of substring
+        str_vector = split(str, "[")
+
+        id, str_idx = str_vector[1], str_vector[2:end]
+
+        #Get array with id
+        var = variables[id]
+
+        int_idx = []
+        for i in str_idx
+            #All index have to be considered
+            if i == ""
+                push!(int_idx, [:][1])
+            else
+                bounds = split(i, "..")
+                lower_bound = parse(Int, bounds[1]) + 1
+
+                #A subset from the array is considered
+                if length(bounds) == 2
+                    upper_bound = parse(Int, bounds[2]) + 1
+                    push!(int_idx, [lower_bound:upper_bound][1])
+                
+                #Only one index is considered
+                else
+                    push!(int_idx, lower_bound)
+                end
+            end
+        end
+        vars = var[int_idx...]
+        if isa(vars, Array)
+            push!(constraint_variables, vars...)
+        else
+            push!(constraint_variables, vars)
+        end
+    end
+    return constraint_variables
 end

@@ -37,6 +37,7 @@ SeaPearl.LessOrEqual
 SeaPearl.MaximumConstraint
 SeaPearl.NotEqualConstant
 SeaPearl.NotEqual
+SeaPearl.NValues
 SeaPearl.ReifiedInSet
 SeaPearl.SetDiffSingleton
 SeaPearl.SetEqualConstant
