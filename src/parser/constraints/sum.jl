@@ -62,12 +62,6 @@ function parse_sum_constraint_expression(str_relation::String, str_list::String,
         SeaPearl.addConstraint!(model, con_y)
         SeaPearl.addConstraint!(model, con_sum)
 
-    elseif operator == "in"
-        con_greater = SeaPearl.SumGreaterThan(sum_vars, value[1], trailer)
-        con_less = SeaPearl.SumLessThan(vars, value[2], trailer)
-        SeaPearl.addConstraint!(model, con_greater)
-        SeaPearl.addConstraint!(model, con_less)
-
     else
         error("Relation Unknown")
     end
@@ -187,49 +181,21 @@ function get_list_expression(str_list, variables)
 end
 
 
-function get_relation_sum_expression(str_relation::String, variables)
-    value = 0
-    relation = ""
-
-    if str_relation[2] == only("i") # check if it i 'in' relation
-        relation = match(r"\((\w+),(\S+\.\.\S+)\)", str_relation).captures[1]
-    else
-        relation = match(r"\((\w+),(-?\d+)\)", str_relation).captures[1]
-    end
-
-    if relation in ["lt","le","gt","ge","eq","ne"]
-        if is_digit(match(r"\((\w+),(-?\d+)\)", str_relation)[2])
-            # Value is a Int
-            value = parse(Int, match(r"\((\w+),(-?\d+)\)", str_relation).captures[2])
+function get_relation_sum_expression(str_relation::String, dict_variables::Dict{String, Any})
+    str_operator, str_operand = split(str_relation[2:end-1], ",")
+    
+    if str_operator in ["lt","le","gt","ge","eq","ne"]
+        if is_digit(str_operand)
+            # operand is an Int
+            operand = parse(Int, str_operands)
         else
-            # value is a variable
-            id_var = match(r"\((\w+),(\d+)\)", str_relation)[2]
-            var = variables[id_var]
-            value = var
+            # operand is an IntVar
+            operand = get_constraint_variables(str_operands, dict_variables)[1]
         end
-
-    elseif relation == "in"
-        bounds = split(match(r"\((\w+),(\d+\.\.\d+)\)", str_relation)[2], "..")
-        if is_digit(bounds[1]) # case : int < expression
-            lower_bound = parse(Int, bounds[1])
-            if is_digit(bounds[2]) # case : expression< int
-                upper_bound = parse(Int, bounds[2])
-            else # case : expression < var
-                upper_bound = variables[bounds[2]]
-            end
-        else # case : var < expression
-            lower_bound = variables[bounds[1]]
-            if is_digit(bounds[2]) # case : expression < int
-                upper_bound = parse(Int, bounds[2])
-            else # case : expression < var
-                upper_bound = variables[bounds[2]]
-            end                    
-        end
-        value = [lower_bound, upper_bound]
     else
-        println("Error")
+        error("Operator $str_operator in sum constraint does not exist.")
     end
-    return relation, value
+    return str_operator, operand
 end
 
 function is_digit(str::AbstractString)
