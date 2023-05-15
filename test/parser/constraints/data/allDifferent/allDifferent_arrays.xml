@@ -1,0 +1,13 @@
+<instance format="XCSP3" type="CSP">
+    <variables>
+        <array
+            id="x" size="[10]"> 0..10
+        </array>
+        <array
+            id="y" size="[10]"> 0..10
+        </array>
+    </variables>
+    <constraints>
+        <allDifferent> x[] y[] </allDifferent>
+    </constraints>
+</instance>

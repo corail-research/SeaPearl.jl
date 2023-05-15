@@ -1,0 +1,23 @@
+<instance format="XCSP3" type="CSP">
+    <variables>
+        <array id= "x" size= "[104]"> -14..14 </array>
+    </variables>
+    <constraints>
+        <group note= "all displacement vectors between the marks must be different">
+            <allDifferent> %... </allDifferent>
+            <args> x[0..13] </args>
+            <args> x[14..26] </args>
+            <args> x[27..38] </args>
+            <args> x[39..49] </args>
+            <args> x[50..59] </args>
+            <args> x[60..68] </args>
+            <args> x[69..76] </args>
+            <args> x[77..83] </args>
+            <args> x[84..89] </args>
+            <args> x[90..94] </args>
+            <args> x[95..98] </args>
+            <args> x[99..101] </args>
+            <args> x[102] x[103] </args>
+        </group>
+    </constraints>
+</instance>

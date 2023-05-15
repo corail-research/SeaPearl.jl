@@ -12,7 +12,7 @@ function parse_all_constraints(constraints::Node, variables::Dict{String, Any}, 
     for con in XML.children(constraints)
         tag = con.tag
         if tag == "allDifferent"
-            parse_allDifferent_constraint(con, variables, model, trailer)
+            parse_allDifferent_constraint!(con, variables, model, trailer)
         end
 
         if tag == "intension"

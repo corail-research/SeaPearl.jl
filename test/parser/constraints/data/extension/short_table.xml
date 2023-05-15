@@ -1,0 +1,18 @@
+<instance format="XCSP3" type="CSP">
+    <variables>
+        <array id= "x" size= "[6][6]"> 0..3 </array>
+    </variables>
+    <constraints>
+        <group note= "constraining cells situated on the top left border">
+            <extension>
+                <list> %0 %1 %2 </list>
+                <supports> (1,0,*)(3,*,2) </supports>
+            </extension>
+            <args> x[0][4..5] x[1][4] </args>
+            <args> x[1][3..4] x[2][3] </args>
+            <args> x[2][2..3] x[3][2] </args>
+            <args> x[3][1..2] x[4][1] </args>
+            <args> x[4][0..1] x[5][0] </args>
+        </group>
+    </constraints>
+</instance>
