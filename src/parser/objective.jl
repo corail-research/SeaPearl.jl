@@ -50,49 +50,59 @@ function parse_objective_function(objective_node::XML.Node, variables::Dict{Stri
 
         if isnothing(type)
             objective_var = objective_variables[1]
-            if tag == "minimize"
-                SeaPearl.addObjective!(model, objective_var)
-            else
-                negative_objective_var = SeaPearl.IntVarViewOpposite(objective_var, "-" * id)
-                SeaPearl.addVariable!(model, negative_objective_var)
-                SeaPearl.addObjective!(model, negative_objective_var)
-            end 
-
+            parse_simple_objective(objective_var, id, tag, model)
 
         elseif type == "sum"
-            total_min = 0
-            total_max = 0
-            for var in objective_variables 
-                total_min += minimum(var.domain)
-                total_max += maximum(var.domain)
-            end
-            
-            total_variable = SeaPearl.IntVar(total_min, total_max, id, trailer)
-            SeaPearl.addVariable!(model, total_variable)
-            SeaPearl.addConstraint!(model, SeaPearl.SumToVariable(objective_variables, total_variable, trailer))
-
-            if tag == "minimize"
-                SeaPearl.addObjective!(model, total_variable)
-            else
-                negative_total_variable = SeaPearl.IntVarViewOpposite(total_variable, "-" * id)
-                SeaPearl.addVariable!(model, negative_total_variable)
-                SeaPearl.addObjective!(model, negative_total_variable)
-            end
+            parse_objective_sum(objective_variables, id, tag, model, trailer)
         
         elseif type == "nValues"
-            nValues = SeaPearl.init_nValues_variable(objective_variables, id, trailer)
-
-            SeaPearl.addConstraint!(model, SeaPearl.NValuesConstraint(objective_variables, nValues, trailer))
-
-            SeaPearl.addVariable!(model, nValues)
-            SeaPearl.addObjective!(model, nValues)
+            parse_objective_nValues(objective_variables, id, tag, model, trailer)
         end
-        
-
     end
+end
 
+function parse_simple_objective(objective_variable::Vector{AbstractIntVar}, id::String, tag::String, model::SeaPearl.CPModel)
+    if tag == "minimize"
+        SeaPearl.addObjective!(model, objective_variable)
+    else
+        negative_objective_var = SeaPearl.IntVarViewOpposite(objective_variable, "-" * id)
+        SeaPearl.addVariable!(model, negative_objective_var)
+        SeaPearl.addObjective!(model, negative_objective_var)
+    end 
+end
+function parse_objective_sum(objective_variables::Vector{AbstractIntVar}, id::String, tag::String, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
+    total_min = 0
+    total_max = 0
+    for var in objective_variables 
+        total_min += minimum(var.domain)
+        total_max += maximum(var.domain)
+    end
     
-    
+    total_variable = SeaPearl.IntVar(total_min, total_max, id, trailer)
+    SeaPearl.addVariable!(model, total_variable)
+    SeaPearl.addConstraint!(model, SeaPearl.SumToVariable(objective_variables, total_variable, trailer))
 
-    
+    if tag == "minimize"
+        SeaPearl.addObjective!(model, total_variable)
+    else
+        negative_total_variable = SeaPearl.IntVarViewOpposite(total_variable, "-" * id)
+        SeaPearl.addVariable!(model, negative_total_variable)
+        SeaPearl.addObjective!(model, negative_total_variable)
+    end
+end
+
+
+function parse_objective_nValues(objective_variables::Vector{AbstractIntVar}, id::String, tag::String, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
+    nValues = SeaPearl.init_nValues_variable(objective_variables, id, trailer)
+    SeaPearl.addVariable!(model, nValues)
+
+    SeaPearl.addConstraint!(model, SeaPearl.NValuesConstraint(objective_variables, nValues, trailer))
+
+    if tag == "minimize"
+        SeaPearl.addObjective!(model, nValues)
+    else
+        negative_nValues = SeaPearl.IntVarViewOpposite(nValues, "-" * id)
+        SeaPearl.addVariable!(model, negative_nValues)
+        SeaPearl.addObjective!(model, negative_nValues)
+    end
 end
