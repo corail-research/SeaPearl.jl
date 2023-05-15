@@ -61,7 +61,7 @@ function parse_objective_function(objective_node::XML.Node, variables::Dict{Stri
     end
 end
 
-function parse_simple_objective(objective_variable::Vector{AbstractIntVar}, id::String, tag::String, model::SeaPearl.CPModel)
+function parse_simple_objective(objective_variable::SeaPearl.AbstractIntVar, id::String, tag::String, model::SeaPearl.CPModel)
     if tag == "minimize"
         SeaPearl.addObjective!(model, objective_variable)
     else
@@ -70,8 +70,7 @@ function parse_simple_objective(objective_variable::Vector{AbstractIntVar}, id::
         SeaPearl.addObjective!(model, negative_objective_var)
     end 
 end
-    
-function parse_objective_sum(objective_variables::Vector{AbstractIntVar}, id::String, tag::String, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
+function parse_objective_sum(objective_variables::Vector{<:SeaPearl.AbstractIntVar}, id::String, tag::String, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
     total_min = 0
     total_max = 0
     for var in objective_variables 
@@ -93,7 +92,7 @@ function parse_objective_sum(objective_variables::Vector{AbstractIntVar}, id::St
 end
 
 
-function parse_objective_nValues(objective_variables::Vector{AbstractIntVar}, id::String, tag::String, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
+function parse_objective_nValues(objective_variables::Vector{<:SeaPearl.AbstractIntVar}, id::String, tag::String, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
     nValues = SeaPearl.init_nValues_variable(objective_variables, id, trailer)
     SeaPearl.addVariable!(model, nValues)
 
