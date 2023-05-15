@@ -70,6 +70,7 @@ function parse_simple_objective(objective_variable::Vector{AbstractIntVar}, id::
         SeaPearl.addObjective!(model, negative_objective_var)
     end 
 end
+    
 function parse_objective_sum(objective_variables::Vector{AbstractIntVar}, id::String, tag::String, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
     total_min = 0
     total_max = 0
