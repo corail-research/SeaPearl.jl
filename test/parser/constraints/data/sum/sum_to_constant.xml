@@ -1,0 +1,42 @@
+<instance format="XCSP3" type="CSP">
+  <variables>
+    <array id="x" note="x[i] is the ith value of the first sequence" size="[17]"> -1 1 </array>
+    <array id="y" note="y[i] is the ith value of the second sequence" size="[17]"> -1 1 </array>
+  </variables>
+  <constraints>
+    
+    <sum>
+      <list> x[0..3] </list>
+      <condition> (eq,1) </condition>
+    </sum>
+
+    <sum>
+      <list> x[] </list>
+      <condition> (ne,1) </condition>
+    </sum>
+
+    <sum>
+      <list> x[2..9] y[5..12] </list>
+      <condition> (lt,4) </condition>
+    </sum>
+
+    <sum>
+      <list> y[2] x[1..10] </list>
+      <condition> (le,0) </condition>
+    </sum>
+
+    <sum>
+      <list> y[] </list>
+      <condition> (gt,2) </condition>
+    </sum>
+
+    <sum>
+      <list> x[] y[] </list>
+      <condition> (ge,0) </condition>
+    </sum>
+
+
+
+    
+  </constraints>
+</instance>

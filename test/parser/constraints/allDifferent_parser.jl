@@ -1,26 +1,8 @@
-using XML
-
-
 @testset "allDifferent_parser.jl" begin
     @testset "allDifferent_group_constraint" begin
         filename = "./parser/constraints/data/allDifferent/allDifferent_group.xml"
 
-        doc = XML.read(filename, XML.Node)
-        instance = SeaPearl.find_element(doc, "instance")
-        variables = SeaPearl.find_element(instance, "variables")
-        constraints = SeaPearl.find_element(instance, "constraints")
-
-        trailer = SeaPearl.Trailer()
-        model = SeaPearl.CPModel(trailer)
-        dict_var = Dict{String,Any}()
-        for var in XML.children(variables)
-            id = attributes(var)["id"]
-            if var.tag == "array"
-                dict_var[id] = SeaPearl.parse_array_variable(var, model, trailer)
-            end
-        end
-                    
-        SeaPearl.parse_all_constraints(constraints, dict_var, model, trailer)                    
+        model, trailer, dict_var = SeaPearl.parse_xml_file(filename)                    
 
         # Test whether the constraints have been correctly added to the model
         @test length(model.constraints) == 13
@@ -31,23 +13,7 @@ using XML
     @testset "allDifferent_arrays" begin
         filename = "./parser/constraints/data/allDifferent/allDifferent_arrays.xml"
 
-        doc = XML.read(filename, XML.Node)
-        instance = SeaPearl.find_element(doc, "instance")
-        variables = SeaPearl.find_element(instance, "variables")
-        constraints = SeaPearl.find_element(instance, "constraints")
-
-        trailer = SeaPearl.Trailer()
-        model = SeaPearl.CPModel(trailer)
-        dict_var = Dict{String,Any}()
-        for var in XML.children(variables)
-            id = attributes(var)["id"]
-            if var.tag == "array"
-                dict_var[id] = SeaPearl.parse_array_variable(var, model, trailer)
-            end
-        end
-
-        # Parse constraints
-        SeaPearl.parse_all_constraints(constraints, dict_var, model, trailer)
+        model, trailer, dict_var = SeaPearl.parse_xml_file(filename)
 
         # Test whether the constraints have been correctly added to the model
         @test length(model.constraints) == 1

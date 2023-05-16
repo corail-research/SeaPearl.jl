@@ -212,35 +212,43 @@ function get_constraint_variables(str_constraint_variables::AbstractString, vari
 
         id, str_idx = str_vector[1], str_vector[2:end]
 
-        #Get array with id
+        #Get variable(s) with id
         var = variables[id]
 
-        int_idx = []
-        for i in str_idx
-            #All index have to be considered
-            if i == ""
-                push!(int_idx, [:][1])
-            else
-                bounds = split(i, "..")
-                lower_bound = parse(Int, bounds[1]) + 1
-
-                #A subset from the array is considered
-                if length(bounds) == 2
-                    upper_bound = parse(Int, bounds[2]) + 1
-                    push!(int_idx, [lower_bound:upper_bound][1])
-                
-                #Only one index is considered
+        # Simple variable 
+        if length(str_vector) == 1
+            push!(constraint_variables, var)
+            
+        # Array variables
+        else
+            int_idx = []
+            for i in str_idx
+                #All index have to be considered
+                if i == ""
+                    push!(int_idx, [:][1])
                 else
-                    push!(int_idx, lower_bound)
+                    bounds = split(i, "..")
+                    lower_bound = parse(Int, bounds[1]) + 1
+
+                    #A subset from the array is considered
+                    if length(bounds) == 2
+                        upper_bound = parse(Int, bounds[2]) + 1
+                        push!(int_idx, [lower_bound:upper_bound][1])
+                    
+                    #Only one index is considered
+                    else
+                        push!(int_idx, lower_bound)
+                    end
                 end
             end
+            vars = var[int_idx...]
+            if isa(vars, Array)
+                push!(constraint_variables, vars...)
+            else
+                push!(constraint_variables, vars)
+            end
         end
-        vars = var[int_idx...]
-        if isa(vars, Array)
-            push!(constraint_variables, vars...)
-        else
-            push!(constraint_variables, vars)
-        end
+
     end
     return constraint_variables
 end

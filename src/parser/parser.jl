@@ -27,8 +27,10 @@ function parse_xml_file(file_path::AbstractString)
     parse_all_constraints(constraints, dict_variables, model, trailer)
 
     #Objective parsing 
-    parse_objective_function(objectives, dict_variables, model, trailer)
-
+    if !isnothing(objectives)
+        parse_objective_function(objectives, dict_variables, model, trailer)
+    end
+    
     return model, trailer, dict_variables
 end
 
