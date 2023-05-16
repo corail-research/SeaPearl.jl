@@ -45,26 +45,40 @@ function parse_array_variable(array_variable::Node, model::SeaPearl.CPModel, tra
     raw_domain = get_node_string(array_variable)
 
     seapearl_array_var = fill(SeaPearl.IntVar(0, 0, "default", trailer), tuple(dimensions...))
+
     #Different domain for variables
     if isnothing(raw_domain)
         for variable in XML.children(array_variable)
+
+            #Domain definition
             raw_domain = get_node_string(variable)
             domain = parse_variable_domain(raw_domain)
             min_value, max_value, missing_values = sort_intervals(domain)
-            #Set of variable with same domain
-            ids = split(XML.attributes(variable)["for"], " ")
-            for id in ids
-                var = SeaPearl.IntVar(min_value, max_value, string(id), trailer)
-                for v in missing_values
-                    SeaPearl.remove!(var.domain, v)
+
+            #Sets of variables with same domain
+            var_sets = split(XML.attributes(variable)["for"], " ")
+            for var_set in var_sets
+                str_indexes = "[" * split(var_set, "[", limit=2)[2]
+                indexes = get_indexes(str_indexes, dimensions)
+
+                for idx in indexes
+                    id_var = id * "[" * join(idx, "][") * "]"
+                    var = SeaPearl.IntVar(min_value, max_value, string(id_var), trailer)
+
+                    #Remove missing values from variables domain
+                    for v in missing_values
+                        SeaPearl.remove!(var.domain, v)
+                    end
+
+                    #Put variable into the variable matrix and the model
+                    idx = map((x) -> x + 1, tuple(idx...))
+                    SeaPearl.addVariable!(model, var)
+                    seapearl_array_var[idx...] = var
                 end
-                idx = map((x) -> x + 1, tuple(parse_dimensions(id)...))
-                SeaPearl.addVariable!(model, var)
-                seapearl_array_var[idx...] = var
             end
         end
 
-        #Same domain for all variables
+    #Same domain for all variables
     else
         domain = parse_variable_domain(raw_domain)
         min_value, max_value, missing_values = sort_intervals(domain)
@@ -124,6 +138,54 @@ function parse_variable_domain(raw_domain::String)
     return domain
 end
 
+function get_indexes(str_indexes::AbstractString, dimensions::Vector{Int})
+    
+    str_indexes = split(str_indexes[2:end-1], "][")
+
+    indexes = Vector{Vector{Int}}()
+    push!(indexes, Int[])
+  
+    for (i,str_idx) in enumerate(str_indexes)
+        
+        if str_idx == ""
+            new_indexes = Vector{Vector{Int}}()
+            for idx = 0:dimensions[i]-1
+                for idx_vector in indexes
+                    idx_vector_copy = copy(idx_vector)
+                    push!(idx_vector_copy, idx)
+                    push!(new_indexes, idx_vector_copy)
+                end
+            end
+            indexes = new_indexes
+
+        else
+            bounds = split(str_idx, "..")
+            if length(bounds) == 1
+                idx = parse(Int, bounds[1])
+                for idx_vector in indexes
+                    push!(idx_vector, idx)
+                    
+                end
+
+            else
+                new_indexes = Vector{Vector{Int}}()
+
+                lower_idx = parse(Int, bounds[1])
+                upper_idx = parse(Int, bounds[2])
+
+                for idx = lower_idx:upper_idx
+                    for idx_vector in indexes
+                        idx_vector_copy = copy(idx_vector)
+                        push!(idx_vector_copy, idx)
+                        push!(new_indexes, idx_vector_copy)
+                    end
+                end
+                indexes = new_indexes
+            end
+        end
+    end
+    return indexes
+end
 
 
 function parse_dimensions(dim::AbstractString)
@@ -136,9 +198,6 @@ function parse_dimensions(dim::AbstractString)
     Returns:
         dim: Array [3,9,2]
     """
-
-    # Remplacer les caractères du type [] par [:]
-    dim = replace(dim, "[]" => "[:]")
 
     # Supprimer les caractères "[" et "]"
     dim = replace(dim, "[" => ",", "]" => "")
