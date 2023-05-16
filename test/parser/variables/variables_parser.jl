@@ -1,21 +1,12 @@
 using XML
 
 @testset "variables_parser.jl" begin
+
     @testset "variable_1darray" begin
         filename = "./parser/variables/data/test_variable_1darray.xml"
         # Setup: parse trivial XML file containing Int variables in the range 1-35
-        doc = read(filename, Node)
-        instance = SeaPearl.find_element(doc, "instance")
-        variables = SeaPearl.find_element(instance, "variables")
-        trailer = SeaPearl.Trailer()
-        model = SeaPearl.CPModel(trailer)
-        dict_var = Dict{String,Any}()
-        for var in XML.children(variables)
-            id = attributes(var)["id"]
-            if var.tag == "array"
-                dict_var[id] = SeaPearl.parse_array_variable(var, model, trailer)
-            end
-        end
+        model, trailer, dict_var = SeaPearl.parse_xml_file(filename)
+
         # Test: check that the variables are correctly parsed
         var_names = []
         for i in 0:34
@@ -30,21 +21,13 @@ using XML
             pop!(var_names, var_name)
         end
     end
+
     @testset "variable_2darray" begin
         filename = "./parser/variables/data/test_variable_2darray.xml"
+
         # Setup: parse trivial XML file containing Int variables in the range 1-35
-        doc = read(filename, Node)
-        instance = SeaPearl.find_element(doc, "instance")
-        variables = SeaPearl.find_element(instance, "variables")
-        trailer = SeaPearl.Trailer()
-        model = SeaPearl.CPModel(trailer)
-        dict_var = Dict{String,Any}()
-        for var in XML.children(variables)
-            id = attributes(var)["id"]
-            if var.tag == "array"
-                dict_var[id] = SeaPearl.parse_array_variable(var, model, trailer)
-            end
-        end
+        model, trailer, dict_var = SeaPearl.parse_xml_file(filename)
+
         # Test: check that the variables are correctly parsed
         var_names = []
         for i in 0:3
@@ -61,21 +44,12 @@ using XML
         @test SeaPearl.minimum(model.variables["x[0][0]"].domain) == 0
         @test SeaPearl.maximum(model.variables["x[0][0]"].domain) == 25
     end
-    @testset "variable_array_different_domains" begin
+
+    @testset "variable_4darray" begin
         filename = "./parser/variables/data/test_variable_4darray.xml"
+
         # Setup: parse trivial XML file containing Int variables in the range 1-35
-        doc = read(filename, Node)
-        instance = SeaPearl.find_element(doc, "instance")
-        variables = SeaPearl.find_element(instance, "variables")
-        trailer = SeaPearl.Trailer()
-        model = SeaPearl.CPModel(trailer)
-        dict_var = Dict{String,Any}()
-        for var in XML.children(variables)
-            id = attributes(var)["id"]
-            if var.tag == "array"
-                dict_var[id] = SeaPearl.parse_array_variable(var, model, trailer)
-            end
-        end
+        model, trailer, dict_var = SeaPearl.parse_xml_file(filename)
 
         @test length(model.variables) == 122
 
@@ -87,4 +61,26 @@ using XML
         @test SeaPearl.maximum(model.variables["y[1]"].domain) == 1
         @test SeaPearl.length(model.variables["y[1]"].domain) == 2
     end
+
+    @testset "variable_array_different_domain" begin
+        filename = "./parser/variables/data/test_variable_array_different_domains.xml"
+
+        # Setup: parse trivial XML file containing Int variables in the range 1-35
+        model, trailer, dict_var = SeaPearl.parse_xml_file(filename)
+
+        @test length(model.variables) == 19
+
+        @test size(dict_var["pr"]) == (4,4)
+
+        @test model.variables["pr[0][2]"] == dict_var["pr"][1,3]
+
+        @test SeaPearl.minimum(model.variables["pr[0][2]"].domain) == -1
+        @test SeaPearl.maximum(model.variables["pr[0][0]"].domain) == 1
+        @test SeaPearl.length(model.variables["pr[0][0]"].domain) == 2
+
+        @test SeaPearl.maximum(model.variables["e[0]"].domain) == 26
+        @test SeaPearl.maximum(model.variables["e[2]"].domain) == 60
+
+    end
+
 end
