@@ -1,70 +1,82 @@
 
+const sum_constant_operators = Dict(
+    "lt" => (variables, value, trailer) -> SeaPearl.SumLessThan(variables, value-1, trailer),
+    "le" => (variables, value, trailer) -> SeaPearl.SumLessThan(variables, value, trailer),
+    "ge" => (variables, value, trailer) -> SeaPearl.SumGreaterThan(variables, value, trailer),
+    "gt" => (variables, value, trailer) -> SeaPearl.SumGreaterThan(variables, value+1, trailer),
+    "eq" => (variables, value, trailer) -> SeaPearl.SumToConstant(variables, value, trailer)
+)
+
+const sum_variable_operators = Dict(
+    "lt" => (variables, trailer) -> SeaPearl.SumLessThan(variables, -1, trailer),
+    "le" => (variables, trailer) -> SeaPearl.SumLessThan(variables, 0, trailer),
+    "ge" => (variables, trailer) -> SeaPearl.SumGreaterThan(variables, 0, trailer),
+    "gt" => (variables, trailer) -> SeaPearl.SumGreaterThan(variables, 1, trailer),
+    "eq" => (variables, trailer) -> SeaPearl.SumToZero(variables, trailer)
+)
+
 
 function parse_sum_constraint(constraint::Node, variables::Dict{String, Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
     str_relation  = get_node_string(find_element(constraint, "condition"))
-    str_list  = children(find_element(constraint, "list"))[1].value
+    str_list  = get_node_string(find_element(constraint, "list"))
 
-    if isnothing(find_element(constraint, "coeffs"))
+    coeffs_node = find_element(constraint, "coeffs")
+    if isnothing(coeffs_node)
         str_coeffs = ""
     else 
-        str_coeffs = children(find_element(constraint, "coeffs"))[1].value
+        str_coeffs = get_node_string(coeffs_node)
     end
     parse_sum_constraint_expression(str_relation, str_list, str_coeffs, variables, model, trailer)
 end
 
 function parse_sum_constraint_expression(str_relation::String, str_list::String, str_coeffs::String, variables::Dict{String, Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
-    vars = get_constraint_variables_expression(str_list, str_coeffs, variables)
-    operator, value = get_relation_sum_expression(str_relation, variables)
-    # 'value' is an array (one per sum constraints) of an array with 1 value in the general case 
-    # and 2 value in case of relation operand 'in'
+    constraint_variables = get_constraint_variables_expression(str_list, str_coeffs, variables)
+    operator, operand = get_relation_sum_expression(str_relation, variables)
 
-    if operator == "lt"
-        con = con = SeaPearl.SumLessThan(vars, value-1, trailer)
-        SeaPearl.addConstraint!(model, con)
-
-    elseif operator == "le"
-        con = SeaPearl.SumLessThan(vars, value, trailer)
-        SeaPearl.addConstraint!(model, con)
-
-    elseif operator == "gt"
-        con = con = SeaPearl.SumGreaterThan(vars, value+1, trailer)
-        SeaPearl.addConstraint!(model, con)
-
-    elseif operator == "ge"
-        con = SeaPearl.SumGreaterThan(vars, value, trailer)
-        SeaPearl.addConstraint!(model, con)
-
-    elseif operator == "eq"
-        con_sum = SeaPearl.SumToConstant(vars, value, trailer)
-        SeaPearl.addConstraint!(model, con_sum)
-
-    elseif operator == "ne"
-        # add the variable y, add the constraint "y = sum" ,
-        # add the constraint "y != value"(notequal.jl)
-        min_vars = []
-        max_vars = []
-
-        name_sum = "sum("
-        for i in vars
-            push!(min_vars, minimum(i.domain.orig)*i.a)
-            push!(max_vars, maximum(i.domain.orig)*i.a)
-            name_sum *= i.id*","
-        end
-        name_sum = name_sum[1:end-1]*")"
-        sum_min_bound = sum(min_vars)
-        sum_max_bound = sum(max_vars)
-
-        y = SeaPearl.IntVar(sum_min_bound, sum_max_bound, name_sum*"!="*string(value), trailer)
-
-
-        con_y = SeaPearl.NotEqualConstant(y, value, trailer)
-        con_sum = SeaPearl.SumToVariable(vars, y, trailer)
-        SeaPearl.addConstraint!(model, con_y)
-        SeaPearl.addConstraint!(model, con_sum)
-
+    if operator == "ne"
+        parse_notEqual_sum_expression(operand, constraint_variables, model, trailer)
     else
-        error("Relation Unknown")
+        if typeof(operand) == Int
+            constraint = sum_constant_operators[operator]
+            SeaPearl.addConstraint!(model, constraint(constraint_variables, operand, trailer))
+        else
+            new_constraint_variables = vcat(constraint_variables, [SeaPearl.IntVarViewOpposite(operand, "-"*operand.id)])
+    
+            constraint = sum_variable_operators[operator]
+            SeaPearl.addConstraint!(model, constraint(new_constraint_variables, trailer))
+        end
     end
+end
+    
+    
+
+function parse_notEqual_sum_expression(operand::Any, constraint_variables::Vector{<:SeaPearl.AbstractIntVar}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
+    # add the variable y, add the constraint "y = sum" ,
+    # add the constraint "y != value"(notequal.jl)
+    sum_min = 0
+    sum_max = 0
+
+    name_sum = "sum("
+    for var in constraint_variables
+        sum_min += var.domain.min.value
+        sum_max += var.domain.max.value
+        name_sum *= var.id*","
+    end
+    name_sum = name_sum[1:end-1]*")"
+
+    #Operand is an Int
+    if typeof(operand) == Int
+        y = SeaPearl.IntVar(sum_min, sum_max, name_sum*"!="*string(operand), trailer)
+        con_y = SeaPearl.NotEqualConstant(y, operand, trailer)
+
+    #Operand is an IntVar
+    else
+        y = SeaPearl.IntVar(sum_min, sum_max, name_sum*"!="*operand.id, trailer)
+        con_y = SeaPearl.NotEqual(y, operand, trailer)
+    end
+    con_sum = SeaPearl.SumToVariable(constraint_variables, y, trailer)
+    SeaPearl.addConstraint!(model, con_y)
+    SeaPearl.addConstraint!(model, con_sum)
 end
 
 
@@ -187,10 +199,10 @@ function get_relation_sum_expression(str_relation::String, dict_variables::Dict{
     if str_operator in ["lt","le","gt","ge","eq","ne"]
         if is_digit(str_operand)
             # operand is an Int
-            operand = parse(Int, str_operands)
+            operand = parse(Int, str_operand)
         else
             # operand is an IntVar
-            operand = get_constraint_variables(str_operands, dict_variables)[1]
+            operand = get_constraint_variables(str_operand, dict_variables)[1]
         end
     else
         error("Operator $str_operator in sum constraint does not exist.")
