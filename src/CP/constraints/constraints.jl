@@ -33,6 +33,7 @@ include("binaryimplication.jl")
 include("binaryequivalence.jl")
 include("maximum.jl")
 include("arithmetics.jl")
+include("element1dVar.jl")
 
 """
     addOnDomainChange!(x::AbstractIntVar, constraint::Constraint)

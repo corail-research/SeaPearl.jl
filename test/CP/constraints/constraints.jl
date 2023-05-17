@@ -34,6 +34,7 @@
     include("isbinaryand.jl")
     include("binaryimplication.jl")
     include("binaryequivalence.jl")
+    include("element1dVar.jl")
     
     @testset "addOnDomainChange!()" begin
         trailer = SeaPearl.Trailer()

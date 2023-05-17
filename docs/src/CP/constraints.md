@@ -24,6 +24,7 @@ SeaPearl.ShortTableConstraint
 SeaPearl.Disjunctive
 SeaPearl.Element2D
 SeaPearl.Element1D
+SeaPearl.Element1DVar
 SeaPearl.EqualConstant
 SeaPearl.GreaterOrEqualConstant
 SeaPearl.InSet
