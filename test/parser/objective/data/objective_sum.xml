@@ -1,0 +1,14 @@
+<instance format="XCSP3" type="COP">
+  <variables>
+    <array id="x" size="[3]">
+      0..1
+    </array>
+  </variables>
+
+  <objectives>
+    <minimize type="sum"> 
+        <list> x[] </list>
+        <coeffs> 2x2 3x1 </coeffs>
+    </minimize>
+  </objectives>
+</instance>

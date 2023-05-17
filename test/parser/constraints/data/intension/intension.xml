@@ -1,0 +1,21 @@
+<instance format="XCSP3" type="CSP">
+  <variables>
+    <array id="x" size="[6]"> 0..35 </array>
+  </variables>
+  <constraints>
+    <intension> ne(add(x[0],x[3]),mul(x[5],x[4])) </intension>
+
+    <intension> gt(div(x[0],x[3]),mod(x[5],x[4])) </intension>
+
+    <intension> le(dist(x[0],x[3]),2) </intension>
+
+    <intension> lt(mul(x[1],x[2]),4) </intension>
+
+    <intension> ge(sub(x[0],x[2]),x[1]) </intension>
+
+    <intension> eq(div(x[1],x[2]),dist(x[1],x[3])) </intension>
+
+    
+  </constraints>
+</instance>
+

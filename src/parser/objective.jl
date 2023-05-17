@@ -12,14 +12,14 @@ function parse_objective_function(objective_node::XML.Node, variables::Dict{Stri
     for (idx, obj_func) in enumerate(objective_functions)
         info = XML.attributes(obj_func)
 
-        if haskey(info, "type")
+        if !isnothing(info) && haskey(info, "type")
             type = info["type"]
         else 
             type = nothing
         end
 
         
-        if haskey(info, "id")
+        if !isnothing(info) && haskey(info, "id")
             id = info["id"]
 
         else
@@ -57,6 +57,9 @@ function parse_objective_function(objective_node::XML.Node, variables::Dict{Stri
         
         elseif type == "nValues"
             parse_objective_nValues(objective_variables, id, tag, model, trailer)
+        
+        elseif type == "maximum"
+            parse_objective_maximum(objective_variables, id, tag, model, trailer)
         end
     end
 end
@@ -106,3 +109,34 @@ function parse_objective_nValues(objective_variables::Vector{<:SeaPearl.Abstract
         SeaPearl.addObjective!(model, negative_nValues)
     end
 end
+
+
+function parse_objective_maximum(objective_variables::Vector{<:SeaPearl.AbstractIntVar}, id::String, tag::String, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
+    max_min = minimum(objective_variables[1].domain)
+    max_max = maximum(objective_variables[1].domain)
+
+    for var in objective_variables 
+        min_var = minimum(var.domain)
+        max_var = maximum(var.domain)
+        if min_var > max_min
+            max_min = min_var
+        end
+        if max_var > max_max
+            max_max = max_var
+        end
+    end
+    max_intVar = SeaPearl.IntVar(max_min, max_max, id, trailer)
+    SeaPearl.addVariable!(model, max_intVar)
+    
+    SeaPearl.addConstraint!(model, SeaPearl.MaximumConstraint(objective_variables, max_intVar, trailer))
+    
+    if tag == "minimize"
+        SeaPearl.addObjective!(model, max_intVar)
+    else
+        negative_max_intVar = SeaPearl.IntVarViewOpposite(max_intVar, "-" * id)
+        SeaPearl.addVariable!(model, negative_max_intVar)
+        SeaPearl.addObjective!(model, negative_max_intVar)
+    end
+end
+
+

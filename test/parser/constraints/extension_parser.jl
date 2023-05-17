@@ -1,26 +1,8 @@
-using XML
-
-
 @testset "extension_parser.jl" begin
     @testset "extension_negative" begin
         filename = "./parser/constraints/data/extension/negative_table.xml"
 
-        doc = XML.read(filename, XML.Node)
-        instance = SeaPearl.find_element(doc, "instance")
-        variables = SeaPearl.find_element(instance, "variables")
-        constraints = SeaPearl.find_element(instance, "constraints")
-
-        trailer = SeaPearl.Trailer()
-        model = SeaPearl.CPModel(trailer)
-        dict_var = Dict{String,Any}()
-        for var in XML.children(variables)
-            id = attributes(var)["id"]
-            if var.tag == "array"
-                dict_var[id] = SeaPearl.parse_array_variable(var, model, trailer)
-            end
-        end
-
-        SeaPearl.parse_all_constraints(constraints, dict_var, model, trailer)      
+        model, trailer, dict_var = SeaPearl.parse_xml_file(filename)      
 
         # Test whether the constraints have been correctly added to the model
         @test length(model.constraints) == 16
@@ -31,22 +13,7 @@ using XML
     @testset "extension_positive" begin
         filename = "./parser/constraints/data/extension/positive_table.xml"
 
-        doc = XML.read(filename, XML.Node)
-        instance = SeaPearl.find_element(doc, "instance")
-        variables = SeaPearl.find_element(instance, "variables")
-        constraints = SeaPearl.find_element(instance, "constraints")
-
-        trailer = SeaPearl.Trailer()
-        model = SeaPearl.CPModel(trailer)
-        dict_var = Dict{String,Any}()
-        for var in XML.children(variables)
-            id = attributes(var)["id"]
-            if var.tag == "array"
-                dict_var[id] = SeaPearl.parse_array_variable(var, model, trailer)
-            end
-        end
-
-        SeaPearl.parse_all_constraints(constraints, dict_var, model, trailer)        
+        model, trailer, dict_var = SeaPearl.parse_xml_file(filename)   
 
         # Test whether the constraints have been correctly added to the model
         @test length(model.constraints) == 4
@@ -56,22 +23,7 @@ using XML
     @testset "extension_short_table" begin
         filename = "./parser/constraints/data/extension/short_table.xml"
 
-        doc = XML.read(filename, XML.Node)
-        instance = SeaPearl.find_element(doc, "instance")
-        variables = SeaPearl.find_element(instance, "variables")
-        constraints = SeaPearl.find_element(instance, "constraints")
-
-        trailer = SeaPearl.Trailer()
-        model = SeaPearl.CPModel(trailer)
-        dict_var = Dict{String,Any}()
-        for var in XML.children(variables)
-            id = attributes(var)["id"]
-            if var.tag == "array"
-                dict_var[id] = SeaPearl.parse_array_variable(var, model, trailer)
-            end
-        end
-
-        SeaPearl.parse_all_constraints(constraints, dict_var, model, trailer)      
+        model, trailer, dict_var = SeaPearl.parse_xml_file(filename)     
 
         # Test whether the constraints have been correctly added to the model
         @test length(model.constraints) == 5

@@ -117,10 +117,10 @@ end
 variablesArray(constraint::Distance) = [constraint.x, constraint.y, constraint.z]
 
 function Base.show(io::IO, ::MIME"text/plain", con::Distance)
-    println(io, typeof(con), ": ", con.z.id, " == |", con.x, " - ", con.y.id, "|",", active = ", con.active)
+    println(io, typeof(con), ": ", con.z.id, " == |", con.x.id, " - ", con.y.id, "|",", active = ", con.active)
     println(io, "   ", con.x)
 end
 
 function Base.show(io::IO, con::Distance)
-    print(io, typeof(con), ": ", con.z.id, " == |", con.x, " - ", con.y.id, "|")
+    print(io, typeof(con), ": ", con.z.id, " == |", con.x.id, " - ", con.y.id, "|")
 end
