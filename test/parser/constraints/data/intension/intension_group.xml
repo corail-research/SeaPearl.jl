@@ -1,0 +1,17 @@
+
+
+<instance format="XCSP3" type="CSP">
+  <variables>
+    <array id="x" size="[6]"> 0..35 </array>
+  </variables>
+  
+  <constraints>
+
+    <group>
+      <intension> eq(sub(%0,%1),%2) </intension>
+      <args> x[0] x[1] x[2] </args>
+      <args> x[1] x[2] x[3] </args>
+    </group>
+
+  </constraints>
+</instance>

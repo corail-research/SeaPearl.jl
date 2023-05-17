@@ -7,6 +7,7 @@
     
     <sum>
       <list> x[0..3] </list>
+      <coeffs> 2 6 8 3 </coeffs>
       <condition> (eq,1) </condition>
     </sum>
 
