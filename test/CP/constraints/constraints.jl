@@ -12,6 +12,7 @@
     include("compacttable.jl")
     include("equal.jl")
     include("maximum.jl")
+    include("minimum.jl")
     include("notequal.jl")
     include("nvalues.jl")
     include("lessorequal.jl")

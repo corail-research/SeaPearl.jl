@@ -32,6 +32,7 @@ include("isbinaryand.jl")
 include("binaryimplication.jl")
 include("binaryequivalence.jl")
 include("maximum.jl")
+include("minimum.jl")
 include("arithmetics.jl")
 
 """

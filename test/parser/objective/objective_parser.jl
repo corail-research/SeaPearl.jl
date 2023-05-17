@@ -38,4 +38,32 @@
         @test isa(model.constraints[1], SeaPearl.NValuesConstraint)
         @test length(model.constraints[1].x) == 200
     end
+
+    @testset "objective_minimum" begin
+        filename = "./parser/objective/data/objective_minimum.xml"
+
+        model, trailer, dict_var = SeaPearl.parse_xml_file(filename)
+
+        @test isa(model.objective, SeaPearl.IntVar)
+        @test maximum(model.objective.domain) == 35
+        @test minimum(model.objective.domain) == 0
+
+        @test length(model.constraints) == 1
+        @test isa(model.constraints[1], SeaPearl.MinimumConstraint)
+        @test length(model.constraints[1].x) == 200
+    end
+
+    @testset "objective_maximum" begin
+        filename = "./parser/objective/data/objective_maximum.xml"
+
+        model, trailer, dict_var = SeaPearl.parse_xml_file(filename)
+
+        @test isa(model.objective, SeaPearl.IntVar)
+        @test maximum(model.objective.domain) == 35
+        @test minimum(model.objective.domain) == 0
+
+        @test length(model.constraints) == 1
+        @test isa(model.constraints[1], SeaPearl.MaximumConstraint)
+        @test length(model.constraints[1].x) == 200
+    end
 end
