@@ -10,47 +10,14 @@ function parse_objective_function(objective_node::XML.Node, variables::Dict{Stri
     objective_functions = XML.children(objective_node)
 
     for (idx, obj_func) in enumerate(objective_functions)
-        info = XML.attributes(obj_func)
-
-        if !isnothing(info) && haskey(info, "type")
-            type = info["type"]
-        else 
-            type = nothing
-        end
-
         
-        if !isnothing(info) && haskey(info, "id")
-            id = info["id"]
-
-        else
-            id = "objective_" * string(idx)
-        end
-
-        tag = obj_func.tag 
-
-        list_node = find_element(obj_func, "list")
-
-        if isnothing(list_node)
-            str_objective_variables = get_node_string(obj_func)
-            objective_variables = get_constraint_variables(str_objective_variables, variables)
-
-        else 
-            str_list = get_node_string(list_node)
-
-            coeffs_node = find_element(obj_func, "coeffs")
-
-            if !isnothing(coeffs_node)
-                str_coeffs = get_node_string(coeffs_node)
-                objective_variables = get_constraint_variables_expression(str_list, str_coeffs, variables)
-
-            else
-                objective_variables = get_constraint_variables(str_list, variables)
-            end
-        end
+        type, id, tag = get_objective_info(obj_func, idx)
+        
+        objective_variables = get_objective_variables(obj_func, variables)
 
         if isnothing(type)
             objective_var = objective_variables[1]
-            parse_simple_objective(objective_var, id, tag, model)
+            parse_simple_objective(objective_var, tag, model)
 
         elseif type == "sum"
             parse_objective_sum(objective_variables, id, tag, model, trailer)
@@ -60,19 +27,71 @@ function parse_objective_function(objective_node::XML.Node, variables::Dict{Stri
         
         elseif type == "maximum"
             parse_objective_maximum(objective_variables, id, tag, model, trailer)
+
+        elseif type == "minimum"
+            parse_objective_minimum(objective_variables, id, tag, model, trailer)
         end
     end
 end
 
-function parse_simple_objective(objective_variable::SeaPearl.AbstractIntVar, id::String, tag::String, model::SeaPearl.CPModel)
+
+function get_objective_info(obj_function::XML.Node, index::Int)
+    info = XML.attributes(obj_function)
+
+    if !isnothing(info) && haskey(info, "type")
+        type = info["type"]
+    else 
+        type = nothing
+    end
+
+    if !isnothing(info) && haskey(info, "id")
+        id = info["id"]
+
+    else
+        id = "objective_" * string(index)
+    end
+
+    tag = obj_function.tag
+
+    return type, id, tag
+end
+
+
+function get_objective_variables(obj_function::XML.Node, variables::Dict{String, Any})
+    list_node = find_element(obj_function, "list")
+
+    if isnothing(list_node)
+        str_objective_variables = get_node_string(obj_function)
+        objective_variables = get_constraint_variables(str_objective_variables, variables)
+
+    else 
+        str_list = get_node_string(list_node)
+
+        coeffs_node = find_element(obj_function, "coeffs")
+
+        if !isnothing(coeffs_node)
+            str_coeffs = get_node_string(coeffs_node)
+            objective_variables = get_constraint_variables_expression(str_list, str_coeffs, variables)
+
+        else
+            objective_variables = get_constraint_variables(str_list, variables)
+        end
+    end
+    return objective_variables
+end
+
+
+function parse_simple_objective(objective_variable::SeaPearl.AbstractIntVar, tag::String, model::SeaPearl.CPModel)
     if tag == "minimize"
         SeaPearl.addObjective!(model, objective_variable)
     else
-        negative_objective_var = SeaPearl.IntVarViewOpposite(objective_variable, "-" * id)
+        negative_objective_var = SeaPearl.IntVarViewOpposite(objective_variable, "-" * objective_variable.id)
         SeaPearl.addVariable!(model, negative_objective_var)
         SeaPearl.addObjective!(model, negative_objective_var)
     end 
 end
+
+
 function parse_objective_sum(objective_variables::Vector{<:SeaPearl.AbstractIntVar}, id::String, tag::String, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
     total_min = 0
     total_max = 0
@@ -85,13 +104,8 @@ function parse_objective_sum(objective_variables::Vector{<:SeaPearl.AbstractIntV
     SeaPearl.addVariable!(model, total_variable)
     SeaPearl.addConstraint!(model, SeaPearl.SumToVariable(objective_variables, total_variable, trailer))
 
-    if tag == "minimize"
-        SeaPearl.addObjective!(model, total_variable)
-    else
-        negative_total_variable = SeaPearl.IntVarViewOpposite(total_variable, "-" * id)
-        SeaPearl.addVariable!(model, negative_total_variable)
-        SeaPearl.addObjective!(model, negative_total_variable)
-    end
+    parse_simple_objective(total_variable, tag, model)
+    
 end
 
 
@@ -101,13 +115,7 @@ function parse_objective_nValues(objective_variables::Vector{<:SeaPearl.Abstract
 
     SeaPearl.addConstraint!(model, SeaPearl.NValuesConstraint(objective_variables, nValues, trailer))
 
-    if tag == "minimize"
-        SeaPearl.addObjective!(model, nValues)
-    else
-        negative_nValues = SeaPearl.IntVarViewOpposite(nValues, "-" * id)
-        SeaPearl.addVariable!(model, negative_nValues)
-        SeaPearl.addObjective!(model, negative_nValues)
-    end
+    parse_simple_objective(nValues, tag, model)
 end
 
 
@@ -118,7 +126,7 @@ function parse_objective_maximum(objective_variables::Vector{<:SeaPearl.Abstract
     for var in objective_variables 
         min_var = minimum(var.domain)
         max_var = maximum(var.domain)
-        if min_var > max_min
+        if min_var < max_min
             max_min = min_var
         end
         if max_var > max_max
@@ -130,13 +138,28 @@ function parse_objective_maximum(objective_variables::Vector{<:SeaPearl.Abstract
     
     SeaPearl.addConstraint!(model, SeaPearl.MaximumConstraint(objective_variables, max_intVar, trailer))
     
-    if tag == "minimize"
-        SeaPearl.addObjective!(model, max_intVar)
-    else
-        negative_max_intVar = SeaPearl.IntVarViewOpposite(max_intVar, "-" * id)
-        SeaPearl.addVariable!(model, negative_max_intVar)
-        SeaPearl.addObjective!(model, negative_max_intVar)
-    end
+    parse_simple_objective(max_intVar, tag, model)
 end
 
 
+function parse_objective_minimum(objective_variables::Vector{<:SeaPearl.AbstractIntVar}, id::String, tag::String, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
+    min_min = minimum(objective_variables[1].domain)
+    min_max = maximum(objective_variables[1].domain)
+
+    for var in objective_variables 
+        min_var = minimum(var.domain)
+        max_var = maximum(var.domain)
+        if min_var < min_min
+            min_min = min_var
+        end
+        if max_var > min_max
+            min_max = max_var
+        end
+    end
+    min_intVar = SeaPearl.IntVar(min_min, min_max, id, trailer)
+    SeaPearl.addVariable!(model, min_intVar)
+    
+    SeaPearl.addConstraint!(model, SeaPearl.MinimumConstraint(objective_variables, min_intVar, trailer))
+    
+    parse_simple_objective(min_intVar, tag, model)
+end
