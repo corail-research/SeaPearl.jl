@@ -13,10 +13,10 @@ function parse_element_constraint(constraint::Node, variables::Dict{String, Any}
     
 end
 
-function parse_element_constraint_expression(str_relation::String,
-    str_list::String, 
-    str_index::String, 
-    str_starting_index::String,
+function parse_element_constraint_expression(str_relation::AbstractString,
+    str_list::AbstractString, 
+    str_index::AbstractString, 
+    str_starting_index::AbstractString,
     variables::Dict{String, Any}, 
     model::SeaPearl.CPModel, 
     trailer::SeaPearl.Trailer)
@@ -27,7 +27,7 @@ function parse_element_constraint_expression(str_relation::String,
     right_operand = nothing
 
     if !isnothing(str_list)
-        list = get_list_expression(str_list, variables)
+        list = get_list_expression_element(str_list, variables)
     else
         println("Error - list node is not defined")
     end
@@ -65,7 +65,7 @@ function parse_element_constraint_expression(str_relation::String,
 end
 
 
-function get_relation_element_expression(str_relation::String, variables)
+function get_relation_element_expression(str_relation::AbstractString, variables::Dict{String, Any})
     value = 0
     relation = ""
 
@@ -78,7 +78,7 @@ function get_relation_element_expression(str_relation::String, variables)
         else
             # value is a variable
             id_var = match(r"\((\w+),(\S+)\)", str_relation)[2]
-            value = get_list_expression(id_var, variables)[1]
+            value = get_list_expression_element(id_var, variables)[1]
         end
     else
         println("Error - Relation not in [lt, le, gt, ge, eq, ne]")
@@ -86,35 +86,35 @@ function get_relation_element_expression(str_relation::String, variables)
     return relation, value
 end
 
-function get_index_expression(str_index::String, str_starting_index::String, variables::Dict{String, Any})
+function get_index_expression(str_index::AbstractString, str_starting_index::AbstractString, variables::Dict{String, Any})
     index = nothing
     if str_starting_index == "0"
         if is_digit(str_index)
             println("index is a digit, it must be an AbstractIntVar")
             # index = parse(Int, str_index) + 1
         else
-            index = get_list_expression(str_index, variables)[1]
+            index = get_list_expression_element(str_index, variables)[1]
         end
     elseif str_starting_index == "1"
         if is_digit(str_index)
             println("index is a digit, it must be an AbstractIntVar")
             # index = parse(Int, str_index)
         else
-            index = get_list_expression(str_index, variables)[1]
+            index = get_list_expression_element(str_index, variables)[1]
         end
     elseif str_starting_index == ""
         if is_digit(str_index)
             println("index is a digit, it must be an AbstractIntVar")
             # index = parse(Int, str_index) + 1
         else
-            index = get_list_expression(str_index, variables)[1]
+            index = get_list_expression_element(str_index, variables)[1]
         end
     elseif isnothing(str_starting_index)
         if is_digit(str_index)
             println("index is a digit, it must be an AbstractIntVar")
             # index = parse(Int, str_index) + 1
         else
-            index = get_list_expression(str_index, variables)[1]
+            index = get_list_expression_element(str_index, variables)[1]
         end
     else
         println("Error - index not recognized")
@@ -122,7 +122,7 @@ function get_index_expression(str_index::String, str_starting_index::String, var
     return index
 end
 
-function get_value_expression(str_value::String, variables::Dict{String, Any})
+function get_value_expression(str_value::AbstractString, variables::Dict{String, Any})
     value = 0
     if is_digit(str_value)
         value = parse(Int, str_value)
@@ -133,7 +133,7 @@ function get_value_expression(str_value::String, variables::Dict{String, Any})
 end
 
 
-function get_list_expression(str_list, variables)
+function get_list_expression_element(str_list::AbstractString, variables::Dict{String, Any})
     constraint_variables = SeaPearl.IntVar[]
     array_value = Int[]
 
@@ -190,19 +190,19 @@ function get_list_expression(str_list, variables)
     return constraint_variables
 end
 
-function is_digit(str::AbstractString)
-    for i in length(str)
-        c = str[i]
-        if !isdigit(c)
-            if i == 0 && c == '-'
-                continue
-            else 
-                return false
-            end
-        end
-    end
-    return true
-end
+# function is_digit(str::AbstractString)
+#     for i in length(str)
+#         c = str[i]
+#         if !isdigit(c)
+#             if i == 0 && c == '-'
+#                 continue
+#             else 
+#                 return false
+#             end
+#         end
+#     end
+#     return true
+# end
 
 function get_starting_index()
     startingIdex = "0" # only true for XCSP 2023
