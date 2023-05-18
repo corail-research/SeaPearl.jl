@@ -80,12 +80,13 @@ function parse_notEqual_sum_expression(operand::Any, constraint_variables::Vecto
 end
 
 
-function get_constraint_variables_expression(str_list, str_coeffs, variables)
+function get_constraint_variables_expression(str_list::AbstractString, str_coeffs::AbstractString, variables::Dict{String, Any})
     constraint_variables = SeaPearl.AbstractIntVar[]
 
 
-    list_var, variables_but_no_coeffs = get_list_expression(str_list, variables)
-    list_coeff = get_coefficients_expression(str_coeffs, variables_but_no_coeffs)
+    list_var = get_list_expression(str_list, variables)
+    
+    list_coeff = get_coefficients_expression(str_coeffs, length(list_var))
 
     if length(list_var) == length(list_coeff)
         for i in 1:length(list_var)
@@ -113,7 +114,7 @@ function get_constraint_variables_expression(str_list, str_coeffs, variables)
     return constraint_variables
 end
 
-function get_coefficients_expression(str_coeffs, nb_variables)
+function get_coefficients_expression(str_coeffs::AbstractString, nb_variables::Int)
     coeffs_list = []
 
     # if there are variables but no coeffiecients, by default the coeffs are put to 1
@@ -145,7 +146,7 @@ function get_coefficients_expression(str_coeffs, nb_variables)
 end
 
 
-function get_list_expression(str_list, variables)
+function get_list_expression(str_list::AbstractString, variables::Dict{String, Any})
     constraint_variables = SeaPearl.IntVar[]
 
     for str_variable in split(str_list, " ")
@@ -189,7 +190,8 @@ function get_list_expression(str_list, variables)
             push!(constraint_variables, vars)
         end
     end
-    return constraint_variables, length(constraint_variables) #, variables_but_no_coeffs
+    
+    return constraint_variables
 end
 
 

@@ -1,0 +1,15 @@
+<instance format="XCSP3" type="CSP">
+  <variables>
+    <array id="y" size="[11]"> 0..3 </array>
+    <array id="z" size="[12]"> 1..9 </array>
+    <array id="T" size="[12]"> 2..6 </array>
+  </variables>
+  <constraints>
+  
+    <element>
+      <list> 10 4 7 2 3 </list>
+      <index > y[1] </index>
+      <condition > (eq,z[3]) </condition>
+    </element>
+
+</instance>
