@@ -13,6 +13,7 @@ include("CP/CP.jl")
 include("datagen/datagen.jl")
 include("experiment/experiment.jl")
 include("parser/parser.jl")
+include("output.jl")
 
 greet() = print("Hello World!")
 
