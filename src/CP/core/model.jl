@@ -80,6 +80,7 @@ The CPModel struct has the following attributes:
     - limit::Limit : model's limits
     - knownObjective::Union{Nothing,Int64} : optional; contains the known objective of the model. For example, if the goal is to minimize the number of delays, it could be set to 0.
     - adhocInfo::Any : Any ad-hoc information related to the CPModel
+    - displayXCSP3::Bool : Display XCSP3 requirements during solving
 """
 mutable struct CPModel
     variables               ::Dict{String, AbstractVar}
@@ -94,9 +95,10 @@ mutable struct CPModel
     knownObjective          ::Union{Nothing,Int64}
     impact_var_val          ::Dict{Tuple{AbstractIntVar,Int}, Float32}
     adhocInfo               ::Any
+    displayXCSP3            ::Bool
 
 
-    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Dict{String, AbstractVar}(), Constraint[], trailer, nothing, nothing, Statistics(Dict{String, Int}(), 0, 0, 0, 0, 0, 0, 0, 0, Solution[], Int[], Float32[], nothing, nothing, nothing, nothing, nothing, nothing, nothing, Dict{Constraint, Int}()), Limit(nothing, nothing, nothing), nothing, Dict{Tuple{AbstractIntVar,Int}, Float32}())
+    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Dict{String, AbstractVar}(), Constraint[], trailer, nothing, nothing, Statistics(Dict{String, Int}(), 0, 0, 0, 0, 0, 0, 0, 0, Solution[], Int[], Float32[], nothing, nothing, nothing, nothing, nothing, nothing, nothing, Dict{Constraint, Int}()), Limit(nothing, nothing, nothing), nothing, Dict{Tuple{AbstractIntVar,Int}, Float32}(), false)
 end
 
 CPModel() = CPModel(Trailer())
@@ -218,6 +220,11 @@ function triggerFoundSolution!(model::CPModel)
         if !isnothing(model.objective)
             @assert !isnothing(model.statistics.objectives) "did you use SeaPearl.addObjective! to declare your objective function ? "
             push!(model.statistics.objectives, assignedValue(model.objective))
+            
+            if model.displayXCSP3
+                println("o $(assignedValue(model.objective))")
+            end
+
             return :tightenObjective
         end
     end
@@ -340,6 +347,7 @@ function Base.empty!(model::CPModel)
     model.limit.searchingTime = nothing
     model.knownObjective = nothing
     model.adhocInfo = nothing
+    model.displayXCSP3 = false
 end
 
 """
@@ -471,4 +479,18 @@ function updateStatistics!(model::CPModel, pruned)
             model.statistics.objectiveUpPruning = 0
         end
     end
+end
+
+function display_XCPS3(model::SeaPearl.CPModel)
+    model.displayXCSP3 = true
+end
+
+function get_index_solution(model::SeaPearl.CPModel)
+    solutions = model.statistics.solutions
+    for i = length(solutions):-1:1
+        if !isnothing(solutions[i])
+            return i
+        end
+    end
+    return nothing
 end
