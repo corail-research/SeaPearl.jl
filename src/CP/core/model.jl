@@ -48,13 +48,14 @@ mutable struct Statistics
     numberOfTimesInvolvedInPropagation      ::Union{Nothing, Dict{Constraint,Int}}
 end
 
-"""Limit(numberOfNodes::Union{Int, Nothing}, numberOfSolutions::Union{Int, Nothing}, searchingTime::Union{Int, Nothing})
+"""Limit(numberOfNodes::Union{Int, Nothing}, numberOfSolutions::Union{Int, Nothing}, searchingTime::Union{Int, Nothing}, searchingMemory::Union{Int, Nothing})
 Limits for the search process.
 """
 mutable struct Limit
     numberOfNodes::Union{Int,Nothing}
     numberOfSolutions::Union{Int,Nothing}  #the limit can be triggered by set of non-unique solutions
     searchingTime::Union{Int,Nothing}
+    searchingMemory::Union{Int,Nothing}
 end
 
 """
@@ -96,7 +97,7 @@ mutable struct CPModel
     adhocInfo               ::Any
 
 
-    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Dict{String, AbstractVar}(), Constraint[], trailer, nothing, nothing, Statistics(Dict{String, Int}(), 0, 0, 0, 0, 0, 0, 0, 0, Solution[], Int[], Float32[], nothing, nothing, nothing, nothing, nothing, nothing, nothing, Dict{Constraint, Int}()), Limit(nothing, nothing, nothing), nothing, Dict{Tuple{AbstractIntVar,Int}, Float32}())
+    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Dict{String, AbstractVar}(), Constraint[], trailer, nothing, nothing, Statistics(Dict{String, Int}(), 0, 0, 0, 0, 0, 0, 0, 0, Solution[], Int[], Float32[], nothing, nothing, nothing, nothing, nothing, nothing, nothing, Dict{Constraint, Int}()), Limit(nothing, nothing, nothing, nothing), nothing, Dict{Tuple{AbstractIntVar,Int}, Float32}())
 end
 
 CPModel() = CPModel(Trailer())
@@ -263,10 +264,20 @@ end
 
 Check if the `model`'s statistics are still under the limits.
 """
-belowLimits(model::CPModel) = belowNodeLimit(model) && belowSolutionLimit(model) && belowTimeLimit(model)
+belowLimits(model::CPModel) = belowNodeLimit(model) && belowSolutionLimit(model) && belowTimeLimit(model) && belowMemoryLimit(model)
 belowNodeLimit(model::CPModel) = isnothing(model.limit.numberOfNodes) || model.statistics.numberOfNodes < model.limit.numberOfNodes
 belowSolutionLimit(model::CPModel) = isnothing(model.limit.numberOfSolutions) || model.statistics.numberOfSolutions < model.limit.numberOfSolutions
 belowTimeLimit(model::CPModel) = isnothing(model.limit.searchingTime) || peektimer() < model.limit.searchingTime
+function belowMemoryLimit(model::CPModel)
+    liveMiB = Base.gc_total_bytes(Base.gc_num())/2^20
+    return isnothing(model.limit.searchingMemory) || liveMiB < model.limit.searchingMemory
+end
+
+"""
+    isFailureBased(model::CPModel)
+
+"""
+    isFailureBased(model::CPModel)
 
 """
     Base.isempty(model::CPModel)::Bool

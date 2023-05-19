@@ -30,7 +30,7 @@ function search!(model::CPModel, strategy::S, variableHeuristic::AbstractVariabl
     
     while !isempty(toCall)
         # Stop right away if reached a limit
-        if currentStatus == :NodeLimitStop || currentStatus == :SolutionLimitStop || currentStatus == :TimeLimitStop || (out_solver && (currentStatus in [:Infeasible, :FoundSolution]))
+        if currentStatus == :NodeLimitStop || currentStatus == :SolutionLimitStop || currentStatus == :TimeLimitStop || currentStatus == :MemoryLimitStop || (out_solver && (currentStatus in [:Infeasible, :FoundSolution]))
             break
         end
 
@@ -46,7 +46,7 @@ function search!(model::CPModel, strategy::S, variableHeuristic::AbstractVariabl
     valueSelection(EndingPhase, model, currentStatus)
     
     toc()
-    if currentStatus == :NodeLimitStop || currentStatus == :SolutionLimitStop || currentStatus == :TimeLimitStop || (out_solver & (currentStatus in [:Infeasible, :FoundSolution]))
+    if currentStatus == :NodeLimitStop || currentStatus == :SolutionLimitStop || currentStatus == :TimeLimitStop || currentStatus == :MemoryLimitStop || (out_solver & (currentStatus in [:Infeasible, :FoundSolution]))
         return currentStatus
     end
     

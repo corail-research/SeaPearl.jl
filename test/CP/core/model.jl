@@ -315,6 +315,17 @@
         @test !SeaPearl.belowTimeLimit(model)
     end
 
+    @testset "belowMemoryLimits()" begin
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+
+        model.limit.searchingMemory = 100000
+        @test SeaPearl.belowMemoryLimit(model)
+
+        model.limit.searchingMemory = 0
+        @test !SeaPearl.belowMemoryLimit(model)
+    end
+
     @testset "Base.isempty()" begin
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)

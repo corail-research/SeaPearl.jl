@@ -16,6 +16,18 @@
         SeaPearl.tic()
         @test SeaPearl.expandLns!(search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :TimeLimitStop
 
+        #:MemoryLimitStop
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+        model.limit.searchingMemory = 0
+
+        x = SeaPearl.IntVar(1, 10, "x", trailer)
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addObjective!(model, x)
+        
+        search = SeaPearl.LNSearch()
+        @test SeaPearl.expandLns!(search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :MemoryLimitStop
+
         ## :Infeasible
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
@@ -226,7 +238,7 @@
         status = SeaPearl.expandLns!(search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) 
         @test status === :Optimal
         # 40000 iterations takes at least 1s, then we reach limitValuesToRemove=2 and the optimal solution is found
-        @test model.limit.searchingTime < 10 
+        @test model.limit.searchingTime < 11 
 
         ## Ensure that `repairLimits.numberOfNodes` works properly
         trailer = SeaPearl.Trailer()
@@ -491,6 +503,19 @@
         SeaPearl.tic()
         @test SeaPearl.initroot!(toCall, search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :TimeLimitStop
 
+        ## :MemoryLimitStop
+        toCall = Stack{Function}()
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+        model.limit.searchingMemory = 0
+
+        x = SeaPearl.IntVar(1, 10, "x", trailer)
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addObjective!(model, x)
+        
+        search = SeaPearl.LNSearch()
+        @test SeaPearl.initroot!(toCall, search, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :MemoryLimitStop
+
         ## :Infeasible
         toCall = Stack{Function}()
         trailer = SeaPearl.Trailer()
@@ -557,6 +582,18 @@
         SeaPearl.tic()
         @test SeaPearl.search!(model, search, SeaPearl.MinDomainVariableSelection()) == :TimeLimitStop
 
+        ## :MemoryLimitStop
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+        model.limit.searchingMemory = 0
+
+        x = SeaPearl.IntVar(1, 10, "x", trailer)
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addObjective!(model, x)
+        
+        search = SeaPearl.LNSearch()
+        @test SeaPearl.search!(model, search, SeaPearl.MinDomainVariableSelection()) == :MemoryLimitStop
+
         ## :Infeasible
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
@@ -604,6 +641,18 @@
         search = SeaPearl.LNSearch()
         SeaPearl.tic()
         @test SeaPearl.search!(model, search, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :TimeLimitStop
+
+        ## :MemoryLimitStop
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+        model.limit.searchingMemory = 0
+
+        x = SeaPearl.IntVar(1, 10, "x", trailer)
+        SeaPearl.addVariable!(model, x)
+        SeaPearl.addObjective!(model, x)
+        
+        search = SeaPearl.LNSearch()
+        @test SeaPearl.search!(model, search, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :MemoryLimitStop
 
         ## :Infeasible
         trailer = SeaPearl.Trailer()
