@@ -1,3 +1,4 @@
+
 """
     solve_XCSP3_instancesolve_XCSP3_instance(file_path::AbstractString, time_limit::Union{Nothing, Int}=nothing, memory_limit::Union{Nothing, Int}=nothing)
 
@@ -8,6 +9,7 @@
 
 """
 function solve_XCSP3_instance(file_path::AbstractString, time_limit::Union{Nothing, Int}=nothing, memory_limit::Union{Nothing, Int}=nothing)
+
     solving_time = @elapsed begin 
         parsing_time = @elapsed begin
             model, trailer, dict_variables = SeaPearl.parse_xml_file(file_path)
@@ -22,7 +24,7 @@ function solve_XCSP3_instance(file_path::AbstractString, time_limit::Union{Nothi
 
         #Memory limit 
         if !isnothing(memory_limit)
-            model.limit.searchingTime = memory_limit
+            model.limit.searchingMemory = memory_limit
         end
 
         # For CSP problem, only one solution required
@@ -35,6 +37,7 @@ function solve_XCSP3_instance(file_path::AbstractString, time_limit::Union{Nothi
         println("c    preprocess terminated. Elapsed time: $parsing_time s")
 
         SeaPearl.display_XCPS3(model)
+
 
         status = SeaPearl.solve!(model)
     end

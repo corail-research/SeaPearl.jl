@@ -1,0 +1,43 @@
+<instance format="XCSP3" type="CSP">
+  <variables>
+    <array id="y" size="[11]"> 0..3 </array>
+    <array id="z" size="[12]"> 1..9 </array>
+    <array id="T" size="[12]"> 2..6 </array>
+    <array id="J" size="[4]"> 2..6 </array>
+    <array id="t" size="[2]"> 2..6 </array>
+    <array id="j" size="[2]"> 2..6 </array>
+  </variables>
+  <constraints>
+
+    <element>
+      <list> T[0] T[1] T[2] T[3] </list>
+      <index > y[1] </index>
+      <condition > (eq,z[3]) </condition>
+    </element>
+
+    <element>
+      <list> T[0..3] </list>
+      <index > y[1] </index>
+      <condition > (eq,z[3]) </condition>
+    </element>
+
+    <element>
+      <list> T[0..1] J[2..3] </list>
+      <index > y[1] </index>
+      <condition > (eq,z[3]) </condition>
+    </element>
+
+    <element>
+      <list> T[] </list>
+      <index > y[1] </index>
+      <condition > (eq,z[3]) </condition>
+    </element>
+
+    <element>
+      <list> t[0..1] j[] </list>
+      <index > y[1] </index>
+      <condition > (eq,z[3]) </condition>
+    </element>
+
+  </constraints>
+</instance>
