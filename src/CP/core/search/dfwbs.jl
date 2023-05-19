@@ -21,6 +21,9 @@ function expandDfwbs!(toCall::Stack{Function}, model::CPModel, variableHeuristic
     if !belowTimeLimit(model)
         return :TimeLimitStop
     end
+    if !belowMemoryLimit(model)
+        return :MemoryLimitStop
+    end
     if !belowNodeLimit(model)
         return :NodeLimitStop
     end

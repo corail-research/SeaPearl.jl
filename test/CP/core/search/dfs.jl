@@ -28,6 +28,15 @@
         @test SeaPearl.expandDfs!(toCall, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :TimeLimitStop
         @test isempty(toCall)
 
+        #:MemoryLimitStop
+        trailer = SeaPearl.Trailer()
+        model = SeaPearl.CPModel(trailer)
+        model.limit.searchingMemory = 0
+        
+        toCall = Stack{Function}()
+        @test SeaPearl.expandDfs!(toCall, model, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic()) == :MemoryLimitStop
+        @test isempty(toCall)
+
         # :Infeasible
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)

@@ -51,7 +51,7 @@ function expandLns!(search::LNSearch, model::CPModel, variableHeuristic::Abstrac
     status = search!(model, DFSearch(), variableHeuristic, valueSelection)
     model.limit.numberOfSolutions = nothing
     model.limit.searchingTime = nothing
-    if status ∈ [:TimeLimitStop, :Infeasible, :Optimal]
+    if status ∈ [:TimeLimitStop, :MemoryLimitStop, :Infeasible, :Optimal]
         return status
     end
     currentSolution = model.statistics.solutions[findfirst(e -> !isnothing(e), model.statistics.solutions)]

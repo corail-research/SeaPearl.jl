@@ -31,6 +31,9 @@ function expandIlds!(toCall::Stack{Function}, discrepancy::Int64, model::CPModel
     if !belowTimeLimit(model)
         return :TimeLimitStop
     end
+    if !belowMemoryLimit(model)
+        return :MemoryLimitStop
+    end
     if !belowNodeLimit(model)
         return :NodeLimitStop
     end
