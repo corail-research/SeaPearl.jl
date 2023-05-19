@@ -1,8 +1,7 @@
 using ArgParse
-using Pkg
-Pkg.activate("../SeaPearl.jl")
-include("SeaPearl.jl") 
 using Random
+
+using SeaPearl
 
 # function meminfo_julia()
 #     # @printf "GC total:  %9.3f MiB\n" Base.gc_total_bytes(Base.gc_num())/2^20
@@ -84,25 +83,12 @@ function main()
     end
 
     # device = nb_core # TODO
-    model, trailer, dict_variables = SeaPearl.parse_xml_file(dir*bench_name) # TODO : check Hadamard error parsing variables
-
-    model.limit.searchingTime = time_limit
-    model.limit.searchingMemory = memory_limit
-    println(model)
 
     Random.seed!(random_seed)
 
-    SeaPearl.solve!(model) #, strategy=SeaPearl.DFSearch(); variableHeuristic=MinDomainVariableSelection(), valueSelection=BasicHeuristic(), out_solver=false)
-
-    println("GC live: ", Base.gc_live_bytes()/2^20, " MiB\n")
-
-    for oneSolution in model.statistics.solutions
-        if !isnothing(oneSolution)
-            println(oneSolution)
-        end
-    end
+    model = SeaPearl.solve_XCSP3_instance(bench_name, time_limit, memory_limit)
 end
 
 main()
 
-# julia src/argparse_setting.jl -b "../instancesXCSP22/xml/MiniCOP/ClockTriplet-03-12_c22.xml" -s 42 -t 120 -m 1000 -c 0 -d "" --dir ""
+# julia --project src/argparse_setting.jl -b "instancesXCSP22/xml/MiniCOP/ClockTriplet-03-12_c22.xml" -s 42 -t 120 -m 1000 -c 0 -d "" --dir ""
