@@ -1,4 +1,13 @@
-function solve_XCSP3_instance(file_path::AbstractString)
+"""
+    solve_XCSP3_instancesolve_XCSP3_instance(file_path::AbstractString, time_limit::Union{Nothing, Int}=nothing, memory_limit::Union{Nothing, Int}=nothing)
+
+# Arguments
+- `file_path::AbstractString`: relative path to XCSP3 instance file (.xml), can be CSP or COP
+- `time_limit::Union{Nothing, Int}`: Searching time limit for solving the instance
+- `memory_limit::Union{Nothing, Int}`: the reversible representation of the table.
+
+"""
+function solve_XCSP3_instance(file_path::AbstractString, time_limit::Union{Nothing, Int}=nothing, memory_limit::Union{Nothing, Int}=nothing)
     solving_time = @elapsed begin 
         parsing_time = @elapsed begin
             model, trailer, dict_variables = SeaPearl.parse_xml_file(file_path)
@@ -6,16 +15,26 @@ function solve_XCSP3_instance(file_path::AbstractString)
         nb_var = get_initial_variable_number(dict_variables)
         nb_con = get_initial_constraint_number(file_path)
 
-        println("c Time Limit set via TIMEOUT to $(model.limit.searchingTime)")
-        println("c Initial problem consists of $nb_var variables and $nb_con constraints.")
-        println("c    preprocess terminated. Elapsed time: $parsing_time")
+        #Time limit 
+        if !isnothing(time_limit)
+            model.limit.searchingTime = time_limit
+        end
 
-        SeaPearl.display_XCPS3(model)
+        #Memory limit 
+        if !isnothing(memory_limit)
+            model.limit.searchingTime = memory_limit
+        end
 
         # For CSP problem, only one solution required
         if isnothing(model.objective)
             model.limit.numberOfSolutions = 1
         end
+
+        println("c Time Limit set via TIMEOUT to $(model.limit.searchingTime) s")
+        println("c Initial problem consists of $nb_var variables and $nb_con constraints.")
+        println("c    preprocess terminated. Elapsed time: $parsing_time s")
+
+        SeaPearl.display_XCPS3(model)
 
         status = SeaPearl.solve!(model)
     end
@@ -25,7 +44,7 @@ function solve_XCSP3_instance(file_path::AbstractString)
     if !isnothing(idx_sol)
         print_solutions(model, dict_variables, idx_sol)
     else 
-        println("No solution because $status")
+        println("c No solution because $status")
     end
     
     println("c Total time: $solving_time s")
