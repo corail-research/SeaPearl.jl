@@ -1,11 +1,10 @@
 name = "SeaPearl"
 uuid = "c13076dc-bdcd-48ba-bc88-4b44c2587ab3"
-
 authors = ["Léo Boisvert", "Ilan Coulon", "Félix Chalumeau", "Tom Marty", "Tom Sander", "Pierre Tessier", "Axel Navarro", "Max Bourgeat"]
 version = "0.4.3"
 
-
 [deps]
+ArgParse = "c7e460c6-2fb9-53a9-8c5b-16f535851c63"
 CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
 Cairo = "159f3aea-2a34-519c-b102-8c37f9878175"
 ChainRulesCore = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
