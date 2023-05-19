@@ -46,14 +46,36 @@ function search!(model::CPModel, strategy::S, variableHeuristic::AbstractVariabl
     valueSelection(EndingPhase, model, currentStatus)
     
     toc()
+
     if currentStatus == :NodeLimitStop || currentStatus == :SolutionLimitStop || currentStatus == :TimeLimitStop || currentStatus == :MemoryLimitStop || (out_solver & (currentStatus in [:Infeasible, :FoundSolution]))
+        if model.displayXCSP3 
+            if !isnothing(get_index_solution(model))
+                println("s SATISTFIABLE")
+            else
+                println("s UNKNOWN")
+            end
+        end
+
         return currentStatus
     end
     
     if isa(strategy, DFSearch) && !all(map(x->isnothing(x),model.statistics.solutions)) == 1    # Only the DFS search can give the optimality certificate
+        if model.displayXCSP3 
+            if !isnothing(model.objective)
+                println("s OPTIMUM FOUND")
+            else
+                println("s SATISTFIABLE")
+            end
+        end
         return :Optimal
+
     elseif !all(map(x->isnothing(x),model.statistics.solutions)) == 1 
+        println("s SATISTFIABLE")
         return :NonOptimal
+    end
+
+    if model.displayXCSP3
+        println("s UNSATISFIABLE")
     end
     return :Infeasible
 end
