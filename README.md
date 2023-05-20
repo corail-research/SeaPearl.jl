@@ -89,7 +89,7 @@ CustomStrategy <: SearchStrategy #DFS, RBS, ILDS
 CustomEvaluator <: AbstractEvaluator #or use predefined one : SeaPearl.SameInstancesEvaluator(...)
 function CustomMetricsFun
 ```
-9. launch the training :  
+10. launch the training :  
 ```julia
 metricsArray, eval_metricsArray = SeaPearl.train!(
 valueSelectionArray=valueSelectionArray,
@@ -104,8 +104,6 @@ evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,tsptw_generator; e
 restartPerInstances = restartPerInstances
 )
 ```
-)
-
 
 ## Contributing to SeaPearl
 
