@@ -134,7 +134,7 @@ end
 
 
 function get_list_expression_element(str_list::AbstractString, variables::Dict{String, Any})
-    constraint_variables = SeaPearl.IntVar[]
+    constraint_variables = SeaPearl.AbstractIntVar[]
     array_value = Int[]
 
     for str_l in split(str_list, " ")
