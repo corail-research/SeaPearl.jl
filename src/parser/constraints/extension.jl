@@ -16,9 +16,15 @@ function parse_extension_constraint(constraint::Node, variables::Dict{String,Any
     if isnothing(support_node)
         conflict_node = find_element(constraint, "conflicts")
 
-        str_conflict = get_node_string(conflict_node)
+        
+        if isnothing(conflict_node)
+            error("Extension constraint has to contain 'supports' or 'conflicts' node")
+        
+        elseif !isnothing(conflict_node.children)
+            str_conflict = get_node_string(conflict_node)
 
-        parse_conflict_extension_expression!(str_list, str_conflict, variables, model, trailer)
+            parse_conflict_extension_expression!(str_list, str_conflict, variables, model, trailer)
+        end
 
     else
         str_support = get_node_string(support_node)
