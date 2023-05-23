@@ -70,7 +70,9 @@ function search!(model::CPModel, strategy::S, variableHeuristic::AbstractVariabl
         return :Optimal
 
     elseif !all(map(x->isnothing(x),model.statistics.solutions)) == 1 
-        println("s SATISTFIABLE")
+        if model.displayXCSP3
+            println("s SATISTFIABLE")
+        end
         return :NonOptimal
     end
 
