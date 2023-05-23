@@ -1,6 +1,7 @@
 using ArgParse
 using Random
 
+using Revise
 using SeaPearl
 
 # function meminfo_julia()

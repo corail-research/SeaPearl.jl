@@ -170,10 +170,10 @@ function divBounds!(a::Int, b::Int, c::Int, d::Int)
         ad = a / d
         bc = b / c
         bd = b / d
-        idx, low = Base.findmin([ac, ad, bc, bd])
-        idx, high = Base.findmax([ac, ad, bc, bd])
-        min = Int(round(ceil(low)))
-        max = Int(round(floor(high)))
+        low, idx = Base.findmin([ac, ad, bc, bd])
+        high, idx = Base.findmax([ac, ad, bc, bd])
+        min = Int(ceil(low))
+        max = Int(floor(high))
         if (min > max)
             error("Fail to find division bounds")
         end
