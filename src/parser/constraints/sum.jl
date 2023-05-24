@@ -214,17 +214,3 @@ function get_relation_sum_expression(str_relation::String, dict_variables::Dict{
     end
     return str_operator, operand
 end
-
-function is_digit(str::AbstractString)
-    for i in length(str)
-        c = str[i]
-        if !isdigit(c)
-            if i == 0 && c == '-'
-                continue
-            else 
-                return false
-            end
-        end
-    end
-    return true
-end
