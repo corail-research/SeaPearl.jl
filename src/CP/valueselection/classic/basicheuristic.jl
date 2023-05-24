@@ -39,5 +39,3 @@ end
 (valueSelection::BasicHeuristic)(::Type{EndingPhase}, model::Union{Nothing, CPModel}=nothing, current_status::Union{Nothing, Symbol}=nothing) = nothing
 
 wears_mask(valueSelection::BasicHeuristic) = true
-
-include("random.jl")
