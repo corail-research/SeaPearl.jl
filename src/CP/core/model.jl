@@ -100,7 +100,7 @@ mutable struct CPModel
 
 
 
-    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Dict{String, AbstractVar}(), Constraint[], trailer, nothing, nothing, Statistics(Dict{String, Int}(), 0, 0, 0, 0, 0, 0, 0, 0, Solution[], Int[], Float32[], nothing, nothing, nothing, nothing, nothing, nothing, nothing, Dict{Constraint, Int}()), Limit(nothing, nothing, nothing, nothing), nothing, Dict{Tuple{AbstractIntVar,Int}, Float32}(), false)
+    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Dict{String, AbstractVar}(), Constraint[], trailer, nothing, nothing, Statistics(Dict{String, Int}(), 0, 0, 0, 0, 0, 0, 0, 0, Solution[], Int[], Float32[], nothing, nothing, nothing, nothing, nothing, nothing, nothing, Dict{Constraint, Int}()), Limit(nothing, nothing, nothing, nothing), nothing, Dict{Tuple{AbstractIntVar,Int}, Float32}(), nothing, false)
 
 end
 

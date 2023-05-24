@@ -118,6 +118,7 @@ function get_var_dot_expression(string_with_dot::AbstractString)
     
     new_string = str[1:idx_bracket_inf] * "" * str[idx_perc:idx_perc] * "" * str[idx_bracket_sup:end]
 
+
     if is_digit(nb_inf_str)
         nb_inf = parse(Int, nb_inf_str)
     else

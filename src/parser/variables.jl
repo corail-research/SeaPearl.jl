@@ -260,7 +260,7 @@ end
 
 
 function get_constraint_variables(str_constraint_variables::AbstractString, variables::Dict{String, Any})
-    constraint_variables = SeaPearl.IntVar[]
+    constraint_variables = SeaPearl.AbstractIntVar[]
 
     for str_variable in split(str_constraint_variables, " ")
         # Delete "]"
