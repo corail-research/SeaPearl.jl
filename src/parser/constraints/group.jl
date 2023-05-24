@@ -67,10 +67,70 @@ function fill_pattern(pattern::AbstractString, constraint_variables::Node)
 
     str_vars_split = split(str_vars, " ")
     filled_pattern = pattern
+    nb_percentage = count(i->(i=='%'), filled_pattern)
 
-    for (i, var) in enumerate(str_vars_split)
+    new_str_vars_split = fill("0", size(str_vars_split))
+
+    j = 0
+    if nb_percentage != length(str_vars_split)     
+        for (i,var) in enumerate(str_vars_split)
+            if occursin("..", var)
+                str_list = get_var_dot_expression(var)
+                for s in str_list
+                    if j != 0
+                        insert!(new_str_vars_split, i+j, s)
+                    else
+                        new_str_vars_split[i+j] = s
+                    end
+                    j += 1
+                end
+                j -= 1
+            else
+                new_str_vars_split[i+j] = var
+            end
+        end
+    else
+        new_str_vars_split = str_vars_split
+    end
+    for (i, var) in enumerate(new_str_vars_split)
         filled_pattern = replace(filled_pattern, "%" * string(i-1) => string(var))
     end
-
     return string(split(filled_pattern, " %")[1])
+end
+
+function get_var_dot_expression(string_with_dot::AbstractString)
+    str_list = String[]
+    str = replace(string_with_dot, ".." => "%")
+
+    idx_perc = findfirst(x -> x == '%', str)
+
+    idx_bracket_inf_list = findall(x -> x == '[', str[1:idx_perc])
+    idx_bracket_inf = idx_bracket_inf_list[end]
+
+    idx_bracket_sup_list = findall(x -> x == ']', str[idx_perc:end])
+    idx_bracket_sup = idx_bracket_sup_list[1] + idx_perc - 1
+
+    nb_inf = 0
+    nb_sup = 0
+
+    nb_inf_str = str[idx_bracket_inf+1:idx_perc-1]
+    nb_sup_str = str[idx_perc+1:idx_bracket_sup-1]
+
+    new_string = replace(str, nb_inf_str => "", nb_sup_str => "")
+
+    if is_digit(nb_inf_str)
+        nb_inf = parse(Int, nb_inf_str)
+    else
+        println("Error: the number between [ and % is not an integer")
+    end
+    
+    if is_digit(nb_sup_str)
+        nb_sup = parse(Int, nb_sup_str)
+    else
+        println("Error: the number between % and ] is not an integer")
+    end
+    for i in nb_inf:nb_sup
+        push!(str_list, replace(new_string, "%" => string(i)))
+    end
+    return str_list
 end
