@@ -1,8 +1,18 @@
-using ArgParse
-using Random
+import ArgParse.ArgParseSettings
+import ArgParse.@add_arg_table
+import ArgParse.parse_args
 
-using Revise
-using SeaPearl
+# using Random
+
+# using Revise
+# using SeaPearl
+
+include_time = @elapsed begin 
+    include("using_seapearl.jl")
+end
+
+println("include time: $include_time s")
+
 
 # function meminfo_julia()
 #     # @printf "GC total:  %9.3f MiB\n" Base.gc_total_bytes(Base.gc_num())/2^20
@@ -64,16 +74,16 @@ function main()
     tmp_dir = parsed_args["tmp_dir"]
     dir = parsed_args["dir"]
 
-    println("Parsed args:")
-    println("bench_name : ", bench_name)
-    println("random_seed : ", random_seed)
-    println("time_limit : ", time_limit)
-    println("memory_limit : ", memory_limit)
-    println("nb_core : ", nb_core)
-    println("tmp_dir : ", tmp_dir)
-    println("dir : ", dir) # /Documents/CORAIL/SeaPearl/instancesXCSP22/xml/MiniCSP
+    # println("Parsed args:")
+    # println("bench_name : ", bench_name)
+    # println("random_seed : ", random_seed)
+    # println("time_limit : ", time_limit)
+    # println("memory_limit : ", memory_limit)
+    # println("nb_core : ", nb_core)
+    # println("tmp_dir : ", tmp_dir)
+    # println("dir : ", dir) # /Documents/CORAIL/SeaPearl/instancesXCSP22/xml/MiniCSP
 
-    println("GC live: ", Base.gc_live_bytes()/2^20, " MiB\n")
+    #println("GC live: ", Base.gc_live_bytes()/2^20, " MiB\n")
 
     if isnothing(tmp_dir)
         tmp_dir = ""
@@ -85,11 +95,11 @@ function main()
 
     # device = nb_core # TODO
 
-    Random.seed!(random_seed)
+    #Random.seed!(random_seed)
 
     model = SeaPearl.solve_XCSP3_instance(bench_name, time_limit, memory_limit)
 end
 
 main()
 
-# julia --project src/argparse_setting.jl -b "instancesXCSP22/xml/MiniCOP/ClockTriplet-03-12_c22.xml" -s 42 -t 120 -m 1000 -c 0 -d "" --dir ""
+# julia --project src/argparse_setting.jl -b "instancesXCSP22/xml/MiniCOP/ClockTriplet-03-12_c22.xml" -t 120 
