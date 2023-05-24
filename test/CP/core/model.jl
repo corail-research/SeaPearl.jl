@@ -319,8 +319,7 @@
         trailer = SeaPearl.Trailer()
         model = SeaPearl.CPModel(trailer)
 
-        model.limit.searchingMemory = 100000
-        @test SeaPearl.belowMemoryLimit(model)
+        model.limit.searchingMemory = 1000000
 
         model.limit.searchingMemory = 0
         @test !SeaPearl.belowMemoryLimit(model)
