@@ -40,7 +40,7 @@ function expandLns!(search::LNSearch, model::CPModel, variableHeuristic::Abstrac
     tic()
     globalTimeLimit = model.limit.searchingTime 
     objectiveId = model.objective.id
-    optimalScoreLowerBound = model.variables[objectiveId].domain.min.value
+    optimalScoreLowerBound = minimum(model.variables[objectiveId].domain)
 
     if !isnothing(search.seed)
         Random.seed!(search.seed)

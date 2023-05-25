@@ -75,7 +75,7 @@ function main()
     dir = parsed_args["dir"]
 
     # println("Parsed args:")
-    # println("bench_name : ", bench_name)
+    println("bench_name : ", bench_name)
     # println("random_seed : ", random_seed)
     # println("time_limit : ", time_limit)
     # println("memory_limit : ", memory_limit)

@@ -75,8 +75,8 @@ function init_nValues_variable(x::Array{<:AbstractIntVar}, id::String, trailer::
     min_values = typemax(Int)
     max_values = typemin(Int)
     for i in 1:length(x)
-        m = x[i].domain.min.value
-        M = x[i].domain.max.value
+        m = minimum(x[i].domain)
+        M = maximum(x[i].domain)
         if m < min_values
             min_values = m
         end

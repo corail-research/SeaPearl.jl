@@ -20,7 +20,7 @@ end
 return the earliest starting time of a task.
 """
 function getEST(task::Task)
-    return task.earliestStartingTime.domain.min.value
+    return minimum(task.earliestStartingTime.domain)
 end
 
 """
@@ -29,7 +29,7 @@ end
 return the latest completion time of a task.
 """
 function getLCT(task::Task)
-    return task.earliestStartingTime.domain.max.value + task.processingTime
+    return maximum(task.earliestStartingTime.domain) + task.processingTime
 end
 
 """
@@ -38,7 +38,7 @@ end
 return the earliest completion time of a task.
 """
 function getECT(task::Task)
-    return task.earliestStartingTime.domain.min.value + task.processingTime
+    return minimum(task.earliestStartingTime.domain) + task.processingTime
 end
 
 """
@@ -47,7 +47,7 @@ end
 return the latest starting time of a task.
 """
 function getLST(task::Task)
-    return task.earliestStartingTime.domain.max.value
+    return maximum(task.earliestStartingTime.domain)
 end
 
 """Disjunctive(earliestStartingTime::Array{<:AbstractIntVar}, 
@@ -108,9 +108,9 @@ function timeTabling!(constraint::Disjunctive, toPropagate::Set{Constraint}, pru
     lowerBoundCompulsaryPart = []
     upperBoundCompulsaryPart = []
     nextTaskWithClosestCompulsaryPart = fill(0, size(constraint.tasks)[1])
-    filteredEST = [i.earliestStartingTime.domain.min.value for i in constraint.tasks]
-    tasksOrderedByLST = sort(constraint.tasks, by = x-> x.earliestStartingTime.domain.max.value)
-    tasksOrderedByEST = sort(constraint.tasks, by = x-> x.earliestStartingTime.domain.min.value)
+    filteredEST = [minimum(i.earliestStartingTime.domain) for i in constraint.tasks]
+    tasksOrderedByLST = sort(constraint.tasks, by = x-> maximum(x.earliestStartingTime.domain))
+    tasksOrderedByEST = sort(constraint.tasks, by = x-> minimum(x.earliestStartingTime.domain))
     tasksOrderedByPT = sort(constraint.tasks, by = x-> x.processingTime)
 
     for task in tasksOrderedByLST
@@ -161,10 +161,10 @@ function timeTabling!(constraint::Disjunctive, toPropagate::Set{Constraint}, pru
         end
     end
     for i in 1:length(constraint.tasks)
-        if  filteredEST[i] > constraint.tasks[i].earliestStartingTime.domain.max.value
+        if  filteredEST[i] > maximum(constraint.tasks[i].earliestStartingTime.domain)
             return false
         end
-        if  filteredEST[i] > constraint.tasks[i].earliestStartingTime.domain.min.value
+        if  filteredEST[i] > minimum(constraint.tasks[i].earliestStartingTime.domain)
             prunedEST = SeaPearl.removeBelow!(constraint.tasks[i].earliestStartingTime.domain, filteredEST[i])
             addToPrunedDomains!(prunedDomains, constraint.tasks[i].earliestStartingTime, prunedEST)
             triggerDomainChange!(toPropagate, constraint.tasks[i].earliestStartingTime)
@@ -185,8 +185,8 @@ end
 """
 function detectablePrecedence!(constraint::Disjunctive, toPropagate::Set{Constraint}, prunedDomains::CPModification)
     timeline = SeaPearl.Timeline(constraint.tasks)
-    orderedTaskByLST = sort(constraint.tasks, by = x-> x.earliestStartingTime.domain.max.value)
-    orderedTaskByECT = sort(constraint.tasks, by = x-> x.earliestStartingTime.domain.min.value + x.processingTime)
+    orderedTaskByLST = sort(constraint.tasks, by = x-> maximum(x.earliestStartingTime.domain))
+    orderedTaskByECT = sort(constraint.tasks, by = x-> minimum(x.earliestStartingTime.domain) + x.processingTime)
     postponedTasks = []
     blockingTask = nothing
     currentTaskIndex = 1
@@ -223,10 +223,10 @@ function detectablePrecedence!(constraint::Disjunctive, toPropagate::Set{Constra
     end
 
     for i in 1:length(constraint.tasks)
-        if  filteredEST[i] > constraint.tasks[i].earliestStartingTime.domain.max.value
+        if  filteredEST[i] > maximum(constraint.tasks[i].earliestStartingTime.domain)
             return false
         end
-        if  filteredEST[i] > constraint.tasks[i].earliestStartingTime.domain.min.value
+        if  filteredEST[i] > minimum(constraint.tasks[i].earliestStartingTime.domain)
             prunedEST = SeaPearl.removeBelow!(constraint.tasks[i].earliestStartingTime.domain, filteredEST[i])
             addToPrunedDomains!(prunedDomains, constraint.tasks[i].earliestStartingTime, prunedEST)
             triggerDomainChange!(toPropagate, constraint.tasks[i].earliestStartingTime)
