@@ -184,8 +184,8 @@ function divBounds!(a::Int, b::Int, c::Int, d::Int)
         min_neg, max_neg = divBounds!(a, b, c, -1)
         min_pos, max_pos = divBounds!(a, b, 1, d)
 
-        idx, min =  Base.findmin([min_neg, max_neg, min_pos, max_pos])
-        idx, max =  Base.findmax([min_neg, max_neg, min_pos, max_pos])
+        min, idx =  Base.findmin([min_neg, max_neg, min_pos, max_pos])
+        max, idx =  Base.findmax([min_neg, max_neg, min_pos, max_pos])
 
         if (min > max)
             error("Fail to find division bounds")
