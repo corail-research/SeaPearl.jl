@@ -115,7 +115,7 @@
         @test(isempty(constraint.modifiedVariables))
         @test(constraint.residues[3=>2]==1)
     end
-    @testset "propagate!(constraint::TableConstraint, toPropagate::Set{Constraint}, prunedDomains::CPModification)" begin
+    @testset "propagate!(constraint::ShortTableConstraint, toPropagate::Set{Constraint}, prunedDomains::CPModification)" begin
         trailer = SeaPearl.Trailer()
         x = SeaPearl.IntVar(1, 3, "x", trailer)
         y = SeaPearl.IntVar(2, 3, "y", trailer)
