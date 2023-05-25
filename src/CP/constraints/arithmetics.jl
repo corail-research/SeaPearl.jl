@@ -172,10 +172,14 @@ function divBounds!(a::Int, b::Int, c::Int, d::Int)
         bd = b / d
         low, idx = Base.findmin([ac, ad, bc, bd])
         high, idx = Base.findmax([ac, ad, bc, bd])
+
         min = Int(ceil(low))
         max = Int(floor(high))
+
+        # If low and high are between the same consecutive integers
         if (min > max)
-            error("Fail to find division bounds")
+            min = max 
+            max = min 
         end
         return min, max
     
