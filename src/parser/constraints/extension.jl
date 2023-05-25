@@ -99,3 +99,16 @@ function parse_table_integer(str_int::AbstractString)
         return str_int
     end
 end
+
+
+function parse_support(str_support::AbstractString)
+
+    if str_support[1] == "("
+        str_tuples = split(str_support[2:end-1], ")(")
+        table = hcat([map(x -> parse_table_integer(x), split(tuple, ",")) for tuple in str_tuples]...)
+    else 
+        table = ""
+    end
+
+    return table
+end
