@@ -12,3 +12,10 @@
 
 # Test files for Max9294D
 /test_julia_max.ipynb
+run_bash.sh
+test_output.txt
+test_output1.txt
+test_output2.txt
+test_output3.txt
+test_output4.txt
+test_output_5s_strat_dfs.txt
