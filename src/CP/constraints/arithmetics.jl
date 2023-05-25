@@ -56,7 +56,7 @@ function propagate!(constraint::Multiplication, toPropagate::Set{Constraint}, pr
         return true
     end
     
-    minZ, maxZ =  mulBounds!(constraint.x.domain.min.value, constraint.x.domain.max.value, constraint.y.domain.min.value, constraint.y.domain.max.value)
+    minZ, maxZ =  mulBounds!(minimum(constraint.x.domain), maximum(constraint.x.domain), minimum(constraint.y.domain), maximum(constraint.y.domain))
     prunedZ = vcat(removeBelow!(constraint.z.domain, minZ), removeAbove!(constraint.z.domain, maxZ))
 
     if !isempty(prunedZ)
@@ -79,14 +79,14 @@ function propagate!(constraint::Multiplication, toPropagate::Set{Constraint}, pr
     
     # If 0 in y.domain and z.domain, domain of x cannot be pruned 
     if !(Z0 & Y0)
-        minX, maxX = divBounds!(constraint.z.domain.min.value, constraint.z.domain.max.value, constraint.y.domain.min.value, constraint.y.domain.max.value)
+        minX, maxX = divBounds!(minimum(constraint.z.domain), maximum(constraint.z.domain), minimum(constraint.y.domain), maximum(constraint.y.domain))
         prunedX = vcat(removeBelow!(constraint.x.domain, minX), removeAbove!(constraint.x.domain, maxX))
         prunedX = vcat(prunedX0, prunedX)
     end
 
     # If 0 in x.domain and z.domain, domain of y cannot be pruned 
     if !(Z0 & X0)
-        minY, maxY = divBounds!(constraint.z.domain.min.value, constraint.z.domain.max.value, constraint.x.domain.min.value, constraint.x.domain.max.value)
+        minY, maxY = divBounds!(minimum(constraint.z.domain), maximum(constraint.z.domain), minimum(constraint.x.domain), maximum(constraint.x.domain))
         prunedY = vcat(removeBelow!(constraint.y.domain, minY), removeAbove!(constraint.y.domain, maxY))
         prunedY = vcat(prunedY0, prunedY)
     end
@@ -252,7 +252,7 @@ function propagate!(constraint::Division, toPropagate::Set{Constraint}, prunedDo
     prunedY0 = remove!(yDomain, 0)
     
     # Prune z domain
-    minZ, maxZ = divBounds!(xDomain.min.value, xDomain.max.value, yDomain.min.value, yDomain.max.value)
+    minZ, maxZ = divBounds!(minimum(xDomain), maximum(xDomain), minimum(yDomain), maximum(yDomain))
     prunedZ = vcat(removeBelow!(zDomain, minZ), removeAbove!(zDomain, maxZ))
 
     X0 = 0 in xDomain
@@ -274,18 +274,18 @@ function propagate!(constraint::Division, toPropagate::Set{Constraint}, prunedDo
     
     # Prune y domain 
 
-    reminderMin, reminderMax = reminderBounds!(xDomain.min.value, xDomain.max.value, yDomain.min.value, yDomain.max.value)
+    reminderMin, reminderMax = reminderBounds!(minimum(xDomain), maximum(xDomain), minimum(yDomain), maximum(yDomain))
 
     # If 0 in x.domain and z.domain, domain of x cannot be pruned 
     if !(Z0 & X0)
-        minY, maxY = divBounds!(xDomain.min.value - reminderMax, xDomain.max.value -reminderMin, zDomain.min.value, zDomain.max.value)
+        minY, maxY = divBounds!(minimum(xDomain) - reminderMax, maximum(xDomain) -reminderMin, minimum(zDomain), maximum(zDomain))
 
         #If x and z have same sign, y is positive
-        if (xDomain.min.value >= 0 & zDomain.min.value >= 0) || (xDomain.min.value <= 0 & zDomain.min.value <= 0)
+        if (minimum(xDomain) >= 0 & minimum(zDomain) >= 0) || (minimum(xDomain) <= 0 & minimum(zDomain) <= 0)
             minY = 1
 
         #If x and z have opposite sign, y is negative
-        elseif (xDomain.min.value >= 0 & zDomain.min.value <= 0) || (xDomain.min.value <= 0 & zDomain.min.value >= 0)
+        elseif (minimum(xDomain) >= 0 & minimum(zDomain) <= 0) || (minimum(xDomain) <= 0 & minimum(zDomain)>= 0)
             maxY = -1
         end
 
@@ -300,13 +300,13 @@ function propagate!(constraint::Division, toPropagate::Set{Constraint}, prunedDo
 
     # Prune x domain
 
-    minYZ, maxYZ = mulBounds!(yDomain.min.value, yDomain.max.value, zDomain.min.value, zDomain.max.value)
+    minYZ, maxYZ = mulBounds!(minimum(yDomain), maximum(yDomain), minimum(zDomain), maximum(zDomain))
 
     # Test if we have more precise bounds for reminderMin and reminderMax
-    reminderMin, reminderMax = reminderBounds!(xDomain.min.value, xDomain.max.value, yDomain.min.value, yDomain.max.value)
+    reminderMin, reminderMax = reminderBounds!(minimum(xDomain), maximum(xDomain), minimum(yDomain), maximum(yDomain))
 
-    rMin = xDomain.min.value - maxYZ
-    rMax = xDomain.max.value - minYZ
+    rMin = minimum(xDomain) - maxYZ
+    rMax = maximum(xDomain) - minYZ
     if reminderMin > rMin
         rMin = reminderMin
     end
@@ -376,7 +376,7 @@ function propagate!(constraint::Modulo, toPropagate::Set{Constraint}, prunedDoma
     prunedY0 = remove!(yDomain, 0)
     
     # Prune z domain
-    minZ, maxZ = reminderBounds!(xDomain.min.value, xDomain.max.value, yDomain.min.value, yDomain.max.value)
+    minZ, maxZ = reminderBounds!(minimum(xDomain), maximum(xDomain), minimum(yDomain), maximum(yDomain))
     prunedZ = vcat(removeBelow!(zDomain, minZ), removeAbove!(zDomain, maxZ))
 
     if !isempty(prunedZ)
@@ -386,9 +386,9 @@ function propagate!(constraint::Modulo, toPropagate::Set{Constraint}, prunedDoma
     
     # Prune y domain 
 
-    XYmin, XYmax = divBounds!(xDomain.min.value, xDomain.max.value, yDomain.min.value, yDomain.max.value)
+    XYmin, XYmax = divBounds!(minimum(xDomain), maximum(xDomain), minimum(yDomain), maximum(yDomain))
 
-    minY, maxY = divBounds!(xDomain.min.value - zDomain.max.value, xDomain.max.value - zDomain.min.value, XYmin, XYmax)
+    minY, maxY = divBounds!(minimum(xDomain) - maximum(zDomain), maximum(xDomain) - minimum(zDomain), XYmin, XYmax)
 
     prunedY = vcat(removeBelow!(yDomain, minY), removeAbove!(yDomain, maxY))
     prunedY = vcat(prunedY0, prunedY)
@@ -400,9 +400,9 @@ function propagate!(constraint::Modulo, toPropagate::Set{Constraint}, prunedDoma
 
     # Prune x domain
     
-    minX, maxX = mulBounds!(XYmin, XYmax, yDomain.min.value, yDomain.max.value)
+    minX, maxX = mulBounds!(XYmin, XYmax, minimum(yDomain), maximum(yDomain))
 
-    prunedX = vcat(removeBelow!(xDomain, minX + zDomain.min.value), removeAbove!(xDomain, maxX + zDomain.max.value))
+    prunedX = vcat(removeBelow!(xDomain, minX + minimum(zDomain)), removeAbove!(xDomain, maxX + maximum(zDomain)))
 
     if !isempty(prunedX)
         triggerDomainChange!(toPropagate, constraint.x)
