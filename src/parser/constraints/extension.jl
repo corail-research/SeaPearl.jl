@@ -48,9 +48,8 @@ Parse a support extension expression from a string and apply it to the constrain
 function parse_support_extension_expression(str_list::AbstractString, str_support::AbstractString, variables::Dict{String,Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
     constraint_variables = get_constraint_variables(str_list, variables)
 
-    str_tuples = split(str_support[2:end-1], ")(")
-
-    table = hcat([map(x -> parse_table_integer(x), split(tuple, ",")) for tuple in str_tuples]...)
+    table = parse_support(str_support)
+    
     if eltype(table) == Int
         constraint = SeaPearl.TableConstraint(constraint_variables, table, trailer)
     else
@@ -74,8 +73,7 @@ Parse a conflict extension expression from a string and apply it to the constrai
 function parse_conflict_extension_expression!(str_list::AbstractString, str_conflict::AbstractString, variables::Dict{String,Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
     constraint_variables = get_constraint_variables(str_list, variables)
 
-    str_tuples = split(str_conflict[2:end-1], ")(")
-    table = hcat([map(x -> parse(Int, x), split(tuple, ",")) for tuple in str_tuples]...)
+    table = parse_support(str_conflict)
 
     constraint = SeaPearl.NegativeTableConstraint(constraint_variables, table, trailer)
     SeaPearl.addConstraint!(model, constraint)
@@ -98,4 +96,34 @@ function parse_table_integer(str_int::AbstractString)
     else
         return str_int
     end
+end
+
+
+function parse_support(str_support::AbstractString)
+    if str_support[1] == '('
+        str_tuples = split(str_support[2:end-1], ")(")
+        table = hcat([map(x -> parse_table_integer(x), split(tuple, ",")) for tuple in str_tuples]...)
+    else 
+        table = Int[]
+        str_support_vector = split(str_support, " ")
+        for str_val in str_support_vector
+            if length(str_val) == 1
+                push!(table, parse(Int, str_val))
+            else
+                bounds = split(str_val, "..")
+                if length(bounds) == 1
+                    push!(table, parse(Int, str_val))
+                else
+                    lower_bound = parse(Int, bounds[1])
+                    upper_bound = parse(Int, bounds[2])
+                    for val = lower_bound:upper_bound
+                        push!(table, val)
+                    end
+                end
+            end
+        end
+        table = reshape(table, 1, length(table))
+    end
+
+    return table
 end
