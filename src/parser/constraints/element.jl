@@ -190,20 +190,6 @@ function get_list_expression_element(str_list::AbstractString, variables::Dict{S
     return constraint_variables
 end
 
-# function is_digit(str::AbstractString)
-#     for i in length(str)
-#         c = str[i]
-#         if !isdigit(c)
-#             if i == 0 && c == '-'
-#                 continue
-#             else 
-#                 return false
-#             end
-#         end
-#     end
-#     return true
-# end
-
 function get_starting_index()
     startingIdex = "0" # only true for XCSP 2023
     return startingIdex

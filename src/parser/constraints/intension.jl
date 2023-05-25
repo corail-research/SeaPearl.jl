@@ -126,12 +126,3 @@ function create_arithmetic_variable(x::SeaPearl.AbstractIntVar, y::SeaPearl.Abst
         return SeaPearl.IntVar(zMin, zMax, "|" * x.id * "-" * y.id * "|", trailer)
     end
 end
-
-function is_digit(str::AbstractString)
-    for c in str
-        if !isdigit(c)
-            return false
-        end
-    end
-    return true
-end

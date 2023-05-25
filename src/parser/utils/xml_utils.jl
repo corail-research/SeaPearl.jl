@@ -12,3 +12,17 @@ end
 function get_node_string(x::Node)
     return XML.children(x)[1].value
 end
+
+function is_digit(str::AbstractString)
+    for i in length(str)
+        c = str[i]
+        if !isdigit(c)
+            if i == 0 && c == '-'
+                continue
+            else
+                return false
+            end
+        end
+    end
+    return true
+end
