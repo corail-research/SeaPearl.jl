@@ -82,8 +82,7 @@ end
 
 function get_constraint_variables_expression(str_list::AbstractString, str_coeffs::AbstractString, variables::Dict{String, Any})
     constraint_variables = SeaPearl.AbstractIntVar[]
-    list_var = get_list_expression_sum(str_list, variables)
-    
+    list_var = get_constraint_variables(str_list, variables)
     list_coeff = get_coefficients_expression(str_coeffs, length(list_var))
 
     if length(list_var) == length(list_coeff)
@@ -142,61 +141,6 @@ function get_coefficients_expression(str_coeffs::AbstractString, nb_variables::I
 
     return reduce(vcat, coeffs_list)
 end
-
-function get_list_expression_sum(str_list::AbstractString, variables::Dict{String, Any})
-    constraint_variables = SeaPearl.AbstractIntVar[]
-    array_value = Int[]
-    for str_l in split(str_list, " ")
-        # Delete "]"
-        str = replace(str_l, "]" => "")
-            
-        # Divide string into array of substring
-        str_vector = split(str, "[")
-
-        id, str_idx = str_vector[1], str_vector[2:end]
-
-        var = variables[id]
-        if isa(var, SeaPearl.AbstractIntVar)
-            push!(constraint_variables, var)
-        else
-            int_idx = []
-            for i in str_idx
-                #All index have to be considered
-                if i == ""
-                    push!(int_idx, [:][1])
-                else
-                    bounds = split(i, "..")
-                    lower_bound = parse(Int, bounds[1]) + 1
-
-                    #A subset from the array is considered
-                    if length(bounds) == 2
-                        upper_bound = parse(Int, bounds[2]) + 1
-                        push!(int_idx, [lower_bound:upper_bound][1])
-                    
-                    #Only one index is considered
-                    else
-                        push!(int_idx, lower_bound)
-                    end
-                end
-                
-                vars = var[int_idx...]
-                if isa(vars, Array)
-                    push!(constraint_variables, vars...)
-                else
-                    push!(constraint_variables, vars)
-                end
-            end
-        end
-    end
-
-    if !isempty(array_value)
-        return array_value
-    else
-        return constraint_variables
-    end
-    return constraint_variables
-end
-
 
 function get_relation_sum_expression(str_relation::String, dict_variables::Dict{String, Any})
     str_operator, str_operand = split(str_relation[2:end-1], ",")
