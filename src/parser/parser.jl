@@ -21,9 +21,11 @@ function parse_xml_file(file_path::AbstractString)
     model = SeaPearl.CPModel(trailer)
 
     #Variables parsing 
-    dict_variables = Dict{String,Any}()
+    
     if !isnothing(variables)
         dict_variables = parse_all_variables(variables, model, trailer)
+    else 
+        dict_variables = Dict{String,Any}()
     end
 
     #Constraints parsing 
