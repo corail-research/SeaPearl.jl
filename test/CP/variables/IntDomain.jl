@@ -101,24 +101,24 @@
         trailer = SeaPearl.Trailer()
         x = SeaPearl.IntVar(5, 10, "x", trailer)
 
-        @test x.domain.min.value == 5
+        @test minimum(x.domain) == 5
 
         SeaPearl.remove!(x.domain, 5)
         SeaPearl.updateMinFromRemovedVal!(x.domain, 5)
 
-        @test x.domain.min.value == 6
+        @test minimum(x.domain) == 6
     end
 
     @testset "updateMaxFromRemovedVal!()" begin
         trailer = SeaPearl.Trailer()
         x = SeaPearl.IntVar(5, 10, "x", trailer)
 
-        @test x.domain.max.value == 10
+        @test maximum(x.domain) == 10
 
         SeaPearl.remove!(x.domain, 10)
         SeaPearl.updateMaxFromRemovedVal!(x.domain, 10)
 
-        @test x.domain.max.value == 9
+        @test maximum(x.domain) == 9
     end
 
     @testset "updateBoundsFromRemovedVal!()" begin
@@ -130,8 +130,8 @@
         SeaPearl.updateBoundsFromRemovedVal!(x.domain, 5)
         SeaPearl.updateBoundsFromRemovedVal!(x.domain, 10)
 
-        @test x.domain.min.value == 6
-        @test x.domain.max.value == 9
+        @test minimum(x.domain) == 6
+        @test maximum(x.domain) == 9
     end
 
     @testset "removeAbove!()" begin

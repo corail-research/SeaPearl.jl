@@ -58,8 +58,8 @@ function parse_notEqual_sum_expression(operand::Any, constraint_variables::Vecto
 
     name_sum = "sum("
     for var in constraint_variables
-        sum_min += var.domain.min.value
-        sum_max += var.domain.max.value
+        sum_min += minimum(var.domain)
+        sum_max += maximum(var.domain)
         name_sum *= var.id*","
     end
     name_sum = name_sum[1:end-1]*")"

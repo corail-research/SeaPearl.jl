@@ -8,10 +8,10 @@
 
         @test constraint in x.onDomainChange
         @test constraint in y.onDomainChange
-        @test y.domain.min.value == -10
-        @test y.domain.max.value == 10
-        @test x.domain.min.value == -5
-        @test x.domain.max.value == 5
+        @test minimum(y.domain) == -10
+        @test maximum(y.domain) == 10
+        @test minimum(x.domain) == -5
+        @test maximum(x.domain) == 5
         @test constraint.active.value
 
         toPropagate = Set{SeaPearl.Constraint}()
@@ -19,18 +19,18 @@
 
         @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
 
-        @test y.domain.max.value == 5
+        @test maximum(y.domain) == 5
         @test length(x.domain) == 11
 
         SeaPearl.removeAbove!(x.domain, -2)
 
         @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
-        @test y.domain.min.value == 2
+        @test minimum(y.domain) == 2
 
         SeaPearl.removeBelow!(x.domain, -4)
 
         @test SeaPearl.propagate!(constraint, toPropagate, prunedDomains)
-        @test y.domain.max.value == 4
+        @test maximum(y.domain) == 4
 
     end
 

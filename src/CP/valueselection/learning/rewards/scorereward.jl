@@ -9,7 +9,7 @@ mutable struct ScoreReward <: AbstractReward
 end
 
 function ScoreReward(model::CPModel)
-    return ScoreReward(0, model.objective.domain.max.value)
+    return ScoreReward(0, maximum(model.objective.domain))
 end
 
 """
