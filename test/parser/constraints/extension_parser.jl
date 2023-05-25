@@ -1,4 +1,14 @@
 @testset "extension_parser.jl" begin
+    @testset "parse_support" begin
+        str_support = "(1,4,8,0)(2,9,0,4)"
+        table = SeaPearl.parse_support(str_support)
+        @test size(table) == (4,2)
+
+        str_support = "1 4..9 17"
+        table = SeaPearl.parse_support(str_support)
+        @test size(table) == (1,8)
+    end
+    
     @testset "extension_negative" begin
         filename = "./parser/constraints/data/extension/negative_table.xml"
 
