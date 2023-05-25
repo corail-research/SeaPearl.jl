@@ -1,0 +1,12 @@
+<instance format="XCSP3" type="CSP">
+  <variables>
+    <array id="x" size="[6][2][17]"> 0..35 </array>
+  </variables>
+
+  <constraints>
+    <args> x[0][1][12] x[1][0][10] x[2][0][9] </args>
+    <args> x[1][][12] x[5][9][1] </args>
+    <args> x[1..3][1][12] </args>
+  </constraints>
+
+</instance>

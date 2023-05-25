@@ -23,6 +23,7 @@ include("searchmetrics.jl")
 
 abstract type ValueSelection end
 
+include("classic/random.jl")
 include("classic/basicheuristic.jl")
 include("classic/impactheuristic.jl")
 

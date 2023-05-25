@@ -37,5 +37,3 @@ end
 (valueSelection::ImpactHeuristic)(::Type{EndingPhase}, model::Union{Nothing, CPModel}=nothing, current_status::Union{Nothing, Symbol}=nothing) = nothing
 
 wears_mask(valueSelection::ImpactHeuristic) = true
-
-include("random.jl")
