@@ -66,29 +66,34 @@ function propagate!(constraint::Multiplication, toPropagate::Set{Constraint}, pr
 
     Z0 = 0 in constraint.z.domain
 
-    prunedX0 = Int[]
-    prunedY0 = Int[]
+    prunedX = Int[]
+    prunedY = Int[]
 
     if !Z0
-        prunedY0 = remove!(constraint.y.domain, 0)
-        prunedX0 = remove!(constraint.x.domain, 0)
+        prunedY = vcat(prunedY, remove!(constraint.y.domain, 0))
+        prunedX = vcat(prunedX, remove!(constraint.x.domain, 0))
+        X0 = false
+        Y0 = false
+    else
+        X0 = 0 in constraint.x.domain
+        Y0 = 0 in constraint.y.domain
     end
 
-    X0 = !isempty(prunedX0)
-    Y0 = !isempty(prunedY0)
+    # if isempty(constraint.x.domain) || isempty(constraint.y.domain)
+    #     return false
     
-    # If 0 in y.domain and z.domain, domain of x cannot be pruned 
-    if !(Z0 & Y0)
+    # If 0 in y.domain, domain of x cannot be pruned 
+    if !Y0
         minX, maxX = divBounds!(minimum(constraint.z.domain), maximum(constraint.z.domain), minimum(constraint.y.domain), maximum(constraint.y.domain))
-        prunedX = vcat(removeBelow!(constraint.x.domain, minX), removeAbove!(constraint.x.domain, maxX))
-        prunedX = vcat(prunedX0, prunedX)
+        prunedX1 = vcat(removeBelow!(constraint.x.domain, minX), removeAbove!(constraint.x.domain, maxX))
+        prunedX = vcat(prunedX, prunedX1)
     end
 
-    # If 0 in x.domain and z.domain, domain of y cannot be pruned 
-    if !(Z0 & X0)
+    # If 0 in x.domain, domain of y cannot be pruned 
+    if !X0
         minY, maxY = divBounds!(minimum(constraint.z.domain), maximum(constraint.z.domain), minimum(constraint.x.domain), maximum(constraint.x.domain))
-        prunedY = vcat(removeBelow!(constraint.y.domain, minY), removeAbove!(constraint.y.domain, maxY))
-        prunedY = vcat(prunedY0, prunedY)
+        prunedY1 = vcat(removeBelow!(constraint.y.domain, minY), removeAbove!(constraint.y.domain, maxY))
+        prunedY = vcat(prunedY, prunedY1)
     end
         
     if !isempty(prunedX)
