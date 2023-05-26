@@ -31,11 +31,15 @@ function parse_commandline()
             help = "name of the file conataining the XCSP instance to solve"
             arg_type = String
             required = true
+        "--strat"
+            help = "name of the search strategy to use, must be in ('dfs' 'dfwbs' 'ilds_d2' 'ilds_d5' 'ilds_d10' 'ilds_d20')"
+            arg_type = String
+            default = "dfs"
+            required = false
         "--random_seed", "-s"
             help = "seed to intialize the random number generator"
             arg_type = Int
             default = 0
-            # required = true
         "--time_limit", "-t"
             help = "total CPU time (in seconds) allowed"
             arg_type = Int
@@ -45,20 +49,16 @@ function parse_commandline()
             help = "total amount of memory (in MiB) allowed"
             arg_type = Int
             default = nothing # moddify to take into account the capacity of the computer 
-            # required = true
         "--nb_core", "-c"
             help = "number of processing units allocated"
             arg_type = Int
             default = nothing # moddify to take into account the capacity of the computer 
-            # required = true
         "--tmp_dir", "-d"
             help = "directory where temporary files can be read/write"
             arg_type = String
-            # required = true
         "--dir"
             help = "directory where the solver files are located"
             arg_type = String
-            # required = true
     end
     return parse_args(s)
 end
@@ -67,6 +67,7 @@ function main()
     parsed_args = parse_commandline()
 
     bench_name = parsed_args["bench_name"]
+    strat = parsed_args["strat"]
     random_seed = parsed_args["random_seed"]
     time_limit = parsed_args["time_limit"]
     memory_limit = parsed_args["memory_limit"]
@@ -74,16 +75,25 @@ function main()
     tmp_dir = parsed_args["tmp_dir"]
     dir = parsed_args["dir"]
 
-    # println("Parsed args:")
+    println("strat : ", strat)
     println("bench_name : ", bench_name)
-    # println("random_seed : ", random_seed)
-    # println("time_limit : ", time_limit)
-    # println("memory_limit : ", memory_limit)
-    # println("nb_core : ", nb_core)
-    # println("tmp_dir : ", tmp_dir)
-    # println("dir : ", dir) # /Documents/CORAIL/SeaPearl/instancesXCSP22/xml/MiniCSP
 
-    #println("GC live: ", Base.gc_live_bytes()/2^20, " MiB\n")
+    if strat == "dfs"
+        strat = SeaPearl.DFSearch()
+    elseif strat == "dfwbs"
+        strat = SeaPearl.DFWBSearch()
+    elseif strat == "ilds_d2"
+        strat = SeaPearl.ILDSearch(2)
+    elseif strat == "ilds_d5"
+        strat = SeaPearl.ILDSearch(5)
+    elseif strat == "ilds_d10"
+        strat = SeaPearl.ILDSearch(10)
+    elseif strat == "ilds_d20"
+        strat = SeaPearl.ILDSearch(20)
+    else
+        println("Error: unknown search strategy")
+        return
+    end
 
     if isnothing(tmp_dir)
         tmp_dir = ""
@@ -97,7 +107,7 @@ function main()
 
     #Random.seed!(random_seed)
 
-    model = SeaPearl.solve_XCSP3_instance(bench_name, time_limit, memory_limit)
+    model = SeaPearl.solve_XCSP3_instance(bench_name, strat, time_limit, memory_limit)
 end
 
 main()
