@@ -80,7 +80,11 @@ function parse_intension_expression(str_constraint::AbstractString, variables::D
         
     else
         new_var = create_arithmetic_variable(var1, var2, string(operator), trailer)
-        SeaPearl.addVariable!(model, new_var)
+        if !haskey(model.variables, new_var.id)
+            SeaPearl.addVariable!(model, new_var)
+        else
+            new_var = model.variables[new_var.id]
+        end
 
         constraint = arithmetic_operators[operator]
         SeaPearl.addConstraint!(model, constraint(var1, var2, new_var, trailer))
