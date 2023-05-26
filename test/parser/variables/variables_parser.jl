@@ -2,6 +2,16 @@ using XML
 
 @testset "variables_parser.jl" begin
 
+    @testset "variable" begin
+        filename = "./parser/variables/data/test_variable.xml"
+        # Setup: parse trivial XML file containing Int variables in the range 1-35
+        model, trailer, dict_var = SeaPearl.parse_xml_file(filename)
+
+        @test length(model.variables["x1"].domain.values) == length(model.variables["x2"].domain.values)
+        @test minimum(model.variables["x1"].domain) == minimum(model.variables["x2"].domain)
+        @test maximum(model.variables["x1"].domain) == maximum(model.variables["x2"].domain)
+    end
+
     @testset "variable_1darray" begin
         filename = "./parser/variables/data/test_variable_1darray.xml"
         # Setup: parse trivial XML file containing Int variables in the range 1-35
