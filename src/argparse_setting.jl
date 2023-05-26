@@ -75,17 +75,8 @@ function main()
     tmp_dir = parsed_args["tmp_dir"]
     dir = parsed_args["dir"]
 
-    # println("Parsed args:")
     println("strat : ", strat)
     println("bench_name : ", bench_name)
-    # println("random_seed : ", random_seed)
-    # println("time_limit : ", time_limit)
-    # println("memory_limit : ", memory_limit)
-    # println("nb_core : ", nb_core)
-    # println("tmp_dir : ", tmp_dir)
-    # println("dir : ", dir) # /Documents/CORAIL/SeaPearl/instancesXCSP22/xml/MiniCSP
-
-    #println("GC live: ", Base.gc_live_bytes()/2^20, " MiB\n")
 
     if strat == "dfs"
         strat = SeaPearl.DFSearch()
