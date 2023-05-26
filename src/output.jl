@@ -63,7 +63,11 @@ function print_solutions(model::SeaPearl.CPModel, dict_variables::Dict{String,An
     else
         solution_vars = model.statistics.solutions[index_solution]
         optimum_value = model.statistics.objectives[index_solution]
-        println("v <instantiation id='sol$index_solution' type='optimum' cost='$optimum_value'>")
+        if model.maximizeObjective
+            println("v <instantiation id='sol$index_solution' type='optimum' cost='$(-optimum_value)'>")
+        else
+            println("v <instantiation id='sol$index_solution' type='optimum' cost='$(optimum_value)'>")
+        end
     end
     
     print("v    <list> ")
