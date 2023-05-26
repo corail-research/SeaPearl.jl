@@ -2,6 +2,7 @@ using XML
 
 function parse_all_variables(variables::Node, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
     dict_variables = Dict{String, Any}()
+    dict_missing_values = Dict{String, Vector{Int}}()
 
     for var in XML.children(variables)
         id = XML.attributes(var)["id"]
@@ -10,21 +11,31 @@ function parse_all_variables(variables::Node, model::SeaPearl.CPModel, trailer::
         end
     
         if var.tag == "var"
-            dict_variables[id] = SeaPearl.parse_integer_variable(var, model, trailer)
+            dict_variables[id] = SeaPearl.parse_integer_variable(var, model, trailer, dict_missing_values)
         end
     end
     return dict_variables
 end
 
 
-function parse_integer_variable(integer_variable::Node, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
+function parse_integer_variable(integer_variable::Node, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer, dict_missing_values::Dict{String, Vector{Int}})
     info = XML.attributes(integer_variable)
     id = info["id"]
 
-    raw_domain = get_node_string(integer_variable)
-    domain = parse_variable_domain(raw_domain)
-    min_value, max_value, missing_values = sort_intervals(domain)
+    if haskey(info, "as")
+        as_id = info["as"]
+        as_domain = model.variables[as_id].domain
+        min_value, max_value = minimum(as_domain), maximum(as_domain)
+        
+        missing_values = dict_missing_values[as_id]
+    else
+        raw_domain = get_node_string(integer_variable)
+        domain = parse_variable_domain(raw_domain)
+        min_value, max_value, missing_values = sort_intervals(domain)
 
+        dict_missing_values[id] = missing_values
+    end
+    
     var = SeaPearl.IntVar(min_value, max_value, string(id), trailer)
     for v in missing_values
         SeaPearl.remove!(var.domain, v)
