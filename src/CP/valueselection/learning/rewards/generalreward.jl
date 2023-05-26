@@ -16,7 +16,7 @@ function GeneralReward(model::CPModel)
     # Beta and gamma should be changed here.
     # Beta should be larger than one to ensure convexity of the "variable" part of the reward given at the DecisionPhase
     if !isnothing(model.objective)
-        return GeneralReward(0, model.objective.domain.min.value, model.objective.domain.max.value, nothing, 1.0, 2.0)
+        return GeneralReward(0, minimum(model.objective.domain), maximum(model.objective.domain), nothing, 1.0, 2.0)
     else
         return GeneralReward(0, nothing, nothing, nothing, 1.0, 2.0)
     end

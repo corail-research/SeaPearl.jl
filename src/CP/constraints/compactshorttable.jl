@@ -254,14 +254,18 @@ function updateShortTable!(constraint::ShortTableConstraint, prunedValues::Vecto
         clearMask!(constraint.currentTable)
         if length(prunedValues[variable]) < length(constraint.scope[variable].domain)
             for value in prunedValues[variable]
-                support = bitVectorToUInt64Vector(constraint.supportsStar[variable => value])
-                addToMask!(constraint.currentTable, support)
+                if haskey(constraint.supportsStar, variable => value)
+                    support = bitVectorToUInt64Vector(constraint.supportsStar[variable => value])
+                    addToMask!(constraint.currentTable, support)
+                end
             end
             reverseMask!(constraint.currentTable)
         else
             for value in constraint.scope[variable].domain
-                support = bitVectorToUInt64Vector(constraint.supports[variable => value])
-                addToMask!(constraint.currentTable, support)
+                if haskey(constraint.supports, variable => value)
+                    support = bitVectorToUInt64Vector(constraint.supports[variable => value])
+                    addToMask!(constraint.currentTable, support)
+                end
             end
         end
         intersectWithMask!(constraint.currentTable)

@@ -9,8 +9,8 @@
 
         nValues = SeaPearl.init_nValues_variable(vars, "nValues", trailer)
 
-        @test nValues.domain.max.value == 5
-        @test nValues.domain.min.value == 1
+        @test maximum(nValues.domain) == 5
+        @test minimum(nValues.domain) == 1
         
     end
 

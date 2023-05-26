@@ -219,8 +219,10 @@ function updateNegativeTable!(constraint::NegativeTableConstraint, prunedValues:
         clearMask!(constraint.currentTable)
         if length(prunedValues[variable]) < length(constraint.scope[variable].domain)
             for value in prunedValues[variable]
-                conflict = bitVectorToUInt64Vector(constraint.conflicts[variable => value])
-                addToMask!(constraint.currentTable, conflict)
+                if haskey(constraint.conflicts, variable => value)
+                    conflict = bitVectorToUInt64Vector(constraint.conflicts[variable => value])
+                    addToMask!(constraint.currentTable, conflict)
+                end
             end
             reverseMask!(constraint.currentTable)
         else

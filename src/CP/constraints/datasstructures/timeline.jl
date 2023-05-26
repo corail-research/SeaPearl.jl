@@ -12,7 +12,7 @@ mutable struct Timeline
     lastestDecrementedTimePoint::Int
     disjointSet::DisjointSet
     function Timeline(tasks::Array{Task}) 
-        tasksSortedByEst = sort(tasks, by = x-> x.earliestStartingTime.domain.min.value)
+        tasksSortedByEst = sort(tasks, by = x-> minimum(x.earliestStartingTime.domain))
         timePoints = []
         timePointsCapacity = []
         mapTaskIndexTimePoint = fill(-1, length(tasks))

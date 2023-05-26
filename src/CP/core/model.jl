@@ -477,14 +477,16 @@ function updateStatistics!(model::CPModel, pruned)
             # Last pruning takes all variables except the objective value into consideration
             model.statistics.lastPruning -= length(orderedPrunedValues)
             for val in orderedPrunedValues
-                if val <= model.objective.domain.min.value
+                # println("model.objective : ", model.objective)
+                # println("model.objective.domain : ", model.objective.domain)
+                if val <= minimum(model.objective.domain)
                     model.statistics.objectiveDownPruning += 1
-                elseif val >= model.objective.domain.max.value
+                elseif val >= maximum(model.objective.domain)
                     model.statistics.objectiveUpPruning += 1
                 else
                     # Pruning from the middle of the domain of the objective variable
-                    model.statistics.objectiveDownPruning += (model.objective.domain.max.value - val) / (model.objective.domain.max.value - model.objective.domain.min.value)
-                    model.statistics.objectiveUpPruning += (val - model.objective.domain.min.value) / (model.objective.domain.max.value - model.objective.domain.min.value)
+                    model.statistics.objectiveDownPruning += (maximum(model.objective.domain) - val) / (maximum(model.objective.domain) - minimum(model.objective.domain))
+                    model.statistics.objectiveUpPruning += (val - minimum(model.objective.domain)) / (maximum(model.objective.domain) - minimum(model.objective.domain))
                 end
             end
         else

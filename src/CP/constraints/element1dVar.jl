@@ -73,7 +73,7 @@ function propagate!(constraint::Element1DVar, toPropagate::Set{Constraint}, prun
     end
 
     # check feasibility
-    return !isempty(constraint.y.domain) && !isempty(constraint.z.domain) && all(!isempty(constraint.array[yi-constraint.y.domain.min.value+1].domain for yi in constraint.y.domain))
+    return !isempty(constraint.y.domain) && !isempty(constraint.z.domain) && all(!isempty(constraint.array[yi-minimum(constraint.y.domain)+1].domain for yi in constraint.y.domain))
 end
 
 

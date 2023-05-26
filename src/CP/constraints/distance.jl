@@ -60,7 +60,7 @@ function propagate!(constraint::Distance, toPropagate::Set{Constraint}, prunedDo
     zDomain = constraint.z.domain
 
     # Prune z domain
-    zMin, zMax = distanceBounds!(xDomain.min.value, xDomain.max.value, yDomain.min.value, yDomain.max.value)
+    zMin, zMax = distanceBounds!(minimum(xDomain), maximum(xDomain), minimum(yDomain), maximum(yDomain))
 
     prunedZ = vcat(removeBelow!(zDomain, zMin), removeAbove!(zDomain, zMax))
 
@@ -71,12 +71,12 @@ function propagate!(constraint::Distance, toPropagate::Set{Constraint}, prunedDo
 
     # Prune x domain
 
-    xMax1 = zDomain.max.value + yDomain.max.value
-    xMax2 = yDomain.max.value - zDomain.min.value
+    xMax1 = maximum(zDomain) + maximum(yDomain)
+    xMax2 = maximum(yDomain) - minimum(zDomain)
     xMax = max(xMax1, xMax2)
 
-    xMin1 = zDomain.min.value + yDomain.min.value
-    xMin2 = yDomain.min.value - zDomain.max.value
+    xMin1 = minimum(zDomain) + minimum(yDomain)
+    xMin2 = minimum(yDomain) - maximum(zDomain)
     xMin = min(xMin1, xMin2)
 
     prunedX = vcat(removeBelow!(xDomain, xMin), removeAbove!(xDomain, xMax))
@@ -88,12 +88,12 @@ function propagate!(constraint::Distance, toPropagate::Set{Constraint}, prunedDo
 
     # Prune y domain
 
-    yMax1 = xDomain.max.value + zDomain.max.value
-    yMax2 = xDomain.max.value - zDomain.min.value
+    yMax1 = maximum(xDomain) + maximum(zDomain)
+    yMax2 = maximum(xDomain) - minimum(zDomain)
     yMax = max(yMax1, yMax2)
 
-    yMin1 = xDomain.min.value + zDomain.min.value
-    yMin2 = xDomain.min.value - zDomain.max.value
+    yMin1 = minimum(xDomain) + minimum(zDomain)
+    yMin2 = minimum(xDomain) - maximum(zDomain)
     yMin = min(yMin1, yMin2)
 
     prunedY = vcat(removeBelow!(yDomain, yMin), removeAbove!(yDomain, yMax))

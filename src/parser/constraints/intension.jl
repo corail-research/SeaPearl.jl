@@ -90,11 +90,11 @@ end
 
 
 function create_arithmetic_variable(x::SeaPearl.AbstractIntVar, y::SeaPearl.AbstractIntVar, operator::String, trailer::SeaPearl.Trailer)
-    xMin = x.domain.min.value
-    xMax = x.domain.max.value
+    xMin = minimum(x.domain)
+    xMax = maximum(x.domain)
 
-    yMin = y.domain.min.value
-    yMax = y.domain.max.value
+    yMin = minimum(y.domain)
+    yMax = maximum(y.domain)
 
     if operator == "add"
         zMin, zMax = xMin + yMin, xMax + yMax
