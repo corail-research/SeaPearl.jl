@@ -8,7 +8,7 @@
 - `memory_limit::Union{Nothing, Int}`: the reversible representation of the table.
 
 """
-function solve_XCSP3_instance(file_path::AbstractString, strategy::SearchStrategy, time_limit::Union{Nothing, Int}=nothing, memory_limit::Union{Nothing, Int}=nothing)
+function solve_XCSP3_instance(file_path::AbstractString, strategy::SearchStrategy=DFSearch(), time_limit::Union{Nothing, Int}=nothing, memory_limit::Union{Nothing, Int}=nothing)
 
     solving_time = @elapsed begin 
         parsing_time = @elapsed begin
