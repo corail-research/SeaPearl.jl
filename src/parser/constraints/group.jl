@@ -84,9 +84,9 @@ function fill_pattern(pattern::AbstractString, constraint_variables::Node, varia
     else
         new_str_vars_split = str_vars_split
     end
-
-    for (i, var) in enumerate(new_str_vars_split)
-        filled_pattern = replace(filled_pattern, "%" * string(i-1) => string(var))
+    for (i, var) in enumerate(reverse(new_str_vars_split))
+        reverse_i = length(new_str_vars_split) - i + 1
+        filled_pattern = replace(filled_pattern, "%" * string(reverse_i-1) => string(var))
     end
     return string(split(filled_pattern, " %")[1])
 end
@@ -104,8 +104,8 @@ function get_all_str_variables(str_variables::AbstractString, dimensions::Vector
         
         if str_idx == ""
             new_str_variables = Vector{AbstractString}()
-            for idx = 0:dimensions[i]-1
-                for str_var in str_variables
+            for str_var in str_variables
+                for idx = 0:dimensions[i]-1
                     str_var_copy = str_var
                     str_var_copy *= "[$idx]"
                     push!(new_str_variables, str_var_copy)
@@ -126,8 +126,8 @@ function get_all_str_variables(str_variables::AbstractString, dimensions::Vector
                 lower_idx = parse(Int, bounds[1])
                 upper_idx = parse(Int, bounds[2])
 
-                for idx = lower_idx:upper_idx
-                    for str_var in str_variables
+                for str_var in str_variables
+                    for idx = lower_idx:upper_idx
                         str_var_copy = str_var
                         str_var_copy *= "[$idx]"
                         push!(new_str_variables, str_var_copy)
@@ -137,5 +137,5 @@ function get_all_str_variables(str_variables::AbstractString, dimensions::Vector
             end
         end
     end
-    return sort(str_variables)
+    return str_variables
 end
