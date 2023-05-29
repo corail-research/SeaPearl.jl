@@ -82,6 +82,7 @@ The CPModel struct has the following attributes:
     - knownObjective::Union{Nothing,Int64} : optional; contains the known objective of the model. For example, if the goal is to minimize the number of delays, it could be set to 0.
     - adhocInfo::Any : Any ad-hoc information related to the CPModel
     - displayXCSP3::Bool : Display XCSP3 requirements during solving
+    - maximizeObjective::Bool : maximize objective variable (useful to display the right objective value)
 """
 mutable struct CPModel
     variables               ::Dict{String, AbstractVar}
@@ -97,10 +98,11 @@ mutable struct CPModel
     impact_var_val          ::Dict{Tuple{AbstractIntVar,Int}, Float32}
     adhocInfo               ::Any
     displayXCSP3            ::Bool
+    maximizeObjective       ::Bool
 
 
 
-    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Dict{String, AbstractVar}(), Constraint[], trailer, nothing, nothing, Statistics(Dict{String, Int}(), 0, 0, 0, 0, 0, 0, 0, 0, Solution[], Int[], Float32[], nothing, nothing, nothing, nothing, nothing, nothing, nothing, Dict{Constraint, Int}()), Limit(nothing, nothing, nothing, nothing), nothing, Dict{Tuple{AbstractIntVar,Int}, Float32}(), nothing, false)
+    CPModel(trailer) = new(Dict{String, AbstractVar}(), Dict{String, Bool}(), Dict{String, AbstractVar}(), Constraint[], trailer, nothing, nothing, Statistics(Dict{String, Int}(), 0, 0, 0, 0, 0, 0, 0, 0, Solution[], Int[], Float32[], nothing, nothing, nothing, nothing, nothing, nothing, nothing, Dict{Constraint, Int}()), Limit(nothing, nothing, nothing, nothing), nothing, Dict{Tuple{AbstractIntVar,Int}, Float32}(), nothing, false, false)
 
 end
 
@@ -225,7 +227,11 @@ function triggerFoundSolution!(model::CPModel)
             push!(model.statistics.objectives, assignedValue(model.objective))
             
             if model.displayXCSP3
-                println("o $(assignedValue(model.objective))")
+                if model.maximizeObjective
+                    println("o $(-assignedValue(model.objective))")
+                else
+                    println("o $(-assignedValue(model.objective))")
+                end
             end
 
             return :tightenObjective
@@ -498,6 +504,10 @@ end
 
 function display_XCPS3(model::SeaPearl.CPModel)
     model.displayXCSP3 = true
+end
+
+function maximize_objective(model::SeaPearl.CPModel)
+    model.maximizeObjective = true
 end
 
 function get_index_solution(model::SeaPearl.CPModel)

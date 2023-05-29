@@ -85,6 +85,7 @@ function parse_simple_objective(objective_variable::SeaPearl.AbstractIntVar, tag
     if tag == "minimize"
         SeaPearl.addObjective!(model, objective_variable)
     else
+        SeaPearl.maximize_objective(model)
         negative_objective_var = SeaPearl.IntVarViewOpposite(objective_variable, "-" * objective_variable.id)
         SeaPearl.addVariable!(model, negative_objective_var)
         SeaPearl.addObjective!(model, negative_objective_var)
