@@ -1,3 +1,4 @@
+using CSV, DataFrames
 
 """
     solve_XCSP3_instancesolve_XCSP3_instance(file_path::AbstractString, time_limit::Union{Nothing, Int}=nothing, memory_limit::Union{Nothing, Int}=nothing)
@@ -8,7 +9,7 @@
 - `memory_limit::Union{Nothing, Int}`: the reversible representation of the table.
 
 """
-function solve_XCSP3_instance(file_path::AbstractString, strategy::SearchStrategy=DFSearch(), time_limit::Union{Nothing, Int}=nothing, memory_limit::Union{Nothing, Int}=nothing)
+function solve_XCSP3_instance(file_path::AbstractString, strategy::SearchStrategy=DFSearch(), time_limit::Union{Nothing, Int}=nothing, memory_limit::Union{Nothing, Int}=nothing, save_performance::Bool=false, save_path::AbstractString="")
 
     solving_time = @elapsed begin 
         parsing_time = @elapsed begin
@@ -29,7 +30,10 @@ function solve_XCSP3_instance(file_path::AbstractString, strategy::SearchStrateg
 
         # For CSP problem, only one solution required
         if isnothing(model.objective)
+            type = "CSP"
             model.limit.numberOfSolutions = 1
+        else 
+            type = "COP"
         end
 
         println("c Time Limit set via TIMEOUT to $(model.limit.searchingTime) s")
@@ -37,7 +41,6 @@ function solve_XCSP3_instance(file_path::AbstractString, strategy::SearchStrateg
         println("c    preprocess terminated. Elapsed time: $parsing_time s")
 
         SeaPearl.display_XCPS3(model)
-
 
         status = SeaPearl.solve!(model, strategy)
     end
@@ -51,6 +54,54 @@ function solve_XCSP3_instance(file_path::AbstractString, strategy::SearchStrateg
     end
     
     println("c Total time: $solving_time s")
+
+    if save_performance
+        file_name = basename(file_path)
+
+        column_names = ["file_name", "type", "strategy", "nb_variables", "nb_constraints", "time_limit", "memory_limit", "status", "result", "optimum_value", "solving_time", "parsing_time"]
+        # Check if the file exists
+        if !isfile(save_path)
+            CSV.write(save_path, DataFrame([]); header=column_names)
+        end
+
+        if !isnothing(model.objective)
+            optimum_value = model.statistics.objectives[idx_sol]
+            if model.maximizeObjective
+                optimum_value = -optimum_value
+            end
+        else
+            optimum_value = nothing
+        end
+
+        if status == :Optimal
+            if !isnothing(model.objective)
+                result = "OPTIMUM FOUND"
+            else
+                result = "SATISTFIABLE"
+            end
+
+        elseif status == :NonOptimal
+            result = "SATISTFIABLE"
+
+        elseif status  == :Infeasible
+            result = "UNSATISTFIABLE"
+
+        else 
+            if !isnothing(get_index_solution(model))
+                result = "SATISTFIABLE"
+            else
+                result = "UNKNOWN"
+            end
+        end
+        
+        # Create the new row to add
+        new_row = [file_name, type, strategy, nb_var, nb_con, time_limit, memory_limit, status, result, optimum_value, solving_time, parsing_time]
+        new_row = map(x -> x === nothing ? "nothing" : x, new_row)
+        
+        # Convert the matrix to a DataFrame and Write the updated data to the CSV file
+        CSV.write(save_path, DataFrame(hcat(new_row...), :auto); append=true)
+        
+    end
     return model
 end
 
