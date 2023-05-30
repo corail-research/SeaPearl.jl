@@ -15,7 +15,7 @@
         @test length(str_variables_vector) == 324
     end
 
-    @testset "fill_pattern" begin
+    @testset "fill_pattern!" begin
         filename = "./parser/constraints/data/group/fill_pattern.xml"
 
         doc = XML.read(filename, XML.Node)
@@ -37,7 +37,7 @@
 
         pattern = "eq(sub(%0,%1),%2)"
         for (i,constraint_variables) in enumerate(constraint_variables_nodes.children)
-            str_constraint = SeaPearl.fill_pattern(pattern, constraint_variables, dict_variables)
+            str_constraint = SeaPearl.fill_pattern!(pattern, constraint_variables, dict_variables)
             @test str_constraint == str_constraints[i]
         end
     end
