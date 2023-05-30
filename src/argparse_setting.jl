@@ -36,6 +36,10 @@ function parse_commandline()
             arg_type = String
             default = "dfs"
             required = false
+        "--csv_path"
+            help = "name of the csv file path for saving performance, if not found, nothing is saved"
+            arg_type = String
+            required = false
         "--random_seed", "-s"
             help = "seed to intialize the random number generator"
             arg_type = Int
@@ -74,6 +78,7 @@ function main()
     nb_core = parsed_args["nb_core"]
     tmp_dir = parsed_args["tmp_dir"]
     dir = parsed_args["dir"]
+    csv_path = parsed_args["csv_path"]
 
     println("strat : ", strat)
     println("bench_name : ", bench_name)
@@ -103,11 +108,18 @@ function main()
         dir = ""
     end
 
+    if isnothing(csv_path)
+        csv_path = ""
+        save_performance = false
+    else
+        save_performance = true
+    end
+
     # device = nb_core # TODO
 
     #Random.seed!(random_seed)
 
-    model = SeaPearl.solve_XCSP3_instance(bench_name, strat, time_limit, memory_limit)
+    model = SeaPearl.solve_XCSP3_instance(bench_name, strat, time_limit, memory_limit, save_performance, csv_path)
 end
 
 main()
