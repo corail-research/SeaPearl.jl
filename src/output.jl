@@ -64,7 +64,7 @@ function solve_XCSP3_instance(file_path::AbstractString, strategy::SearchStrateg
             CSV.write(save_path, DataFrame([]); header=column_names)
         end
 
-        if !isnothing(model.objective)
+        if !isnothing(idx_sol)
             optimum_value = model.statistics.objectives[idx_sol]
             if model.maximizeObjective
                 optimum_value = -optimum_value
