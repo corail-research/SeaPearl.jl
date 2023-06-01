@@ -57,8 +57,6 @@ function main()
     time_limit = parsed_args["time_limit"]
     memory_limit = parsed_args["memory_limit"]
     nb_core = parsed_args["nb_core"]
-    tmp_dir = parsed_args["tmp_dir"]
-    dir = parsed_args["dir"]
     csv_path = parsed_args["csv_path"]
 
 
@@ -77,10 +75,6 @@ function main()
     else
         println("Error: unknown search strategy")
         return
-    end
-
-    if isnothing(dir)
-        dir = ""
     end
 
     if isnothing(csv_path)
