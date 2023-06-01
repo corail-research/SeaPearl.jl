@@ -1,11 +1,14 @@
 import ArgParse.ArgParseSettings
 import ArgParse.@add_arg_table
 import ArgParse.parse_args
+
 using Random
+
 
 include_time = @elapsed begin 
     include("using_seapearl.jl")
 end
+
 
 function parse_commandline()
     s = ArgParseSettings()
@@ -57,6 +60,7 @@ function main()
     tmp_dir = parsed_args["tmp_dir"]
     dir = parsed_args["dir"]
     csv_path = parsed_args["csv_path"]
+
 
     if strat == "dfs"
         strat = SeaPearl.DFSearch()
