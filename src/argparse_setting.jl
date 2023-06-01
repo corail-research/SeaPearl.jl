@@ -2,25 +2,11 @@ import ArgParse.ArgParseSettings
 import ArgParse.@add_arg_table
 import ArgParse.parse_args
 
-# using Random
-
-# using Revise
-# using SeaPearl
-
 include_time = @elapsed begin 
     include("using_seapearl.jl")
 end
 
-println("include time: $include_time s")
-
-
-# function meminfo_julia()
-#     # @printf "GC total:  %9.3f MiB\n" Base.gc_total_bytes(Base.gc_num())/2^20
-#     # Total bytes (above) usually underreports, thus I suggest using live bytes (below)
-#     @printf "GC live:   %9.3f MiB\n" Base.gc_live_bytes()/2^20
-#     @printf "JIT:       %9.3f MiB\n" Base.jit_total_bytes()/2^20
-#     @printf "Max. RSS:  %9.3f MiB\n" Sys.maxrss()/2^20
-#   end
+#println("include time: $include_time s")
 
 
 function parse_commandline()
@@ -80,8 +66,8 @@ function main()
     dir = parsed_args["dir"]
     csv_path = parsed_args["csv_path"]
 
-    println("strat : ", strat)
-    println("bench_name : ", bench_name)
+    #println("strat : ", strat)
+    #println("bench_name : ", bench_name)
 
     if strat == "dfs"
         strat = SeaPearl.DFSearch()
@@ -119,7 +105,7 @@ function main()
 
     #Random.seed!(random_seed)
 
-    model = SeaPearl.solve_XCSP3_instance(bench_name, strat, time_limit, memory_limit, save_performance, csv_path)
+    model = SeaPearl.solve_XCSP3_instance(bench_name, strat, time_limit, memory_limit, save_performance, csv_path, include_time)
 end
 
 main()

@@ -9,18 +9,24 @@ using CSV, DataFrames
 - `memory_limit::Union{Nothing, Int}`: the reversible representation of the table.
 
 """
-function solve_XCSP3_instance(file_path::AbstractString, strategy::SearchStrategy=DFSearch(), time_limit::Union{Nothing, Int}=nothing, memory_limit::Union{Nothing, Int}=nothing, save_performance::Bool=false, save_path::AbstractString="")
+function solve_XCSP3_instance(file_path::AbstractString, strategy::SearchStrategy=DFSearch(), time_limit::Union{Nothing, Int}=nothing, memory_limit::Union{Nothing, Int}=nothing, save_performance::Bool=false, save_path::AbstractString="", include_time::Float64=0.0)
 
     solving_time = @elapsed begin 
+        
+        println("c Time Limit set via TIMEOUT to $(time_limit) s")
+
         parsing_time = @elapsed begin
             model, trailer, dict_variables = SeaPearl.parse_xml_file(file_path)
         end
         nb_var = get_initial_variable_number(dict_variables)
         nb_con = get_initial_constraint_number(file_path)
 
+        println("c Initial problem consists of $nb_var variables and $nb_con constraints.")
+        println("c    preprocess terminated. Elapsed time: $parsing_time s")
+
         #Time limit 
         if !isnothing(time_limit)
-            model.limit.searchingTime = time_limit
+            model.limit.searchingTime = time_limit - Int(ceil(parsing_time)) - Int(ceil(include_time))
         end
 
         #Memory limit 
@@ -35,10 +41,6 @@ function solve_XCSP3_instance(file_path::AbstractString, strategy::SearchStrateg
         else 
             type = "COP"
         end
-
-        println("c Time Limit set via TIMEOUT to $(model.limit.searchingTime) s")
-        println("c Initial problem consists of $nb_var variables and $nb_con constraints.")
-        println("c    preprocess terminated. Elapsed time: $parsing_time s")
 
         SeaPearl.display_XCPS3(model)
 

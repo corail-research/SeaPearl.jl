@@ -230,7 +230,7 @@ function triggerFoundSolution!(model::CPModel)
                 if model.maximizeObjective
                     println("o $(-assignedValue(model.objective))")
                 else
-                    println("o $(-assignedValue(model.objective))")
+                    println("o $(assignedValue(model.objective))")
                 end
             end
 
