@@ -2,11 +2,12 @@ import ArgParse.ArgParseSettings
 import ArgParse.@add_arg_table
 import ArgParse.parse_args
 
+using Random
+
+
 include_time = @elapsed begin 
     include("using_seapearl.jl")
 end
-
-#println("include time: $include_time s")
 
 
 function parse_commandline()
@@ -43,12 +44,6 @@ function parse_commandline()
             help = "number of processing units allocated"
             arg_type = Int
             default = nothing # moddify to take into account the capacity of the computer 
-        "--tmp_dir", "-d"
-            help = "directory where temporary files can be read/write"
-            arg_type = String
-        "--dir"
-            help = "directory where the solver files are located"
-            arg_type = String
     end
     return parse_args(s)
 end
@@ -66,8 +61,6 @@ function main()
     dir = parsed_args["dir"]
     csv_path = parsed_args["csv_path"]
 
-    #println("strat : ", strat)
-    #println("bench_name : ", bench_name)
 
     if strat == "dfs"
         strat = SeaPearl.DFSearch()
@@ -86,10 +79,6 @@ function main()
         return
     end
 
-    if isnothing(tmp_dir)
-        tmp_dir = ""
-    end
-
     if isnothing(dir)
         dir = ""
     end
@@ -101,13 +90,11 @@ function main()
         save_performance = true
     end
 
-    # device = nb_core # TODO
+    @eval(Base.Sys, CPU_THREADS=$nb_core)
 
-    #Random.seed!(random_seed)
+    Random.seed!(random_seed)
 
     model = SeaPearl.solve_XCSP3_instance(bench_name, strat, time_limit, memory_limit, save_performance, csv_path, include_time)
 end
 
 main()
-
-# julia --project src/argparse_setting.jl -b "instancesXCSP22/xml/MiniCOP/ClockTriplet-03-12_c22.xml" -t 120 
