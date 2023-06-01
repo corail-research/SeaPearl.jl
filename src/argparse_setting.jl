@@ -1,27 +1,11 @@
 import ArgParse.ArgParseSettings
 import ArgParse.@add_arg_table
 import ArgParse.parse_args
-
-# using Random
-
-# using Revise
-# using SeaPearl
+using Random
 
 include_time = @elapsed begin 
     include("using_seapearl.jl")
 end
-
-println("include time: $include_time s")
-
-
-# function meminfo_julia()
-#     # @printf "GC total:  %9.3f MiB\n" Base.gc_total_bytes(Base.gc_num())/2^20
-#     # Total bytes (above) usually underreports, thus I suggest using live bytes (below)
-#     @printf "GC live:   %9.3f MiB\n" Base.gc_live_bytes()/2^20
-#     @printf "JIT:       %9.3f MiB\n" Base.jit_total_bytes()/2^20
-#     @printf "Max. RSS:  %9.3f MiB\n" Sys.maxrss()/2^20
-#   end
-
 
 function parse_commandline()
     s = ArgParseSettings()
@@ -57,12 +41,6 @@ function parse_commandline()
             help = "number of processing units allocated"
             arg_type = Int
             default = nothing # moddify to take into account the capacity of the computer 
-        "--tmp_dir", "-d"
-            help = "directory where temporary files can be read/write"
-            arg_type = String
-        "--dir"
-            help = "directory where the solver files are located"
-            arg_type = String
     end
     return parse_args(s)
 end
@@ -79,9 +57,6 @@ function main()
     tmp_dir = parsed_args["tmp_dir"]
     dir = parsed_args["dir"]
     csv_path = parsed_args["csv_path"]
-
-    println("strat : ", strat)
-    println("bench_name : ", bench_name)
 
     if strat == "dfs"
         strat = SeaPearl.DFSearch()
@@ -100,10 +75,6 @@ function main()
         return
     end
 
-    if isnothing(tmp_dir)
-        tmp_dir = ""
-    end
-
     if isnothing(dir)
         dir = ""
     end
@@ -115,13 +86,11 @@ function main()
         save_performance = true
     end
 
-    # device = nb_core # TODO
+    @eval(Base.Sys, CPU_THREADS=$nb_core)
 
-    #Random.seed!(random_seed)
+    Random.seed!(random_seed)
 
-    model = SeaPearl.solve_XCSP3_instance(bench_name, strat, time_limit, memory_limit, save_performance, csv_path)
+    model = SeaPearl.solve_XCSP3_instance(bench_name, strat, time_limit, memory_limit, save_performance, csv_path, include_time)
 end
 
 main()
-
-# julia --project src/argparse_setting.jl -b "instancesXCSP22/xml/MiniCOP/ClockTriplet-03-12_c22.xml" -t 120 
