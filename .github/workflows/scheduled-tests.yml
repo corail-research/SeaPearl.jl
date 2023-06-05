@@ -41,6 +41,8 @@ jobs:
 
     - name: Run script
       run: | # Use this section to run your script
+        julia --eval 'using Pkg; Pkg.activate("."); Pkg.instantiate(); Pkg.precompile()'
+        
         # Directory containing the XML files
         directory="../instancesXCSP22"
 
