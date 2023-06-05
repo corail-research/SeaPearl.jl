@@ -41,5 +41,34 @@ jobs:
 
     - name: Run script
       run: | # Use this section to run your script
-        ls
-        cd SeaPearl.jl
+        # Directory containing the XML files
+        directory="../instancesXCSP22"
+
+        # Find all XML files recursively in the directory
+        xml_files=$(find "$directory" -type f -name "*.xml")
+        # Keep track of the count per prefix
+        declare -A prefix_count
+
+        # Iterate over each XML file
+        for xml_file in $xml_files; do
+            # Extract the prefix from the file name
+            prefix=$(basename "$xml_file" | awk -F "-" '{print $1}')
+
+            # Check if the prefix count exceeds three
+            if [[ ${prefix_count[$prefix]} -lt 3 ]]; then
+                # Process the XML file (replace with your desired command)
+                echo "Processing $xml_file"
+                # Run the Julia file and handle any errors
+                julia --project src/argparse_setting.jl -b "$xml_file" -t 1 |& tee -a test_output.txt
+                exit_code=$?
+
+                if [ $exit_code -ne 0 ]; then
+                    echo "Julia script encountered an error for $xml_file (Exit code: $exit_code)"
+                fi
+
+                # Increment the prefix count
+                prefix_count[$prefix]=$(( ${prefix_count[$prefix]} + 1 ))
+            fi    
+        done
+
+        
