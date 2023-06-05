@@ -1,0 +1,44 @@
+name: Weekly Workflow
+
+on:
+  # schedule:
+  #   - cron: '0 23 * * 5' # Every Friday at 11 PM
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build-and-test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        julia-version: ['1.8']
+        julia-arch: [x64]
+        os: [ubuntu-latest]
+
+    steps:
+    - name: Checkout repository content
+      uses: actions/checkout@v2 # This action allows the workflow to access the contents of the repository
+    - name: Setup environment
+      uses: julia-actions/setup-julia@latest
+      with:
+        version: ${{ matrix.julia-version }}
+
+    - name: Download files
+      run: | # Use this section to download the files you need
+        wget https://www.cril.univ-artois.fr/~lecoutre/compets/instancesXCSP22.zip
+        unzip instancesXCSP22.zip 
+        rm -rf instancesXCSP22.zip
+        rm -rf instancesXCSP22/COP
+        rm -rf instancesXCSP22/CSP
+        cd instancesXCSP22
+        cd MiniCOP
+        for lzma_file in *.lzma; do xz --decompress "$lzma_file"; done
+        cd ../MiniCSP
+        for lzma_file in *.lzma; do xz --decompress "$lzma_file"; done
+        cd ../../
+
+    - name: Run script
+      run: | # Use this section to run your script
+        ls
+        cd SeaPearl.jl
