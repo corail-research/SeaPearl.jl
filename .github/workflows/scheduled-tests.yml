@@ -26,6 +26,7 @@ jobs:
 
     - name: Download files
       run: | # Use this section to download the files you need
+        cd ..
         wget https://www.cril.univ-artois.fr/~lecoutre/compets/instancesXCSP22.zip
         unzip instancesXCSP22.zip 
         rm -rf instancesXCSP22.zip
