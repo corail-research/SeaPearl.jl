@@ -1,0 +1,73 @@
+name: Weekly Workflow
+
+on:
+  schedule:
+    - cron: '0 23 * * 5' # Every Friday at 11 PM
+
+jobs:
+  build-and-test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        julia-version: ['1.9']
+        julia-arch: [x64]
+        os: [ubuntu-latest]
+
+    steps:
+    - name: Checkout repository content
+      uses: actions/checkout@v2 # This action allows the workflow to access the contents of the repository
+    - name: Setup environment
+      uses: julia-actions/setup-julia@latest
+      with:
+        version: ${{ matrix.julia-version }}
+
+    - name: Download files
+      run: | # Use this section to download the files you need
+        cd ..
+        wget https://www.cril.univ-artois.fr/~lecoutre/compets/instancesXCSP22.zip
+        unzip instancesXCSP22.zip 
+        rm -rf instancesXCSP22.zip
+        rm -rf instancesXCSP22/COP
+        rm -rf instancesXCSP22/CSP
+        cd instancesXCSP22
+        cd MiniCOP
+        for lzma_file in *.lzma; do xz --decompress "$lzma_file"; done
+        cd ../MiniCSP
+        for lzma_file in *.lzma; do xz --decompress "$lzma_file"; done
+        cd ../../
+
+    - name: Run script
+      run: | # Use this section to run your script
+        julia --eval 'using Pkg; Pkg.activate("."); Pkg.instantiate(); Pkg.precompile()'
+        
+        # Directory containing the XML files
+        directory="../instancesXCSP22"
+
+        # Find all XML files recursively in the directory
+        xml_files=$(find "$directory" -type f -name "*.xml")
+        # Keep track of the count per prefix
+        declare -A prefix_count
+
+        # Iterate over each XML file
+        for xml_file in $xml_files; do
+            # Extract the prefix from the file name
+            prefix=$(basename "$xml_file" | awk -F "-" '{print $1}')
+
+            # Check if the prefix count exceeds three
+            if [[ ${prefix_count[$prefix]} -lt 3 ]]; then
+                # Process the XML file (replace with your desired command)
+                echo "Processing $xml_file"
+                # Run the Julia file and handle any errors
+                julia --project src/argparse_setting.jl -b "$xml_file" -t 900 |& tee -a test_output.txt
+                exit_code=$?
+
+                if [ $exit_code -ne 0 ]; then
+                    echo "Julia script encountered an error for $xml_file (Exit code: $exit_code)"
+                fi
+
+                # Increment the prefix count
+                prefix_count[$prefix]=$(( ${prefix_count[$prefix]} + 1 ))
+            fi    
+        done
+
+        
