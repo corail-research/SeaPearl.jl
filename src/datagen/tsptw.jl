@@ -37,7 +37,6 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; rng::Abstra
         pos_distribution = Uniform(0, gen.grid_size)
         x_pos = rand(rng, pos_distribution, gen.n_city)
         y_pos = rand(rng, pos_distribution, gen.n_city)
-
         dist = zeros(Int64, gen.n_city, gen.n_city)
         for i in 1:gen.n_city
             for j in 1:gen.n_city
@@ -53,24 +52,16 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; rng::Abstra
         for i in 2:gen.n_city
             prev_city = random_solution[i-1]
             cur_city = random_solution[i]
-
             cur_dist = dist[prev_city, cur_city]
-
             tw_lb_min = timeWindows[prev_city, 1] + cur_dist
-
             rand_tw_lb = rand(rng, DiscreteUniform(tw_lb_min, tw_lb_min + gen.max_tw_gap))
             rand_tw_ub = rand(rng, DiscreteUniform(rand_tw_lb, rand_tw_lb + gen.max_tw))
-
             timeWindows[cur_city, :] = [rand_tw_lb rand_tw_ub]
         end
     end
 
     cpmodel.adhocInfo = dist, timeWindows, hcat(x_pos, y_pos), gen.grid_size
-
-
     max_upper_tw = Base.maximum(timeWindows) * 2
-
-
     ### Filling the CPModel
     ## Creating variables
     m = [IntSetVar(1, gen.n_city, "m_" * string(i), cpmodel.trailer) for i in 1:gen.n_city] # Remaining cities to visit
@@ -89,7 +80,6 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; rng::Abstra
         end
         addVariable!(cpmodel, c[i]; branchable=false)
     end
-
 
     ## Intermediaries
     d = [IntVar(0, gen.grid_size * 2, "d_" * string(i), cpmodel.trailer) for i in 1:gen.n_city] # d[v_i, a_i]
@@ -140,22 +130,16 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; rng::Abstra
     for i in 1:(gen.n_city-1)
         # m[i+1] = m[i] \ a[i]
         SeaPearl.addConstraint!(cpmodel, SetDiffSingleton(m[i+1], m[i], a[i], cpmodel.trailer))
-
         # v[i+1] = a[i]
         SeaPearl.addConstraint!(cpmodel, Equal(v[i+1], a[i], cpmodel.trailer))
-
         # t[i+1] = max(lowers[i], lower_ai[i])
         SeaPearl.addConstraint!(cpmodel, BinaryMaximumBC(t[i+1], lowers[i], lower_ai[i], cpmodel.trailer))
-
         # c[i + 1] = c[i] + d[i]
         SeaPearl.addConstraint!(cpmodel, SumToZero(AbstractIntVar[c[i], d[i], IntVarViewOpposite(c[i+1], "-c_" * string(i + 1))], cpmodel.trailer))
-
         # upper_ai = timeWindows[a_i, 2]
         SeaPearl.addConstraint!(cpmodel, Element1D(timeWindows[:, 2], a[i], upper_ai[i], cpmodel.trailer))
-
         # lower_ai = timeWindows[a_i, 1]
         SeaPearl.addConstraint!(cpmodel, Element1D(timeWindows[:, 1], a[i], lower_ai[i], cpmodel.trailer))
-
         # d[i] = dist[v[i], a[i]]
         SeaPearl.addConstraint!(cpmodel, Element2D(dist, v[i], a[i], d[i], cpmodel.trailer))
         # lowers[i] = t[i] + d[i]
@@ -170,7 +154,6 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; rng::Abstra
     for i in 1:(gen.n_city-1)
         # a[i] ∈ m[i]
         SeaPearl.addConstraint!(cpmodel, InSet(a[i], m[i], cpmodel.trailer))
-
         # lowers[i] <= upper_ai
         SeaPearl.addConstraint!(cpmodel, LessOrEqual(lowers[i], upper_ai[i], cpmodel.trailer))
     end
@@ -184,7 +167,6 @@ function fill_with_generator!(cpmodel::CPModel, gen::TsptwGenerator; rng::Abstra
 
                 # j_in_m_i[i, j] = j_index[j] ∈ m[i]
                 SeaPearl.addConstraint!(cpmodel, ReifiedInSet(j_index[j], m[i], j_in_m_i[i, j], cpmodel.trailer))
-
                 # t[i] >= upper[j] ⟹ j ∉ m[i]
                 # ≡ t[i] < upper[j] ⋁ j ∉ m[i]
                 # ≡ still_time[i, j] ⋁ ¬j_in_m_i[i, j]
