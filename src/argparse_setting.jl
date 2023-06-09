@@ -31,19 +31,22 @@ function parse_commandline()
             help = "seed to intialize the random number generator"
             arg_type = Int
             default = 0
+            required = false
         "--time_limit", "-t"
             help = "total CPU time (in seconds) allowed"
             arg_type = Int
-            default = nothing # moddify to take into account the capacity of the computer 
-            # required = true
+            default = 1000000
+            required = false
         "--memory_limit", "-m"
             help = "total amount of memory (in MiB) allowed"
             arg_type = Int
-            default = nothing # moddify to take into account the capacity of the computer 
+            default = 1000000
+            required = false
         "--nb_core", "-c"
             help = "number of processing units allocated"
             arg_type = Int
-            default = nothing # moddify to take into account the capacity of the computer 
+            default = 1
+            required = false
     end
     return parse_args(s)
 end
