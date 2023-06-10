@@ -45,7 +45,7 @@ function parse_commandline()
         "--nb_core", "-c"
             help = "number of processing units allocated"
             arg_type = Int
-            default = 1
+            default = Base.Sys.CPU_THREADS
             required = false
     end
     return parse_args(s)
