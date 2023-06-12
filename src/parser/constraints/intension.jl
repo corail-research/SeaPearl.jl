@@ -25,11 +25,21 @@ const arithmetic_operators = Dict(
     "dist" => SeaPearl.Distance,
 )
 
+"""
+    parse_intension_constraint(constraint::Node, variables::Dict{String, Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
+
+Parse an intension constraint
+"""
 function parse_intension_constraint(constraint::Node, variables::Dict{String, Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
     str_constraint = get_node_string(constraint)
     parse_intension_expression(str_constraint, variables, model, trailer)
 end
 
+"""
+    parse_intension_expression(str_constraint::AbstractString, variables::Dict{String, Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
+
+Parse an intension expression
+"""
 function parse_intension_expression(str_constraint::AbstractString, variables::Dict{String, Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
     # Split the expression into operator and operands
     spl = split(str_constraint, "(", limit=2)
@@ -92,7 +102,11 @@ function parse_intension_expression(str_constraint::AbstractString, variables::D
     end
 end
 
+"""
+    create_arithmetic_variable(x::SeaPearl.AbstractIntVar, y::SeaPearl.AbstractIntVar, operator::String, trailer::SeaPearl.Trailer)
 
+Create a new variable from the arithmetic operation of two variables
+"""
 function create_arithmetic_variable(x::SeaPearl.AbstractIntVar, y::SeaPearl.AbstractIntVar, operator::String, trailer::SeaPearl.Trailer)
     xMin = minimum(x.domain)
     xMax = maximum(x.domain)

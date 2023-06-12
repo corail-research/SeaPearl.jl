@@ -1,3 +1,15 @@
+
+"""
+    parse_element_constraint(constraint::Node, variables::Dict{String, Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
+
+Parse the element constraint from an XML node and apply it to the constraint programming model.
+
+# Arguments
+- `constraint::Node`: XML node that contains the element constraint.
+- `variables::Dict{String, Any}`: A dictionary mapping variable names to their respective SeaPearl variable objects.
+- `model::SeaPearl.CPModel`: Constraint programming model where the constraint will be added.
+- `trailer::SeaPearl.Trailer`: An object that keeps track of changes during search to allow for efficient backtracking.
+"""
 function parse_element_constraint(constraint::Node, variables::Dict{String, Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
     str_list  = get_node_string(find_element(constraint, "list"))
 
@@ -13,6 +25,21 @@ function parse_element_constraint(constraint::Node, variables::Dict{String, Any}
     
 end
 
+
+"""
+    parse_element_constraint_expression(str_relation::AbstractString, str_list::AbstractString, str_index::AbstractString, str_starting_index::AbstractString, variables::Dict{String, Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
+
+Parse the element constraint from a string and apply it to the constraint programming model.
+
+# Arguments
+- `str_relation::AbstractString`: A string that contains the relation of the element constraint.
+- `str_list::AbstractString`: A string that contains the list of the element constraint.
+- `str_index::AbstractString`: A string that contains the index of the element constraint.
+- `str_starting_index::AbstractString`: A string that contains the starting index of the element constraint.
+- `variables::Dict{String, Any}`: A dictionary mapping variable names to their respective SeaPearl variable objects.
+- `model::SeaPearl.CPModel`: Constraint programming model where the constraint will be added.
+- `trailer::SeaPearl.Trailer`: An object that keeps track of changes during search to allow for efficient backtracking.
+"""
 function parse_element_constraint_expression(str_relation::AbstractString,
     str_list::AbstractString, 
     str_index::AbstractString, 

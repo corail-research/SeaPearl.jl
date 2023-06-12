@@ -15,7 +15,11 @@ const sum_variable_operators = Dict(
     "eq" => (variables, trailer) -> SeaPearl.SumToZero(variables, trailer)
 )
 
+"""
+    parse_sum_constraint(constraint::Node, variables::Dict{String, Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
 
+Parse a sum constraint
+"""
 function parse_sum_constraint(constraint::Node, variables::Dict{String, Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
     str_relation  = get_node_string(find_element(constraint, "condition"))
     str_list  = get_node_string(find_element(constraint, "list"))
@@ -29,6 +33,11 @@ function parse_sum_constraint(constraint::Node, variables::Dict{String, Any}, mo
     parse_sum_constraint_expression(str_relation, str_list, str_coeffs, variables, model, trailer)
 end
 
+"""
+    parse_sum_constraint_expression(str_relation::String, str_list::String, str_coeffs::String, variables::Dict{String, Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
+
+Parse a sum constraint expression
+"""
 function parse_sum_constraint_expression(str_relation::String, str_list::String, str_coeffs::String, variables::Dict{String, Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
     constraint_variables = get_constraint_variables_expression(str_list, str_coeffs, variables)
     operator, operand = get_relation_sum_expression(str_relation, variables)
@@ -49,7 +58,11 @@ function parse_sum_constraint_expression(str_relation::String, str_list::String,
 end
     
     
+"""
+    parse_notEqual_sum_expression(operand::Any, constraint_variables::Vector{<:SeaPearl.AbstractIntVar}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
 
+Parse a sum constraint expression with a not equal operator
+"""
 function parse_notEqual_sum_expression(operand::Any, constraint_variables::Vector{<:SeaPearl.AbstractIntVar}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
     # add the variable y, add the constraint "y = sum" ,
     # add the constraint "y != value"(notequal.jl)
