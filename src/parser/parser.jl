@@ -3,7 +3,11 @@ include("utils/xml_utils.jl")
 include("variables.jl")
 include("objective.jl")
 
+"""
+    parse_xml_file(file_path::AbstractString)
 
+Parse the XCSP3 instance file located at `file_path` and return a tuple containing the model, the trailer and a dictionary containing the variables
+"""
 function parse_xml_file(file_path::AbstractString)
     # Convert document into XML node 
     doc = XML.read(file_path, XML.Node)

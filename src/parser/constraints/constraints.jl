@@ -5,7 +5,11 @@ include("extension.jl")
 include("sum.jl")
 include("element.jl")
 
+"""
+    parse_all_constraints(constraints::Node, variables::Dict{String, Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
 
+Parse all the constraints of the constraint node of the XCSP3 instance file
+"""
 function parse_all_constraints(constraints::Node, variables::Dict{String, Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
     
     for con in XML.children(constraints)

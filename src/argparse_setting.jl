@@ -11,6 +11,9 @@ end
 
 
 function parse_commandline()
+    """
+    Parse the command line arguments and return a dictionary containing the values
+    """
     s = ArgParseSettings()
 
     @add_arg_table s begin
@@ -52,6 +55,9 @@ function parse_commandline()
 end
 
 function main()
+    """
+    Main function of the script
+    """
     parsed_args = parse_commandline()
 
     bench_name = parsed_args["bench_name"]

@@ -1,3 +1,8 @@
+"""
+    parse_group(group::Node, variables::Dict{String, Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
+
+Parse the group constraint from a string and apply it to the constraint programming model.
+"""
 function parse_group(group::Node, variables::Dict{String, Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
     constraint_node, args_nodes = XML.children(group)[1], XML.children(group)[2:end]
 
@@ -58,7 +63,11 @@ function parse_group(group::Node, variables::Dict{String, Any}, model::SeaPearl.
 
 end
 
+"""
+    fill_pattern!(pattern::AbstractString, constraint_variables::Node, variables::Dict{String, Any})
 
+Fill the pattern with the variables of the constraint_variables node.
+"""
 function fill_pattern!(pattern::AbstractString, constraint_variables::Node, variables::Dict{String, Any})
     if !occursin("%", pattern)
         return pattern
@@ -82,7 +91,11 @@ function fill_pattern!(pattern::AbstractString, constraint_variables::Node, vari
     return replace_percent!(pattern, new_str_vars_split)
 end
 
+"""
+    get_all_str_variables(str_variables::AbstractString, dimensions::Vector{Int})
 
+Get all the string variables from a string variable.
+"""
 function get_all_str_variables(str_variables::AbstractString, dimensions::Vector{Int})
     
     id_var, str_indexes = split(str_variables[1:end-1], "[", limit=2)
@@ -131,7 +144,11 @@ function get_all_str_variables(str_variables::AbstractString, dimensions::Vector
     return str_variables
 end
 
+"""
+    fill_sum_patterns!(condition_pattern::AbstractString, list_pattern::AbstractString, constraint_variables::Node, variables::Dict{String, Any})
 
+Fill the condition and list pattern with the variables of the constraint_variables node.
+"""
 function fill_sum_patterns!(condition_pattern::AbstractString, list_pattern::AbstractString, constraint_variables::Node, variables::Dict{String, Any})
     str_vars = get_node_string(constraint_variables)
 

@@ -1,5 +1,10 @@
 using XML
 
+"""
+    parse_all_variables(variables::Node, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
+
+Take the XML node of the variables and parse all the variables into a dictionnary : dict_variables[id_variable] = value_variable
+"""
 function parse_all_variables(variables::Node, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
     dict_variables = Dict{String, Any}()
     dict_missing_values = Dict{String, Vector{Int}}()
@@ -17,7 +22,11 @@ function parse_all_variables(variables::Node, model::SeaPearl.CPModel, trailer::
     return dict_variables
 end
 
+"""
+    parse_integer_variable(integer_variable::Node, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer, dict_missing_values::Dict{String, Vector{Int}}) 
 
+Parse an integer variable and add it to the model.
+"""
 function parse_integer_variable(integer_variable::Node, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer, dict_missing_values::Dict{String, Vector{Int}})
     info = XML.attributes(integer_variable)
     id = info["id"]
@@ -45,7 +54,11 @@ function parse_integer_variable(integer_variable::Node, model::SeaPearl.CPModel,
     return var
 end
 
+"""
+    parse_array_variable(array_variable::Node, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
 
+Parse an array variable and add it to the model.
+"""
 function parse_array_variable(array_variable::Node, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
 
     info = XML.attributes(array_variable)
@@ -113,10 +126,10 @@ function parse_variable_domain(raw_domain::String)
     Get the domain
 
     Args:
-        raw_domain: domaine exprimé en chaîne de caractères
+        raw_domain: domain expressed as a character string
 
     Returns:
-        domain: Tableau de tableaux d'entiers ou de flottants
+        domain: Array of integer or float arrays
     """
     domain = Vector{Int}[]
     sub_domains = split(raw_domain, " ")
@@ -210,21 +223,25 @@ function parse_dimensions(dim::AbstractString)
         dim: Array [3,9,2]
     """
 
-    # Supprimer les caractères "[" et "]"
+    # Delete the characters "[" and "]"
     dim = replace(dim, "[" => ",", "]" => "")
-    # Diviser la chaîne en sous-chaînes
+    # Dividing the string into sub-string
     dim = split(dim, ",")[2:end]
 
-    # Convertir les sous-chaînes en entiers
+    # Convert substrings to integers
     dim = parse.(Int, dim)
 
     return dim
 end
 
+"""
+    sort_intervals(intervals::Vector{Vector{Int64}})
 
+Sort intervals and singletons and return the minimum and maximum value of the set and the missing values
+"""
 function sort_intervals(intervals::Vector{Vector{Int64}})
 
-    #Si seulement un interval ou singleton
+    # If only is an interval or a singleton
     if length(intervals) == 1
         domain = intervals[1]
         if length(domain) == 1
@@ -234,7 +251,7 @@ function sort_intervals(intervals::Vector{Vector{Int64}})
         end
     end
 
-    # Séparer les intervalles et les singletons
+    # Separating intervals and singletons
     singletons = Int[]
     ranges = Int[]
     for x in intervals
@@ -249,13 +266,13 @@ function sort_intervals(intervals::Vector{Vector{Int64}})
         end
     end
 
-    # Concaténer les singletons et les intervalles triés
+    # Concatenate singletons and sorted intervals
     result = sort([singletons..., ranges...])
 
     min_val = result[1]
     max_val = result[end]
 
-    # Calculer les entiers entre le minimum et le maximum qui ne sont pas dans l'ensemble
+    # Calculate the integers between the minimum and maximum that are not in the set
     missing_values = Int[]
     if !isempty(result)
         for i in min_val:max_val
@@ -265,11 +282,15 @@ function sort_intervals(intervals::Vector{Vector{Int64}})
         end
     end
 
-    # Retourner les résultats sous forme de tuple
+    # Return results as a tuple
     return min_val, max_val, missing_values
 end
 
+"""
+    get_constraint_variables(str_constraint_variables::AbstractString, variables::Dict{String, Any})
 
+Return the variables appearing in the constaint string.
+"""
 function get_constraint_variables(str_constraint_variables::AbstractString, variables::Dict{String, Any})
     constraint_variables = SeaPearl.AbstractIntVar[]
 
