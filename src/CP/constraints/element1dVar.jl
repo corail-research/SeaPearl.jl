@@ -3,7 +3,6 @@
 
 Element1DVar constraint, states that `matrix[y] == z`
 """
-# abstract type AbstractConstraintCP <: ConstraintCP end
 
 struct Element1DVar <: Constraint
     array::Vector{AbstractIntVar}
@@ -12,12 +11,12 @@ struct Element1DVar <: Constraint
     yValues::Array{Int, 1}
     zValues::Array{Int, 1}
 
-    # // supportArr(i) is a value that is in both dom(array(i)) and dom(z)
-    # // if not possible to find a supportArr(i) satisfying this condition, 
-    # // then i can be removed from x
+    # supportArr(i) is a value that is in both dom(array(i)) and dom(z)
+    # if not possible to find a supportArr(i) satisfying this condition, 
+    # then i can be removed from x
     supportArr::Array{StateObject{Int}, 1}
-    # // supportZ(v) is an index i such that 1) i is in dom(y) and 2) v in dom(Arr(i))
-    # // if not possible to find a supportZ(v) then v can be removed from z
+    # supportZ(v) is an index i such that 1) i is in dom(y) and 2) v in dom(Arr(i))
+    # if not possible to find a supportZ(v) then v can be removed from z
     supportZ::Array{StateObject{Int}, 1}
     zMin::StateObject{Int}
     zMax::StateObject{Int}
@@ -54,6 +53,11 @@ struct Element1DVar <: Constraint
     end
 end
 
+"""
+    propagate!(constraint::Element1DVar, toPropagate::Set{Constraint}, prunedDomains::CPModification)
+
+`Element1DVar` propagation function.
+"""
 function propagate!(constraint::Element1DVar, toPropagate::Set{Constraint}, prunedDomains::CPModification)
     
     setValue!(constraint.zMin, minimum(constraint.z.domain))
@@ -93,6 +97,9 @@ function fillArray!(dest::Array{Int, 1}, var::AbstractIntVar)
     return i
 end
 
+"""
+    update_support_and_filter!(constraint::Element1DVar, toPropagate::Set{Constraint}, prunedDomains::CPModification)
+"""
 function update_support_and_filter!(constraint::Element1DVar, toPropagate::Set{Constraint}, prunedDomains::CPModification)
     mz = constraint.z.domain.size.value
     my = constraint.y.domain.size.value
@@ -127,7 +134,9 @@ function update_support_and_filter!(constraint::Element1DVar, toPropagate::Set{C
     end
 end
 
-
+"""
+    updateSupportArr!(constraint::Element1DVar, indexYValue::Int, sizeZ::Int)::Bool
+"""
 function updateSupportArr!(constraint::Element1DVar, indexYValue::Int, sizeZ::Int)::Bool
     
     # Return true if the support of the array[indexYValue] is still valid or if we find a new valid support, otherwise return false
@@ -146,7 +155,9 @@ function updateSupportArr!(constraint::Element1DVar, indexYValue::Int, sizeZ::In
     end
 end
 
-
+"""
+    updateSupportZ!(constraint::Element1DVar, valueZ::Int, indexValueZ::Int, sizeY::Int, indicesYValuesKept)::Bool
+"""
 function updateSupportZ!(constraint::Element1DVar, valueZ::Int, indexValueZ::Int, sizeY::Int, indicesYValuesKept)::Bool
     if in(constraint.supportZ[indexValueZ], constraint.y.domain) && in(valueZ, constraint.array[constraint.supportZ[indexValueZ]].domain)
         return true
