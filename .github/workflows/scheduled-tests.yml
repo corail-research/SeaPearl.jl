@@ -54,11 +54,11 @@ jobs:
             prefix=$(basename "$xml_file" | awk -F "-" '{print $1}')
 
             # Check if the prefix count exceeds three
-            if [[ ${prefix_count[$prefix]} -lt 3 ]]; then
+            if [[ ${prefix_count[$prefix]} -lt 1 ]]; then
                 # Process the XML file (replace with your desired command)
                 echo "Processing $xml_file"
                 # Run the Julia file and handle any errors
-                julia --project src/argparse_setting.jl -b "$xml_file" -t 900 |& tee -a test_output.txt
+                julia --project src/argparse_setting.jl -b "$xml_file" -t 600 |& tee -a test_output.txt
                 exit_code=$?
 
                 if [ $exit_code -ne 0 ]; then
