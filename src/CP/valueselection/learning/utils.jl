@@ -155,10 +155,16 @@ function set_metrics!(PHASE::T, lh::LearnedHeuristic, model::CPModel, symbol::Un
 end
 
 function wears_mask(valueSelection::LearnedHeuristic) 
-    if (hasfield(typeof(valueSelection.agent.policy.learner.approximator),:actor))
-        wears_mask(valueSelection.agent.policy.learner.approximator.actor)      #A2C
+    if (hasfield(typeof(valueSelection.agent.policy),:learner))
+        if (hasfield(typeof(valueSelection.agent.policy.learner.approximator),:actor))
+            wears_mask(valueSelection.agent.policy.learner.approximator.actor)      #A2C
+        else
+            wears_mask(valueSelection.agent.policy.learner.approximator.model)              #DQN
+        end
     else
-        wears_mask(valueSelection.agent.policy.learner.approximator.model)              #DQN
+        if (hasfield(typeof(valueSelection.agent.policy.approximator),:actor))
+            wears_mask(valueSelection.agent.policy.approximator.actor)      #A2C
+        end
     end
 end
 

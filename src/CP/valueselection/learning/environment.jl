@@ -57,3 +57,27 @@ end
 function Array(state::T) where {T<:NonTabularTrajectoryState}
     state
 end
+
+(p::PPOPolicy)(env::AbstractCPEnv{ST}) where {ST <: NonTabularTrajectoryState} = rand.(p.rng, prob(p, env))[1]
+
+function RLBase.prob(p::PPOPolicy, env::AbstractCPEnv{ST}) where {ST <: NonTabularTrajectoryState}
+    s = state(env)
+    mask =  ActionStyle(env) === FULL_ACTION_SET ? legal_action_space_mask(env) : nothing
+    prob(p, s, mask)
+end
+
+function RLBase.prob(p::PPOPolicy{<:ActorCritic,Categorical}, state::DefaultTrajectoryState, mask)
+    logits = p.approximator.actor(send_to_device(device(p.approximator), state))
+    if !isnothing(mask)
+        logits .+= ifelse.(mask, 0f0, typemin(Float32))
+    end
+    logits = logits |> softmax |> send_to_host
+    if p.update_step < p.n_random_start
+        [
+            Categorical(fill(1 / length(x), length(x)); check_args = false) for
+            x in eachcol(logits)
+        ]
+    else
+        [Categorical(x; check_args = false) for x in eachcol(logits)]
+    end
+end
