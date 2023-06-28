@@ -9,7 +9,9 @@ manually change the mode again if he wants.
 """
 function Flux.testmode!(lh::LearnedHeuristic, mode = true)
     Flux.testmode!(lh.agent, mode)
-    lh.agent.policy.explorer.is_training = !mode
+    if hasproperty(lh.agent.policy, :explorer)
+        lh.agent.policy.explorer.is_training = !mode
+    end
     lh.trainMode = !mode
 end
 
