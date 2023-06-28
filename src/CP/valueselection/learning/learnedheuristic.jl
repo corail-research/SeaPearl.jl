@@ -67,9 +67,11 @@ function (valueSelection::LearnedHeuristic)(PHASE::Type{EndingPhase}, model::CPM
         valueSelection.agent(RL.POST_EPISODE_STAGE, env)  # let the agent see the last observation
     end
 
-    if isa(valueSelection.agent.policy.learner, A2CLearner) && (device(valueSelection.agent.policy.learner.approximator.actor) != Val{:cpu}())
-        CUDA.reclaim()
-    elseif !isa(valueSelection.agent.policy.learner, A2CLearner) && device(valueSelection.agent.policy.learner.approximator.model) != Val{:cpu}()
-        CUDA.reclaim()
+    if (hasfield(typeof(valueSelection.agent.policy),:learner))
+        if isa(valueSelection.agent.policy.learner, A2CLearner) && (device(valueSelection.agent.policy.learner.approximator.actor) != Val{:cpu}())
+            CUDA.reclaim()
+        elseif !isa(valueSelection.agent.policy.learner, A2CLearner) && device(valueSelection.agent.policy.learner.approximator.model) != Val{:cpu}()
+            CUDA.reclaim()
+        end
     end
 end

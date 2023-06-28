@@ -102,7 +102,16 @@ function (metrics::BasicMetrics{TakeObjective, <:LearnedHeuristic})(model::CPMod
     push!(metrics.scores,copy(model.statistics.objectives))
     total_reward = last_episode_total_reward(metrics.heuristic.agent.trajectory)
     push!(metrics.totalReward,total_reward)
-    push!(metrics.loss,metrics.heuristic.agent.policy.learner.loss)
+
+    loss = nothing
+    if (hasfield(typeof(metrics.heuristic.agent.policy),:learner))
+        loss = metrics.heuristic.agent.policy.learner.loss
+        
+    elseif (isa(metrics.heuristic.agent.policy, PPOPolicy))
+        loss = metrics.heuristic.agent.policy.loss[end]
+    end
+    push!(metrics.loss, loss)
+    return
     return
 end 
 
