@@ -96,8 +96,22 @@ function parse_intension_expression(str_constraint::AbstractString, variables::D
             new_var = model.variables[new_var.id]
         end
 
-        constraint = arithmetic_operators[operator]
-        SeaPearl.addConstraint!(model, constraint(var1, var2, new_var, trailer))
+        # Do not add constraint if add(x,k), sub(x,k), mul(x,k) with k Integer
+        if isa(var1, Int) || isa(var2, Int)
+            if !(operator in ["add", "sub", "mul"])
+                if isa(var1, Int)
+                    var1 = SeaPearl.IntVar(var1, var1, string(var1), trailer)
+                else
+                    var2 = SeaPearl.IntVar(var2, var2, string(var2), trailer)
+                end
+                constraint = arithmetic_operators[operator]
+                SeaPearl.addConstraint!(model, constraint(var1, var2, new_var, trailer))
+            end
+        else
+            constraint = arithmetic_operators[operator]
+            SeaPearl.addConstraint!(model, constraint(var1, var2, new_var, trailer))
+        end
+        
         return new_var
     end
 end
@@ -105,7 +119,7 @@ end
 """
     create_arithmetic_variable(x::SeaPearl.AbstractIntVar, y::SeaPearl.AbstractIntVar, operator::String, trailer::SeaPearl.Trailer)
 
-Create a new variable from the arithmetic operation of two variables
+Create a new variable from the arithmetic operation of two variables : x operator y
 """
 function create_arithmetic_variable(x::SeaPearl.AbstractIntVar, y::SeaPearl.AbstractIntVar, operator::String, trailer::SeaPearl.Trailer)
     xMin = minimum(x.domain)
@@ -142,5 +156,88 @@ function create_arithmetic_variable(x::SeaPearl.AbstractIntVar, y::SeaPearl.Abst
     if operator == "dist"
         zMin, zMax = SeaPearl.distanceBounds!(xMin, xMax, yMin, yMax)
         return SeaPearl.IntVar(zMin, zMax, "|" * x.id * "-" * y.id * "|", trailer)
+    end
+end
+
+"""
+    create_arithmetic_variable(x::SeaPearl.AbstractIntVar, k::Int, operator::String, trailer::SeaPearl.Trailer)
+
+Create a new variable from the arithmetic operation of one variable x and one integer k : x operator k
+"""
+function create_arithmetic_variable(x::SeaPearl.AbstractIntVar, k::Int, operator::String, trailer::SeaPearl.Trailer)
+    xMin = minimum(x.domain)
+    xMax = maximum(x.domain)
+
+    if operator == "add"
+        return SeaPearl.IntVarViewOffset(x, k, "(" * x.id * "+$k)")
+    end
+
+    if operator == "sub"
+        return SeaPearl.IntVarViewOffset(x, -k, "(" * x.id * "-$k)")
+    end
+
+    if operator == "mul"
+        if k >= 0
+            return SeaPearl.IntVarViewMul(x, k, "($k*" * x.id * ")")
+        else
+            return SeaPearl.IntVarViewMul(Seapearl.IntVarViewOpposite(x, "-"* x.id), -k, "($k" * x.id * ")")
+        end
+    end
+
+    if operator == "div"
+        zMin, zMax = SeaPearl.divBounds!(xMin, xMax, k, k)
+        return SeaPearl.IntVar(zMin, zMax, "(" * x.id * "÷$k)", trailer)
+    end
+
+    if operator == "mod"
+        zMin, zMax = SeaPearl.reminderBounds!(xMin, xMax, k, k)
+        return SeaPearl.IntVar(zMin, zMax, "(" * x.id * " mod $k)", trailer)
+    end
+
+    if operator == "dist"
+        zMin, zMax = SeaPearl.distanceBounds!(xMin, xMax, k, k)
+        return SeaPearl.IntVar(zMin, zMax, "|" * x.id * "-$k|", trailer)
+    end
+end
+
+
+"""
+    create_arithmetic_variable(k::Int, x::SeaPearl.AbstractIntVar, operator::String, trailer::SeaPearl.Trailer)
+
+Create a new variable from the arithmetic operation of one integer k and one variable x : k operator x
+"""
+function create_arithmetic_variable(k::Int, x::SeaPearl.AbstractIntVar, operator::String, trailer::SeaPearl.Trailer)
+    xMin = minimum(x.domain)
+    xMax = maximum(x.domain)
+
+    if operator == "add"
+        return SeaPearl.IntVarViewOffset(x, k, "(" * x.id * "+$k)")
+    end
+
+    if operator == "sub"
+        return SeaPearl.IntVarViewOffset(Seapearl.IntVarViewOpposite(x, "-"* x.id), k, "($k-" * x.id * ")")
+    end
+
+    if operator == "mul"
+        if k >= 0
+            return SeaPearl.IntVarViewMul(x, k, "($k*" * x.id * ")")
+        else
+            return SeaPearl.IntVarViewMul(Seapearl.IntVarViewOpposite(x, "-"* x.id), -k, "($k*" * x.id * ")")
+        end
+    end
+
+    if operator == "div"
+        zMin, zMax = SeaPearl.divBounds!(k, k, xMin, xMax)
+        return SeaPearl.IntVar(zMin, zMax, "($k÷" * x.id * ")", trailer)
+    end
+
+    if operator == "mod"
+        zMin, zMax = SeaPearl.reminderBounds!(k, k, xMin, xMax)
+        return SeaPearl.IntVar(zMin, zMax, "($k mod " * x.id * ")", trailer)
+    end
+
+    if operator == "dist"
+        zMin, zMax = SeaPearl.distanceBounds!(k, k, xMin, xMax)
+        return SeaPearl.IntVar(zMin, zMax, "|$k-" * x.id * "|", trailer)
     end
 end
