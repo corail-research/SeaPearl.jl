@@ -3,7 +3,21 @@ import ArgParse.@add_arg_table
 import ArgParse.parse_args
 
 using Random
+using JSON 
 
+function read_parameters(file_path)
+    parameters = nothing
+    try
+        file = open(file_path, "r")
+        json_data = read(file, String)
+        close(file)
+        parameters = JSON.parse(json_data)
+    catch e
+        error("Error reading parameter file: $e")
+    end
+
+    return parameters
+end
 
 include_time = @elapsed begin 
     include("using_seapearl.jl")
@@ -20,7 +34,7 @@ function parse_commandline()
         "--bench_name", "-b"
             help = "name of the file conataining the XCSP instance to solve"
             arg_type = String
-            required = true
+            required = false
         "--strat"
             help = "name of the search strategy to use, must be in ('dfs' 'dfwbs' 'ilds_d2' 'ilds_d5' 'ilds_d10' 'ilds_d20')"
             arg_type = String
@@ -50,6 +64,11 @@ function parse_commandline()
             arg_type = Int
             default = Base.Sys.CPU_THREADS
             required = false
+        "--path_json", "-j"
+            help = "use a json file to set the parameters"
+            arg_type = String
+            default = nothing
+            required = false
     end
     return parse_args(s)
 end
@@ -60,14 +79,25 @@ function main()
     """
     parsed_args = parse_commandline()
 
-    bench_name = parsed_args["bench_name"]
-    strat = parsed_args["strat"]
-    random_seed = parsed_args["random_seed"]
-    time_limit = parsed_args["time_limit"]
-    memory_limit = parsed_args["memory_limit"]
-    nb_core = parsed_args["nb_core"]
-    csv_path = parsed_args["csv_path"]
-
+    if !isnothing(parsed_args["path_json"])
+        parameters = read_parameters(parsed_args["path_json"])
+        
+        bench_name = parameters["bench_name"]
+        strat = parameters["strat"]
+        random_seed = parameters["random_seed"]
+        time_limit = parameters["time_limit"]
+        memory_limit = parameters["memory_limit"]
+        nb_core = parameters["nb_core"]
+        csv_path = parameters["csv_path"]
+    else
+        bench_name = parsed_args["bench_name"]
+        strat = parsed_args["strat"]
+        random_seed = parsed_args["random_seed"]
+        time_limit = parsed_args["time_limit"]
+        memory_limit = parsed_args["memory_limit"]
+        nb_core = parsed_args["nb_core"]
+        csv_path = parsed_args["csv_path"]
+    end
 
     if strat == "dfs"
         strat = SeaPearl.DFSearch()
