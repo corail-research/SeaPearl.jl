@@ -127,6 +127,8 @@ function main()
 
     Random.seed!(random_seed)
 
+    memory_limit += Int(ceil(Base.gc_total_bytes(Base.gc_num())/2^20))
+    
     model = SeaPearl.solve_XCSP3_instance(bench_name, strat, time_limit, memory_limit, save_performance, csv_path, include_time)
 end
 
