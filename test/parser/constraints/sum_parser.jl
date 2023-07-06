@@ -27,7 +27,7 @@
         model, trailer, dict_var = SeaPearl.parse_xml_file(filename)
 
         # Test whether the constraints have been correctly added to the model
-        @test length(model.constraints) == 4
+        @test length(model.constraints) == 5
         @test isa(model.constraints[1], SeaPearl.SumLessThan)
         
         # Test whether the number of variables in the AllDifferent constraint matches the total number of variables in the arrays
@@ -39,6 +39,25 @@
         
         # Test whether the domains of the variables in the AllDifferent constraint match the domains specified in the XML file
         for var in model.constraints[1].x
+            @test SeaPearl.minimum(var.domain) == -1
+            @test SeaPearl.maximum(var.domain) == 1
+        end
+    end
+
+    @testset "sum_coeff" begin
+        filename = "test/parser/constraints/data/sum/sum_coeff.xml"
+    
+        model, trailer, dict_var = SeaPearl.parse_xml_file(filename)
+    
+        # Test whether the constraints have been correctly added to the model
+        @test length(model.constraints) == 24
+        @test isa(model.constraints[1], SeaPearl.Multiplication)
+        
+        # Test whether the number of variables in sum constraint matches the total number of variables in the arrays
+        @test length(model.constraints[end].x) == 21
+        
+        # Test whether the domains of the variables in the AllDifferent constraint match the domains specified in the XML file
+        for var in model.constraints[18].x[1:end-1]
             @test SeaPearl.minimum(var.domain) == -1
             @test SeaPearl.maximum(var.domain) == 1
         end
