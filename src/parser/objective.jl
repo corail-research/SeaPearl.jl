@@ -13,7 +13,7 @@ function parse_objective_function(objective_node::XML.Node, variables::Dict{Stri
         
         type, id, tag = get_objective_info(obj_func, idx)
         
-        objective_variables = get_objective_variables(obj_func, variables)
+        objective_variables = get_objective_variables(obj_func, variables, model, trailer)
 
         if isnothing(type)
             objective_var = objective_variables[1]
@@ -57,7 +57,7 @@ function get_objective_info(obj_function::XML.Node, index::Int)
 end
 
 
-function get_objective_variables(obj_function::XML.Node, variables::Dict{String, Any})
+function get_objective_variables(obj_function::XML.Node, variables::Dict{String, Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
     list_node = find_element(obj_function, "list")
 
     if isnothing(list_node)
@@ -71,7 +71,7 @@ function get_objective_variables(obj_function::XML.Node, variables::Dict{String,
 
         if !isnothing(coeffs_node)
             str_coeffs = get_node_string(coeffs_node)
-            objective_variables = get_constraint_variables_expression(str_list, str_coeffs, variables)
+            objective_variables = get_constraint_variables_expression(str_list, str_coeffs, variables, model, trailer)
 
         else
             objective_variables = get_constraint_variables(str_list, variables)

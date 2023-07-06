@@ -45,7 +45,7 @@
     end
 
     @testset "sum_coeff" begin
-        filename = "test/parser/constraints/data/sum/sum_coeff.xml"
+        filename = "./parser/constraints/data/sum/sum_coeff.xml"
     
         model, trailer, dict_var = SeaPearl.parse_xml_file(filename)
     
