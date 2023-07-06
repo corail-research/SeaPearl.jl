@@ -14,10 +14,10 @@ function get_node_string(x::Node)
 end
 
 function is_digit(str::AbstractString)
-    for i in length(str)
+    for i = 1:length(str)
         c = str[i]
         if !isdigit(c)
-            if i == 0 && c == '-'
+            if i == 1 && c == '-'
                 continue
             else
                 return false

@@ -49,13 +49,13 @@ function parse_group(group::Node, variables::Dict{String, Any}, model::SeaPearl.
         condition_pattern = get_node_string(find_element(constraint_node, "condition"))
         list_pattern = get_node_string(find_element(constraint_node, "list"))
         if isnothing(find_element(constraint_node, "coeffs"))
-            str_coeffs = ""
+            coeffs_pattern = ""
         else 
-            str_coeffs = get_node_string(find_element(constraint_node, "coeffs"))
+            coeffs_pattern = get_node_string(find_element(constraint_node, "coeffs"))
         end
 
         for constraint_variables in args_nodes
-            str_condition, str_list = fill_sum_patterns!(condition_pattern, list_pattern, constraint_variables, variables)
+            str_condition, str_list, str_coeffs = fill_sum_patterns!(condition_pattern, list_pattern, coeffs_pattern, constraint_variables, variables)
 
             parse_sum_constraint_expression(str_condition, str_list, str_coeffs, variables, model, trailer)
         end
@@ -149,26 +149,22 @@ end
 
 Fill the condition and list pattern with the variables of the constraint_variables node.
 """
-function fill_sum_patterns!(condition_pattern::AbstractString, list_pattern::AbstractString, constraint_variables::Node, variables::Dict{String, Any})
+function fill_sum_patterns!(condition_pattern::AbstractString, list_pattern::AbstractString, coeffs_pattern::AbstractString, constraint_variables::Node, variables::Dict{String, Any})
     str_vars = get_node_string(constraint_variables)
 
     str_vars_split = split(str_vars, " ")
 
     new_str_var_split = get_complete_str_variable_vector(str_vars_split, variables)
 
-    index_bool = [true for var in new_str_var_split]
+    var_bool = [false for var in new_str_var_split]
+    pattern_bool = [false, false, false]
 
-    new_condition_pattern = replace_percent_v2!(condition_pattern, new_str_var_split, index_bool, false)
-    new_list_pattern = replace_percent_v2!(list_pattern, new_str_var_split, index_bool, false)
-
-    if isnothing(new_condition_pattern)
-        new_condition_pattern = replace_percent_v2!(condition_pattern, new_str_var_split, index_bool, true)
+    while !all(pattern_bool)
+        condition_pattern = replace_percent_v2!(condition_pattern, new_str_var_split, var_bool, pattern_bool, 1)
+        list_pattern = replace_percent_v2!(list_pattern, new_str_var_split, var_bool, pattern_bool, 2)
+        coeffs_pattern = replace_percent_v2!(coeffs_pattern, new_str_var_split, var_bool, pattern_bool, 3)
     end
-    if isnothing(new_list_pattern)
-        new_list_pattern = replace_percent_v2!(list_pattern, new_str_var_split, index_bool, true)
-    end
-
-    return new_condition_pattern, new_list_pattern
+    return condition_pattern, list_pattern, coeffs_pattern
 end
 
 
@@ -184,7 +180,6 @@ function get_complete_str_variable_vector(str_variable_vector::Vector{<:Abstract
             push!(new_str_variable_vector, get_all_str_variables(str_var, dimensions)...)
         end
     end
-
     return new_str_variable_vector
 end
 
@@ -198,26 +193,38 @@ function replace_percent!(str_pattern::AbstractString, str_variable_vector::Vect
     return string(split(filled_pattern, " %")[1])
 end
 
-function replace_percent_v2!(str_pattern::AbstractString, str_variable_vector::Vector{<:AbstractString}, index_bool::Vector{<:Bool}, last_pattern::Bool=true)
-    if !occursin("%", str_pattern)
+function replace_percent_v2!(str_pattern::AbstractString, str_variable_vector::Vector{<:AbstractString}, var_bool::Vector{<:Bool}, pattern_bool::Vector{<:Bool}, pattern_index::Int)
+    #Pattern is already filled
+    if pattern_bool[pattern_index]
         return str_pattern
     end
+
+    # No percent, no need to fill
+    if !occursin("%", str_pattern)
+        pattern_bool[pattern_index] = true
+        return str_pattern
+    end
+
+    #fill with the remained variables only if all other pattern have been filled 
     if str_pattern == "%..."
-        if last_pattern
-            return join([x for (x, y) in zip(str_variable_vector, index_bool) if y], " ")
+        if count(pattern_bool) == (length(pattern_bool)-1)
+            pattern_bool[pattern_index] = true
+            return join([x for (x, y) in zip(str_variable_vector, var_bool) if !y], " ")
         else
-            return nothing 
+            return str_pattern
         end
     end
 
+    # Fill when there %i 
     filled_pattern = str_pattern
     for (i, var) in enumerate(reverse(str_variable_vector))
         reverse_i = length(str_variable_vector) - i + 1
         if occursin("%" * string(reverse_i-1), filled_pattern)
-            index_bool[reverse_i] = false
+            var_bool[reverse_i] = true
         end
         filled_pattern = replace(filled_pattern, "%" * string(reverse_i-1) => string(var))
     end
+    pattern_bool[pattern_index] = true
     return string(split(filled_pattern, " %")[1])
 
 end

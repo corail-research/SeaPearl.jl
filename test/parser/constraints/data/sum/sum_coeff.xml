@@ -6,32 +6,31 @@
     <var id="z"> 0..10 </var>
   </variables>
   <constraints>
-    
+
     <group>
       <sum>
-        <list> %... </list>
-        <condition> (lt,-2) </condition>
+        <list> x[] </list>
+        <coeffs> %... </coeffs>
+        <condition> (le,%0) </condition>
       </sum>
-      <args> x[0..5] </args>
-      <args> x[6..15] </args>
+      <args> z y[] </args>
     </group>
 
     <group>
       <sum>
         <list> %... </list>
-        <condition> (ge,z) </condition>
+        <coeffs> %6 %3 %1 </coeffs>
+        <condition> (le,%0) </condition>
       </sum>
-      <args> y[] x[] </args>
-      <args> x[6..15] y[2..7]</args>
+      <args> x[1..4] y[2..3] z </args>
     </group>
 
-    <group>
-      <sum>
-        <list> %... </list>
-        <condition> (ge,%0) </condition>
-      </sum>
-      <args> y[] x[] </args>
-    </group>
+    <sum>
+        <list> x[1..3] y[] </list>
+        <coeffs> 2x4 7x16 </coeffs>
+        <condition> (ne,z) </condition>
+    </sum>
+      
     
   </constraints>
 </instance>

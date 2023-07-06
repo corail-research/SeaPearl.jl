@@ -39,7 +39,7 @@ end
 Parse a sum constraint expression
 """
 function parse_sum_constraint_expression(str_relation::String, str_list::String, str_coeffs::String, variables::Dict{String, Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
-    constraint_variables = get_constraint_variables_expression(str_list, str_coeffs, variables)
+    constraint_variables = get_constraint_variables_expression(str_list, str_coeffs, variables, model, trailer)
     operator, operand = get_relation_sum_expression(str_relation, variables)
 
     if operator == "ne"
@@ -93,11 +93,14 @@ function parse_notEqual_sum_expression(operand::Any, constraint_variables::Vecto
 end
 
 
-function get_constraint_variables_expression(str_list::AbstractString, str_coeffs::AbstractString, variables::Dict{String, Any})
+function get_constraint_variables_expression(str_list::AbstractString, str_coeffs::AbstractString, variables::Dict{String, Any}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
     constraint_variables = SeaPearl.AbstractIntVar[]
     list_var = get_constraint_variables(str_list, variables)
-    list_coeff = get_coefficients_expression(str_coeffs, length(list_var))
-
+    if str_coeffs == ""
+        return list_var
+    end
+    
+    list_coeff = get_coefficients_expression(str_coeffs, variables)
     if length(list_var) == length(list_coeff)
         for i in 1:length(list_var)
             var = list_var[i]
@@ -105,18 +108,25 @@ function get_constraint_variables_expression(str_list::AbstractString, str_coeff
                 push!(constraint_variables, var)
             else
                 coeff = list_coeff[i]
-                id = string(coeff) * string(var.id)
-                if coeff > 0 
-                    var_mul = SeaPearl.IntVarViewMul(var, coeff, id)
-                elseif coeff == 0 
-                    continue
-                else
-                    var_opposite = SeaPearl.IntVarViewOpposite(var, "-" * string(var.id))
-                    var_mul = SeaPearl.IntVarViewMul(var_opposite, -coeff, id)
+                if isa(coeff, SeaPearl.AbstractIntVar)
+                    new_var_min, new_var_max = mulBounds!(minimum(var.domain), maximum(var.domain), minimum(coeff.domain), maximum(coeff.domain))
+                    new_var = SeaPearl.IntVar(new_var_min, new_var_max, "($(coeff.id) * $(var.id))", trailer)
+                    SeaPearl.addConstraint!(model, SeaPearl.Multiplication(coeff, var, new_var, trailer))
+                    push!(constraint_variables, new_var)
+
+                else 
+                    id = string(coeff) * string(var.id)
+                    if coeff > 0 
+                        var_mul = SeaPearl.IntVarViewMul(var, coeff, id)
+                    elseif coeff == 0 
+                        continue
+                    else
+                        var_opposite = SeaPearl.IntVarViewOpposite(var, "-" * string(var.id))
+                        var_mul = SeaPearl.IntVarViewMul(var_opposite, -coeff, id)
+                    end
+                    push!(constraint_variables, var_mul)
                 end
-                push!(constraint_variables, var_mul)
             end
-            
         end
     else
         error("Numbers of variables and coefficients are not the same")
@@ -124,34 +134,34 @@ function get_constraint_variables_expression(str_list::AbstractString, str_coeff
     return constraint_variables
 end
 
-function get_coefficients_expression(str_coeffs::AbstractString, nb_variables::Int)
+function get_coefficients_expression(str_coeffs::AbstractString, variables::Dict{String, Any})
     coeffs_list = []
-
     # if there are variables but no coeffiecients, by default the coeffs are put to 1
     if str_coeffs == ""
-        for i in 1:nb_variables
-            push!(coeffs_list, 1)
-        end
         return coeffs_list
-    else
-        for str_variable in split(str_coeffs, " ")
-            # Case matrix of coeff : NumberxNumber
-            if occursin("x", str_variable)
-                idx_x = findfirst("x", str_variable)
-                coeff_str = str_variable[1:idx_x[1]-1]
-                coeff = parse(Int64, coeff_str)
-                nb_coef_str = str_variable[idx_x[1]+1:end]
-                nb_coef = parse(Int64, nb_coef_str)
-                coeff_arr = coeff * ones(Int64, nb_coef)
-                push!(coeffs_list, coeff_arr)
-            # Case coeff Number
-            else
-                coeff = parse(Int64, str_variable)
-                push!(coeffs_list, [coeff])
-            end
+    end
+    for str_variable in split(str_coeffs, " ")
+        # Case coeff Number
+        if is_digit(str_variable)
+            coeff = parse(Int64, str_variable)
+            push!(coeffs_list, [coeff])
+        
+        # Case matrix of coeff : NumberxNumber
+        elseif isdigit(str_variable[1])
+            idx_x = findfirst("x", str_variable)
+            coeff_str = str_variable[1:idx_x[1]-1]
+            coeff = parse(Int64, coeff_str)
+            nb_coef_str = str_variable[idx_x[1]+1:end]
+            nb_coef = parse(Int64, nb_coef_str)
+            coeff_arr = coeff * ones(Int64, nb_coef)
+            push!(coeffs_list, coeff_arr)
+            
+        # Case coeff variable
+        else
+            coeff = get_constraint_variables(str_variable, variables)
+            push!(coeffs_list, coeff)
         end
     end
-
     return reduce(vcat, coeffs_list)
 end
 
