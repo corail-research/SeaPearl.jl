@@ -102,6 +102,16 @@ function parse_array_variable(array_variable::Node, model::SeaPearl.CPModel, tra
             end
         end
 
+        # For variables not declared 
+        for idx in CartesianIndices(seapearl_array_var)
+            if seapearl_array_var[idx].id == "default"
+                str_idx = "[" * join([string(idx[i] - 1) for i in 1:length(idx)], "][") * "]"
+                var = SeaPearl.IntVar(0, 0, id * str_idx, trailer)
+                SeaPearl.addVariable!(model, var)
+                seapearl_array_var[idx] = var
+            end            
+        end
+        
     #Same domain for all variables
     else
         domain = parse_variable_domain(raw_domain)
