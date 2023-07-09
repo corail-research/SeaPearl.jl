@@ -9,7 +9,7 @@ using CSV, DataFrames
 - `memory_limit::Union{Nothing, Int}`: the reversible representation of the table.
 
 """
-function solve_XCSP3_instance(file_path::AbstractString; strategy::SearchStrategy=DFSearch(), time_limit::Union{Nothing, Int}=nothing, memory_limit::Union{Nothing, Int}=nothing, save_performance::Bool=false, save_path::AbstractString="", include_time::Float64=0.0)
+function solve_XCSP3_instance(file_path::AbstractString, strategy::SearchStrategy=DFSearch(), time_limit::Union{Nothing, Int}=nothing, memory_limit::Union{Nothing, Int}=nothing, save_performance::Bool=false, save_path::AbstractString="", include_time::Float64=0.0)
 
     solving_time = @elapsed begin 
         
