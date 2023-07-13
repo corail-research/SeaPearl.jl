@@ -1,11 +1,11 @@
 using NNlib: batched_mul
 
 
-abstract type pool end
+abstract type Pool end
 
-struct maxPooling <: pool end
-struct meanPooling <: pool end
-struct sumPooling <: pool end
+struct maxPooling <: Pool end
+struct meanPooling <: Pool end
+struct sumPooling <: Pool end
 
 Flux.@functor sumPooling
 Flux.@functor meanPooling
