@@ -1,4 +1,4 @@
-struct GraphConv{A<:AbstractMatrix,B,G<:pool}
+struct GraphConv{A<:AbstractMatrix,B,G<:Pool}
     weight1::A
     weight2::A
     bias::B
@@ -6,7 +6,7 @@ struct GraphConv{A<:AbstractMatrix,B,G<:pool}
     pool::G
 end
 
-function GraphConv(ch::Pair{Int,Int}, σ=Flux.leakyrelu; init=Flux.glorot_uniform, bias::Bool=true, T::DataType=Float32, pool::pool=sumPooling())
+function GraphConv(ch::Pair{Int,Int}, σ=Flux.leakyrelu; init=Flux.glorot_uniform, bias::Bool=true, T::DataType=Float32, pool::Pool=sumPooling())
     in, out = ch
     W1 = init(out, in)
     W2 = init(out, in)
