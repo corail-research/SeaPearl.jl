@@ -68,7 +68,7 @@ function RLBase.prob(p::PPOPolicy, env::AbstractCPEnv{ST}) where {ST <: NonTabul
     prob(p, s, mask)
 end
 
-function RLBase.prob(p::PPOPolicy{<:ActorCritic,Categorical}, state::DefaultTrajectoryState, mask)
+function RLBase.prob(p::PPOPolicy{<:ActorCritic,Categorical}, state::GraphTrajectoryState, mask)
     logits = p.approximator.actor(send_to_device(device(p.approximator), state))
     if !isnothing(mask)
         logits .+= ifelse.(mask, 0f0, typemin(Float32))
