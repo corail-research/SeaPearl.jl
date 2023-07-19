@@ -457,7 +457,7 @@ function global_domain_cardinality(model::CPModel)
     cardinality = 0
     for (id, x) in model.variables
         cardinality += length(x.domain)
-        if !(isa(x.domain, IntSetDomain) || isa(x, IntVarViewMul))
+        if !(isa(x.domain, IntSetDomain) || isa(x, IntVarViewMul) || isa(x, IntVarViewOpposite) || isa(x, IntVarViewOffset))
             if !isempty(x.children)
                 for child in x.children
                     cardinality += length(child.domain)
