@@ -171,6 +171,26 @@ function removeBelow!(dom::IntDomain, value::Int)
 end
 
 """
+    removeBetween!(dom::IntDomain, min::Int, max::Int)
+
+Remove every integer of `dom` that is *strictly* between `min` and `max`. Return the pruned values.
+"""
+function removeBetween!(dom::IntDomain, min::Int, max::Int)
+    if dom.max.value < max && dom.min.value > min
+        return removeAll!(dom)
+    end
+
+    pruned = Int[]
+    for i in min+1:(max-1)
+        if i in dom
+            remove!(dom, i)
+            push!(pruned, i)
+        end
+    end
+    return pruned
+end
+
+"""
     assign!(dom::IntDomain, value::Int)
 
 Remove everything from the domain but `value`. Return the removed values. Return the pruned values.
