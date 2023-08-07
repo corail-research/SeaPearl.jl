@@ -10,7 +10,7 @@ struct SumLessThan <: Constraint
     numberOfFreeVars    ::StateObject{Int}
     sumOfFixedVars      ::StateObject{Int}
     freeIds             ::Array{Int}
-    function SumLessThan(x::Array{<:AbstractIntVar}, upper::Int,  trailer)
+    function SumLessThan(x::Array{<:AbstractIntVar}, upper::Int, trailer)
         @assert !isempty(x)
 
         freeIds = zeros(length(x))
