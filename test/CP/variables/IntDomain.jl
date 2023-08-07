@@ -97,6 +97,15 @@
         @test removed == [11, 12, 13]
     end
 
+    @testset "removeBetween!()" begin
+        trailer = SeaPearl.Trailer()
+        dom = SeaPearl.IntDomain(trailer, 5, 10)
+
+        removed = SeaPearl.removeBetween!(dom, 11, 14)
+
+        @test removed == [12, 13]
+    end
+
     @testset "updateMinFromRemovedVal!()" begin
         trailer = SeaPearl.Trailer()
         x = SeaPearl.IntVar(5, 10, "x", trailer)
