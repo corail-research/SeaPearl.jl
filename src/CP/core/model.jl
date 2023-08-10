@@ -400,6 +400,9 @@ function reset_model!(model::CPModel)
     model.statistics.numberOfNodesBeforeRestart = 0
     model.statistics.AccumulatedRewardBeforeReset = 0
     model.statistics.AccumulatedRewardBeforeRestart = 0
+    for var in model.variables
+        reset_domain!(var[2].domain)
+    end
 end
 """
 restart_search!(model::CPModel)
